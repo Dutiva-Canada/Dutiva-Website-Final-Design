@@ -1,0 +1,60 @@
+import { ClipboardCheck, MessageSquare, Sparkles } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { SectionIntro } from '../SectionIntro'
+import { useLanding } from '../useLanding'
+import type { LandingMessageKey } from '../useLanding'
+
+interface Step {
+  num: string
+  icon: LucideIcon
+  tone: 'gold' | 'accent'
+  title: LandingMessageKey
+  body: LandingMessageKey
+}
+
+const STEPS: Step[] = [
+  { num: '01', icon: MessageSquare, tone: 'gold', title: 'landing_how1_t', body: 'landing_how1_p' },
+  { num: '02', icon: Sparkles, tone: 'accent', title: 'landing_how2_t', body: 'landing_how2_p' },
+  {
+    num: '03',
+    icon: ClipboardCheck,
+    tone: 'gold',
+    title: 'landing_how3_t',
+    body: 'landing_how3_p',
+  },
+]
+
+export function HowItWorks() {
+  const { lt } = useLanding()
+  return (
+    <section id="how" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 py-16">
+      <SectionIntro
+        badge={lt('landing_how_badge')}
+        title={lt('landing_how_title')}
+        sub={lt('landing_how_sub')}
+      />
+      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+        {STEPS.map((step) => (
+          <div key={step.num} className="premium-card-soft p-7">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="font-display text-[1.5rem] font-bold text-gold-strong">
+                {step.num}
+              </span>
+              <span
+                className={`grid h-11 w-11 place-items-center rounded-xl ${
+                  step.tone === 'gold'
+                    ? 'bg-gold-subtle text-gold-strong'
+                    : 'bg-accent-soft text-accent'
+                }`}
+              >
+                <step.icon size={20} />
+              </span>
+            </div>
+            <div className="text-[1.0625rem] font-semibold text-text">{lt(step.title)}</div>
+            <p className="mt-2 text-[0.9375rem] leading-[1.55] text-text-2">{lt(step.body)}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
