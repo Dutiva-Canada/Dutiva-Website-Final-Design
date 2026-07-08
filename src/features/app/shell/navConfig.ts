@@ -16,7 +16,9 @@ import {
   Waypoints,
 } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
+import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
+import { cases, employeeDetails, employees } from '@/data'
 
 /**
  * Sidebar navigation model — order, grouping, icons and badges verbatim from
@@ -40,13 +42,16 @@ export interface NavGroup {
   items: NavItem[]
 }
 
-/* Sample badge counts — mirror the prototype fixtures (3 workflow runs, 3 open
-   cases, 3 compliance flags, 1 wellbeing signal). Replace with derived counts
-   from '@/data' once the data fixtures land (data agent works in parallel). */
+/* Badge counts — derivations verbatim from the prototype's renderVals()
+   (line ~5150): cases = non-Resolved, wellbeing = employees whose sentiment
+   is trending down (<55). Workflow runs and the compliance count are literals
+   in the prototype too. */
 const WORKFLOWS_BADGE = '3'
-const CASES_BADGE = '3'
+const CASES_BADGE = String(cases.filter((c) => c.status.en !== 'Resolved').length)
 const COMPLIANCE_BADGE = '3'
-const WELLBEING_BADGE = '1'
+const WELLBEING_BADGE = String(
+  Object.values(employeeDetails).filter((d) => d.sentiment < 55).length,
+)
 
 export const NAV_GROUPS: NavGroup[] = [
   {
@@ -124,9 +129,7 @@ export function isNavActive(to: string, pathname: string): boolean {
   return pathname === to || pathname.startsWith(`${to}/`)
 }
 
-/* Topbar / mobile-topbar route titles (prototype `viewLabels`). The employee
-   profile route shows the Employees label for now — the prototype titles it
-   with the person's name, which needs the '@/data' fixtures. */
+/* Topbar / mobile-topbar route titles (prototype `viewLabels`). */
 const VIEW_LABELS: Record<string, Bi> = {
   home: M.shell_v_home,
   advisor: M.shell_v_advisor,
@@ -147,7 +150,14 @@ const VIEW_LABELS: Record<string, Bi> = {
 }
 
 export function viewLabelFor(pathname: string): Bi {
-  const segment = pathname.replace(/^\/app\/?/, '').split('/')[0] ?? ''
+  const parts = pathname.replace(/^\/app\/?/, '').split('/')
+  const segment = parts[0] ?? ''
+  /* The prototype titles the employee-profile route with the person's name
+     (`viewLabels.profile = profileEmp.name`). */
+  if (segment === 'employees' && parts[1]) {
+    const emp = employees.find((e) => e.id === parts[1])
+    if (emp) return bi(emp.name, emp.name)
+  }
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }
 
