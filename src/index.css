@@ -1,0 +1,67 @@
+@import 'tailwindcss';
+
+@import './styles/tokens.css';
+@import './styles/surfaces.css';
+@import './styles/patterns.css';
+@import './styles/animations.css';
+@import './styles/base.css';
+
+/* Map the Dutiva semantic tokens into Tailwind utilities. Because these are
+   `inline` references to CSS variables, utilities like `bg-surface` or
+   `text-text-2` resolve against whichever surface scope (.surface-app /
+   .surface-marketing) and theme they render inside. Exact pixel values from
+   the prototypes that have no token should use arbitrary values (e.g.
+   `rounded-[12px]`), keeping the port pixel-faithful and greppable. */
+@theme inline {
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+
+  /* Shared vocabulary */
+  --color-bg: var(--bg);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-focus: var(--focus);
+
+  /* App-surface vocabulary (App v2 ramp) */
+  --color-desk: var(--desk);
+  --color-inset: var(--inset);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border-soft: var(--border-soft);
+  --color-ink: var(--ink);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-navy: var(--navy);
+  --color-gold-fg: var(--gold-fg);
+  --color-gold-bg: var(--gold-bg);
+  --color-gold-border: var(--gold-border);
+  --color-gold-dot: var(--gold-dot);
+  --color-risk-bg: var(--risk-bg);
+  --color-risk-border: var(--risk-border);
+  --color-risk-fg: var(--risk-fg);
+  --color-risk-dot: var(--risk-dot);
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-border: var(--warn-border);
+  --color-warn-fg: var(--warn-fg);
+  --color-ok-bg: var(--ok-bg);
+  --color-ok-border: var(--ok-border);
+  --color-ok-fg: var(--ok-fg);
+  --color-cite-bg: var(--cite-bg);
+
+  /* Marketing-surface vocabulary (design-system ramp) */
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-soft: var(--bg-soft);
+  --color-bg-softer: var(--bg-softer);
+  --color-border-strong: var(--border-strong);
+  --color-gold: var(--gold);
+  --color-gold-strong: var(--gold-strong);
+  --color-gold-subtle: var(--gold-subtle);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+}
