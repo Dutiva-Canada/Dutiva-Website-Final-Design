@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
+import { SearchOverlay } from '@/features/app/search/SearchOverlay'
+import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
+import { DocStudioOverlay } from '@/features/app/docstudio/DocStudioOverlay'
+import { ToastHost } from '@/features/app/toasts/ToastHost'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { MobileNav, MobileTopbar } from './MobileNav'
@@ -74,15 +78,18 @@ export function AppShell() {
         <div className="relative flex min-w-0 flex-1 flex-col bg-bg">
           {!isMobile && <Topbar title={title} />}
           <div className="relative flex min-h-0 flex-1 flex-col">
-            {/* TODO(integration): overlay hosts (SearchOverlay, AdvisorRail,
-                ToastHost) mount here once their owners land them, so they sit
-                inside the .surface-app token scope. */}
             <Outlet />
           </div>
         </div>
       </div>
 
       {isMobile && <MobileNav drawerOpen={drawerOpen} onOpenDrawer={() => setDrawerOpen(true)} />}
+
+      {/* Overlay hosts — inside the .surface-app token scope. */}
+      <SearchOverlay />
+      <AdvisorRail />
+      <DocStudioOverlay />
+      <ToastHost />
     </div>
   )
 }

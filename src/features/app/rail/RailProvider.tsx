@@ -1,53 +1,82 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { LText } from '@/i18n/core'
+import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import type { AdvisorTurnSpec } from '@/features/app/advisor/types'
-import type { ChatMessage } from '@/features/app/advisor/types'
+import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import { RailContext } from './railContext'
 import type { RailContextMeta, RailState } from './railContext'
 
-const CLOSED: RailState = { open: false, title: '', meta: {}, messages: [] }
-
-/** Canned rail acknowledgement — verbatim from the prototype (`sendRailMessage`). */
-const RAIL_ACK: AdvisorTurnSpec = {
-  text: {
-    en: "Noted — I've logged that against this context. For document generation or a full step-by-step, open this in Advisor Home.",
-    fr: 'Noté — je l’ai consigné dans ce contexte. Pour générer des documents ou obtenir la démarche complète, ouvrez ceci dans l’accueil du Conseiller.',
-  },
+interface RailHead {
+  open: boolean
+  title: LText
+  meta: RailContextMeta
 }
 
-export function RailProvider({ children }: { children: ReactNode }) {
-  const [rail, setRail] = useState<RailState>(CLOSED)
-  const nextId = useRef(1)
+const CLOSED: RailHead = { open: false, title: '', meta: {} }
 
-  const openRail = useCallback((title: LText, spec: AdvisorTurnSpec, meta: RailContextMeta = {}) => {
-    const intro: ChatMessage = {
-      id: `rail-${nextId.current++}`,
-      author: 'assistant',
-      text: spec.text,
-      cards: spec.cards,
-      citations: spec.citations,
-    }
-    setRail({ open: true, title, meta, messages: [intro] })
-  }, [])
+/**
+ * Contextual Advisor rail state — port of the prototype's `openRail` /
+ * `closeRail` / `sendRailMessage`. Assistant turns run through the shared
+ * streaming engine (thinking dots → streamed text → tone cards). Closing
+ * keeps the transcript (prototype behaviour); opening on a new subject
+ * resets it.
+ */
+export function RailProvider({ children }: { children: ReactNode }) {
+  const [head, setHead] = useState<RailHead>(CLOSED)
+  const engine = useAdvisorEngine({ idPrefix: 'rail' })
+  const navigate = useNavigate()
+  const { reset, pushTurn, sendUser } = engine
+
+  const openRail = useCallback(
+    (title: LText, spec: AdvisorTurnSpec, meta: RailContextMeta = {}) => {
+      setHead({ open: true, title, meta })
+      reset()
+      pushTurn(spec)
+    },
+    [reset, pushTurn],
+  )
 
   const closeRail = useCallback(() => {
-    setRail((prev) => ({ ...prev, open: false }))
+    setHead((prev) => (prev.open ? { ...prev, open: false } : prev))
   }, [])
 
-  const sendRailMessage = useCallback((text: string) => {
-    setRail((prev) => {
-      if (!prev.open) return prev
-      const user: ChatMessage = { id: `rail-${nextId.current++}`, author: 'user', text }
-      const ack: ChatMessage = {
-        id: `rail-${nextId.current++}`,
-        author: 'assistant',
-        text: RAIL_ACK.text,
-        streaming: true,
-      }
-      return { ...prev, messages: [...prev.messages, user, ack] }
-    })
-  }, [])
+  const sendRailMessage = useCallback(
+    (text: string) => {
+      const trimmed = text.trim()
+      if (!trimmed || !head.open) return
+      sendUser(trimmed)
+      /* Canned acknowledgement + "Continue in Advisor Home" card — verbatim
+         from the prototype's `sendRailMessage`. */
+      pushTurn({
+        text: M.advisor_rail_ack,
+        cards: [
+          {
+            tone: 'suggestion',
+            title: M.advisor_rail_continue_title,
+            body: M.advisor_rail_continue_body,
+            actions: [
+              {
+                label: M.advisor_rail_open_home,
+                primary: true,
+                onClick: () => {
+                  closeRail()
+                  navigate('/app/advisor')
+                },
+              },
+            ],
+          },
+        ],
+      })
+    },
+    [head.open, sendUser, pushTurn, closeRail, navigate],
+  )
+
+  const rail = useMemo<RailState>(
+    () => ({ open: head.open, title: head.title, meta: head.meta, messages: engine.messages }),
+    [head, engine.messages],
+  )
 
   const value = useMemo(
     () => ({ rail, openRail, closeRail, sendRailMessage }),

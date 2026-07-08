@@ -6,7 +6,10 @@ import { bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { useSearch } from '@/features/app/search/searchContext'
-import { useRail } from '@/features/app/rail/railContext'
+import {
+  useAskAdvisorBriefing,
+  railViewKeyFromPathname,
+} from '@/features/app/rail/useAskAdvisorBriefing'
 import { LangToggle, ThemeToggle } from './ShellControls'
 import { cx } from './cx'
 
@@ -64,7 +67,7 @@ const SAMPLE_NOTIFICATIONS: NotificationItem[] = [
 export function Topbar({ title }: { title: string }) {
   const { x } = useI18n()
   const { openSearch } = useSearch()
-  const { openRail } = useRail()
+  const askAdvisor = useAskAdvisorBriefing()
   const { pathname } = useLocation()
 
   const [notifications, setNotifications] = useState(SAMPLE_NOTIFICATIONS)
@@ -72,9 +75,7 @@ export function Topbar({ title }: { title: string }) {
   const hasUnread = notifications.some((n) => n.unread)
   const markAllRead = () => setNotifications((list) => list.map((n) => ({ ...n, unread: false })))
 
-  /* The prototype hides "Ask Advisor" on the Advisor view itself. Per-view rail
-     briefings (`openRailGeneral` byView map) belong to the rail feature — the
-     shell opens the generic fallback for now. */
+  /* The prototype hides "Ask Advisor" on the Advisor view itself. */
   const showAskAdvisor = !pathname.startsWith('/app/advisor')
 
   return (
@@ -84,7 +85,7 @@ export function Topbar({ title }: { title: string }) {
         {showAskAdvisor && (
           <button
             type="button"
-            onClick={() => openRail(M.shell_v_advisor, { text: M.shell_rail_fallback_text })}
+            onClick={() => askAdvisor(railViewKeyFromPathname(pathname))}
             className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border border-gold-border bg-gold-bg px-[14px] py-[8px] text-[13.5px] font-semibold whitespace-nowrap text-gold-fg"
           >
             <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" />

@@ -1,6 +1,9 @@
 import { common } from './common'
 import { shellMessages } from './shell'
 import { landing } from './landing'
+import { advisorCore } from './advisorCore'
+import { searchMessages } from './search'
+import { docstudioMessages } from './docstudio'
 
 /**
  * Merged message catalogue. Each feature contributes one module keyed by
@@ -12,6 +15,9 @@ export const messages = {
   ...common,
   ...shellMessages,
   ...landing,
+  ...advisorCore,
+  ...searchMessages,
+  ...docstudioMessages,
 } as const
 
 export type MessageKey = keyof typeof messages

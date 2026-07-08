@@ -6,8 +6,14 @@ import type { LText } from '@/i18n/core'
  * spec shape of the prototype (`pushAdvisorTurn` / `openRail` in App v2).
  */
 
-/** Tone ramp for embedded cards: risk (red), warning (amber), suggestion/info (gold). */
-export type CardTone = 'risk' | 'warning' | 'suggestion' | 'info'
+/**
+ * Tone ramp for embedded cards: risk (red), warning (amber), suggestion/info
+ * (gold/accent), success (green — e.g. the "Escalation logged" card).
+ */
+export type CardTone = 'risk' | 'warning' | 'suggestion' | 'info' | 'success'
+
+/** Assistant reply lifecycle (prototype `runMessageLifecycle`). */
+export type MessageStatus = 'thinking' | 'streaming' | 'done' | 'error'
 
 export interface ToneCardAction {
   label: LText
@@ -23,6 +29,8 @@ export interface ToneCardData {
   tone: CardTone
   title: LText
   body: LText
+  /** Optional "Confidence:" line under the body (prototype `card.confidence`). */
+  confidence?: LText
   citations?: Citation[]
   actions?: ToneCardAction[]
 }
@@ -30,16 +38,39 @@ export interface ToneCardData {
 /** One assistant reply: streamed text plus optional embedded cards/citations. */
 export interface AdvisorTurnSpec {
   text: LText
+  /** Reasoning trace lines, collapsed behind the "Reasoning" expander. */
+  reasoning?: LText[]
   cards?: ToneCardData[]
   citations?: Citation[]
+  /** Simulated failure: the turn thinks, then lands in the error + retry state. */
+  isError?: boolean
+  /** Error bubble copy (defaults to the shared connection-issue message). */
+  errorText?: LText
+  /** Text the turn streams after a successful retry. */
+  retryText?: LText
 }
 
 export interface ChatMessage {
   id: string
   author: 'user' | 'assistant'
   text: LText
+  /** Structured user answers rendered as chips (prototype quick-form submits). */
+  userChips?: LText[]
+  /** Advisor reasoning trace lines. */
+  reasoning?: LText[]
   cards?: ToneCardData[]
   citations?: Citation[]
-  /** True while the assistant reply is still streaming in. */
+  /**
+   * Reply lifecycle, managed by `useAdvisorEngine`. Absent means "done"
+   * (seeded transcripts from fixtures never stream).
+   */
+  status?: MessageStatus
+  /** Characters revealed so far, measured against the longest localization. */
+  streamedLen?: number
+  /** True while the assistant reply is still streaming in (mirrors `status`). */
   streaming?: boolean
+  /** Error bubble copy shown when `status === 'error'`. */
+  errorText?: LText
+  /** Replacement text streamed after a retry. */
+  retryText?: LText
 }

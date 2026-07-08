@@ -1,0 +1,166 @@
+import { useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import type { LText } from '@/i18n/core'
+import { advisorCore as M } from '@/i18n/messages/advisorCore'
+import type { AdvisorTurnSpec } from '@/features/app/advisor/types'
+import { cases } from '@/data'
+import { useRail } from './railContext'
+
+/**
+ * Per-view "Ask Advisor" briefings — the port of the prototype's
+ * `openRailGeneral()` byView map. The topbar's Ask Advisor button calls the
+ * returned function with the active view key; the rail opens with that view's
+ * canned Advisor summary and tone cards, whose actions really navigate
+ * (chat ids resolve to case routes via the `cases` fixtures' `chatId`).
+ */
+
+/** Resolve a prototype chat id ('c1' …) to its case-detail route. */
+function caseRouteForChat(chatId: string): string {
+  const match = cases.find((c) => c.chatId === chatId)
+  return match ? `/app/cases/${match.id}` : '/app/cases'
+}
+
+/** First path segment under /app — the briefing key for a location. */
+export function railViewKeyFromPathname(pathname: string): string {
+  const match = /^\/app\/([^/]+)/.exec(pathname)
+  return match?.[1] ?? ''
+}
+
+interface Briefing {
+  title: LText
+  spec: AdvisorTurnSpec
+}
+
+export function useAskAdvisorBriefing(): (viewKey: string) => void {
+  const { openRail, closeRail } = useRail()
+  const navigate = useNavigate()
+
+  return useCallback(
+    (viewKey: string) => {
+      const go = (to: string) => () => {
+        closeRail()
+        navigate(to)
+      }
+
+      const byView: Record<string, Briefing> = {
+        employees: {
+          title: M.advisor_brief_title_employees,
+          spec: {
+            text: M.advisor_brief_employees_text,
+            cards: [
+              {
+                tone: 'risk',
+                title: M.advisor_brief_employees_risk_title,
+                body: M.advisor_brief_employees_risk_body,
+                actions: [
+                  {
+                    label: M.advisor_action_open_case,
+                    primary: true,
+                    onClick: go(caseRouteForChat('c1')),
+                  },
+                ],
+              },
+              {
+                tone: 'warning',
+                title: M.advisor_brief_employees_warn_title,
+                body: M.advisor_brief_employees_warn_body,
+                actions: [
+                  { label: M.advisor_action_view_compliance, onClick: go('/app/compliance') },
+                ],
+              },
+            ],
+          },
+        },
+        compliance: {
+          title: M.advisor_brief_title_compliance,
+          spec: {
+            text: M.advisor_brief_compliance_text,
+            cards: [
+              {
+                tone: 'risk',
+                title: M.advisor_brief_compliance_card_title,
+                body: M.advisor_brief_compliance_card_body,
+                actions: [
+                  {
+                    label: M.advisor_action_open_case,
+                    primary: true,
+                    onClick: go(caseRouteForChat('c1')),
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        policies: {
+          title: M.advisor_brief_title_policies,
+          spec: {
+            text: M.advisor_brief_policies_text,
+            cards: [
+              {
+                tone: 'warning',
+                title: M.advisor_brief_policies_card_title,
+                body: M.advisor_brief_policies_card_body,
+                /* The prototype opens the Remote Work Policy draft in Document
+                   Studio; the studio lives in the templates view. */
+                actions: [
+                  {
+                    label: M.advisor_action_draft_refresh,
+                    primary: true,
+                    onClick: go('/app/templates'),
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        tasks: {
+          title: M.advisor_brief_title_tasks,
+          spec: {
+            text: M.advisor_brief_tasks_text,
+            cards: [
+              {
+                tone: 'suggestion',
+                title: M.advisor_brief_tasks_card_title,
+                body: M.advisor_brief_tasks_card_body,
+                actions: [
+                  {
+                    label: M.advisor_action_open_case,
+                    primary: true,
+                    onClick: go(caseRouteForChat('c1')),
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        calendar: {
+          title: M.advisor_brief_title_calendar,
+          spec: { text: M.advisor_brief_calendar_text },
+        },
+        reports: {
+          title: M.advisor_brief_title_reports,
+          spec: { text: M.advisor_brief_reports_text },
+        },
+        templates: {
+          title: M.advisor_brief_title_templates,
+          spec: { text: M.advisor_brief_templates_text },
+        },
+        knowledge: {
+          title: M.advisor_brief_title_knowledge,
+          spec: { text: M.advisor_brief_knowledge_text },
+        },
+        settings: {
+          title: M.advisor_brief_title_settings,
+          spec: { text: M.advisor_brief_settings_text },
+        },
+      }
+
+      const content = byView[viewKey] ?? {
+        title: M.advisor_brief_title_fallback,
+        spec: { text: M.advisor_brief_fallback_text },
+      }
+      openRail(content.title, content.spec)
+    },
+    [openRail, closeRail, navigate],
+  )
+}
