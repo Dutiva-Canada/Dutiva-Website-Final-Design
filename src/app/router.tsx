@@ -1,5 +1,6 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom'
 import { LandingPage } from '@/features/marketing/LandingPage'
+import { AppProviders } from '@/features/app/AppProviders'
 import { EntryStage } from '@/features/app/shell/EntryStage'
 import { AppShell } from '@/features/app/shell/AppShell'
 import { appViewRoutes } from './appViews'
@@ -18,7 +19,11 @@ export const router = createBrowserRouter([
   { path: '/app/welcome', element: <EntryStage /> },
   {
     path: '/app',
-    element: <AppShell />,
+    element: (
+      <AppProviders>
+        <AppShell />
+      </AppProviders>
+    ),
     children: [{ index: true, element: <Navigate to="/app/home" replace /> }, ...appViewRoutes],
   },
   { path: '*', element: <Navigate to="/" replace /> },

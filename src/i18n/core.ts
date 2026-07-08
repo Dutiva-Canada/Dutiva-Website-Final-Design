@@ -20,3 +20,15 @@ export function defineMessages<T extends Record<string, Bi>>(messages: T): T {
 export function pick(value: Bi, lang: Lang): string {
   return lang === 'fr' ? value.fr : value.en
 }
+
+/**
+ * Localizable text: either a plain (already-localized or language-neutral)
+ * string, or a bilingual pair. State that outlives a render (rail content,
+ * toasts, chat transcripts) should store `Bi` so a live language toggle
+ * re-localizes it; `pickL` resolves either form.
+ */
+export type LText = string | Bi
+
+export function pickL(value: LText, lang: Lang): string {
+  return typeof value === 'string' ? value : pick(value, lang)
+}
