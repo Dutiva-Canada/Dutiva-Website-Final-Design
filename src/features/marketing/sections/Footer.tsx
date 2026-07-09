@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { LeafTile, Wordmark } from '../Brand'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
@@ -36,19 +37,14 @@ const COMPANY_LINKS: FooterLink[] = [
   { key: 'landing_signin', href: '/app/welcome', app: true },
 ]
 
-/* Every entry routes to the policy reader at /legal/<slug> (content migration). */
+/* The five most-visited policies (content migration); the rest live behind
+   the "View all policies" link to /legal, which indexes all 26. */
 const LEGAL_LINKS: FooterLink[] = [
   { key: 'landing_fl_privacy', href: '/legal/privacy', app: true },
   { key: 'landing_fl_terms', href: '/legal/terms', app: true },
   { key: 'landing_fl_cookie', href: '/legal/cookies', app: true },
   { key: 'landing_fl_disclaimer', href: '/legal/disclaimer', app: true },
   { key: 'landing_fl_access', href: '/legal/accessibility', app: true },
-  { key: 'landing_fl_ai', href: '/legal/ai-technology', app: true },
-  { key: 'landing_fl_dpa', href: '/legal/data-processing-agreement', app: true },
-  { key: 'landing_fl_retention', href: '/legal/data-retention', app: true },
-  { key: 'landing_fl_pipeda', href: '/legal/pipeda-compliance', app: true },
-  { key: 'landing_fl_law25', href: '/legal/quebec-law-25', app: true },
-  { key: 'landing_fl_casl', href: '/legal/casl-compliance', app: true },
 ]
 
 const LINK_CLASS = 'text-sm text-text-2 transition-opacity hover:opacity-80'
@@ -123,9 +119,12 @@ export function Footer() {
           <div>
             <FooterHeading>{lt('landing_foot_legal')}</FooterHeading>
             {renderLinks(LEGAL_LINKS)}
-            {/* Index of all 26 policy documents — the column above is a selection. */}
-            <Link to="/legal" className={`${LINK_CLASS} mt-2.5 block font-semibold`}>
-              {t('legalHub_eyebrow')}
+            <Link
+              to="/legal"
+              className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+            >
+              {t('legalHub_viewAll')}
+              <ArrowRight size={14} />
             </Link>
           </div>
         </div>
