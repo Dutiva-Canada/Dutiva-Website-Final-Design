@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SubmitEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { ArrowRight, CircleCheck, ShieldCheck } from 'lucide-react'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
@@ -181,12 +182,12 @@ export function BetaSignup() {
               </div>
               <p className="m-0 text-xs leading-[1.55] text-text-3">
                 {lt('landing_cta_consent')}{' '}
-                <a
-                  href="/privacy"
+                <Link
+                  to="/legal/privacy"
                   className="font-semibold text-text-2 transition-opacity hover:opacity-80"
                 >
                   {lt('landing_cta_privacy_link')}
-                </a>
+                </Link>
                 {'.'}
               </p>
               <div className="inline-flex items-center gap-2 text-xs text-text-3">

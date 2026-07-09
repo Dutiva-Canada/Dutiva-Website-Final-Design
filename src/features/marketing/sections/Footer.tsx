@@ -10,48 +10,51 @@ interface FooterLink {
   app?: boolean
 }
 
+/* Anchor targets carry a leading '/' so they resolve from the subpages
+   (/about, /legal/…) as well as from the landing page itself. */
 const PRODUCT_LINKS: FooterLink[] = [
-  { key: 'landing_fp_advisor', href: '/advisor' },
-  { key: 'landing_fp_workflows', href: '#workflows' },
-  { key: 'landing_fp_templates', href: '#product' },
-  { key: 'landing_nav_pricing', href: '#pricing' },
-  { key: 'landing_fp_beta', href: '#start' },
+  { key: 'landing_fp_advisor', href: '/#top' },
+  { key: 'landing_fp_workflows', href: '/#workflows' },
+  { key: 'landing_fp_templates', href: '/#product' },
+  { key: 'landing_nav_pricing', href: '/#pricing' },
+  { key: 'landing_fp_beta', href: '/#start' },
 ]
 
 const RESOURCE_LINKS: FooterLink[] = [
-  { key: 'landing_nav_guides', href: '#guides' },
-  { key: 'landing_fr_getstarted', href: '#how' },
-  { key: 'landing_fr_faq', href: '/faq' },
-  { key: 'landing_fr_tmplusage', href: '/template-usage' },
-  { key: 'landing_fr_limits', href: '/known-limitations' },
-  { key: 'landing_fr_blog', href: '/blog' },
+  { key: 'landing_nav_guides', href: '/#guides' },
+  { key: 'landing_fr_getstarted', href: '/#how' },
+  { key: 'landing_fr_faq', href: '/faq', app: true },
+  { key: 'landing_fr_tmplusage', href: '/guides/template-usage', app: true },
+  { key: 'landing_fr_limits', href: '/known-limitations', app: true },
+  { key: 'landing_fr_blog', href: '/blog', app: true },
 ]
 
 const COMPANY_LINKS: FooterLink[] = [
-  { key: 'landing_fc_about', href: '/about' },
-  { key: 'landing_fc_contact', href: '/contact' },
+  { key: 'landing_fc_about', href: '/about', app: true },
+  { key: 'landing_fc_contact', href: 'mailto:support@dutiva.ca' },
   { key: 'landing_fc_openapp', href: '/app/welcome', app: true },
   { key: 'landing_signin', href: '/app/welcome', app: true },
 ]
 
+/* Every entry routes to the policy reader at /legal/<slug> (content migration). */
 const LEGAL_LINKS: FooterLink[] = [
-  { key: 'landing_fl_privacy', href: '/privacy' },
-  { key: 'landing_fl_terms', href: '/terms' },
-  { key: 'landing_fl_cookie', href: '/cookie-policy' },
-  { key: 'landing_fl_disclaimer', href: '/legal-disclaimer' },
-  { key: 'landing_fl_access', href: '/accessibility' },
-  { key: 'landing_fl_ai', href: '/ai-policy' },
-  { key: 'landing_fl_dpa', href: '/data-processing-agreement' },
-  { key: 'landing_fl_retention', href: '/data-retention' },
-  { key: 'landing_fl_pipeda', href: '/pipeda' },
-  { key: 'landing_fl_law25', href: '/quebec-law-25' },
-  { key: 'landing_fl_casl', href: '/casl' },
+  { key: 'landing_fl_privacy', href: '/legal/privacy', app: true },
+  { key: 'landing_fl_terms', href: '/legal/terms', app: true },
+  { key: 'landing_fl_cookie', href: '/legal/cookies', app: true },
+  { key: 'landing_fl_disclaimer', href: '/legal/disclaimer', app: true },
+  { key: 'landing_fl_access', href: '/legal/accessibility', app: true },
+  { key: 'landing_fl_ai', href: '/legal/ai-technology', app: true },
+  { key: 'landing_fl_dpa', href: '/legal/data-processing-agreement', app: true },
+  { key: 'landing_fl_retention', href: '/legal/data-retention', app: true },
+  { key: 'landing_fl_pipeda', href: '/legal/pipeda-compliance', app: true },
+  { key: 'landing_fl_law25', href: '/legal/quebec-law-25', app: true },
+  { key: 'landing_fl_casl', href: '/legal/casl-compliance', app: true },
 ]
 
 const LINK_CLASS = 'text-sm text-text-2 transition-opacity hover:opacity-80'
 
 export function Footer() {
-  const { lt } = useLanding()
+  const { lt, t } = useLanding()
 
   const renderLinks = (links: FooterLink[]) => (
     <div className="grid gap-2.5">
@@ -114,6 +117,10 @@ export function Footer() {
         <div>
           <FooterHeading>{lt('landing_foot_legal')}</FooterHeading>
           {renderLinks(LEGAL_LINKS)}
+          {/* Index of all 26 policy documents — the column above is a selection. */}
+          <Link to="/legal" className={`${LINK_CLASS} mt-2.5 block font-semibold`}>
+            {t('legalHub_eyebrow')}
+          </Link>
         </div>
       </div>
       <div className="border-t border-border">

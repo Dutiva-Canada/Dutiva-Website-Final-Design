@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { SectionIntro } from '../SectionIntro'
 import { useLanding } from '../useLanding'
@@ -42,13 +43,13 @@ export function Guides() {
           {lt('landing_guides_browse')}
           <ArrowRight size={16} />
         </a>
-        <a
-          href="/blog"
+        <Link
+          to="/blog"
           className="inline-flex items-center gap-2 text-sm font-semibold text-text-2 transition-opacity hover:opacity-80"
         >
           {lt('landing_guides_blog')}
           <ArrowRight size={16} />
-        </a>
+        </Link>
       </div>
     </section>
   )

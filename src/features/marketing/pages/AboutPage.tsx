@@ -1,0 +1,71 @@
+import { HeartHandshake, Leaf, MapPin, Scale, ShieldCheck } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { useI18n } from '@/i18n/context'
+import type { MessageKey } from '@/i18n/messages'
+import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
+
+const VALUES: { icon: LucideIcon; titleKey: MessageKey; bodyKey: MessageKey }[] = [
+  { icon: Scale, titleKey: 'about_v1t', bodyKey: 'about_v1p' },
+  { icon: HeartHandshake, titleKey: 'about_v2t', bodyKey: 'about_v2p' },
+  { icon: ShieldCheck, titleKey: 'about_v3t', bodyKey: 'about_v3p' },
+  { icon: Leaf, titleKey: 'about_v4t', bodyKey: 'about_v4p' },
+]
+
+/** /about — company story, values, built-in-Canada band (about_* strings). */
+export function AboutPage() {
+  const { t } = useI18n()
+  return (
+    <MarketingPageShell>
+      <PageHero eyebrow={t('about_eyebrow')} title={t('about_h1')} intro={t('about_intro')} />
+
+      <PageSection title={t('about_s1')}>
+        <div className="premium-card p-[clamp(24px,3vw,40px)]">
+          <p className="max-w-[58ch] font-display text-[clamp(1.125rem,1.8vw,1.375rem)] leading-[1.5] font-medium text-text">
+            {t('about_mission')}
+          </p>
+        </div>
+      </PageSection>
+
+      <PageSection title={t('about_s2')}>
+        <div className="premium-card-soft p-[clamp(22px,3vw,32px)]">
+          <p className="max-w-[70ch] text-base leading-[1.65] text-text-2">{t('about_why')}</p>
+          <div className="mt-4 inline-flex items-center gap-2 text-sm text-text-3">
+            <MapPin size={14} className="flex-none text-gold-strong" />
+            {t('about_why_foot')}
+          </div>
+        </div>
+      </PageSection>
+
+      <PageSection title={t('about_s3')}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
+          {VALUES.map((value) => (
+            <div key={value.titleKey} className="premium-card-soft p-[22px]">
+              <value.icon size={18} className="text-gold-strong" />
+              <div className="mt-3 text-[0.9375rem] font-semibold text-text">
+                {t(value.titleKey)}
+              </div>
+              <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{t(value.bodyKey)}</p>
+            </div>
+          ))}
+        </div>
+      </PageSection>
+
+      <PageSection title={t('about_s4')}>
+        <div className="premium-card-soft flex flex-wrap items-center gap-5 p-[clamp(22px,3vw,32px)]">
+          <Leaf size={22} className="flex-none text-gold-strong" />
+          <p className="min-w-[260px] flex-1 text-base leading-[1.6] text-text-2">
+            {t('about_built')}
+          </p>
+          <span className="dutiva-pill">{t('about_pill_bilingual')}</span>
+        </div>
+      </PageSection>
+
+      <PageCta
+        title={t('about_cta_t')}
+        body={t('about_cta_p')}
+        action={t('about_cta_btn')}
+        to="/app/welcome"
+      />
+    </MarketingPageShell>
+  )
+}

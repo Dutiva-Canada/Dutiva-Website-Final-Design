@@ -6,13 +6,16 @@ import { LeafTile, Wordmark } from '../Brand'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 
+/* Leading '/' so the section anchors also resolve from the marketing
+   subpages (/about, /legal/…); on the landing page itself the path part is
+   a no-op and the browser jumps straight to the anchor. */
 const NAV_ITEMS: { href: string; key: LandingMessageKey }[] = [
-  { href: '#how', key: 'landing_nav_how' },
-  { href: '#workflows', key: 'landing_nav_workflows' },
-  { href: '#product', key: 'landing_nav_docs' },
-  { href: '#coverage', key: 'landing_nav_coverage' },
-  { href: '#pricing', key: 'landing_nav_pricing' },
-  { href: '#guides', key: 'landing_nav_guides' },
+  { href: '/#how', key: 'landing_nav_how' },
+  { href: '/#workflows', key: 'landing_nav_workflows' },
+  { href: '/#product', key: 'landing_nav_docs' },
+  { href: '/#coverage', key: 'landing_nav_coverage' },
+  { href: '/#pricing', key: 'landing_nav_pricing' },
+  { href: '/#guides', key: 'landing_nav_guides' },
 ]
 
 /* Compact desktop control pill (lang / theme) — prototype `.hdr-ctrl`. */
@@ -37,7 +40,7 @@ export function Header() {
     <>
       <header className="sticky top-0 z-30 border-b border-border bg-(--topbar-bg) backdrop-blur-[18px]">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-3">
-          <a href="#top" className="flex items-center gap-2.5">
+          <a href="/#top" className="flex items-center gap-2.5">
             <LeafTile size={46} radius={13} leafHeight={32} shadow />
             <span className="leading-none">
               <span className="block">

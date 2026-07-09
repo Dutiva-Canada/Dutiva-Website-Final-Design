@@ -20,6 +20,12 @@ import { settingsMessages } from './settings'
 import { communicationsMessages } from './communications'
 import { compensationMessages } from './compensation'
 import { wellbeingMessages } from './wellbeing'
+import { aboutMessages } from './about'
+import { faqMessages } from './faq'
+import { blogMessages } from './blog'
+import { tmplGuideMessages } from './templateUsage'
+import { limitsMessages } from './knownLimitations'
+import { legalHubMessages } from './legalHub'
 
 /**
  * Merged message catalogue. Each feature contributes one module keyed by
@@ -50,6 +56,12 @@ export const messages = {
   ...communicationsMessages,
   ...compensationMessages,
   ...wellbeingMessages,
+  ...aboutMessages,
+  ...faqMessages,
+  ...blogMessages,
+  ...tmplGuideMessages,
+  ...limitsMessages,
+  ...legalHubMessages,
 } as const
 
 export type MessageKey = keyof typeof messages

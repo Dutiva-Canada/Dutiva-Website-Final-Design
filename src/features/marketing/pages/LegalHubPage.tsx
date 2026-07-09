@@ -1,0 +1,53 @@
+import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
+import { useI18n } from '@/i18n/context'
+import { LEGAL_HUB_GROUPS } from '../legal/legalHubData'
+import { MarketingPageShell, PageHero, PageSection } from './MarketingPage'
+
+/** /legal — index of the 26 policy documents, grouped per the prototype (legalHub_* strings). */
+export function LegalHubPage() {
+  const { t, L } = useI18n()
+  return (
+    <MarketingPageShell>
+      <PageHero
+        eyebrow={t('legalHub_eyebrow')}
+        title={t('legalHub_h1')}
+        intro={t('legalHub_intro')}
+      />
+
+      {/* The EN edition of four documents is still pending — privacy, subprocessors,
+          disclaimer, and incident-response-policy. PolicyPage falls back to FR for them. */}
+      {LEGAL_HUB_GROUPS.map((group) => (
+        <PageSection key={group.titleKey} title={t(group.titleKey)}>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
+            {group.rows.map((row) => (
+              <Link
+                key={row.slug}
+                to={`/legal/${row.slug}`}
+                className="premium-card-soft flex items-start justify-between gap-4 p-[20px_22px]"
+              >
+                <div>
+                  <div className="text-[0.9375rem] font-semibold text-text">{t(row.titleKey)}</div>
+                  <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{t(row.descKey)}</p>
+                </div>
+                <ArrowRight size={16} className="mt-0.5 flex-none text-text-3" />
+              </Link>
+            ))}
+          </div>
+        </PageSection>
+      ))}
+
+      <section className="mx-auto max-w-[960px] px-6 pt-2 pb-16">
+        <p className="text-center text-sm text-text-3">
+          {L(
+            'Questions about any of these documents?',
+            'Des questions sur l’un de ces documents ?',
+          )}{' '}
+          <a href="mailto:legal@dutiva.ca" className="font-semibold text-text-2 hover:opacity-80">
+            legal@dutiva.ca
+          </a>
+        </p>
+      </section>
+    </MarketingPageShell>
+  )
+}
