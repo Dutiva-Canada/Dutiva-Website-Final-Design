@@ -1,4 +1,4 @@
-import { defineMessages } from '../core'
+﻿import { defineMessages } from '../core'
 
 /**
  * Workflows view chrome — transcribed from the prototype's
@@ -37,8 +37,4 @@ export const workflowsMessages = defineMessages({
   workflows_chip_waiting: { en: 'Waiting', fr: 'En attente' },
   workflows_chip_upcoming: { en: 'Upcoming', fr: 'À venir' },
   workflows_chip_continuous: { en: 'Continuous', fr: 'Continu' },
-  workflows_disclaimer_short: {
-    en: 'Advisor provides compliance-oriented HR guidance — not legal advice. Verify important decisions.',
-    fr: 'Conseiller fournit des conseils RH axés sur la conformité — pas des avis juridiques. Vérifiez les décisions importantes.',
-  },
 })

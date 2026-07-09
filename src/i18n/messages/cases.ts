@@ -1,4 +1,4 @@
-import { defineMessages } from '../core'
+﻿import { defineMessages } from '../core'
 
 /**
  * Case Files — cases list, case detail (overview / risk review / legal review /
@@ -45,15 +45,6 @@ export const casesMessages = defineMessages({
   cases_compliance_flags: { en: 'Compliance flags', fr: 'Signalements de conformité' },
   cases_toggle_task_aria: { en: 'Toggle task', fr: 'Basculer la tâche' }, // [FR self-authored]
   cases_mitigation: { en: 'Mitigation', fr: 'Atténuation' },
-  /* buildI18n `disclaimer_short` / `disclaimer_full`. */
-  cases_disclaimer_short: {
-    en: 'Advisor provides compliance-oriented HR guidance — not legal advice. Verify important decisions.',
-    fr: 'Conseiller fournit des conseils RH axés sur la conformité — pas des avis juridiques. Vérifiez les décisions importantes.',
-  },
-  cases_disclaimer_full: {
-    en: 'Dutiva provides compliance-oriented HR workflow support and does not provide legal advice. For high-risk employment decisions, consult qualified legal counsel.',
-    fr: "Dutiva fournit un soutien opérationnel en matière de conformité RH et ne fournit pas de conseils juridiques. Pour les décisions d'emploi à risque élevé, consultez un conseiller juridique qualifié.",
-  },
 
   /* ── Legal review tab ───────────────────────────────────────────────────── */
   cases_legal_status: { en: 'Review status', fr: 'État de la révision' },
@@ -191,4 +182,6 @@ export const casesMessages = defineMessages({
     en: 'Complete intake and ask Advisor to run a risk assessment.',
     fr: 'Terminez l’ouverture du dossier et demandez au Conseiller d’évaluer le risque.',
   },
+  /* A11y-only (tablist labels). */
+  cases_tabs_aria: { en: 'Case workspace sections', fr: 'Sections du dossier' }, // [FR self-authored]
 })

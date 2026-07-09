@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+﻿import { describe, expect, it } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { DocStudioOverlay } from '@/features/app/docstudio/DocStudioOverlay'
@@ -42,7 +42,7 @@ describe('EmployeeProfileView', () => {
 
   it('switches to the leave tab: restricted banner and leave records', () => {
     renderProfile()
-    fireEvent.click(screen.getByRole('button', { name: 'Leave & accommodation' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Leave & accommodation' }))
 
     expect(
       screen.getByText(/medical and accommodation records hold functional information only/),
@@ -54,7 +54,7 @@ describe('EmployeeProfileView', () => {
 
   it('switches to the compensation tab: salary, market delta and pay-equity note', () => {
     renderProfile()
-    fireEvent.click(screen.getByRole('button', { name: 'Compensation' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Compensation' }))
 
     expect(screen.getByText('$118,000')).toBeInTheDocument()
     expect(screen.getByText('$121,000')).toBeInTheDocument()
@@ -64,7 +64,7 @@ describe('EmployeeProfileView', () => {
 
   it('shows linked cases with the restricted badge', () => {
     renderProfile()
-    fireEvent.click(screen.getByRole('button', { name: 'Cases' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Cases' }))
 
     expect(screen.getByText('Termination — Jordan Mensah')).toBeInTheDocument()
     expect(screen.getByText('Restricted')).toBeInTheDocument()
@@ -73,7 +73,7 @@ describe('EmployeeProfileView', () => {
 
   it('opens Document Studio from a timeline document event', () => {
     renderProfile()
-    fireEvent.click(screen.getByRole('button', { name: 'Timeline' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Timeline' }))
 
     expect(screen.getByText(/Advisor composes this timeline automatically/)).toBeInTheDocument()
     fireEvent.click(screen.getByText('Termination Letter generated'))

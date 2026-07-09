@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+﻿import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { ADVISOR_STREAM_TICK_MS, ADVISOR_THINK_MS } from '@/features/app/advisor/useAdvisorEngine'
@@ -44,7 +44,7 @@ describe('EmployeesView', () => {
 
   it('switches to the org chart with stats and the reporting-line watch note', () => {
     renderEmployees()
-    fireEvent.click(screen.getByRole('button', { name: 'Org chart' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Org chart' }))
 
     expect(screen.getByText('People managers')).toBeInTheDocument()
     expect(screen.getByText('Direct reports')).toBeInTheDocument()

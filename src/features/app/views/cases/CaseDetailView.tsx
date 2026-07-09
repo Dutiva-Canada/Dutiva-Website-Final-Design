@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Check, ChevronLeft, FileText, Info, Sparkle } from 'lucide-react'
+import { Check, ChevronLeft, FileText, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { Disclaimer } from '@/components/Disclaimer'
 import { pickL } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
 import {
@@ -330,11 +331,17 @@ function CaseDetail({ caze }: { caze: WorkspaceCase }) {
         </div>
 
         {/* Tabs */}
-        <div className="mt-[18px] mb-[20px] flex gap-[2px] overflow-x-auto border-b border-border">
+        <div
+          role="tablist"
+          aria-label={x(M.cases_tabs_aria)}
+          className="mt-[18px] mb-[20px] flex gap-[2px] overflow-x-auto border-b border-border"
+        >
           {tabs.map((t) => (
             <button
               key={t.key}
               type="button"
+              role="tab"
+              aria-selected={tab === t.key}
               onClick={() => setTab(t.key)}
               className={`shrink-0 cursor-pointer border-b-2 bg-transparent px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
                 tab === t.key ? 'border-navy text-text' : 'border-transparent text-text-muted'
@@ -617,9 +624,7 @@ function CaseDetail({ caze }: { caze: WorkspaceCase }) {
                 </div>
               ))}
             </div>
-            <div className="mt-[16px] text-[11px] text-text-faint">
-              {x(M.cases_disclaimer_short)}
-            </div>
+            <Disclaimer className="mt-[16px]" />
           </>
         )}
 
@@ -658,10 +663,7 @@ function CaseDetail({ caze }: { caze: WorkspaceCase }) {
                 </div>
               ))}
             </div>
-            <div className="flex items-start gap-[8px] text-[11.5px] leading-[1.5] text-text-muted">
-              <Info size={14} strokeWidth={1.7} className="mt-[1px] shrink-0" aria-hidden="true" />
-              <span>{x(M.cases_disclaimer_full)}</span>
-            </div>
+            <Disclaimer variant="block" />
           </div>
         )}
 

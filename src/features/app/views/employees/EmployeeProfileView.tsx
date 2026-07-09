@@ -265,11 +265,17 @@ export function EmployeeProfileView() {
         </div>
 
         {/* Tab strip */}
-        <div className="mt-[18px] mb-[22px] flex gap-[2px] overflow-x-auto border-b border-border">
+        <div
+          role="tablist"
+          aria-label={x(M.employees_profile_tabs_aria)}
+          className="mt-[18px] mb-[22px] flex gap-[2px] overflow-x-auto border-b border-border"
+        >
           {PROFILE_TABS.map((t) => (
             <button
               key={t.key}
               type="button"
+              role="tab"
+              aria-selected={tab === t.key}
               onClick={() => setTab(t.key)}
               className={`cursor-pointer border-0 border-b-2 bg-transparent px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
                 tab === t.key ? 'border-b-navy text-text' : 'border-b-transparent text-text-muted'

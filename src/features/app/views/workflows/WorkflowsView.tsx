@@ -1,7 +1,8 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Check, File, Share2, Star, User } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { Disclaimer } from '@/components/Disclaimer'
 import type { Bi } from '@/i18n/core'
 import { workflowsMessages as M } from '@/i18n/messages/workflows'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
@@ -258,9 +259,7 @@ export function WorkflowsView() {
           })}
         </div>
 
-        <div className="mt-[18px] text-[11px] text-text-faint">
-          {x(M.workflows_disclaimer_short)}
-        </div>
+        <Disclaimer className="mt-[18px]" />
       </div>
     </div>
   )

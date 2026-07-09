@@ -1,4 +1,4 @@
-import { defineMessages } from '../core'
+﻿import { defineMessages } from '../core'
 
 /**
  * Employees workspace — roster (list + org chart), employee quick drawer and
@@ -218,4 +218,10 @@ export const employeesMessages = defineMessages({
     en: 'Views of this profile — including its restricted sections — are recorded in the audit log.',
     fr: 'Les consultations de ce profil — y compris ses sections restreintes — sont consignées au journal d’audit.',
   },
+  /* A11y-only (tablist labels). */
+  employees_profile_tabs_aria: {
+    en: 'Employee profile sections',
+    fr: 'Sections du profil de l’employé',
+  }, // [FR self-authored]
+  employees_view_toggle_aria: { en: 'Roster view', fr: 'Vue du personnel' }, // [FR self-authored]
 })

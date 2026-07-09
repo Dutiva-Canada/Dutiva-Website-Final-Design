@@ -1,4 +1,4 @@
-import { defineMessages } from '../core'
+﻿import { defineMessages } from '../core'
 
 /**
  * Advisor view (full-page AI chat) — UI-chrome strings for the advisor home
@@ -29,11 +29,7 @@ export const advisorViewMessages = defineMessages({
   advisorview_metric_risk: { en: 'Open risk items', fr: 'Éléments à risque ouverts' },
   advisorview_metric_cases: { en: 'Active cases', fr: 'Dossiers actifs' },
   advisorview_metric_signals: { en: 'Support signals', fr: 'Signaux de soutien' },
-  advisorview_trend_compliance: { en: '+8 in 6 mo', fr: '+8 en 6 mois' },
-  /* Suffixes concatenated after a count, mirroring the prototype's string math. */
-  advisorview_trend_high_suffix: { en: ' high', fr: ' élevés' },
-  advisorview_trend_tasks_suffix: { en: ' open tasks', fr: ' tâches ouvertes' },
-  advisorview_trend_signals: { en: 'supportive follow-up only', fr: 'suivi de soutien seulement' },
+  /* Trend lines live in advisorHomeData.ts as interpolated bi() values. */
 
   /* ── Composer + footer ──────────────────────────────────────────────────── */
   advisorview_composer_home: {
@@ -41,10 +37,6 @@ export const advisorViewMessages = defineMessages({
     fr: 'Demandez au Conseiller à propos de votre équipe…',
   },
   advisorview_composer_msg: { en: 'Message Advisor…', fr: 'Écrire au Conseiller…' },
-  advisorview_disclaimer_short: {
-    en: 'Advisor provides compliance-oriented HR guidance — not legal advice. Verify important decisions.',
-    fr: 'Conseiller fournit des conseils RH axés sur la conformité — pas des avis juridiques. Vérifiez les décisions importantes.',
-  },
 
   /* ── Thread list ────────────────────────────────────────────────────────── */
   advisorview_new_conversation: { en: 'New conversation', fr: 'Nouvelle conversation' },

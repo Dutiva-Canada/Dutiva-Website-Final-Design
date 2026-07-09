@@ -1,4 +1,4 @@
-import { defineMessages } from '../core'
+﻿import { defineMessages } from '../core'
 
 /**
  * Settings view — the workspace's largest static view (App v2.dc.html markup
@@ -114,10 +114,6 @@ export const settingsMessages = defineMessages({
     fr: 'Références aux lois et articles affichées sur les conseils propres à la compétence',
   },
   settings_disclaimer_label: { en: 'Legal disclaimer', fr: 'Avis juridique' },
-  settings_disclaimer_full: {
-    en: 'Dutiva provides compliance-oriented HR workflow support and does not provide legal advice. For high-risk employment decisions, consult qualified legal counsel.',
-    fr: "Dutiva fournit un soutien opérationnel en matière de conformité RH et ne fournit pas de conseils juridiques. Pour les décisions d'emploi à risque élevé, consultez un conseiller juridique qualifié.",
-  },
   settings_disclaimer_note: {
     en: 'Shown in Advisor, Document Studio, and every high-risk workflow. Wording is fixed at the workspace level.',
     fr: 'Affiché dans le Conseiller, le Studio de documents et chaque processus à risque élevé. Le libellé est fixé au niveau de l’espace de travail.',

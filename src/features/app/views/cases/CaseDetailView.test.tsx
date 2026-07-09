@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+﻿import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
@@ -41,13 +41,13 @@ describe('CaseDetailView', () => {
   it('switches tabs: risk review axes and the notes composer', () => {
     renderApp(<CaseDetailView />, CASE1)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Risk review' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Risk review' }))
     expect(screen.getByText('Legal / compliance')).toBeInTheDocument()
     expect(
       screen.getByText(/Hold the offer until counsel confirms the notice range./),
     ).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Notes' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Notes' }))
     /* Seeded fixture note. */
     expect(
       screen.getByText(/Confirmed with Finance that the ESA severance payroll threshold is met/),

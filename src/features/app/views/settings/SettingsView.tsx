@@ -7,6 +7,7 @@ import { pickL } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
 import { statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { common } from '@/i18n/messages/common'
 import { settingsMessages as M } from '@/i18n/messages/settings'
 
 /**
@@ -291,9 +292,15 @@ export function SettingsView() {
             <div className="mb-[10px] text-[13px] font-bold text-text-3">
               {x(M.settings_appearance)}
             </div>
-            <div className="flex gap-[6px] rounded-[12px] border border-border bg-surface px-[16px] py-[14px]">
+            <div
+              role="tablist"
+              aria-label={x(M.settings_appearance)}
+              className="flex gap-[6px] rounded-[12px] border border-border bg-surface px-[16px] py-[14px]"
+            >
               <button
                 type="button"
+                role="tab"
+                aria-selected={theme !== 'dark'}
                 onClick={() => setTheme('light')}
                 className={segClass(theme !== 'dark')}
               >
@@ -301,6 +308,8 @@ export function SettingsView() {
               </button>
               <button
                 type="button"
+                role="tab"
+                aria-selected={theme === 'dark'}
                 onClick={() => setTheme('dark')}
                 className={segClass(theme === 'dark')}
               >
@@ -312,9 +321,15 @@ export function SettingsView() {
             <div className="mb-[10px] text-[13px] font-bold text-text-3">
               {x(M.settings_language)}
             </div>
-            <div className="flex gap-[6px] rounded-[12px] border border-border bg-surface px-[16px] py-[14px]">
+            <div
+              role="tablist"
+              aria-label={x(M.settings_language)}
+              className="flex gap-[6px] rounded-[12px] border border-border bg-surface px-[16px] py-[14px]"
+            >
               <button
                 type="button"
+                role="tab"
+                aria-selected={lang === 'en'}
                 onClick={() => setLang('en')}
                 className={segClass(lang === 'en')}
               >
@@ -322,6 +337,8 @@ export function SettingsView() {
               </button>
               <button
                 type="button"
+                role="tab"
+                aria-selected={lang === 'fr'}
                 onClick={() => setLang('fr')}
                 className={segClass(lang === 'fr')}
               >
@@ -425,7 +442,7 @@ export function SettingsView() {
                 {x(M.settings_disclaimer_label)}
               </div>
               <div className="text-[12.5px] leading-[1.55] text-text-2">
-                {x(M.settings_disclaimer_full)}
+                {x(common.disclaimer_full)}
               </div>
               <div className="mt-[6px] text-[11.5px] text-text-faint">
                 {x(M.settings_disclaimer_note)}

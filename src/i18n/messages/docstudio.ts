@@ -1,4 +1,4 @@
-import { defineMessages } from '../core'
+﻿import { defineMessages } from '../core'
 
 /**
  * Document Studio overlay strings — transcribed from the App v2 prototype
@@ -60,12 +60,6 @@ export const docstudioMessages = defineMessages({
   docstudio_revise_formal: { en: 'More formal', fr: 'Plus formel' },
   docstudio_revise_shorten: { en: 'Shorten', fr: 'Raccourcir' },
   docstudio_revise_compassionate: { en: 'More compassionate', fr: 'Plus empathique' },
-
-  /* Disclaimer (prototype `str.disclaimer_full`) */
-  docstudio_disclaimer_full: {
-    en: 'Dutiva provides compliance-oriented HR workflow support and does not provide legal advice. For high-risk employment decisions, consult qualified legal counsel.',
-    fr: "Dutiva fournit un soutien opérationnel en matière de conformité RH et ne fournit pas de conseils juridiques. Pour les décisions d'emploi à risque élevé, consultez un conseiller juridique qualifié.",
-  },
 
   /* High-risk gate */
   docstudio_gate_title: { en: 'Review before sending', fr: 'Vérification avant l’envoi' },

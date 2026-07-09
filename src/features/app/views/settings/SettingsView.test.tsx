@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+﻿import { describe, expect, it } from 'vitest'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
@@ -63,13 +63,13 @@ describe('SettingsView', () => {
     renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
 
     expect(screen.getByText('Appearance')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Français' }))
+    await user.click(screen.getByRole('tab', { name: 'Français' }))
 
     expect(screen.getByText('Apparence')).toBeInTheDocument()
     expect(screen.getByText('Données et confidentialité')).toBeInTheDocument()
     expect(screen.getByText('Sous réglementation fédérale')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'English' }))
+    await user.click(screen.getByRole('tab', { name: 'English' }))
     expect(screen.getByText('Appearance')).toBeInTheDocument()
   })
 })

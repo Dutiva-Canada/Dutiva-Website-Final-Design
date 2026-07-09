@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+﻿import { useEffect, useRef } from 'react'
 import { FileText, Sparkle, TriangleAlert } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { Disclaimer } from '@/components/Disclaimer'
 import { pickL } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
 import { advisorCore } from '@/i18n/messages/advisorCore'
@@ -116,9 +117,7 @@ export function ChatPane({
             disabled={busy}
           />
         </div>
-        <div className="mt-[8px] text-center text-[11px] text-text-faint">
-          {x(M.advisorview_disclaimer_short)}
-        </div>
+        <Disclaimer className="mt-[8px] text-center" />
       </div>
     </div>
   )

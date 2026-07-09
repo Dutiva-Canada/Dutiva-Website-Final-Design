@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
-import { Check, ChevronDown, Info, PenTool, Sparkle, TriangleAlert, X } from 'lucide-react'
+﻿import { useEffect, useRef } from 'react'
+import { Check, ChevronDown, PenTool, Sparkle, TriangleAlert, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { Disclaimer } from '@/components/Disclaimer'
 import { pickL } from '@/i18n/core'
 import { useEscapeToClose } from '@/lib/escapeStack'
 import { docstudioMessages as M } from '@/i18n/messages/docstudio'
@@ -255,10 +256,7 @@ export function DocStudioOverlay() {
             </div>
           )}
 
-          <div className="flex items-start gap-2 text-[11.5px] leading-[1.5] text-text-muted">
-            <Info size={14} strokeWidth={1.7} className="mt-[1px] shrink-0" aria-hidden="true" />
-            <span>{x(M.docstudio_disclaimer_full)}</span>
-          </div>
+          <Disclaimer variant="block" />
 
           {gateOpen && (
             <div

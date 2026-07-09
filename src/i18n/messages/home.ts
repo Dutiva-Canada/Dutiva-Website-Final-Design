@@ -1,4 +1,4 @@
-import { defineMessages } from '../core'
+﻿import { defineMessages } from '../core'
 
 /**
  * Home — Command Centre chrome strings, ported from `App v2.dc.html`
@@ -70,9 +70,5 @@ export const homeMessages = defineMessages({
   home_composer_placeholder: {
     en: 'Ask Advisor anything about your team…',
     fr: 'Demandez au Conseiller à propos de votre équipe…',
-  },
-  home_disclaimer_short: {
-    en: 'Advisor provides compliance-oriented HR guidance — not legal advice. Verify important decisions.',
-    fr: 'Conseiller fournit des conseils RH axés sur la conformité — pas des avis juridiques. Vérifiez les décisions importantes.',
   },
 })

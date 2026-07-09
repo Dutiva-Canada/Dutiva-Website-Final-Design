@@ -17,7 +17,7 @@ import { useRail } from '@/features/app/rail/railContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { complianceMessages as M } from '@/i18n/messages/compliance'
-import { docstudioMessages } from '@/i18n/messages/docstudio'
+import { common } from '@/i18n/messages/common'
 
 /** Category bar/score colours (prototype `scoreColor` / `fillStyle`). */
 const barFillClasses: Record<Tone, string> = {
@@ -98,7 +98,7 @@ export function ComplianceView() {
         {
           tone: 'warning',
           title: M.compliance_not_legal_advice,
-          body: docstudioMessages.docstudio_disclaimer_full,
+          body: common.disclaimer_full,
         },
       ],
     })

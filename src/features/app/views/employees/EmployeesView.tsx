@@ -61,9 +61,15 @@ export function EmployeesView() {
     <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
       <div className="mx-auto max-w-[900px]">
         <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
-          <div className="inline-flex gap-[2px] rounded-[10px] border border-border bg-inset p-[3px]">
+          <div
+            role="tablist"
+            aria-label={x(M.employees_view_toggle_aria)}
+            className="inline-flex gap-[2px] rounded-[10px] border border-border bg-inset p-[3px]"
+          >
             <button
               type="button"
+              role="tab"
+              aria-selected={mode === 'list'}
               onClick={() => setMode('list')}
               className={segTabClass(mode === 'list')}
             >
@@ -71,6 +77,8 @@ export function EmployeesView() {
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={mode === 'org'}
               onClick={() => setMode('org')}
               className={segTabClass(mode === 'org')}
             >

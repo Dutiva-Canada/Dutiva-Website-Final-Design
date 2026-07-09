@@ -1,5 +1,6 @@
-import { useNavigate } from 'react-router-dom'
+﻿import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
+import { Disclaimer } from '@/components/Disclaimer'
 import { homeMessages as M } from '@/i18n/messages/home'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { HomeBriefHero } from './HomeBriefHero'
@@ -69,9 +70,7 @@ export function HomeView() {
               onSend={sendToAdvisor}
             />
           </div>
-          <div className="mt-[8px] text-center text-[11px] text-text-faint">
-            {x(M.home_disclaimer_short)}
-          </div>
+          <Disclaimer className="mt-[8px] text-center" />
         </div>
       </div>
     </div>
