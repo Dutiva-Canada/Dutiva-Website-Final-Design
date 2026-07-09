@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
@@ -7,6 +7,7 @@ import type { Bi } from '@/i18n/core'
 import { tasksMessages as M } from '@/i18n/messages/tasks'
 import { cases, chats, taskPriorityLabels, taskPriorityTones, tasks } from '@/data'
 import type { Task, Tone } from '@/data'
+import { statusChipClass } from '@/components/chips'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 
 /**
@@ -16,19 +17,6 @@ import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
  * priority chips. Toggling only flips local done state (prototype
  * `toggleTask()` — no toast).
  */
-
-/* Prototype `statusChipStyle(tone)` — unknown tones fall back to info. */
-const chipToneClasses: Record<Tone, string> = {
-  risk: 'bg-risk-bg text-risk-fg',
-  warning: 'bg-warn-bg text-warn-fg',
-  success: 'bg-ok-bg text-ok-fg',
-  info: 'bg-accent-soft text-accent',
-  suggestion: 'bg-accent-soft text-accent',
-}
-
-function chipClass(tone: Tone): string {
-  return `inline-flex rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${chipToneClasses[tone]}`
-}
 
 /** Linked case (matched on chatId) or, failing that, the chat thread itself. */
 function linkedFor(task: Task): Bi | null {
@@ -134,8 +122,8 @@ export function TasksView() {
                   )}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-[6px]">
-                  <span className={chipClass(statusTone)}>{x(statusLabel)}</span>
-                  <span className={chipClass(taskPriorityTones[task.priority])}>
+                  <span className={statusChipClass(statusTone)}>{x(statusLabel)}</span>
+                  <span className={statusChipClass(taskPriorityTones[task.priority])}>
                     {x(taskPriorityLabels[task.priority])}
                   </span>
                 </div>

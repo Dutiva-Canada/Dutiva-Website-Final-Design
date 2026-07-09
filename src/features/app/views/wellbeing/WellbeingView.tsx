@@ -1,10 +1,9 @@
-import { useNavigate } from 'react-router-dom'
+﻿import { useNavigate } from 'react-router-dom'
 import { Shield } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { bi } from '@/i18n/core'
 import { employees, supportSignals } from '@/data'
-import type { Employee, Tone } from '@/data'
-import { useRail } from '@/features/app/rail/railContext'
+import { statusChipClass } from '@/components/chips'
+import { useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { wellbeingMessages as M } from '@/i18n/messages/wellbeing'
 
 /**
@@ -15,72 +14,23 @@ import { wellbeingMessages as M } from '@/i18n/messages/wellbeing'
  * `buildWellbeingView()` / `askAboutWellbeing()` (App v2.dc.html).
  */
 
-/** Prototype `statusChipStyle(tone)` as token utilities. */
-const chipTones: Record<Tone, string> = {
-  risk: 'bg-risk-bg text-risk-fg',
-  warning: 'bg-warn-bg text-warn-fg',
-  success: 'bg-ok-bg text-ok-fg',
-  info: 'bg-accent-soft text-accent',
-  suggestion: 'bg-accent-soft text-accent',
-}
-
-const chipClass = (tone: Tone) =>
-  `inline-flex rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${chipTones[tone]}`
-
 /** Prototype `followCount: '2'` — a fixed figure in the handoff. */
 const FOLLOW_UPS_THIS_WEEK = '2'
 
 export function WellbeingView() {
   const { x } = useI18n()
   const navigate = useNavigate()
-  const { openRail, closeRail } = useRail()
-
-  /* Prototype `askAboutWellbeing(emp)` — the non-diagnostic check-in rail. */
-  const askAboutWellbeing = (employee: Employee) => {
-    const firstName = employee.name.split(' ')[0] ?? employee.name
-    openRail(
-      bi(
-        `${employee.name}${M.wellbeing_rail_title_suffix.en}`,
-        `${employee.name}${M.wellbeing_rail_title_suffix.fr}`,
-      ),
-      {
-        text: bi(
-          `Here’s what I’m seeing in ${firstName}’s recent check-ins. I’ll keep this non-diagnostic.`,
-          // [FR self-authored]
-          `Voici ce que j’observe dans les récents suivis de ${firstName}. Je resterai non diagnostique.`,
-        ),
-        cards: [
-          {
-            tone: 'info',
-            title: M.wellbeing_handle_title,
-            body: M.wellbeing_handle_body,
-            citations: [{ label: M.wellbeing_handle_citation }],
-            actions: [
-              {
-                label: M.wellbeing_draft_message_action,
-                primary: true,
-                onClick: () => {
-                  closeRail()
-                  navigate('/app/communications')
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        chips: [employee.province, employee.role, M.wellbeing_context_topic],
-        initials: employee.initials,
-      },
-    )
-  }
+  /* Prototype `askAboutWellbeing(emp)` — the shared non-diagnostic check-in rail. */
+  const openWellbeingRail = useWellbeingRail()
 
   /* Prototype `sg.onDraft` — personal signals open the check-in rail;
      team-level signals go straight to Communications. */
   const draftCheckIn = (employeeId: string | null) => {
-    const employee = employees.find((e) => e.id === employeeId)
-    if (employee) askAboutWellbeing(employee)
-    else navigate('/app/communications')
+    if (employeeId !== null && employees.some((e) => e.id === employeeId)) {
+      openWellbeingRail(employeeId)
+    } else {
+      navigate('/app/communications')
+    }
   }
 
   return (
@@ -136,7 +86,7 @@ export function WellbeingView() {
                     {x(M.wellbeing_confidence)}: {x(signal.confidence)}
                   </div>
                 </div>
-                <span className={chipClass(signal.tone)}>{x(signal.sensitivity)}</span>
+                <span className={statusChipClass(signal.tone)}>{x(signal.sensitivity)}</span>
               </div>
               <div className="mt-[8px] text-[13px] leading-[1.55] text-text-3">{x(signal.why)}</div>
               <div className="mt-[9px] flex flex-col gap-[4px] rounded-[9px] bg-inset px-[13px] py-[10px]">

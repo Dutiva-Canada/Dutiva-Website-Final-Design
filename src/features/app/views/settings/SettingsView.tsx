@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import type { Bi, LText } from '@/i18n/core'
 import { pickL } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
+import { statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { settingsMessages as M } from '@/i18n/messages/settings'
 
@@ -117,22 +118,8 @@ const securityRows: { t: Bi; v: Bi }[] = [
 
 type ChipTone = 'risk' | 'warning' | 'success' | 'info'
 
-/* Prototype `statusChipStyle(tone)`. */
-const chipToneClass: Record<ChipTone, string> = {
-  risk: 'bg-risk-bg text-risk-fg',
-  warning: 'bg-warn-bg text-warn-fg',
-  success: 'bg-ok-bg text-ok-fg',
-  info: 'bg-accent-soft text-accent',
-}
-
 function StatusChip({ tone, children }: { tone: ChipTone; children: ReactNode }) {
-  return (
-    <span
-      className={`inline-flex rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${chipToneClass[tone]}`}
-    >
-      {children}
-    </span>
-  )
+  return <span className={statusChipClass(tone)}>{children}</span>
 }
 
 const auditEvents: { kind: Bi; tone: ChipTone; text: Bi; when: Bi }[] = [

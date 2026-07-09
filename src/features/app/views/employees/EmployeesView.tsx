@@ -7,7 +7,7 @@ import { pick } from '@/i18n/core'
 import { employees } from '@/data'
 import type { Employee } from '@/data'
 import { employeesMessages as M } from '@/i18n/messages/employees'
-import { statusChipClass } from './chipStyles'
+import { statusChipClass } from '@/components/chips'
 import { OrgChart } from './OrgChart'
 import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
 

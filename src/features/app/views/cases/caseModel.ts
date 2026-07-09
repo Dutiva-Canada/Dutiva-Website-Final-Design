@@ -49,17 +49,8 @@ export function isFixtureCaseType(type: string): type is CaseType {
 
 /* ---------------------------------------------------------- tone → styles */
 
-/** Prototype `statusChipStyle(tone)` as token utilities. */
-export function statusChipClass(tone: Tone): string {
-  const map: Record<Tone, string> = {
-    risk: 'bg-risk-bg text-risk-fg',
-    warning: 'bg-warn-bg text-warn-fg',
-    success: 'bg-ok-bg text-ok-fg',
-    info: 'bg-accent-soft text-accent',
-    suggestion: 'bg-accent-soft text-accent',
-  }
-  return `inline-flex rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${map[tone]}`
-}
+/* The status chip lives in '@/components/chips' (statusChipClass). Only the
+   case-specific dot ramps stay here — their fallbacks differ from the chip. */
 
 /** Progress-bar / risk-factor dot fill (prototype: risk-dot | gold-dot | ok-fg). */
 export function barToneClass(tone: Tone): string {

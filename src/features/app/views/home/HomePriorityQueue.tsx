@@ -1,11 +1,10 @@
 import { ChevronRight, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { homeMessages as M } from '@/i18n/messages/home'
+import { statusChipClass } from '@/components/chips'
 import {
   actNowPriorities,
   severityLabels,
-  statusChipBaseClass,
-  statusChipToneClass,
   thisWeekPriorities,
   watchingPriorities,
 } from './homeData'
@@ -21,9 +20,7 @@ import type { HomeAction, HomePriority } from './homeData'
 function SeverityChip({ priority }: { priority: HomePriority }) {
   const { x } = useI18n()
   return (
-    <span className={`${statusChipBaseClass} ${statusChipToneClass[priority.tone]}`}>
-      {x(severityLabels[priority.severity])}
-    </span>
+    <span className={statusChipClass(priority.tone)}>{x(severityLabels[priority.severity])}</span>
   )
 }
 

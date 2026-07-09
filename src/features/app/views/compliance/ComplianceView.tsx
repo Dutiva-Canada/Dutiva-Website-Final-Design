@@ -12,24 +12,12 @@ import {
   regulatoryWatchlist,
 } from '@/data'
 import type { ComplianceItem, Obligation, Tone } from '@/data'
+import { statusChipClass } from '@/components/chips'
 import { useRail } from '@/features/app/rail/railContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { complianceMessages as M } from '@/i18n/messages/compliance'
 import { docstudioMessages } from '@/i18n/messages/docstudio'
-
-/** Prototype `statusChipStyle(tone)` — pill chip tinted by tone (unknown → info). */
-const chipToneClasses: Record<Tone, string> = {
-  risk: 'bg-risk-bg text-risk-fg',
-  warning: 'bg-warn-bg text-warn-fg',
-  success: 'bg-ok-bg text-ok-fg',
-  info: 'bg-accent-soft text-accent',
-  suggestion: 'bg-accent-soft text-accent',
-}
-
-function statusChipClass(tone: Tone): string {
-  return `inline-flex rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${chipToneClasses[tone]}`
-}
 
 /** Category bar/score colours (prototype `scoreColor` / `fillStyle`). */
 const barFillClasses: Record<Tone, string> = {

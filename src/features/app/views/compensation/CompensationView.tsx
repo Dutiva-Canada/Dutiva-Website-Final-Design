@@ -1,11 +1,14 @@
-import type { KeyboardEvent, MouseEvent } from 'react'
+﻿import type { KeyboardEvent, MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi } from '@/i18n/core'
 import { compChanges, compEquityCard, employeeDetails, employees } from '@/data'
-import type { Employee, Tone } from '@/data'
+import type { Employee } from '@/data'
+import { statusChipClass } from '@/components/chips'
+import { money } from '@/lib/money'
 import { useRail } from '@/features/app/rail/railContext'
+import { usePayRail } from '@/features/app/rail/useEntityRails'
 import { compensationMessages as M } from '@/i18n/messages/compensation'
 
 /**
@@ -15,20 +18,6 @@ import { compensationMessages as M } from '@/i18n/messages/compensation'
  * mobile). Port of the prototype's `isCompensationView` markup +
  * `buildCompensationView()` / `askAboutComp()` (App v2.dc.html).
  */
-
-/** Prototype `statusChipStyle(tone)` as token utilities. */
-const chipTones: Record<Tone, string> = {
-  risk: 'bg-risk-bg text-risk-fg',
-  warning: 'bg-warn-bg text-warn-fg',
-  success: 'bg-ok-bg text-ok-fg',
-  info: 'bg-accent-soft text-accent',
-  suggestion: 'bg-accent-soft text-accent',
-}
-
-const chipClass = (tone: Tone) =>
-  `inline-flex rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${chipTones[tone]}`
-
-const money = (value: number) => '$' + value.toLocaleString('en-CA')
 
 interface CompRow {
   employee: Employee
@@ -60,7 +49,7 @@ const GRID_COLS = 'grid-cols-[2.2fr_1.6fr_0.9fr_1.1fr_1fr_34px]'
 export function CompensationView() {
   const { x } = useI18n()
   const navigate = useNavigate()
-  const { openRail, closeRail } = useRail()
+  const { openRail } = useRail()
 
   const openCompensationTab = (employeeId: string) => {
     navigate(`/app/employees/${employeeId}`, { state: { tab: 'compensation' } })
@@ -91,63 +80,12 @@ export function CompensationView() {
     })
   }
 
-  /* Prototype `askAboutComp(emp)` — the per-employee pay rail. */
-  const askAboutComp = (row: CompRow) => {
-    const { employee, delta } = row
-    const below = delta < -4
-    const salary = money(row.salary ?? 0)
-    const market = money(row.market ?? 0)
-    const deltaLabel = `${delta >= 0 ? '+' : ''}${delta}`
-    openRail(
-      bi(
-        `${employee.name}${M.comp_rail_title_suffix.en}`,
-        `${employee.name}${M.comp_rail_title_suffix.fr}`,
-      ),
-      {
-        text: below
-          ? bi(
-              `${employee.name}’s base is sitting below the market midpoint for this role and province. Here’s the picture.`,
-              // [FR self-authored]
-              `Le salaire de base de ${employee.name} se situe sous le point milieu du marché pour ce poste et cette province. Voici le portrait.`,
-            )
-          : bi(
-              `${employee.name}’s pay is within a healthy band for the role and province.`,
-              // [FR self-authored]
-              `La rémunération de ${employee.name} se situe dans une fourchette saine pour le poste et la province.`,
-            ),
-        cards: [
-          {
-            tone: below ? 'warning' : 'success',
-            title: below ? M.comp_below_title : M.comp_within_title,
-            body: bi(
-              `Base ${salary} vs market midpoint ${market} (${deltaLabel}%). Pay-equity obligations apply across genders for substantially similar work. Review recommended — additional comparator data is required before any change, and Dutiva does not determine pay-equity compliance conclusively.`,
-              // [FR self-authored]
-              `Salaire de base ${salary} c. point milieu du marché ${market} (${deltaLabel} %). Les obligations d’équité salariale s’appliquent entre les genres pour un travail substantiellement similaire. Examen recommandé — des données comparatives supplémentaires sont requises avant tout changement, et Dutiva ne détermine pas de façon concluante la conformité en équité salariale.`,
-            ),
-            citations: [{ label: M.comp_pay_equity_citation }],
-            actions: [
-              {
-                label: M.comp_open_comp_tab,
-                primary: true,
-                onClick: () => {
-                  closeRail()
-                  openCompensationTab(employee.id)
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        chips: [employee.province, employee.role, M.comp_context_topic],
-        initials: employee.initials,
-      },
-    )
-  }
+  /* Prototype `askAboutComp(emp)` — the shared per-employee pay rail. */
+  const openPayRail = usePayRail()
 
   const onAsk = (e: MouseEvent, row: CompRow) => {
     e.stopPropagation()
-    askAboutComp(row)
+    openPayRail(row.employee.id)
   }
 
   return (
@@ -205,7 +143,7 @@ export function CompensationView() {
                       {x(M.comp_requested_by)} · {change.requestedBy}
                     </div>
                   </div>
-                  <span className={chipClass(change.tone)}>{x(change.status)}</span>
+                  <span className={statusChipClass(change.tone)}>{x(change.status)}</span>
                 </div>
                 <div className="mt-[8px] text-[12.5px] leading-[1.5] text-text-3">
                   {x(change.note)}
@@ -254,10 +192,10 @@ export function CompensationView() {
                   {row.employee.name}
                 </div>
                 <div className="mt-[2px] text-[12px] text-text-muted">
-                  {row.band} · {row.salary !== null ? money(row.salary) : '—'}
+                  {row.band} · {row.salary !== null ? x(money(row.salary)) : '—'}
                 </div>
               </div>
-              <span className={chipClass(row.delta < -4 ? 'warning' : 'success')}>
+              <span className={statusChipClass(row.delta < -4 ? 'warning' : 'success')}>
                 {row.delta >= 0 ? '+' : ''}
                 {row.delta}%
               </span>
@@ -314,10 +252,10 @@ export function CompensationView() {
               </div>
               <div className="text-[13px] text-text-2">{row.band}</div>
               <div className="text-[13px] font-semibold text-text">
-                {row.salary !== null ? money(row.salary) : '—'}
+                {row.salary !== null ? x(money(row.salary)) : '—'}
               </div>
               <div>
-                <span className={chipClass(row.delta < -4 ? 'warning' : 'success')}>
+                <span className={statusChipClass(row.delta < -4 ? 'warning' : 'success')}>
                   {row.delta >= 0 ? '+' : ''}
                   {row.delta}%
                 </span>

@@ -27,6 +27,7 @@ import { cardToneStyles } from '@/features/app/advisor/toneStyles'
 import type { ToneCardData } from '@/features/app/advisor/types'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { casesMessages as M } from '@/i18n/messages/cases'
+import { statusChipClass } from '@/components/chips'
 import {
   activityDotClass,
   barToneClass,
@@ -36,7 +37,6 @@ import {
   pendingRisk,
   pendingRiskAxes,
   riskLevelTone,
-  statusChipClass,
   timelineDotClass,
 } from './caseModel'
 import type { WorkspaceCase } from './caseModel'

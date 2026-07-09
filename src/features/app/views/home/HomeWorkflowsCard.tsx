@@ -1,11 +1,7 @@
 import { useI18n } from '@/i18n/context'
 import { homeMessages as M } from '@/i18n/messages/home'
-import {
-  homeWorkflows,
-  statusChipBaseClass,
-  statusChipToneClass,
-  workflowFillWidth,
-} from './homeData'
+import { statusChipBaseClass, chipToneClass } from '@/components/chips'
+import { homeWorkflows, workflowFillWidth } from './homeData'
 import type { HomeAction, HomeWorkflow } from './homeData'
 
 /**
@@ -19,7 +15,7 @@ function WorkflowRisk({ w, small }: { w: HomeWorkflow; small: boolean }) {
   if (!w.riskLabel) return null
   return (
     <span
-      className={`${statusChipBaseClass} ${statusChipToneClass[w.riskTone]} ${
+      className={`${statusChipBaseClass} ${chipToneClass(w.riskTone)} ${
         small ? 'px-[8px] py-[1px] text-[10.5px]' : ''
       }`}
     >

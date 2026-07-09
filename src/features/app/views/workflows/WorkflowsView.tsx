@@ -6,6 +6,7 @@ import type { Bi } from '@/i18n/core'
 import { workflowsMessages as M } from '@/i18n/messages/workflows'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
+import { chipToneClass, statusChipClass } from '@/components/chips'
 import { inFlightWorkflows, terminationStages, workflowCatalog } from './workflowsData'
 import type { TerminationStageState, WorkflowChipTone, WorkflowNav } from './workflowsData'
 
@@ -15,15 +16,6 @@ import type { TerminationStageState, WorkflowChipTone, WorkflowNav } from './wor
  * progress/risk/meta, the flagship termination map (expandable, starts open —
  * prototype `wfMapOpen: true`), and the start-a-workflow catalog grid.
  */
-
-/* `statusChipStyle(tone)` colour ramp + the map's flat neutral chip. */
-const chipToneClasses: Record<WorkflowChipTone, string> = {
-  risk: 'bg-risk-bg text-risk-fg',
-  warning: 'bg-warn-bg text-warn-fg',
-  success: 'bg-ok-bg text-ok-fg',
-  info: 'bg-accent-soft text-accent',
-  neutral: 'bg-inset text-text-muted',
-}
 
 /* Map-stage chip per state (prototype `chipFor`). */
 const stageChips: Record<TerminationStageState, { tone: WorkflowChipTone; label: Bi }> = {
@@ -100,11 +92,7 @@ export function WorkflowsView() {
                   <div className="flex flex-wrap items-center gap-[8px]">
                     <span className="text-[13.5px] font-bold text-text">{x(w.name)}</span>
                     {w.riskLabel && (
-                      <span
-                        className={`inline-flex rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${chipToneClasses[w.riskTone]}`}
-                      >
-                        {x(w.riskLabel)}
-                      </span>
+                      <span className={statusChipClass(w.riskTone)}>{x(w.riskLabel)}</span>
                     )}
                   </div>
                   <div className="mt-[2px] text-[12px] text-text-muted">
@@ -207,7 +195,7 @@ export function WorkflowsView() {
                       <div className="flex flex-wrap items-center gap-[8px]">
                         <span className="text-[13px] font-semibold text-text">{x(st.title)}</span>
                         <span
-                          className={`inline-flex rounded-[100px] px-[9px] py-[2px] text-[11px] font-semibold whitespace-nowrap ${chipToneClasses[chip.tone]}`}
+                          className={`inline-flex rounded-[100px] px-[9px] py-[2px] text-[11px] font-semibold whitespace-nowrap ${chipToneClass(chip.tone)}`}
                         >
                           {x(chip.label)}
                         </span>

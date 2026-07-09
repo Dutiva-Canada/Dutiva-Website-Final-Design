@@ -5,7 +5,7 @@ import { useEscapeToClose } from '@/lib/escapeStack'
 import { employeesMessages as M } from '@/i18n/messages/employees'
 import type { Employee } from '@/data'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
-import { statusChipClass } from './chipStyles'
+import { statusChipClass } from '@/components/chips'
 import { RiskFlagCard } from './RiskFlagCard'
 import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
 

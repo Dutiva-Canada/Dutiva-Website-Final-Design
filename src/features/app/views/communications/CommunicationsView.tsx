@@ -1,10 +1,11 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { communicationDetails, communications } from '@/data'
-import type { Communication, CommunicationDetail, Tone } from '@/data'
+import type { Communication, CommunicationDetail } from '@/data'
+import { statusChipClass } from '@/components/chips'
 import { useRail } from '@/features/app/rail/railContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { communicationsMessages as M } from '@/i18n/messages/communications'
@@ -15,18 +16,6 @@ import { communicationsMessages as M } from '@/i18n/messages/communications'
  * the prototype's `isCommunicationsView` markup + `buildCommunicationsView()`
  * / `sendCommunication()` / `markCommSent()` (App v2.dc.html).
  */
-
-/** Prototype `statusChipStyle(tone)` as token utilities. */
-const chipTones: Record<Tone, string> = {
-  risk: 'bg-risk-bg text-risk-fg',
-  warning: 'bg-warn-bg text-warn-fg',
-  success: 'bg-ok-bg text-ok-fg',
-  info: 'bg-accent-soft text-accent',
-  suggestion: 'bg-accent-soft text-accent',
-}
-
-const chipClass = (tone: Tone) =>
-  `inline-flex rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${chipTones[tone]}`
 
 /** View display order from the prototype's `buildCommunicationsView()`. */
 const DISPLAY_ORDER = ['cm1', 'cm5', 'cm6', 'cm4', 'cm2', 'cm3']
@@ -149,7 +138,9 @@ export function CommunicationsView() {
                       {x(comm.audience)} · {x(updated)} · {x(detail.bilingual)}
                     </div>
                   </div>
-                  <span className={chipClass(sent ? 'success' : comm.tone)}>{x(statusLabel)}</span>
+                  <span className={statusChipClass(sent ? 'success' : comm.tone)}>
+                    {x(statusLabel)}
+                  </span>
                 </div>
 
                 {/* Advisor review dimensions (Tone / Legal / Clarity / Policy). */}
@@ -159,7 +150,7 @@ export function CommunicationsView() {
                     const label = dimLabels[key]
                     const suffix = ok ? M.comms_dim_ok_suffix : M.comms_dim_review_suffix
                     return (
-                      <span key={key} className={chipClass(ok ? 'success' : 'warning')}>
+                      <span key={key} className={statusChipClass(ok ? 'success' : 'warning')}>
                         {x(label)}
                         {lang === 'fr' ? suffix.fr : suffix.en}
                       </span>

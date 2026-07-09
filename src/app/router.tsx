@@ -1,3 +1,5 @@
+/* oxlint-disable react/only-export-components -- route table, not a component
+   module: the lazy() wrappers here don't participate in fast refresh. */
 import { Suspense, lazy } from 'react'
 import { Navigate, createBrowserRouter } from 'react-router-dom'
 import { AppProviders } from '@/features/app/AppProviders'

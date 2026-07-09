@@ -6,8 +6,8 @@ import type { Bi } from '@/i18n/core'
 import { employees, orgRoot, orgStructure } from '@/data'
 import type { Employee } from '@/data'
 import { employeesMessages as M } from '@/i18n/messages/employees'
-import { dotToneClass, sourceChipClass } from './chipStyles'
-import type { ChipTone } from './chipStyles'
+import { dotToneClass, sourceChipClass } from '@/components/chips'
+import type { ChipTone } from '@/components/chips'
 
 /**
  * Org-chart mode of the Employees view — the prototype's `buildOrgGraph()`

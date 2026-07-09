@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, FileText, Info, Lock, Shield, Sparkle } from 'lucide-react'
@@ -23,9 +23,10 @@ import {
 } from '@/features/app/workspaceContext/workspaceContextStore'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { employeesMessages as M } from '@/i18n/messages/employees'
+import { money } from '@/lib/money'
 import { sensitiveCaseTypes } from '@/features/app/views/cases/caseModel'
-import { dotToneClass, sourceChipClass, statusChipClass } from './chipStyles'
-import type { ChipTone } from './chipStyles'
+import { dotToneClass, sourceChipClass, statusChipClass } from '@/components/chips'
+import type { ChipTone } from '@/components/chips'
 import { RiskFlagCard } from './RiskFlagCard'
 import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
 
@@ -82,8 +83,6 @@ const TIMELINE_META: Record<TimelineKind, { source: Bi; tone: ChipTone }> = {
 
 /* Prototype `sensitiveCaseTypes()` — single source in the cases feature. */
 const SENSITIVE_CASE_TYPES: readonly string[] = sensitiveCaseTypes
-
-const money = (n: number) => '$' + n.toLocaleString('en-US')
 
 const TAB_KEYS: readonly ProfileTab[] = PROFILE_TABS.map((t) => t.key)
 
@@ -324,7 +323,7 @@ export function EmployeeProfileView() {
               <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[15px]">
                 <div className="text-[12px] text-text-muted">{x(M.employees_base_salary)}</div>
                 <div className="mt-[3px] font-display text-[20px] font-semibold text-text">
-                  {money(det.salary)}
+                  {x(money(det.salary))}
                 </div>
               </div>
               <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[15px]">
@@ -473,7 +472,7 @@ export function EmployeeProfileView() {
               <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
                 <div className="text-[12px] text-text-muted">{x(M.employees_base_salary)}</div>
                 <div className="mt-[3px] font-display text-[22px] font-semibold text-text">
-                  {money(det.salary)}
+                  {x(money(det.salary))}
                 </div>
                 <div className="mt-[2px] text-[12px] text-text-muted">
                   {x(M.employees_band_label)} {det.band}
@@ -482,7 +481,7 @@ export function EmployeeProfileView() {
               <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
                 <div className="text-[12px] text-text-muted">{x(M.employees_market_midpoint)}</div>
                 <div className="mt-[3px] font-display text-[22px] font-semibold text-text">
-                  {money(det.market)}
+                  {x(money(det.market))}
                 </div>
                 <div className="mt-[6px]">
                   <span className={statusChipClass(marketDelta < -4 ? 'warning' : 'success')}>

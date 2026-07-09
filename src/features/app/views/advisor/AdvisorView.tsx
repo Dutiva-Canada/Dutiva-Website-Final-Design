@@ -5,13 +5,11 @@ import type { LText } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
-import { useRail } from '@/features/app/rail/railContext'
+import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import {
   chats,
-  employeeDetails,
-  employees,
   followupFallbackText,
   followupReplies,
   lightFlowFallbackText,
@@ -94,11 +92,9 @@ function readNavChatId(state: unknown): string | null {
   return null
 }
 
-
 export function AdvisorView() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { openRail, closeRail } = useRail()
   const { showToast } = useToasts()
   const { openDocStudio } = useDocStudio()
 
@@ -217,9 +213,7 @@ export function AdvisorView() {
   const initialMessages = useRef<ChatMessage[] | null>(null)
   if (initialMessages.current === null) {
     initialMessages.current =
-      activeChatId !== null
-        ? (transcripts.current.get(activeChatId) ?? seedFor(activeChatId))
-        : []
+      activeChatId !== null ? (transcripts.current.get(activeChatId) ?? seedFor(activeChatId)) : []
   }
 
   const engine = useAdvisorEngine({ idPrefix: enginePrefix, initial: initialMessages.current })
@@ -417,109 +411,11 @@ export function AdvisorView() {
     }))
   }
 
-  /* --------------------------------------------------- home priority rails */
+  /* ------------------------------------------------- home priority rails */
 
-  const openCompRail = (employeeId: string) => {
-    const emp = employees.find((e) => e.id === employeeId)
-    const det = employeeDetails[employeeId]
-    if (!emp || !det) return
-    const delta = Math.round(((det.salary - det.market) / det.market) * 100)
-    const below = delta < -4
-    const deltaLabel = `${delta >= 0 ? '+' : ''}${delta}%`
-    const baseEn = `$${det.salary.toLocaleString('en-CA')}`
-    const marketEn = `$${det.market.toLocaleString('en-CA')}`
-    const baseFr = `${det.salary.toLocaleString('fr-CA')} $`
-    const marketFr = `${det.market.toLocaleString('fr-CA')} $`
-    openRail(
-      bi(`${emp.name} — pay`, `${emp.name} — rémunération`),
-      {
-        text: below
-          ? bi(
-              `${emp.name}’s base is sitting below the market midpoint for this role and province. Here’s the picture.`,
-              `Le salaire de base de ${emp.name} se situe sous le point milieu du marché pour ce poste et cette province. Voici le portrait.`,
-            )
-          : bi(
-              `${emp.name}’s pay is within a healthy band for the role and province.`,
-              `La rémunération de ${emp.name} se situe dans une fourchette saine pour le poste et la province.`,
-            ),
-        cards: [
-          {
-            tone: below ? 'warning' : 'success',
-            title: below
-              ? bi('Below market midpoint', 'Sous le point milieu du marché')
-              : bi('Within market band', 'Dans la fourchette du marché'),
-            body: bi(
-              `Base ${baseEn} vs market midpoint ${marketEn} (${deltaLabel}). Pay-equity obligations apply across genders for substantially similar work. Review recommended — additional comparator data is required before any change, and Dutiva does not determine pay-equity compliance conclusively.`,
-              `Salaire de base de ${baseFr} contre un point milieu du marché de ${marketFr} (${deltaLabel}). Les obligations d’équité salariale s’appliquent entre les genres pour un travail essentiellement similaire. Examen recommandé — des données de comparaison supplémentaires sont requises avant tout changement, et Dutiva ne détermine pas de façon concluante la conformité en matière d’équité salariale.`,
-            ),
-            citations: [
-              {
-                label: bi(
-                  'Pay Equity Act (federal / ON)',
-                  'Loi sur l’équité salariale (fédéral / ON)',
-                ),
-              },
-            ],
-            actions: [
-              {
-                label: bi('Open compensation tab', 'Ouvrir l’onglet Rémunération'),
-                primary: true,
-                onClick: () => {
-                  closeRail()
-                  navigate(`/app/employees/${employeeId}`)
-                },
-              },
-            ],
-          },
-        ],
-      },
-      { initials: emp.initials },
-    )
-  }
-
-  const openWellbeingRail = (employeeId: string) => {
-    const emp = employees.find((e) => e.id === employeeId)
-    if (!emp) return
-    const first = emp.name.split(' ')[0] ?? emp.name
-    openRail(
-      bi(`${emp.name} — wellbeing`, `${emp.name} — bien-être`),
-      {
-        text: bi(
-          `Here’s what I’m seeing in ${first}’s recent check-ins. I’ll keep this non-diagnostic.`,
-          `Voici ce que j’observe dans les derniers suivis de ${first}. Je resterai non diagnostique.`,
-        ),
-        cards: [
-          {
-            tone: 'info',
-            title: bi('Handle with care', 'À traiter avec soin'),
-            body: bi(
-              'Frame any conversation around workload and support, not medical questions. If a medical cause surfaces, it may trigger a duty to inquire about accommodation.',
-              'Cadrez toute conversation autour de la charge de travail et du soutien, pas de questions médicales. Si une cause médicale émerge, cela peut déclencher une obligation de s’enquérir d’un accommodement.',
-            ),
-            citations: [
-              {
-                label: bi(
-                  'Human rights — duty to accommodate',
-                  'Droits de la personne — obligation d’accommodement',
-                ),
-              },
-            ],
-            actions: [
-              {
-                label: bi('Draft a check-in message', 'Rédiger un message de suivi'),
-                primary: true,
-                onClick: () => {
-                  closeRail()
-                  navigate('/app/communications')
-                },
-              },
-            ],
-          },
-        ],
-      },
-      { initials: emp.initials },
-    )
-  }
+  /* Shared askAboutComp / askAboutWellbeing ports (rail/useEntityRails). */
+  const openCompRail = usePayRail()
+  const openWellbeingRail = useWellbeingRail()
 
   const runPriorityAction = (action: PriorityAction) => {
     switch (action.kind) {

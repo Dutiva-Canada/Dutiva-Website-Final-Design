@@ -29,18 +29,6 @@ export type HomeAction =
 export type PriorityTone = 'risk' | 'warning' | 'info'
 export type PrioritySeverity = 'High' | 'Medium' | 'Low'
 
-/** Port of the prototype's `statusChipStyle(tone)` colour map. */
-export const statusChipToneClass: Record<PriorityTone | 'success', string> = {
-  risk: 'bg-risk-bg text-risk-fg',
-  warning: 'bg-warn-bg text-warn-fg',
-  success: 'bg-ok-bg text-ok-fg',
-  info: 'bg-accent-soft text-accent',
-}
-
-/** Base classes of the prototype's `statusChipStyle` (12px chip, 100px radius). */
-export const statusChipBaseClass =
-  'inline-flex whitespace-nowrap rounded-full px-[10px] py-[3px] text-[12px] font-semibold'
-
 /* --------------------------------------------------------- derived counts */
 
 /** Prototype: `s.cases.filter(c => c.status !== 'Resolved').length`. */

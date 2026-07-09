@@ -2,23 +2,11 @@ import { useI18n } from '@/i18n/context'
 import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { policies } from '@/data'
-import type { Policy, Tone } from '@/data'
+import type { Policy } from '@/data'
+import { statusChipClass } from '@/components/chips'
 import { useRail } from '@/features/app/rail/railContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { policiesMessages as M } from '@/i18n/messages/policies'
-
-/** Prototype `statusChipStyle(tone)` — pill chip tinted by tone (unknown → info). */
-const chipToneClasses: Record<Tone, string> = {
-  risk: 'bg-risk-bg text-risk-fg',
-  warning: 'bg-warn-bg text-warn-fg',
-  success: 'bg-ok-bg text-ok-fg',
-  info: 'bg-accent-soft text-accent',
-  suggestion: 'bg-accent-soft text-accent',
-}
-
-function statusChipClass(tone: Tone): string {
-  return `inline-flex rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${chipToneClasses[tone]}`
-}
 
 const lcFirst = (s: string): string => (s.length > 0 ? s.charAt(0).toLowerCase() + s.slice(1) : s)
 

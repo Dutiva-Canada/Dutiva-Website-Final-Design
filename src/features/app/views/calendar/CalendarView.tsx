@@ -4,6 +4,7 @@ import type { Bi } from '@/i18n/core'
 import { calendarMessages as M } from '@/i18n/messages/calendar'
 import { calendarEvents, calendarMonth } from '@/data'
 import type { CalendarEvent } from '@/data'
+import { chipToneClass } from '@/components/chips'
 import { useRail } from '@/features/app/rail/railContext'
 
 /**
@@ -45,12 +46,6 @@ const dayLabels: Bi[] = [
   M.calendar_d_fri,
   M.calendar_d_sat,
 ]
-
-/* Prototype `statusChipStyle` colours (warning / info only occur here). */
-const chipToneClasses: Record<CalendarEvent['tone'], string> = {
-  warning: 'bg-warn-bg text-warn-fg',
-  info: 'bg-accent-soft text-accent',
-}
 
 /** Rail card body — "Scheduled for July {day}, 2026." as a live-Bi pair. */
 function scheduledFor(day: number): Bi {
@@ -117,7 +112,7 @@ export function CalendarView() {
                         key={i}
                         type="button"
                         onClick={() => openEvent(ev)}
-                        className={`inline-flex w-full cursor-pointer overflow-hidden rounded-[100px] border-none px-[10px] py-[3px] text-left font-sans text-[12px] leading-[1.25] font-semibold text-ellipsis whitespace-nowrap ${chipToneClasses[ev.tone]}`}
+                        className={`inline-flex w-full cursor-pointer overflow-hidden rounded-[100px] border-none px-[10px] py-[3px] text-left font-sans text-[12px] leading-[1.25] font-semibold text-ellipsis whitespace-nowrap ${chipToneClass(ev.tone)}`}
                       >
                         {x(ev.label)}
                       </button>
