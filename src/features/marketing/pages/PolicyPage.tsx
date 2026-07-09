@@ -7,9 +7,9 @@ import { MarketingPageShell } from './MarketingPage'
 /**
  * /legal/:slug — a single policy document from the bilingual legal content
  * collection (legalHub_* chrome strings). Unknown slugs redirect back to the
- * /legal hub. When the UI language has no edition of the document (EN UI on
- * an FR-only document — the only fallback direction), the French edition
- * renders with a notice and `lang="fr"` on the article.
+ * /legal hub. All 26 documents currently ship both editions; if a future
+ * document lands French-first, the French edition renders under the EN UI
+ * with a notice and `lang="fr"` on the article.
  */
 export function PolicyPage() {
   const { slug } = useParams()

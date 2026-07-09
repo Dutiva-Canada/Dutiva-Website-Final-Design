@@ -15,8 +15,6 @@ export function LegalHubPage() {
         intro={t('legalHub_intro')}
       />
 
-      {/* The EN edition of four documents is still pending — privacy, subprocessors,
-          disclaimer, and incident-response-policy. PolicyPage falls back to FR for them. */}
       {LEGAL_HUB_GROUPS.map((group) => (
         <PageSection key={group.titleKey} title={t(group.titleKey)}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">

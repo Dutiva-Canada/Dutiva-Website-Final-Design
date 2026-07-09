@@ -36,17 +36,16 @@ describe('PolicyPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('falls back to the French edition of an FR-only document under the EN UI', () => {
+  it('renders a formerly FR-only document in English now that its EN edition shipped', () => {
     renderApp(<PolicyPage />, { route: '/legal/disclaimer', path: '/legal/:slug' })
+    expect(screen.getByRole('heading', { level: 1, name: 'Legal Disclaimer' })).toBeInTheDocument()
+    // Complete catalogue → the language-fallback notice must not appear.
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Avis de non-responsabilité juridique' }),
-    ).toBeInTheDocument()
-    expect(
-      within(screen.getByRole('main')).getByText(
+      within(screen.getByRole('main')).queryByText(
         'The English edition of this document is being finalized — the French edition is shown below.',
       ),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('article')).toHaveAttribute('lang', 'fr')
+    ).toBeNull()
+    expect(screen.getByRole('article')).not.toHaveAttribute('lang')
   })
 
   it('redirects away from an unknown slug without rendering the shell', () => {
