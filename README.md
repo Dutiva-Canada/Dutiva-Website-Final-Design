@@ -48,6 +48,28 @@ the quality bar. In short:
 - **Data**: realistic sample fixtures in `src/data/` behind typed modules,
   designed to be swapped for a real backend (Supabase) without touching views.
 
+## Fidelity notes
+
+The design handoff (`design_handoff_dutiva_hr_platform/`) is the source of
+truth for pixels and copy. Documented deviations, each marked with a comment
+at the site:
+
+- **Two prototype bugs fixed**: open-task titles used `var(--ink)` (a border
+  tone, near-invisible in both themes) and toasts used `var(--ink)` fills
+  (illegible in the light theme). Titles use `var(--text)`; toasts pin the
+  dark-ink pill in both themes.
+- **Advisor thread list** renders as a column inside the Advisor view; the
+  prototype injected chat groups into the app sidebar (kept generic here).
+- **Responsive breakpoints** are 768/1024px (Tailwind md/lg); the prototype's
+  device frames switched at 640/900px.
+- **Beta form** disables native email validation (`noValidate`) so the
+  prototype's own regex + styled error actually run.
+- The prototype's Desktop/Tablet/Mobile preview switchers are prototype
+  affordances and were intentionally not built.
+
+Self-authored Québec French (strings with no FR anywhere in the prototype) is
+marked `[FR self-authored]` in the `src/i18n/messages/` modules.
+
 ## Legal
 
 Dutiva provides practical HR workflow support and compliance-oriented guidance.
