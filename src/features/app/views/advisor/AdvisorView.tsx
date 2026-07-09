@@ -34,6 +34,7 @@ import {
   terminationAssessment,
   terminationIntro,
 } from './advisorFlows'
+import { readNavNewChat, readNavStartFlow } from './advisorNav'
 import type { FlowKeyOrFallback, MessageExtras, SuggestChipSpec } from './advisorFlows'
 import type { PriorityAction } from './advisorHomeData'
 
@@ -91,15 +92,6 @@ function readNavChatId(state: unknown): string | null {
   return null
 }
 
-/** "Start a conversation about …" affordances (Home hero, workflow catalog)
-    navigate here with { prompt } — AdvisorPromptNavState in useHomeActions. */
-function readNavPrompt(state: unknown): string | null {
-  if (state !== null && typeof state === 'object' && 'prompt' in state) {
-    const value = (state as { prompt?: unknown }).prompt
-    if (typeof value === 'string' && value.trim()) return value
-  }
-  return null
-}
 
 /** A conversation started in this session (prototype `startFlow` newChat). */
 interface SessionChat {
@@ -124,6 +116,10 @@ export function AdvisorView() {
   const nextChatSeq = useRef(1)
   const selectChatRef = useRef<(chatId: string) => void>(() => {})
   const startFlowRef = useRef<(flowKey: FlowKeyOrFallback, userText: LText) => void>(() => {})
+  const newConversationRef = useRef<() => void>(() => {})
+  /* Last-handled router state (by identity) — guards StrictMode double-runs
+     and re-renders between the replace-navigation and the state clearing. */
+  const handledNavState = useRef<unknown>(undefined)
 
   /* ---------------------------------------------- fixture-card translation */
 
@@ -226,6 +222,7 @@ export function AdvisorView() {
     setActiveChatId(null)
     engine.reset([])
   }
+  newConversationRef.current = newConversation
 
   /* Search overlay navigation: /app/advisor with { chatId } router state. */
   useEffect(() => {
@@ -233,14 +230,28 @@ export function AdvisorView() {
     if (chatId !== null) selectChatRef.current(chatId)
   }, [location.state])
 
-  /* Home / workflow-catalog navigation: { prompt } starts a fresh flow. The
-     state is cleared via replace-navigation first so a StrictMode re-run or
-     back/forward visit doesn't start a duplicate conversation. */
+  /* Home / Workflows navigation contracts: { prompt, flowKey? } starts a
+     fresh flow (explicit key wins — the EN-keyword router is only for
+     free-typed text, matching the prototype's startFlow(key, text));
+     { newConversation } resets to the empty state. State is handled once by
+     identity, then cleared via replace-navigation. */
   useEffect(() => {
-    const prompt = readNavPrompt(location.state)
-    if (prompt !== null) {
+    const state: unknown = location.state
+    if (state === null || state === undefined || handledNavState.current === state) return
+    handledNavState.current = state
+
+    const start = readNavStartFlow(state)
+    if (start) {
       navigate(location.pathname, { replace: true, state: null })
-      startFlowRef.current(routeFlowKeyFromText(prompt), prompt)
+      const key =
+        start.flowKey ??
+        routeFlowKeyFromText(typeof start.prompt === 'string' ? start.prompt : start.prompt.en)
+      startFlowRef.current(key, start.prompt)
+      return
+    }
+    if (readNavNewChat(state)) {
+      navigate(location.pathname, { replace: true, state: null })
+      newConversationRef.current()
     }
   }, [location.state, location.pathname, navigate])
 

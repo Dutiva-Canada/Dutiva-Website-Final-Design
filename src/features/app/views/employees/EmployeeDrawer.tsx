@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { useEscapeToClose } from '@/lib/escapeStack'
 import { employeesMessages as M } from '@/i18n/messages/employees'
 import type { Employee } from '@/data'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
@@ -29,14 +29,7 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
   const askAdvisor = useAskAdvisorAboutEmployee()
 
   const open = employee !== null
-  useEffect(() => {
-    if (!open) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [open, onClose])
+  useEscapeToClose(open, onClose)
 
   if (!employee) return null
 

@@ -93,11 +93,12 @@ function CaseDetail({ caze }: { caze: WorkspaceCase }) {
   const det = emp ? employeeDetails[emp.id] : undefined
 
   /* Prototype: opening a case pins it as the Advisor's workspace context
-     ("Advisor is using · On case …", logic 4281). */
+     ("Advisor is using · On case …", logic 4281). The localized typeLabel is
+     the topic chip — the prototype translates its raw c.type via tr(). */
   const { setContext } = useWorkspaceContext()
   useEffect(() => {
-    if (emp) setContext(contextFromEmployee(emp, caze.type, 'case'))
-  }, [emp, caze.type, setContext])
+    if (emp) setContext(contextFromEmployee(emp, caze.typeLabel, 'case'))
+  }, [emp, caze.typeLabel, setContext])
   const linkedTasks = tasks.filter((t) => t.chatId === caze.chatId)
   const [taskDone, setTaskDone] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(linkedTasks.map((t) => [t.id, t.done])),
@@ -510,7 +511,7 @@ function CaseDetail({ caze }: { caze: WorkspaceCase }) {
                             onClick={() =>
                               setTaskDone((prev) => ({ ...prev, [t.id]: !(prev[t.id] ?? t.done) }))
                             }
-                            className={`flex h-[17px] w-[17px] shrink-0 cursor-pointer items-center justify-center rounded-[5px] ${
+                            className={`relative flex h-[17px] w-[17px] shrink-0 cursor-pointer items-center justify-center rounded-[5px] after:absolute after:-inset-[14px] after:content-[''] ${
                               done
                                 ? 'border-none bg-ok-fg'
                                 : 'border-[1.5px] border-border bg-surface'

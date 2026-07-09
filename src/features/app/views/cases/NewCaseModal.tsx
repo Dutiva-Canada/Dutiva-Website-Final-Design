@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Lock, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { useEscapeToClose } from '@/lib/escapeStack'
 import { employees } from '@/data'
 import { casesMessages as M } from '@/i18n/messages/cases'
 import {
@@ -34,18 +35,14 @@ export function NewCaseModal({ onClose, onCreate }: NewCaseModalProps) {
   const [title, setTitle] = useState('')
   const restoreRef = useRef<Element | null>(null)
 
-  /* Escape closes (prototype global key handler); focus restores on close. */
+  /* Escape closes via the shared overlay stack; focus restores on close. */
+  useEscapeToClose(true, onClose)
   useEffect(() => {
     restoreRef.current = document.activeElement
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
     return () => {
-      window.removeEventListener('keydown', onKeyDown)
       if (restoreRef.current instanceof HTMLElement) restoreRef.current.focus()
     }
-  }, [onClose])
+  }, [])
 
   const emp = employees.find((e) => e.id === empId)
   const typeOption = newCaseTypes.find((t) => t.value === type) ?? newCaseTypes[0]!

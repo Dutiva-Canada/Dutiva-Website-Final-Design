@@ -14,5 +14,9 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    /* First test per worker pays the fixture-module transform cost; on a
+       loaded machine that alone can exceed the 5s default. */
+    testTimeout: 20000,
+    hookTimeout: 20000,
   },
 })

@@ -61,7 +61,9 @@ export function HomeActNowSection({ onAction }: { onAction: (action: HomeAction)
                 {ask && (
                   <button
                     type="button"
-                    onClick={() => onAction({ kind: 'flow', prompt: ask })}
+                    onClick={() =>
+                      onAction({ kind: 'flow', prompt: ask, flowKey: p.askFlowKey ?? 'fallback' })
+                    }
                     className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent px-[2px] py-[7px] font-sans text-[12px] font-semibold text-gold-fg"
                   >
                     <Sparkle size={12} fill="currentColor" strokeWidth={0} aria-hidden="true" />

@@ -24,13 +24,16 @@ export function TemplatesView() {
   const { openDocFromLibrary } = useDocStudio()
   const location = useLocation()
   const navigate = useNavigate()
-  const handledNavState = useRef(false)
+  /* Handled-by-identity guard: StrictMode-safe, but a LATER navigation with a
+     new state object (e.g. a second search-result click while already on this
+     view) is handled again. */
+  const handledNavState = useRef<unknown>(undefined)
 
   useEffect(() => {
-    if (handledNavState.current) return
     const state = location.state as Partial<TemplatesSearchNavState> | null
-    if (state && typeof state.docKey === 'string') {
-      handledNavState.current = true
+    if (state === null || handledNavState.current === state) return
+    handledNavState.current = state
+    if (typeof state.docKey === 'string') {
       openDocFromLibrary(state.docKey)
       navigate(location.pathname, { replace: true, state: null })
     }

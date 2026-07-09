@@ -39,6 +39,9 @@ export function EmployeesView() {
 
   const openProfile = (e: Employee) => navigate(`/app/employees/${e.id}`)
   const activateOnKey = (fn: () => void) => (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    /* Only when the row itself is focused — Enter/Space on nested interactive
+       elements (the per-row Ask Advisor button) must keep their own action. */
+    if (e.target !== e.currentTarget) return
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       fn()

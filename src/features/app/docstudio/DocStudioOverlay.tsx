@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Check, ChevronDown, Info, PenTool, Sparkle, TriangleAlert, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
+import { useEscapeToClose } from '@/lib/escapeStack'
 import { docstudioMessages as M } from '@/i18n/messages/docstudio'
 import { useDocStudio } from './docStudioContext'
 
@@ -39,17 +40,13 @@ export function DocStudioOverlay() {
     if (open) dialogRef.current?.focus()
   }, [open])
 
-  /* Prototype keydown handling: Escape cancels the gate first, then closes. */
-  useEffect(() => {
-    if (!open) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      if (gateOpen) cancelGate()
-      else closeDocStudio()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [open, gateOpen, cancelGate, closeDocStudio])
+  /* Prototype keydown handling: Escape cancels the gate first, then closes.
+     Registered on the shared stack so overlays opened on top (e.g. search)
+     receive Escape first. */
+  useEscapeToClose(open, () => {
+    if (gateOpen) cancelGate()
+    else closeDocStudio()
+  })
 
   if (!open) return null
 

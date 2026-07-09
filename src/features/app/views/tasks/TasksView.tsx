@@ -88,7 +88,7 @@ export function TasksView() {
                   onClick={() => toggleTask(task)}
                   aria-label={x(M.tasks_toggle_aria)}
                   aria-pressed={done}
-                  className={`flex h-[19px] w-[19px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] ${
+                  className={`relative flex h-[19px] w-[19px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] after:absolute after:-inset-[13px] after:content-[''] ${
                     done ? 'border-none bg-ok-fg' : 'border-[1.5px] border-border bg-surface'
                   }`}
                 >
@@ -104,9 +104,13 @@ export function TasksView() {
                   aria-label={x(M.tasks_open_chat_aria).replace('{title}', x(task.title))}
                   className="min-w-0 flex-1 cursor-pointer"
                 >
+                  {/* Deliberate deviation: the prototype's titleStyle says
+                      var(--ink) — a border/frame tone that is near-invisible in
+                      both themes (~1.5:1). Every sibling view titles rows in
+                      var(--text); treated as a prototype typo. */}
                   <div
                     className={`text-[13.5px] font-semibold ${
-                      done ? 'text-text-faint line-through' : 'text-ink'
+                      done ? 'text-text-faint line-through' : 'text-text'
                     }`}
                   >
                     {x(task.title)}

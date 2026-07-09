@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
+import type { FlowKeyOrFallback } from '@/features/app/views/advisor/advisorFlows'
 
 /**
  * Workflows-view content — typed transcription of the prototype's
@@ -125,14 +126,25 @@ export interface WorkflowCatalogItem {
   sub: Bi
   /** lucide match for the prototype's inline 15px / 1.8-stroke tile icon. */
   icon: LucideIcon
-  /**
-   * The prototype's `startFlow` opening query — kept for the future Advisor
-   * flow-start contract; today the tile navigates to /app/advisor.
-   */
+  /** The prototype's `startFlow` opening query. */
   query: Bi
+  /** Explicit Advisor flow key — prototype `start(key, en, frq)` (4763–4776). */
+  flowKey: FlowKeyOrFallback
 }
 
-export const workflowCatalog: readonly WorkflowCatalogItem[] = [
+/** Prototype tile key → startFlow key (leave/investigation/promotion → 'fallback'). */
+const CATALOG_FLOW_KEYS: Record<string, FlowKeyOrFallback> = {
+  hiring: 'hiring',
+  termination: 'termination',
+  accommodation: 'accommodation',
+  performance: 'performance',
+  leave: 'fallback',
+  investigation: 'fallback',
+  promotion: 'fallback',
+  policy: 'policy',
+}
+
+const catalogEntries: readonly Omit<WorkflowCatalogItem, 'flowKey'>[] = [
   {
     key: 'hiring',
     label: bi('Hiring', 'Embauche'),
@@ -205,6 +217,12 @@ export const workflowCatalog: readonly WorkflowCatalogItem[] = [
     query: bi('We need to refresh a workplace policy.', 'Nous devons mettre à jour une politique.'),
   },
 ]
+
+/** Shared catalog — the Home view's "Start a workflow" grid renders this same list. */
+export const workflowCatalog: readonly WorkflowCatalogItem[] = catalogEntries.map((entry) => ({
+  ...entry,
+  flowKey: CATALOG_FLOW_KEYS[entry.key] ?? 'fallback',
+}))
 
 /* -------------------------------------------------------- termination map */
 

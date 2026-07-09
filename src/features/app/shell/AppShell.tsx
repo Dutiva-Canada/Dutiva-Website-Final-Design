@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
+import { shellMessages } from '@/i18n/messages/shell'
+import { useEscapeToClose } from '@/lib/escapeStack'
 import { SearchOverlay } from '@/features/app/search/SearchOverlay'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { DocStudioOverlay } from '@/features/app/docstudio/DocStudioOverlay'
@@ -54,8 +56,10 @@ export function AppShell() {
     setDrawerOpen(false)
   }, [pathname])
 
-  const title = x(viewLabelFor(pathname))
   const isMobile = layout === 'mobile'
+  useEscapeToClose(isMobile && drawerOpen, () => setDrawerOpen(false))
+
+  const title = x(viewLabelFor(pathname))
 
   return (
     <div className="surface-app flex h-screen flex-col overflow-hidden bg-bg font-sans text-text">
@@ -73,7 +77,9 @@ export function AppShell() {
               className="fixed inset-0 z-[60] bg-[rgba(20,25,32,0.4)]"
               aria-hidden="true"
             />
-            <Sidebar mode="drawer" onCloseDrawer={() => setDrawerOpen(false)} />
+            <div role="dialog" aria-modal="true" aria-label={x(shellMessages.shell_primary_nav)}>
+              <Sidebar mode="drawer" onCloseDrawer={() => setDrawerOpen(false)} />
+            </div>
           </>
         )}
 

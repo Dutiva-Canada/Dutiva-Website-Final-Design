@@ -65,7 +65,7 @@ export function HomeBriefHero({ onAction }: { onAction: (action: HomeAction) => 
           ))}
           <button
             type="button"
-            onClick={() => onAction({ kind: 'flow', prompt: askBriefPrompt })}
+            onClick={() => onAction({ kind: 'flow', prompt: askBriefPrompt, flowKey: 'fallback' })}
             className="ml-auto flex cursor-pointer items-center gap-[6px] border-none bg-transparent px-[2px] py-[6px] font-sans text-[12.5px] font-semibold text-gold-fg"
           >
             {x(M.home_brief_ask)}

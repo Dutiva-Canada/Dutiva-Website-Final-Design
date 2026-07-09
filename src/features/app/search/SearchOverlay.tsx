@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Lock, Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { searchMessages as M } from '@/i18n/messages/search'
+import { useEscapeToClose } from '@/lib/escapeStack'
 import { useSearch } from './searchContext'
 import { filterSearchEntries, pinnedChatEntries, searchTabs } from './searchCorpus'
 import type {
@@ -29,6 +30,9 @@ function SearchDialog() {
   const { x, lang } = useI18n()
   const { closeSearch } = useSearch()
   const navigate = useNavigate()
+
+  /* Escape closes only this overlay (the topmost) — see lib/escapeStack. */
+  useEscapeToClose(true, closeSearch)
 
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState<SearchTabKey>('all')
@@ -113,15 +117,11 @@ function SearchDialog() {
           e.preventDefault()
           openEntry(active)
         }
-        return
-      }
-      if (e.key === 'Escape') {
-        closeSearch()
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [results, activeIdx, closeSearch, openEntry])
+  }, [results, activeIdx, openEntry])
 
   const stopClickPropagation = (e: MouseEvent<HTMLDivElement>) => e.stopPropagation()
 

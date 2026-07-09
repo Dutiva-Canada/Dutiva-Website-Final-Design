@@ -1,21 +1,12 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { bi, pickL } from '@/i18n/core'
+import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
-import { useI18n } from '@/i18n/context'
 import { useRail } from '@/features/app/rail/railContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { employeeDetails, employees } from '@/data'
+import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
 import type { HomeAction } from './homeData'
-
-/**
- * Router `location.state` for "start a conversation about …" affordances
- * (prototype `startFlow(flowKey, userText)`): the Advisor view can read this
- * to seed a fresh conversation with the prompt.
- */
-export interface AdvisorPromptNavState {
-  prompt: string
-}
 
 /**
  * Money formatting for the pay rail card — prototype uses
@@ -38,7 +29,6 @@ export function useHomeActions(): (action: HomeAction) => void {
   const navigate = useNavigate()
   const { openRail, closeRail } = useRail()
   const { openDocStudio } = useDocStudio()
-  const { lang } = useI18n()
 
   /* Prototype `askAboutComp(emp)` — pay-review rail. FR is self-authored for
      the body copy (the prototype opens this rail with EN-only strings). */
@@ -88,7 +78,7 @@ export function useHomeActions(): (action: HomeAction) => void {
                   primary: true,
                   onClick: () => {
                     closeRail()
-                    navigate(`/app/employees/${emp.id}`)
+                    navigate(`/app/employees/${emp.id}`, { state: { tab: 'compensation' } })
                   },
                 },
               ],
@@ -168,8 +158,13 @@ export function useHomeActions(): (action: HomeAction) => void {
           openDocStudio(action.templateKey)
           break
         case 'flow':
+          /* Bi prompt + explicit key — live language toggles re-localize the
+             seeded bubble, and the flow never depends on keyword routing. */
           navigate('/app/advisor', {
-            state: { prompt: pickL(action.prompt, lang) } satisfies AdvisorPromptNavState,
+            state: {
+              prompt: action.prompt,
+              flowKey: action.flowKey,
+            } satisfies AdvisorStartFlowNavState,
           })
           break
         case 'comp-rail':
@@ -180,6 +175,6 @@ export function useHomeActions(): (action: HomeAction) => void {
           break
       }
     },
-    [navigate, openDocStudio, lang, openCompRail, openWellbeingRail],
+    [navigate, openDocStudio, openCompRail, openWellbeingRail],
   )
 }

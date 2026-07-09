@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Sparkle, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
+import { useEscapeToClose } from '@/lib/escapeStack'
 import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import { ChatBubble } from '@/features/app/advisor/ChatBubble'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
@@ -22,15 +23,20 @@ export function AdvisorRail() {
   const { rail, closeRail, sendRailMessage } = useRail()
   const { x, lang } = useI18n()
   const scrollRef = useRef<HTMLDivElement | null>(null)
+  const triggerRef = useRef<HTMLElement | null>(null)
 
+  useEscapeToClose(rail.open, closeRail)
+
+  /* Remember the opener and give focus back on close. */
   useEffect(() => {
-    if (!rail.open) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeRail()
+    if (rail.open) {
+      triggerRef.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null
+    } else if (triggerRef.current) {
+      triggerRef.current.focus()
+      triggerRef.current = null
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [rail.open, closeRail])
+  }, [rail.open])
 
   /* Keep the newest message (and its streaming tail) in view. */
   useEffect(() => {

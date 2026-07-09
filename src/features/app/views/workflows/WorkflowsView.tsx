@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { workflowsMessages as M } from '@/i18n/messages/workflows'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
+import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
 import { inFlightWorkflows, terminationStages, workflowCatalog } from './workflowsData'
 import type { TerminationStageState, WorkflowChipTone, WorkflowNav } from './workflowsData'
 
@@ -246,9 +247,14 @@ export function WorkflowsView() {
                 key={item.key}
                 type="button"
                 onClick={() =>
-                  /* Prototype startFlow(key, query) — the Advisor view seeds a
-                     fresh conversation from { prompt } (AdvisorPromptNavState). */
-                  navigate('/app/advisor', { state: { prompt: x(item.query) } })
+                  /* Prototype startFlow(key, query) — explicit key + Bi prompt
+                     so FR routes correctly and live toggles re-localize. */
+                  navigate('/app/advisor', {
+                    state: {
+                      prompt: item.query,
+                      flowKey: item.flowKey,
+                    } satisfies AdvisorStartFlowNavState,
+                  })
                 }
                 className="flex cursor-pointer flex-col items-start gap-[9px] rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-[1px] hover:border-(--accent-soft-border)"
               >

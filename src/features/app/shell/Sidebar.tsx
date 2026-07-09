@@ -164,6 +164,9 @@ export function Sidebar({
       <div className={cx('pb-[10px]', sidePad)}>
         <Link
           to="/app/advisor"
+          /* Prototype newChatClicked: always reset to the fresh empty state,
+             even when the Advisor view is already open on a thread. */
+          state={{ newConversation: true }}
           onClick={onCloseDrawer}
           aria-label={x(M.shell_new_conversation)}
           className={cx(

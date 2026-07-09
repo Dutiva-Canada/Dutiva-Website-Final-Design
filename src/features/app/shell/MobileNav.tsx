@@ -103,6 +103,7 @@ export function MobileNav({
       />
       <Link
         to="/app/advisor"
+        state={{ newConversation: true }}
         aria-label={x(M.shell_ask_advisor)}
         className="flex flex-none flex-col items-center gap-[3px] px-[4px]"
       >

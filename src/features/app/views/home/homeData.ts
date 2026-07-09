@@ -1,17 +1,7 @@
-import type { LucideIcon } from 'lucide-react'
-import {
-  Calendar,
-  ClipboardCheck,
-  FileText,
-  Heart,
-  Search,
-  TrendingUp,
-  UserPlus,
-  UserX,
-} from 'lucide-react'
-import { bi } from '@/i18n/core'
+﻿import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { cases, employeeDetails, employees, tasks } from '@/data'
+import type { FlowKeyOrFallback } from '@/features/app/views/advisor/advisorFlows'
 
 /**
  * Home — Command Centre view-model data, ported from `App v2.dc.html`:
@@ -32,8 +22,9 @@ export type HomeAction =
   | { kind: 'doc'; templateKey: string }
   | { kind: 'comp-rail'; employeeId: string }
   | { kind: 'wellbeing-rail'; employeeId: string }
-  /** Prototype `startFlow(key, text)` — opens the Advisor on a fresh conversation. */
-  | { kind: 'flow'; prompt: Bi }
+  /** Prototype `startFlow(key, text)` — opens the Advisor on a fresh conversation.
+      The explicit flow key must ride along (the keyword router is EN-only). */
+  | { kind: 'flow'; prompt: Bi; flowKey: FlowKeyOrFallback }
 
 export type PriorityTone = 'risk' | 'warning' | 'info'
 export type PrioritySeverity = 'High' | 'Medium' | 'Low'
@@ -82,6 +73,8 @@ export interface HomePriority {
   action: HomeAction
   /** "Ask Advisor" prompt (Act now items only) — prototype `onAsk`. */
   ask?: Bi
+  /** Explicit flow key for `ask` — prototype 4784–4786 (pr1 fallback, pr2 policy). */
+  askFlowKey?: FlowKeyOrFallback
   /** Due pill for This-week rows (prototype `dueMap`). */
   due?: { label: Bi; warn: boolean }
 }
@@ -110,6 +103,7 @@ export const homePriorities: HomePriority[] = [
       "What's our exposure if counsel doesn't reply this week on Jordan Mensah's termination?",
       'Quelle est notre exposition si le conseiller juridique ne répond pas cette semaine au sujet de Jordan Mensah?',
     ),
+    askFlowKey: 'fallback',
   },
   {
     id: 'pr2',
@@ -133,6 +127,7 @@ export const homePriorities: HomePriority[] = [
       'What should the refreshed Remote Work Policy cover for our provinces?',
       'Que doit couvrir la politique de télétravail mise à jour pour nos provinces?',
     ),
+    askFlowKey: 'policy',
   },
   {
     id: 'pr3',
@@ -354,95 +349,7 @@ export function workflowFillWidth(w: HomeWorkflow): string {
   return `${Math.round((w.step / w.of) * 100)}%`
 }
 
-/* --------------------------------------------------------------- catalog */
-
-export interface WorkflowCatalogEntry {
-  key: string
-  label: Bi
-  sub: Bi
-  icon: LucideIcon
-  prompt: Bi
-}
-
-/** Prototype `workflowCatalog()` — "Start a workflow" tiles (icons matched to the inline SVGs). */
-export const workflowCatalog: WorkflowCatalogEntry[] = [
-  {
-    key: 'hiring',
-    label: bi('Hiring', 'Embauche'),
-    sub: bi('Offer → onboarding', 'Offre → intégration'),
-    icon: UserPlus,
-    prompt: bi('I need to hire for a new role.', 'Je dois embaucher pour un nouveau poste.'),
-  },
-  {
-    key: 'termination',
-    label: bi('Termination', 'Cessation d’emploi'),
-    sub: bi('Notice → final pay', 'Préavis → paie finale'),
-    icon: UserX,
-    prompt: bi('I need to terminate an employee.', 'Je dois mettre fin à l’emploi d’un employé.'),
-  },
-  {
-    key: 'accommodation',
-    label: bi('Accommodation', 'Accommodement'),
-    sub: bi('Duty to accommodate', 'Obligation d’adaptation'),
-    icon: Heart,
-    prompt: bi(
-      'An employee has requested an accommodation.',
-      'Un employé a demandé un accommodement.',
-    ),
-  },
-  {
-    key: 'performance',
-    label: bi('Performance', 'Rendement'),
-    sub: bi('PIP & check-ins', 'PAR et suivis'),
-    icon: ClipboardCheck,
-    prompt: bi(
-      'I have performance concerns about an employee.',
-      'J’ai des préoccupations de rendement au sujet d’un employé.',
-    ),
-  },
-  {
-    key: 'leave',
-    label: bi('Leave', 'Congé'),
-    sub: bi('Request → return', 'Demande → retour'),
-    icon: Calendar,
-    prompt: bi(
-      'An employee is requesting a leave of absence — walk me through it.',
-      'Un employé demande un congé — guidez-moi.',
-    ),
-  },
-  {
-    key: 'investigation',
-    label: bi('Investigation', 'Enquête'),
-    sub: bi('Intake → findings', 'Signalement → conclusions'),
-    icon: Search,
-    prompt: bi(
-      'I received a workplace complaint and need to run an investigation.',
-      'J’ai reçu une plainte et je dois mener une enquête.',
-    ),
-  },
-  {
-    key: 'promotion',
-    label: bi('Promotion', 'Promotion'),
-    sub: bi('Comp & letter', 'Rémunération et lettre'),
-    icon: TrendingUp,
-    prompt: bi(
-      'I want to promote an employee — what should the package cover?',
-      'Je veux promouvoir un employé — que doit couvrir l’offre?',
-    ),
-  },
-  {
-    key: 'policy',
-    label: bi('Policy update', 'Politique'),
-    sub: bi('Draft → acknowledge', 'Rédaction → accusés'),
-    icon: FileText,
-    prompt: bi(
-      'We need to refresh a workplace policy.',
-      'Nous devons mettre à jour une politique.',
-    ),
-  },
-]
-
-/** Prototype `onAskBrief` — "Ask about this brief" flow prompt. */
+/** Prototype `onAskBrief` — "Ask about this brief" flow prompt (explicit 'fallback' key, 4826). */
 export const askBriefPrompt: Bi = bi(
   'Walk me through today’s brief — what should I do first?',
   'Explique-moi le résumé d’aujourd’hui — par quoi devrais-je commencer?',

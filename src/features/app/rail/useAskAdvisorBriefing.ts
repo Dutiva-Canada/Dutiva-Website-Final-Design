@@ -37,9 +37,9 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
 
   return useCallback(
     (viewKey: string) => {
-      const go = (to: string) => () => {
+      const go = (to: string, state?: unknown) => () => {
         closeRail()
-        navigate(to)
+        navigate(to, state === undefined ? undefined : { state })
       }
 
       const byView: Record<string, Briefing> = {
@@ -100,13 +100,13 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
                 tone: 'warning',
                 title: M.advisor_brief_policies_card_title,
                 body: M.advisor_brief_policies_card_body,
-                /* The prototype opens the Remote Work Policy draft in Document
-                   Studio; the studio lives in the templates view. */
+                /* The prototype opens the Remote Work Policy draft directly in
+                   Document Studio — the templates view honours { docKey }. */
                 actions: [
                   {
                     label: M.advisor_action_draft_refresh,
                     primary: true,
-                    onClick: go('/app/templates'),
+                    onClick: go('/app/templates', { docKey: 'Remote Work Policy' }),
                   },
                 ],
               },

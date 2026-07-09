@@ -1,6 +1,6 @@
 import { useI18n } from '@/i18n/context'
 import { homeMessages as M } from '@/i18n/messages/home'
-import { workflowCatalog } from './homeData'
+import { workflowCatalog } from '@/features/app/views/workflows/workflowsData'
 import type { HomeAction } from './homeData'
 
 /**
@@ -22,7 +22,9 @@ export function HomeWorkflowCatalog({ onAction }: { onAction: (action: HomeActio
             <button
               key={entry.key}
               type="button"
-              onClick={() => onAction({ kind: 'flow', prompt: entry.prompt })}
+              onClick={() =>
+                onAction({ kind: 'flow', prompt: entry.query, flowKey: entry.flowKey })
+              }
               className="flex cursor-pointer flex-col items-start gap-[8px] rounded-[11px] border border-border bg-surface p-[12px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-[1px] hover:border-(--accent-soft-border)"
             >
               <div className="flex h-[27px] w-[27px] items-center justify-center rounded-[7px] bg-navy text-[#F2D9A8]">

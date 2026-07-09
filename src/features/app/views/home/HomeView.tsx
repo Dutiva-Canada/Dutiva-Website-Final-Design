@@ -7,8 +7,8 @@ import { HomeCompliancePanel } from './HomeCompliancePanel'
 import { HomeActNowSection, HomeThisWeekSection, HomeWatchingSection } from './HomePriorityQueue'
 import { HomeWorkflowCatalog } from './HomeWorkflowCatalog'
 import { HomeWorkflowsMobileList, HomeWorkflowsRailCard } from './HomeWorkflowsCard'
+import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
 import { useHomeActions } from './useHomeActions'
-import type { AdvisorPromptNavState } from './useHomeActions'
 
 /**
  * Home — Command Centre (prototype `App v2.dc.html` markup 335–547,
@@ -22,9 +22,9 @@ export function HomeView() {
   const navigate = useNavigate()
   const runAction = useHomeActions()
 
-  /* Prototype `onHomeSend` — sends the composer text as a fresh Advisor conversation. */
+  /* Prototype `onHomeSend` — free-typed text keeps keyword routing (no key). */
   const sendToAdvisor = (text: string) => {
-    navigate('/app/advisor', { state: { prompt: text } satisfies AdvisorPromptNavState })
+    navigate('/app/advisor', { state: { prompt: text } satisfies AdvisorStartFlowNavState })
   }
 
   return (
