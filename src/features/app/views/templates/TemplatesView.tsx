@@ -1,4 +1,70 @@
-﻿/* Placeholder - to be replaced by the ported TemplatesView from App v2.dc.html. */
+import { useEffect, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { FileText } from 'lucide-react'
+import { useI18n } from '@/i18n/context'
+import { templatesMessages as M } from '@/i18n/messages/templates'
+import { documentTemplates } from '@/data'
+import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
+import type { TemplatesSearchNavState } from '@/features/app/search/searchCorpus'
+
+/**
+ * Templates — the Document Studio template gallery (App v2.dc.html markup
+ * lines 1232–1250, `buildTemplatesView()` lines 3457–3462). A responsive
+ * auto-fill grid of template tiles in fixture order; clicking a tile opens
+ * the document in the shared Document Studio overlay without the generation
+ * shimmer (prototype `openDocFromLibrary`).
+ *
+ * Honours global-search navigation: arriving with `location.state`
+ * = `TemplatesSearchNavState { docKey }` opens that template on mount (the
+ * prototype's search-result `openDocFromLibrary(title, category)`), then
+ * clears the state so history navigation doesn't re-open it.
+ */
 export function TemplatesView() {
-  return <div data-placeholder="TemplatesView" />
+  const { x } = useI18n()
+  const { openDocFromLibrary } = useDocStudio()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const handledNavState = useRef(false)
+
+  useEffect(() => {
+    if (handledNavState.current) return
+    const state = location.state as Partial<TemplatesSearchNavState> | null
+    if (state && typeof state.docKey === 'string') {
+      handledNavState.current = true
+      openDocFromLibrary(state.docKey)
+      navigate(location.pathname, { replace: true, state: null })
+    }
+  }, [location.pathname, location.state, navigate, openDocFromLibrary])
+
+  return (
+    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
+      <section aria-label={x(M.templates_gallery_aria)} className="mx-auto max-w-[900px]">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-[14px]">
+          {documentTemplates.map((doc) => (
+            <button
+              key={doc.key}
+              type="button"
+              onClick={() => openDocFromLibrary(doc.key)}
+              className="flex cursor-pointer flex-col gap-[16px] rounded-[12px] border border-border bg-surface p-[16px] text-left font-sans"
+            >
+              <div className="flex h-[32px] w-[32px] items-center justify-center rounded-[8px] bg-inset">
+                <FileText
+                  size={15}
+                  strokeWidth={1.7}
+                  className="text-text-muted"
+                  aria-hidden="true"
+                />
+              </div>
+              <div>
+                <div className="text-[13.5px] leading-[1.3] font-semibold text-text">
+                  {x(doc.title)}
+                </div>
+                <div className="mt-[4px] text-[11.5px] text-text-muted">{x(doc.category)}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
 }
