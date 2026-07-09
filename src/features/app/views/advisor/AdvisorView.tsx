@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { bi } from '@/i18n/core'
-import type { Bi, LText } from '@/i18n/core'
+import type { LText } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
@@ -35,6 +35,8 @@ import {
   terminationIntro,
 } from './advisorFlows'
 import { readNavNewChat, readNavStartFlow } from './advisorNav'
+import { advisorSession } from './advisorSession'
+import type { SessionChat } from './advisorSession'
 import type { FlowKeyOrFallback, MessageExtras, SuggestChipSpec } from './advisorFlows'
 import type { PriorityAction } from './advisorHomeData'
 
@@ -93,15 +95,6 @@ function readNavChatId(state: unknown): string | null {
 }
 
 
-/** A conversation started in this session (prototype `startFlow` newChat). */
-interface SessionChat {
-  id: string
-  title: Bi
-  pinned: boolean
-  bucket: 'today'
-  flowKey: FlowKeyOrFallback
-}
-
 export function AdvisorView() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -109,11 +102,38 @@ export function AdvisorView() {
   const { showToast } = useToasts()
   const { openDocStudio } = useDocStudio()
 
-  const [sessionChats, setSessionChats] = useState<SessionChat[]>([])
-  const [extras, setExtras] = useState<Record<string, MessageExtras>>({})
-  const transcripts = useRef(new Map<string, ChatMessage[]>())
+  /* Session-scoped state lives in the advisorSession module store so
+     conversations survive navigating away and back (prototype app-level
+     state); the local useState mirrors it for rendering. */
+  const [sessionChats, setSessionChatsState] = useState<SessionChat[]>(() => advisorSession.chats)
+  const setSessionChats = (updater: (prev: SessionChat[]) => SessionChat[]) => {
+    setSessionChatsState((prev) => {
+      const next = updater(prev)
+      advisorSession.chats = next
+      return next
+    })
+  }
+  const [extras, setExtrasState] = useState<Record<string, MessageExtras>>(
+    () => advisorSession.extras,
+  )
+  const setExtras = (
+    updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
+  ) => {
+    setExtrasState((prev) => {
+      const next = updater(prev)
+      advisorSession.extras = next
+      return next
+    })
+  }
+  const transcripts = useRef(advisorSession.transcripts)
   const nextEngineId = useRef(1)
-  const nextChatSeq = useRef(1)
+  /* Per-mount engine prefix — restored transcript ids never collide with the
+     freshly-mounted engine's sequence. */
+  const enginePrefixRef = useRef<string | null>(null)
+  if (enginePrefixRef.current === null) {
+    enginePrefixRef.current = `${ENGINE_PREFIX}m${advisorSession.mountSeq++}`
+  }
+  const enginePrefix = enginePrefixRef.current
   const selectChatRef = useRef<(chatId: string) => void>(() => {})
   const startFlowRef = useRef<(flowKey: FlowKeyOrFallback, userText: LText) => void>(() => {})
   const newConversationRef = useRef<() => void>(() => {})
@@ -175,28 +195,45 @@ export function AdvisorView() {
 
   /* --------------------------------------------------------------- engine */
 
-  const [activeChatId, setActiveChatId] = useState<string | null>(() => {
-    const id = readNavChatId(location.state)
-    return id !== null && chats.some((c) => c.id === id) ? id : null
+  const [activeChatId, setActiveChatIdState] = useState<string | null>(() => {
+    const navId = readNavChatId(location.state)
+    if (navId !== null && chats.some((c) => c.id === navId)) return navId
+    /* No explicit navigation target — resume the thread that was open when
+       the view last unmounted (prototype app-level activeChatId). */
+    const resumed = advisorSession.activeChatId
+    if (
+      resumed !== null &&
+      (chats.some((c) => c.id === resumed) || advisorSession.chats.some((c) => c.id === resumed))
+    ) {
+      return resumed
+    }
+    return null
   })
+  const setActiveChatId = (id: string | null) => {
+    advisorSession.activeChatId = id
+    setActiveChatIdState(id)
+  }
 
   const initialMessages = useRef<ChatMessage[] | null>(null)
   if (initialMessages.current === null) {
-    initialMessages.current = activeChatId !== null ? seedFor(activeChatId) : []
+    initialMessages.current =
+      activeChatId !== null
+        ? (transcripts.current.get(activeChatId) ?? seedFor(activeChatId))
+        : []
   }
 
-  const engine = useAdvisorEngine({ idPrefix: ENGINE_PREFIX, initial: initialMessages.current })
+  const engine = useAdvisorEngine({ idPrefix: enginePrefix, initial: initialMessages.current })
 
   /** Append a user bubble and return its (mirrored) engine id. */
   const pushUser = (text: LText, chips?: LText[]): string => {
-    const id = `${ENGINE_PREFIX}-${nextEngineId.current++}`
+    const id = `${enginePrefix}-${nextEngineId.current++}`
     engine.sendUser(text, chips)
     return id
   }
 
   /** Push an advisor turn and return its (mirrored) engine id. */
   const pushAdvisor = (spec: AdvisorTurnSpec): string => {
-    const id = `${ENGINE_PREFIX}-${nextEngineId.current++}`
+    const id = `${enginePrefix}-${nextEngineId.current++}`
     engine.pushTurn(spec)
     return id
   }
@@ -204,6 +241,12 @@ export function AdvisorView() {
   const stashActive = () => {
     if (activeChatId !== null) transcripts.current.set(activeChatId, settle(engine.messages))
   }
+
+  /* Stash the open transcript when the view unmounts (route change) so the
+     conversation is still there when the user comes back. */
+  const stashRef = useRef(stashActive)
+  stashRef.current = stashActive
+  useEffect(() => () => stashRef.current(), [])
 
   /* ---------------------------------------------------- thread navigation */
 
@@ -259,7 +302,7 @@ export function AdvisorView() {
 
   const startFlow = (flowKey: FlowKeyOrFallback, userText: LText) => {
     stashActive()
-    const id = `session-${nextChatSeq.current++}`
+    const id = `session-${advisorSession.nextChatSeq++}`
     setSessionChats((prev) => [
       { id, title: flowTitles[flowKey], pinned: false, bucket: 'today', flowKey },
       ...prev,

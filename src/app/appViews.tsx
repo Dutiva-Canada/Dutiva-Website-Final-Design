@@ -1,24 +1,30 @@
+import { lazy } from 'react'
 import type { RouteObject } from 'react-router-dom'
-import { HomeView } from '@/features/app/views/home/HomeView'
-import { AdvisorView } from '@/features/app/views/advisor/AdvisorView'
-import { WorkflowsView } from '@/features/app/views/workflows/WorkflowsView'
-import { CasesView } from '@/features/app/views/cases/CasesView'
-import { CaseDetailView } from '@/features/app/views/cases/CaseDetailView'
-import { EmployeesView } from '@/features/app/views/employees/EmployeesView'
-import { EmployeeProfileView } from '@/features/app/views/employees/EmployeeProfileView'
-import { ComplianceView } from '@/features/app/views/compliance/ComplianceView'
-import { PoliciesView } from '@/features/app/views/policies/PoliciesView'
-import { TemplatesView } from '@/features/app/views/templates/TemplatesView'
-import { TasksView } from '@/features/app/views/tasks/TasksView'
-import { CalendarView } from '@/features/app/views/calendar/CalendarView'
-import { ReportsView } from '@/features/app/views/reports/ReportsView'
-import { KnowledgeView } from '@/features/app/views/knowledge/KnowledgeView'
-import { CommunicationsView } from '@/features/app/views/communications/CommunicationsView'
-import { CompensationView } from '@/features/app/views/compensation/CompensationView'
-import { WellbeingView } from '@/features/app/views/wellbeing/WellbeingView'
-import { SettingsView } from '@/features/app/views/settings/SettingsView'
 
-/** Child routes rendered inside the AppShell outlet. */
+/**
+ * Child routes rendered inside the AppShell outlet. Each view is lazy-loaded
+ * so the marketing landing page (and any single view) doesn't pull the whole
+ * workspace into the initial chunk.
+ */
+/* prettier-ignore */ const HomeView = lazy(() => import('@/features/app/views/home/HomeView').then((m) => ({ default: m.HomeView })))
+/* prettier-ignore */ const AdvisorView = lazy(() => import('@/features/app/views/advisor/AdvisorView').then((m) => ({ default: m.AdvisorView })))
+/* prettier-ignore */ const WorkflowsView = lazy(() => import('@/features/app/views/workflows/WorkflowsView').then((m) => ({ default: m.WorkflowsView })))
+/* prettier-ignore */ const CasesView = lazy(() => import('@/features/app/views/cases/CasesView').then((m) => ({ default: m.CasesView })))
+/* prettier-ignore */ const CaseDetailView = lazy(() => import('@/features/app/views/cases/CaseDetailView').then((m) => ({ default: m.CaseDetailView })))
+/* prettier-ignore */ const EmployeesView = lazy(() => import('@/features/app/views/employees/EmployeesView').then((m) => ({ default: m.EmployeesView })))
+/* prettier-ignore */ const EmployeeProfileView = lazy(() => import('@/features/app/views/employees/EmployeeProfileView').then((m) => ({ default: m.EmployeeProfileView })))
+/* prettier-ignore */ const ComplianceView = lazy(() => import('@/features/app/views/compliance/ComplianceView').then((m) => ({ default: m.ComplianceView })))
+/* prettier-ignore */ const PoliciesView = lazy(() => import('@/features/app/views/policies/PoliciesView').then((m) => ({ default: m.PoliciesView })))
+/* prettier-ignore */ const TemplatesView = lazy(() => import('@/features/app/views/templates/TemplatesView').then((m) => ({ default: m.TemplatesView })))
+/* prettier-ignore */ const TasksView = lazy(() => import('@/features/app/views/tasks/TasksView').then((m) => ({ default: m.TasksView })))
+/* prettier-ignore */ const CalendarView = lazy(() => import('@/features/app/views/calendar/CalendarView').then((m) => ({ default: m.CalendarView })))
+/* prettier-ignore */ const ReportsView = lazy(() => import('@/features/app/views/reports/ReportsView').then((m) => ({ default: m.ReportsView })))
+/* prettier-ignore */ const KnowledgeView = lazy(() => import('@/features/app/views/knowledge/KnowledgeView').then((m) => ({ default: m.KnowledgeView })))
+/* prettier-ignore */ const CommunicationsView = lazy(() => import('@/features/app/views/communications/CommunicationsView').then((m) => ({ default: m.CommunicationsView })))
+/* prettier-ignore */ const CompensationView = lazy(() => import('@/features/app/views/compensation/CompensationView').then((m) => ({ default: m.CompensationView })))
+/* prettier-ignore */ const WellbeingView = lazy(() => import('@/features/app/views/wellbeing/WellbeingView').then((m) => ({ default: m.WellbeingView })))
+/* prettier-ignore */ const SettingsView = lazy(() => import('@/features/app/views/settings/SettingsView').then((m) => ({ default: m.SettingsView })))
+
 export const appViewRoutes: RouteObject[] = [
   { path: 'home', element: <HomeView /> },
   { path: 'advisor', element: <AdvisorView /> },

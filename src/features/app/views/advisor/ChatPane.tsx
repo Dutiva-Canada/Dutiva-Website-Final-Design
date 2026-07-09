@@ -82,8 +82,8 @@ export function ChatPane({
         </span>
       </div>
 
-      {/* Transcript */}
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+      {/* Transcript — polite live region so streamed replies are announced. */}
+      <div ref={scrollRef} aria-live="polite" className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-[740px] flex-col gap-[22px] px-[24px] pt-[26px] pb-[16px]">
           {messages.map((message) =>
             message.author === 'user' ? (

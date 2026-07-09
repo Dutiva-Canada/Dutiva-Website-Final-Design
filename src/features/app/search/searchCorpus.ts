@@ -1,6 +1,7 @@
 import type { Bi, Lang } from '@/i18n/core'
 import { bi, pick } from '@/i18n/core'
 import { searchMessages as M } from '@/i18n/messages/search'
+import { sensitiveCaseTypes } from '@/features/app/views/cases/caseModel'
 import {
   cases,
   chats,
@@ -93,18 +94,9 @@ function neutral(text: string): Bi {
   return bi(text, text)
 }
 
-/**
- * Case types whose results carry the Restricted badge — the prototype's
- * `sensitiveCaseTypes()` verbatim (only 'Termination' occurs in the current
- * `CaseType` fixtures; the rest future-proof the check).
- */
-const SENSITIVE_CASE_TYPES: readonly string[] = [
-  'Termination',
-  'Discipline',
-  'Harassment / workplace investigation',
-  'Complaint',
-  'Compensation review',
-]
+/* Case types whose results carry the Restricted badge — single source in the
+   cases feature (prototype `sensitiveCaseTypes()`). */
+const SENSITIVE_CASE_TYPES: readonly string[] = sensitiveCaseTypes
 
 /* Prototype order within the All tab: people, cases, chats, docs, comms,
    tasks, compliance, policies, knowledge (`byTab.all`). */

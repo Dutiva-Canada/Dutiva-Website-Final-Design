@@ -2,8 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { AdvisorView } from './AdvisorView'
+import { resetAdvisorSession } from './advisorSession'
 
 describe('AdvisorView', () => {
+  /* Conversations persist in the module-level session store — reset per test. */
+  beforeEach(() => {
+    resetAdvisorSession()
+  })
+
   it('renders the advisor home empty state with metrics, brief and priorities', () => {
     renderApp(<AdvisorView />, { route: '/app/advisor' })
 

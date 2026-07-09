@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { shellMessages } from '@/i18n/messages/shell'
@@ -88,7 +88,11 @@ export function AppShell() {
           <WorkspaceContextBanner />
           <ModuleContextBanner />
           <div className="relative flex min-h-0 flex-1 flex-col">
-            <Outlet />
+            {/* Boundary for the lazy view chunks — keeps the shell chrome up
+                while a view loads. */}
+            <Suspense fallback={null}>
+              <Outlet />
+            </Suspense>
           </div>
         </div>
       </div>

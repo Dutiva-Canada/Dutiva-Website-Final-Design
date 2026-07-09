@@ -23,6 +23,7 @@ import {
 } from '@/features/app/workspaceContext/workspaceContextStore'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { employeesMessages as M } from '@/i18n/messages/employees'
+import { sensitiveCaseTypes } from '@/features/app/views/cases/caseModel'
 import { dotToneClass, sourceChipClass, statusChipClass } from './chipStyles'
 import type { ChipTone } from './chipStyles'
 import { RiskFlagCard } from './RiskFlagCard'
@@ -79,14 +80,8 @@ const TIMELINE_META: Record<TimelineKind, { source: Bi; tone: ChipTone }> = {
   compliance: { source: M.employees_src_compliance, tone: 'warning' },
 }
 
-/** Prototype `sensitiveCaseTypes()` — these case rows carry the lock badge. */
-const SENSITIVE_CASE_TYPES: readonly string[] = [
-  'Termination',
-  'Discipline',
-  'Harassment / workplace investigation',
-  'Complaint',
-  'Compensation review',
-]
+/* Prototype `sensitiveCaseTypes()` — single source in the cases feature. */
+const SENSITIVE_CASE_TYPES: readonly string[] = sensitiveCaseTypes
 
 const money = (n: number) => '$' + n.toLocaleString('en-US')
 

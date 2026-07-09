@@ -106,9 +106,10 @@ export function AdvisorRail() {
           </div>
         )}
 
-        {/* Transcript */}
+        {/* Transcript — polite live region so streamed replies are announced. */}
         <div
           ref={scrollRef}
+          aria-live="polite"
           className="flex flex-1 flex-col gap-[14px] overflow-y-auto px-[18px] py-[16px]"
         >
           {rail.messages.map((message) =>
