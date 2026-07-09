@@ -74,8 +74,13 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border bg-bg">
-      <div className="mx-auto grid max-w-[1200px] grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-8 px-6 py-12">
-        <div className="min-w-[220px]">
+      {/* Two flex regions (brand, link columns) rather than one 5-column auto-fit
+          grid: the brand block's min-w-[220px] could exceed an auto-fit track's
+          computed width at in-between viewport sizes, overflowing text into the
+          neighboring column. Splitting them lets the whole link-column group
+          wrap onto its own row instead. */}
+      <div className="mx-auto flex max-w-[1200px] flex-wrap gap-8 px-6 py-12">
+        <div className="min-w-[220px] flex-1 basis-[260px]">
           <div className="flex items-center gap-2.5">
             <LeafTile size={40} radius={11} leafHeight={28} />
             <Wordmark />
@@ -102,25 +107,27 @@ export function Footer() {
           </a>
         </div>
 
-        <div>
-          <FooterHeading>{lt('landing_foot_product')}</FooterHeading>
-          {renderLinks(PRODUCT_LINKS)}
-        </div>
-        <div>
-          <FooterHeading>{lt('landing_foot_resources')}</FooterHeading>
-          {renderLinks(RESOURCE_LINKS)}
-        </div>
-        <div>
-          <FooterHeading>{lt('landing_foot_company')}</FooterHeading>
-          {renderLinks(COMPANY_LINKS)}
-        </div>
-        <div>
-          <FooterHeading>{lt('landing_foot_legal')}</FooterHeading>
-          {renderLinks(LEGAL_LINKS)}
-          {/* Index of all 26 policy documents — the column above is a selection. */}
-          <Link to="/legal" className={`${LINK_CLASS} mt-2.5 block font-semibold`}>
-            {t('legalHub_eyebrow')}
-          </Link>
+        <div className="grid flex-[3] basis-[480px] grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-8">
+          <div>
+            <FooterHeading>{lt('landing_foot_product')}</FooterHeading>
+            {renderLinks(PRODUCT_LINKS)}
+          </div>
+          <div>
+            <FooterHeading>{lt('landing_foot_resources')}</FooterHeading>
+            {renderLinks(RESOURCE_LINKS)}
+          </div>
+          <div>
+            <FooterHeading>{lt('landing_foot_company')}</FooterHeading>
+            {renderLinks(COMPANY_LINKS)}
+          </div>
+          <div>
+            <FooterHeading>{lt('landing_foot_legal')}</FooterHeading>
+            {renderLinks(LEGAL_LINKS)}
+            {/* Index of all 26 policy documents — the column above is a selection. */}
+            <Link to="/legal" className={`${LINK_CLASS} mt-2.5 block font-semibold`}>
+              {t('legalHub_eyebrow')}
+            </Link>
+          </div>
         </div>
       </div>
       <div className="border-t border-border">
