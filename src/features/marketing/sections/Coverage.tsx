@@ -47,7 +47,7 @@ export function Coverage() {
         title={lt('landing_cov_title')}
         sub={lt('landing_cov_sub')}
       />
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
         {REGIONS.map((region) => (
           <div key={region.name} className="rounded-[22px] border border-border bg-bg-elevated p-6">
             <div className="inline-flex items-center gap-2">

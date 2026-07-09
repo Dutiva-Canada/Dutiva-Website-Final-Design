@@ -19,13 +19,13 @@ function navToAction(nav: WorkflowNav): HomeAction {
     : { kind: 'chat', chatId: nav.chatId }
 }
 
-function WorkflowRisk({ w, small }: { w: InFlightWorkflow; small: boolean }) {
+function WorkflowRisk({ w, small }: { readonly w: InFlightWorkflow; readonly small: boolean }) {
   const { x } = useI18n()
   if (!w.riskLabel) return null
   return (
     <span
       className={`${statusChipBaseClass} ${chipToneClass(w.riskTone)} ${
-        small ? 'px-[8px] py-[1px] text-[10.5px]' : ''
+        small ? 'px-[8px] py-px text-[10.5px]' : ''
       }`}
     >
       {x(w.riskLabel)}
@@ -33,7 +33,7 @@ function WorkflowRisk({ w, small }: { w: InFlightWorkflow; small: boolean }) {
   )
 }
 
-function WorkflowProgress({ w, gapTop }: { w: InFlightWorkflow; gapTop: string }) {
+function WorkflowProgress({ w, gapTop }: { readonly w: InFlightWorkflow; readonly gapTop: string }) {
   const { x } = useI18n()
   return (
     <div className={`flex items-center gap-[8px] ${gapTop}`}>
@@ -48,7 +48,7 @@ function WorkflowProgress({ w, gapTop }: { w: InFlightWorkflow; gapTop: string }
   )
 }
 
-function WorkflowMetaLines({ w }: { w: InFlightWorkflow }) {
+function WorkflowMetaLines({ w }: { readonly w: InFlightWorkflow }) {
   const { x } = useI18n()
   return (
     <>
@@ -63,7 +63,7 @@ function WorkflowMetaLines({ w }: { w: InFlightWorkflow }) {
 }
 
 /** Desktop right-rail card (`showRailWorkflows`). */
-export function HomeWorkflowsRailCard({ onAction }: { onAction: (action: HomeAction) => void }) {
+export function HomeWorkflowsRailCard({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
   const { x } = useI18n()
   return (
     <div className="hidden rounded-[12px] border border-border bg-surface px-[16px] py-[15px] sm:block">
@@ -102,12 +102,12 @@ export function HomeWorkflowsRailCard({ onAction }: { onAction: (action: HomeAct
 }
 
 /** Mobile list, directly after Act now (`showMobileWorkflows`). */
-export function HomeWorkflowsMobileList({ onAction }: { onAction: (action: HomeAction) => void }) {
+export function HomeWorkflowsMobileList({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
   const { x } = useI18n()
   return (
     <div className="sm:hidden">
       <div className="mb-[7px] flex items-baseline justify-between">
-        <span className="text-[11px] font-bold tracking-[0.05em] text-text-muted uppercase">
+        <span className="text-[11px] font-bold tracking-wider text-text-muted uppercase">
           {x(M.home_wf_title)}
         </span>
         <button

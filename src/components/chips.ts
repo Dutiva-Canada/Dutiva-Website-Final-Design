@@ -24,11 +24,16 @@ export const chipToneClasses: Record<ChipToneKey, string> = {
 
 /** Resolve any fixture tone ('suggestion' renders as info, like the prototype). */
 function toneKey(tone: ChipTone, fallback: ChipToneKey): ChipToneKey {
-  return tone === 'risk' || tone === 'warning' || tone === 'success' || tone === 'neutral'
-    ? tone
-    : tone === 'info'
-      ? 'info'
-      : fallback
+  if (
+    tone === 'risk' ||
+    tone === 'warning' ||
+    tone === 'success' ||
+    tone === 'neutral'
+  ) {
+    return tone
+  }
+  if (tone === 'info') return 'info'
+  return fallback
 }
 
 /** Colour ramp only — compose with view-specific base classes for odd sizes. */

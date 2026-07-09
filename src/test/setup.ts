@@ -7,7 +7,7 @@ import { afterEach } from 'vitest'
 // (in the vitest jsdom env, `window` IS `globalThis`). Replace it with a
 // spec-shaped in-memory Storage so app code and tests behave normally.
 class MemoryStorage implements Storage {
-  private map = new Map<string, string>()
+  private readonly map = new Map<string, string>()
   get length(): number {
     return this.map.size
   }

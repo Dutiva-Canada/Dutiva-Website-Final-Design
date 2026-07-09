@@ -37,6 +37,37 @@ function prefersReducedMotion(): boolean {
   )
 }
 
+function markError(id: string, messages: ChatMessage[]): ChatMessage[] {
+  return messages.map((m) => (m.id === id ? { ...m, status: 'error', streaming: false } : m))
+}
+
+function markStreaming(id: string, messages: ChatMessage[]): ChatMessage[] {
+  return messages.map((m) => (m.id === id ? { ...m, status: 'streaming' } : m))
+}
+
+function updateStreamedMessage(
+  id: string,
+  shown: number,
+  finished: boolean,
+  messages: ChatMessage[],
+): ChatMessage[] {
+  return messages.map((m) => {
+    if (m.id !== id) return m
+    if (finished) {
+      return { ...m, streamedLen: shown, status: 'done', streaming: false }
+    }
+    return { ...m, streamedLen: shown }
+  })
+}
+
+function streamedMessageUpdater(
+  id: string,
+  shown: number,
+  finished: boolean,
+): (messages: ChatMessage[]) => ChatMessage[] {
+  return (messages) => updateStreamedMessage(id, shown, finished, messages)
+}
+
 export interface AdvisorEngine {
   messages: ChatMessage[]
   /** True while a reply is thinking or streaming (composer-busy state). */
@@ -83,12 +114,10 @@ export function useAdvisorEngine(options: AdvisorEngineOptions = {}): AdvisorEng
     const think = setTimeout(() => {
       timers.current.delete(think)
       if (isError) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === id ? { ...m, status: 'error', streaming: false } : m)),
-        )
+        setMessages((prev) => markError(id, prev))
         return
       }
-      setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, status: 'streaming' } : m)))
+      setMessages((prev) => markStreaming(id, prev))
       const total = maxLenOf(text)
       let shown = 0
       const tick = setInterval(() => {
@@ -98,15 +127,7 @@ export function useAdvisorEngine(options: AdvisorEngineOptions = {}): AdvisorEng
           clearInterval(tick)
           timers.current.delete(tick)
         }
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === id
-              ? finished
-                ? { ...m, streamedLen: shown, status: 'done', streaming: false }
-                : { ...m, streamedLen: shown }
-              : m,
-          ),
-        )
+        setMessages(streamedMessageUpdater(id, shown, finished))
       }, ADVISOR_STREAM_TICK_MS)
       timers.current.add(tick)
     }, ADVISOR_THINK_MS)
@@ -161,7 +182,7 @@ export function useAdvisorEngine(options: AdvisorEngineOptions = {}): AdvisorEng
   const retryTurn = useCallback(
     (messageId: string) => {
       const current = messagesRef.current.find((m) => m.id === messageId)
-      if (!current || current.status !== 'error') return
+      if (current?.status !== 'error') return
       const text = current.retryText ?? advisorCore.advisor_retry_resolved
       setMessages((prev) =>
         prev.map((m) =>

@@ -115,11 +115,11 @@ export function CommunicationsView() {
           {items.map(({ comm, detail }) => {
             const status0 = comm.status.en
             const sent = sentIds[comm.id] === true || status0 === 'Sent'
-            const statusLabel = sent
-              ? M.comms_status_sent
-              : status0 === 'Scheduled'
-                ? M.comms_status_scheduled
-                : M.comms_status_draft
+            const statusLabel = (() => {
+              if (sent) return M.comms_status_sent
+              if (status0 === 'Scheduled') return M.comms_status_scheduled
+              return M.comms_status_draft
+            })()
             const updated = sentIds[comm.id] ? M.comms_just_now : comm.updated
             return (
               <div
@@ -171,10 +171,10 @@ export function CommunicationsView() {
                     size={14}
                     strokeWidth={0}
                     fill="currentColor"
-                    className="mt-[1px] shrink-0 text-gold-dot"
+                    className="mt-px shrink-0 text-gold-dot"
                     aria-hidden="true"
                   />
-                  <span className="text-[12.5px] leading-[1.5] text-gold-fg">{x(comm.note)}</span>
+                  <span className="text-[12.5px] leading-normal text-gold-fg">{x(comm.note)}</span>
                 </div>
 
                 <div className="flex flex-wrap gap-[8px]">

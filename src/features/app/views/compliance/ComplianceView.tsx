@@ -151,7 +151,7 @@ export function ComplianceView() {
                 onClick={() => setJur(j.key)}
                 className={`cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] text-[12.5px] font-semibold ${
                   active
-                    ? 'bg-surface text-text shadow-[var(--shadow-sm)]'
+                    ? 'bg-surface text-text shadow-(--shadow-sm)'
                     : 'bg-transparent text-text-muted'
                 }`}
               >
@@ -214,7 +214,7 @@ export function ComplianceView() {
                       {x(o.recurrence)}
                     </span>
                   </div>
-                  <div className="mt-[6px] text-[12.5px] leading-[1.5] text-text-3">
+                  <div className="mt-[6px] text-[12.5px] leading-normal text-text-3">
                     {recorded ? x(M.compliance_evidence_recorded) : x(o.evidence)}
                   </div>
                   <div className="mt-[9px] flex flex-wrap gap-[8px]">
@@ -238,11 +238,11 @@ export function ComplianceView() {
                 </div>
               )
             })}
-            <div className="flex items-start gap-[7px] py-[12px] text-[11px] leading-[1.5] text-text-faint">
+            <div className="flex items-start gap-[7px] py-[12px] text-[11px] leading-normal text-text-faint">
               <Shield
                 size={12}
                 strokeWidth={1.8}
-                className="mt-[1px] shrink-0"
+                className="mt-px shrink-0"
                 aria-hidden="true"
               />
               <span>{x(M.compliance_audit_note)}</span>

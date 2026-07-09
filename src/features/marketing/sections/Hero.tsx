@@ -20,11 +20,11 @@ export function Hero() {
   const { lt } = useLanding()
   return (
     <section id="top" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 pt-[72px] pb-10">
-      <div className="grid items-center gap-12 [grid-template-columns:repeat(auto-fit,minmax(360px,1fr))]">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(360px,1fr))] items-center gap-12">
         {/* Left */}
         <div className="animate-fade-up">
           <span className="badge">{lt('landing_hero_badge')}</span>
-          <h1 className="mt-[22px] font-display text-[length:clamp(2.125rem,4vw,3.5rem)] leading-[1.08] font-semibold tracking-[-0.02em] text-text">
+          <h1 className="mt-[22px] font-display text-[clamp(2.125rem,4vw,3.5rem)] leading-[1.08] font-semibold tracking-[-0.02em] text-text">
             {lt('landing_h_dir_a')}
             <span className="gradient-text">{lt('landing_h_dir_b')}</span>
           </h1>
@@ -82,7 +82,7 @@ export function Hero() {
   )
 }
 
-function HeroStat({ value, label }: { value: string; label: string }) {
+function HeroStat({ value, label }: { readonly value: string; readonly label: string }) {
   return (
     <span className="text-center">
       <span className="gradient-text block font-display text-[1.75rem] font-bold">{value}</span>

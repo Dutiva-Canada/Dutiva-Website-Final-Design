@@ -419,6 +419,8 @@ export interface KnowledgeItem {
 /* --------------------------------------------------------------- calendar */
 
 export interface CalendarEvent {
+  /** Stable key for React lists. */
+  id: string
   /** Day of the month (July 2026). */
   day: number
   /** Short date chip, e.g. "Jul 8" / "8 juil.". */

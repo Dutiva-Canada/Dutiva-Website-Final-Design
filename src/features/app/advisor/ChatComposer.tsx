@@ -15,13 +15,13 @@ import { advisorCore as M } from '@/i18n/messages/advisorCore'
  * Enter sends (Shift+Enter for a newline); empty/whitespace input is ignored.
  */
 export interface ChatComposerProps {
-  placeholder: string
-  onSend: (text: string) => void
-  variant?: 'home' | 'chat' | 'rail'
+  readonly placeholder: string
+  readonly onSend: (text: string) => void
+  readonly variant?: 'home' | 'chat' | 'rail'
   /** Ignore sends while a reply is streaming (prototype `composerBusy`). */
-  disabled?: boolean
+  readonly disabled?: boolean
   /** Focus the textarea on mount (the rail focuses its composer on open). */
-  autoFocus?: boolean
+  readonly autoFocus?: boolean
 }
 
 interface VariantStyle {
@@ -94,7 +94,7 @@ export function ChatComposer({
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
-        className={`flex-1 resize-none border-none bg-transparent font-sans leading-[1.5] text-text outline-none ${styles.textarea}`}
+        className={`flex-1 resize-none border-none bg-transparent font-sans leading-normal text-text outline-none ${styles.textarea}`}
       />
       <button
         type="button"

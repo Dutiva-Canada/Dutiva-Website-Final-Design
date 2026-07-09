@@ -30,7 +30,7 @@ const stageChips: Record<TerminationStageState, { tone: WorkflowChipTone; label:
 
 /** 22px stage marker: green check (done), navy number (current/partial),
  *  amber number (waiting), flat number (upcoming/always). */
-function StageMarker({ n, state }: { n: number; state: TerminationStageState }) {
+function StageMarker({ n, state }: { readonly n: number; readonly state: TerminationStageState }) {
   const base = 'mt-[1px] flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full'
   if (state === 'done') {
     return (
@@ -82,7 +82,7 @@ export function WorkflowsView() {
         </div>
 
         {/* In-flight rows */}
-        <div className="mb-[8px] text-[11px] font-bold tracking-[.05em] text-text-muted uppercase">
+        <div className="mb-[8px] text-[11px] font-bold tracking-wider text-text-muted uppercase">
           {x(M.workflows_inflight_title)} · {inFlightWorkflows.length}
         </div>
         <div className="mb-[24px] overflow-hidden rounded-[12px] border border-border bg-surface">
@@ -166,10 +166,10 @@ export function WorkflowsView() {
               <div className="text-[10.5px] font-bold tracking-[.06em] text-gold-dot uppercase">
                 {x(M.workflows_flagship_eyebrow)}
               </div>
-              <div className="mt-[1px] text-[14.5px] font-bold text-text">
+              <div className="mt-px text-[14.5px] font-bold text-text">
                 {x(M.workflows_flagship_title)}
               </div>
-              <div className="mt-[1px] text-[11.5px] text-text-muted">
+              <div className="mt-px text-[11.5px] text-text-muted">
                 {x(M.workflows_flagship_sub)}
               </div>
             </div>
@@ -201,7 +201,7 @@ export function WorkflowsView() {
                           {x(chip.label)}
                         </span>
                       </div>
-                      <div className="mt-[2px] text-[12px] leading-[1.5] text-text-3">
+                      <div className="mt-[2px] text-[12px] leading-normal text-text-3">
                         {x(st.sub)}
                       </div>
                     </div>
@@ -225,7 +225,7 @@ export function WorkflowsView() {
         </div>
 
         {/* Start-a-workflow catalog */}
-        <div className="mb-[8px] text-[11px] font-bold tracking-[.05em] text-text-muted uppercase">
+        <div className="mb-[8px] text-[11px] font-bold tracking-wider text-text-muted uppercase">
           {x(M.workflows_start_title)}
         </div>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-[11px]">
@@ -245,7 +245,7 @@ export function WorkflowsView() {
                     } satisfies AdvisorStartFlowNavState,
                   })
                 }
-                className="flex cursor-pointer flex-col items-start gap-[9px] rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-[1px] hover:border-(--accent-soft-border)"
+                className="flex cursor-pointer flex-col items-start gap-[9px] rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border)"
               >
                 <div className="flex h-[29px] w-[29px] items-center justify-center rounded-[8px] bg-navy text-[#F2D9A8]">
                   <Icon size={15} strokeWidth={1.8} aria-hidden="true" />

@@ -21,7 +21,7 @@ export function Guides() {
         title={lt('landing_guides_title')}
         sub={lt('landing_guides_sub')}
       />
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
         {GUIDES.map((guide) => (
           <a key={guide.title} href="/guides" className="premium-card-soft block p-[22px]">
             <div className="flex items-start gap-3">

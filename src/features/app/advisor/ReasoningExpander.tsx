@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, Sun } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { pickL } from '@/i18n/core'
+import { keyOfL, pickL } from '@/i18n/core'
 import type { LText } from '@/i18n/core'
 import { advisorCore as M } from '@/i18n/messages/advisorCore'
 
@@ -10,7 +10,7 @@ import { advisorCore as M } from '@/i18n/messages/advisorCore'
  * spark icon and chevron, opening the inset panel of em-dash-prefixed trace
  * lines (prototype `hasReasoning` / `reasoningOpen` markup).
  */
-export function ReasoningExpander({ lines }: { lines: LText[] }) {
+export function ReasoningExpander({ lines }: { readonly lines: readonly LText[] }) {
   const { x, lang } = useI18n()
   const [open, setOpen] = useState(false)
   if (lines.length === 0) return null
@@ -32,8 +32,8 @@ export function ReasoningExpander({ lines }: { lines: LText[] }) {
       </button>
       {open && (
         <div className="mt-[6px] flex max-w-[560px] flex-col gap-[6px] rounded-[10px] bg-inset px-[12px] py-[10px]">
-          {lines.map((line, i) => (
-            <div key={i} className="flex gap-[7px] text-[12.5px] leading-[1.5] text-text-3">
+          {lines.map((line) => (
+            <div key={keyOfL(line)} className="flex gap-[7px] text-[12.5px] leading-normal text-text-3">
               <span className="text-text-faint">—</span>
               <span>{pickL(line, lang)}</span>
             </div>

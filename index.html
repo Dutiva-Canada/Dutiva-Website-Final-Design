@@ -18,16 +18,18 @@
     <script>
       // Apply persisted theme + language before first paint to avoid a flash.
       ;(function () {
+        var storage
         try {
-          var theme = localStorage.getItem('dutiva-theme')
-          if (theme !== 'light' && theme !== 'dark') theme = 'dark'
-          document.documentElement.setAttribute('data-theme', theme)
-          var lang = localStorage.getItem('dutiva-lang')
-          if (lang !== 'en' && lang !== 'fr') lang = 'en'
-          document.documentElement.setAttribute('lang', lang)
-        } catch (e) {
-          /* private mode — defaults stand */
+          storage = window.localStorage
+        } catch {
+          return
         }
+        var theme = storage && storage.getItem('dutiva-theme')
+        if (theme !== 'light' && theme !== 'dark') theme = 'dark'
+        document.documentElement.dataset.theme = theme
+        var lang = storage && storage.getItem('dutiva-lang')
+        if (lang !== 'en' && lang !== 'fr') lang = 'en'
+        document.documentElement.lang = lang
       })()
     </script>
   </head>

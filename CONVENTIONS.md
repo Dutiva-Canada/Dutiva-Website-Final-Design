@@ -14,7 +14,7 @@ Scripts: `npm run dev | build | typecheck | lint | test | format | check`.
 
 ## Directory layout
 
-```
+```text
 src/
   app/            App root, providers, router, route tables
   components/     Shared UI primitives (Badge, ToneCard, Toast …)

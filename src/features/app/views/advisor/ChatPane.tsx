@@ -2,7 +2,7 @@
 import { FileText, Sparkle, TriangleAlert } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
-import { pickL } from '@/i18n/core'
+import { keyOfL, pickL } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
 import { advisorCore } from '@/i18n/messages/advisorCore'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
@@ -29,17 +29,17 @@ import type { MessageExtras, QuickFormState, SuggestChipSpec } from './advisorFl
 const ENTRANCE = 'animate-[fadeInUp_.45s_cubic-bezier(.4,0,.2,1)]'
 
 export interface ChatPaneProps {
-  messages: ChatMessage[]
-  busy: boolean
-  jurisdiction: Bi
-  getExtras: (messageId: string) => MessageExtras | undefined
-  onSend: (text: string) => void
-  onRetry: (messageId: string) => void
-  onFollowup: (labelEn: string) => void
-  onGenerateDoc: (templateKey: string) => void
-  onSuggestChip: (chip: SuggestChipSpec) => void
-  onQuickFormChange: (messageId: string, fieldIndex: number, valueEn: string) => void
-  onQuickFormSubmit: (messageId: string) => void
+  readonly messages: readonly ChatMessage[]
+  readonly busy: boolean
+  readonly jurisdiction: Bi
+  readonly getExtras: (messageId: string) => MessageExtras | undefined
+  readonly onSend: (text: string) => void
+  readonly onRetry: (messageId: string) => void
+  readonly onFollowup: (labelEn: string) => void
+  readonly onGenerateDoc: (templateKey: string) => void
+  readonly onSuggestChip: (chip: SuggestChipSpec) => void
+  readonly onQuickFormChange: (messageId: string, fieldIndex: number, valueEn: string) => void
+  readonly onQuickFormSubmit: (messageId: string) => void
 }
 
 /** Follow-up chip label: canned-reply label, or the beta-estimator label. */
@@ -125,7 +125,7 @@ export function ChatPane({
 
 /* ------------------------------------------------------------- user turn */
 
-function UserTurn({ message }: { message: ChatMessage }) {
+function UserTurn({ message }: { readonly message: ChatMessage }) {
   const { lang } = useI18n()
   const chips = message.userChips ?? []
   const text = pickL(message.text, lang)
@@ -133,9 +133,9 @@ function UserTurn({ message }: { message: ChatMessage }) {
     <div className={`flex flex-col items-end gap-[8px] ${ENTRANCE}`}>
       {chips.length > 0 && (
         <div className="flex max-w-[80%] flex-wrap justify-end gap-[6px]">
-          {chips.map((chip, i) => (
+          {chips.map((chip) => (
             <span
-              key={i}
+              key={keyOfL(chip)}
               className="rounded-[100px] bg-accent-soft px-[11px] py-[5px] text-[12.5px] font-semibold text-accent"
             >
               {pickL(chip, lang)}
@@ -151,14 +151,14 @@ function UserTurn({ message }: { message: ChatMessage }) {
 /* ---------------------------------------------------------- advisor turn */
 
 interface AdvisorTurnProps {
-  message: ChatMessage
-  extras: MessageExtras | undefined
-  onRetry: (messageId: string) => void
-  onFollowup: (labelEn: string) => void
-  onGenerateDoc: (templateKey: string) => void
-  onSuggestChip: (chip: SuggestChipSpec) => void
-  onQuickFormChange: (messageId: string, fieldIndex: number, valueEn: string) => void
-  onQuickFormSubmit: (messageId: string) => void
+  readonly message: ChatMessage
+  readonly extras: MessageExtras | undefined
+  readonly onRetry: (messageId: string) => void
+  readonly onFollowup: (labelEn: string) => void
+  readonly onGenerateDoc: (templateKey: string) => void
+  readonly onSuggestChip: (chip: SuggestChipSpec) => void
+  readonly onQuickFormChange: (messageId: string, fieldIndex: number, valueEn: string) => void
+  readonly onQuickFormSubmit: (messageId: string) => void
 }
 
 function AdvisorTurn({
@@ -197,10 +197,10 @@ function AdvisorTurn({
               <TriangleAlert
                 size={15}
                 strokeWidth={1.9}
-                className="mt-[1px] shrink-0 text-risk-dot"
+                className="mt-px shrink-0 text-risk-dot"
                 aria-hidden="true"
               />
-              <span className="text-[13.5px] leading-[1.5] text-risk-fg">
+              <span className="text-[13.5px] leading-normal text-risk-fg">
                 {pickL(message.errorText ?? advisorCore.advisor_error_default, lang)}
               </span>
             </div>
@@ -230,8 +230,8 @@ function AdvisorTurn({
 
             {done && cards.length > 0 && (
               <div className="flex max-w-[620px] flex-col gap-[10px]">
-                {cards.map((card, i) => (
-                  <ToneCard key={i} card={card} />
+                {cards.map((card) => (
+                  <ToneCard key={keyOfL(card.title)} card={card} />
                 ))}
               </div>
             )}
@@ -304,10 +304,10 @@ function AdvisorTurn({
 /* ------------------------------------------------------------- quick form */
 
 interface QuickFormProps {
-  messageId: string
-  form: QuickFormState
-  onChange: (messageId: string, fieldIndex: number, valueEn: string) => void
-  onSubmit: (messageId: string) => void
+  readonly messageId: string
+  readonly form: QuickFormState
+  readonly onChange: (messageId: string, fieldIndex: number, valueEn: string) => void
+  readonly onSubmit: (messageId: string) => void
 }
 
 function QuickForm({ messageId, form, onChange, onSubmit }: QuickFormProps) {

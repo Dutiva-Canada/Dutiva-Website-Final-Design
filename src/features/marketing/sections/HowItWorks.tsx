@@ -33,7 +33,7 @@ export function HowItWorks() {
         title={lt('landing_how_title')}
         sub={lt('landing_how_sub')}
       />
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
         {STEPS.map((step) => (
           <div key={step.num} className="premium-card-soft p-7">
             <div className="mb-4 flex items-center gap-3">

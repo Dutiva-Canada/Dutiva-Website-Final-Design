@@ -1,5 +1,5 @@
 import { useI18n } from '@/i18n/context'
-import { pickL } from '@/i18n/core'
+import { keyOfL, pickL } from '@/i18n/core'
 import { cardToneStyles } from './toneStyles'
 import type { CardTone, Citation } from './types'
 
@@ -8,9 +8,9 @@ import type { CardTone, Citation } from './types'
  * translucent `--cite-bg` fill with the parent card's tone border/foreground.
  */
 export interface CitationChipsProps {
-  citations: Citation[]
+  readonly citations: readonly Citation[]
   /** Tone of the surrounding card; standalone usage defaults to info. */
-  tone?: CardTone
+  readonly tone?: CardTone
 }
 
 export function CitationChips({ citations, tone = 'info' }: CitationChipsProps) {
@@ -19,9 +19,9 @@ export function CitationChips({ citations, tone = 'info' }: CitationChipsProps) 
   const outline = cardToneStyles[tone].outline
   return (
     <div className="flex flex-wrap gap-[6px]">
-      {citations.map((citation, i) => (
+      {citations.map((citation) => (
         <span
-          key={i}
+          key={keyOfL(citation.label)}
           className={`rounded-[100px] border bg-cite-bg px-[9px] py-[3px] text-[11.5px] ${outline}`}
         >
           {pickL(citation.label, lang)}

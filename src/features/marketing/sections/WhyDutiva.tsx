@@ -13,10 +13,10 @@ export function WhyDutiva() {
   const { lt } = useLanding()
   return (
     <section className="mx-auto max-w-[1200px] px-6 pt-6 pb-10">
-      <div className="premium-card grid items-center gap-10 p-[clamp(28px,4vw,56px)] [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+      <div className="premium-card grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] items-center gap-10 p-[clamp(28px,4vw,56px)]">
         <div>
           <span className="badge">{lt('landing_why_badge')}</span>
-          <h2 className="mt-4 font-display text-[length:clamp(1.75rem,3vw,2.5rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-text">
+          <h2 className="mt-4 font-display text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-text">
             {lt('landing_why_title_a')}
             <span className="gradient-text">{lt('landing_why_title_b')}</span>
           </h2>
@@ -32,7 +32,7 @@ export function WhyDutiva() {
               <point.icon size={20} className="mt-0.5 flex-none text-gold-strong" />
               <div>
                 <div className="font-semibold text-text">{lt(point.title)}</div>
-                <p className="mt-1 text-sm leading-[1.5] text-text-2">{lt(point.body)}</p>
+                <p className="mt-1 text-sm leading-normal text-text-2">{lt(point.body)}</p>
               </div>
             </div>
           ))}

@@ -55,7 +55,7 @@ export function Pricing() {
         title={lt('landing_price_title')}
         sub={lt('landing_price_sub')}
       />
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(230px,1fr))]">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-4">
         {PLANS.map((plan) => (
           <div
             key={plan.name}

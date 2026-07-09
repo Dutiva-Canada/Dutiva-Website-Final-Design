@@ -32,3 +32,8 @@ export type LText = string | Bi
 export function pickL(value: LText, lang: Lang): string {
   return typeof value === 'string' ? value : pick(value, lang)
 }
+
+/** Stable React key for an `LText` value. */
+export function keyOfL(value: LText): string {
+  return typeof value === 'string' ? value : value.en
+}

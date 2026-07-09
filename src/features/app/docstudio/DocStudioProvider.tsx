@@ -73,7 +73,7 @@ function resolveTemplate(templateKey: string, fromLibrary: boolean): ResolvedTem
   }
 }
 
-export function DocStudioProvider({ children }: { children: ReactNode }) {
+export function DocStudioProvider({ children }: { readonly children: ReactNode }) {
   const [studio, setStudio] = useState<DocStudioState>(CLOSED)
   const { showToast } = useToasts()
   const genTimer = useRef<number | null>(null)

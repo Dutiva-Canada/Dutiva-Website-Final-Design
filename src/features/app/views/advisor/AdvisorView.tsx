@@ -101,21 +101,21 @@ export function AdvisorView() {
   /* Session-scoped state lives in the advisorSession module store so
      conversations survive navigating away and back (prototype app-level
      state); the local useState mirrors it for rendering. */
-  const [sessionChats, setSessionChatsState] = useState<SessionChat[]>(() => advisorSession.chats)
-  const setSessionChats = (updater: (prev: SessionChat[]) => SessionChat[]) => {
-    setSessionChatsState((prev) => {
+  const [sessionChats, setSessionChats] = useState<SessionChat[]>(() => advisorSession.chats)
+  const updateSessionChats = (updater: (prev: SessionChat[]) => SessionChat[]) => {
+    setSessionChats((prev) => {
       const next = updater(prev)
       advisorSession.chats = next
       return next
     })
   }
-  const [extras, setExtrasState] = useState<Record<string, MessageExtras>>(
+  const [extras, setExtras] = useState<Record<string, MessageExtras>>(
     () => advisorSession.extras,
   )
-  const setExtras = (
+  const updateExtras = (
     updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
   ) => {
-    setExtrasState((prev) => {
+    setExtras((prev) => {
       const next = updater(prev)
       advisorSession.extras = next
       return next
@@ -126,9 +126,7 @@ export function AdvisorView() {
   /* Per-mount engine prefix — restored transcript ids never collide with the
      freshly-mounted engine's sequence. */
   const enginePrefixRef = useRef<string | null>(null)
-  if (enginePrefixRef.current === null) {
-    enginePrefixRef.current = `${ENGINE_PREFIX}m${advisorSession.mountSeq++}`
-  }
+  enginePrefixRef.current ??= `${ENGINE_PREFIX}m${advisorSession.mountSeq++}`
   const enginePrefix = enginePrefixRef.current
   const selectChatRef = useRef<(chatId: string) => void>(() => {})
   const startFlowRef = useRef<(flowKey: FlowKeyOrFallback, userText: LText) => void>(() => {})
@@ -191,7 +189,7 @@ export function AdvisorView() {
 
   /* --------------------------------------------------------------- engine */
 
-  const [activeChatId, setActiveChatIdState] = useState<string | null>(() => {
+  const [activeChatId, setActiveChatId] = useState<string | null>(() => {
     const navId = readNavChatId(location.state)
     if (navId !== null && chats.some((c) => c.id === navId)) return navId
     /* No explicit navigation target — resume the thread that was open when
@@ -205,16 +203,14 @@ export function AdvisorView() {
     }
     return null
   })
-  const setActiveChatId = (id: string | null) => {
+  const updateActiveChatId = (id: string | null) => {
     advisorSession.activeChatId = id
-    setActiveChatIdState(id)
+    setActiveChatId(id)
   }
 
   const initialMessages = useRef<ChatMessage[] | null>(null)
-  if (initialMessages.current === null) {
-    initialMessages.current =
-      activeChatId !== null ? (transcripts.current.get(activeChatId) ?? seedFor(activeChatId)) : []
-  }
+  initialMessages.current ??=
+    activeChatId !== null ? (transcripts.current.get(activeChatId) ?? seedFor(activeChatId)) : []
 
   const engine = useAdvisorEngine({ idPrefix: enginePrefix, initial: initialMessages.current })
 
@@ -249,14 +245,14 @@ export function AdvisorView() {
     const exists = chats.some((c) => c.id === chatId) || sessionChats.some((c) => c.id === chatId)
     if (!exists) return
     stashActive()
-    setActiveChatId(chatId)
+    updateActiveChatId(chatId)
     engine.reset(transcripts.current.get(chatId) ?? seedFor(chatId))
   }
   selectChatRef.current = selectChat
 
   const newConversation = () => {
     stashActive()
-    setActiveChatId(null)
+    updateActiveChatId(null)
     engine.reset([])
   }
   newConversationRef.current = newConversation
@@ -297,11 +293,11 @@ export function AdvisorView() {
   const startFlow = (flowKey: FlowKeyOrFallback, userText: LText) => {
     stashActive()
     const id = `session-${advisorSession.nextChatSeq++}`
-    setSessionChats((prev) => [
+    updateSessionChats((prev) => [
       { id, title: flowTitles[flowKey], pinned: false, bucket: 'today', flowKey },
       ...prev,
     ])
-    setActiveChatId(id)
+    updateActiveChatId(id)
     engine.reset([])
     pushUser(userText)
 
@@ -310,12 +306,12 @@ export function AdvisorView() {
         text: terminationIntro.text,
         reasoning: terminationIntro.reasoning,
       })
-      setExtras((prev) => ({ ...prev, [turnId]: { quickForm: freshQuickForm() } }))
+      updateExtras((prev) => ({ ...prev, [turnId]: { quickForm: freshQuickForm() } }))
       return
     }
     if (flowKey === 'fallback') {
       const turnId = pushAdvisor({ text: fallbackIntro })
-      setExtras((prev) => ({ ...prev, [turnId]: { suggestChips: fallbackChips } }))
+      updateExtras((prev) => ({ ...prev, [turnId]: { suggestChips: fallbackChips } }))
       return
     }
     const flow = lightFlows[flowKey]
@@ -329,7 +325,7 @@ export function AdvisorView() {
       cards: flow.cards?.map(toToneCard),
     })
     if ((flow.docs?.length ?? 0) > 0 || (flow.followups?.length ?? 0) > 0) {
-      setExtras((prev) => ({ ...prev, [turnId]: { docs: flow.docs, followups: flow.followups } }))
+      updateExtras((prev) => ({ ...prev, [turnId]: { docs: flow.docs, followups: flow.followups } }))
     }
   }
   startFlowRef.current = startFlow
@@ -362,7 +358,7 @@ export function AdvisorView() {
       cards: reply.cards?.map(toToneCard),
     })
     if ((reply.docs?.length ?? 0) > 0) {
-      setExtras((prev) => ({ ...prev, [turnId]: { docs: reply.docs } }))
+      updateExtras((prev) => ({ ...prev, [turnId]: { docs: reply.docs } }))
     }
     if (reply.isEscalation === true) showToast(M.advisorview_toast_counsel, 'ok')
   }
@@ -370,7 +366,7 @@ export function AdvisorView() {
   /* ------------------------------------------------------------ quick form */
 
   const changeQuickField = (messageId: string, fieldIndex: number, valueEn: string) => {
-    setExtras((prev) => {
+    updateExtras((prev) => {
       const entry = prev[messageId]
       const form = entry?.quickForm
       if (!entry || !form) return prev
@@ -390,7 +386,7 @@ export function AdvisorView() {
   const submitQuickForm = (messageId: string) => {
     const form = extras[messageId]?.quickForm
     if (!form || form.submitted) return
-    setExtras((prev) => {
+    updateExtras((prev) => {
       const entry = prev[messageId]
       const current = entry?.quickForm
       if (!entry || !current) return prev
@@ -405,7 +401,7 @@ export function AdvisorView() {
       reasoning: terminationAssessment.reasoning,
       cards: terminationAssessment.cards.map(toToneCard),
     })
-    setExtras((prev) => ({
+    updateExtras((prev) => ({
       ...prev,
       [turnId]: { docs: terminationAssessment.docs, followups: terminationAssessment.followups },
     }))

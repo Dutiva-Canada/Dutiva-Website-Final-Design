@@ -71,7 +71,7 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border bg-bg">
-      <div className="mx-auto grid max-w-[1200px] gap-8 px-6 py-12 [grid-template-columns:repeat(auto-fit,minmax(160px,1fr))]">
+      <div className="mx-auto grid max-w-[1200px] grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-8 px-6 py-12">
         <div className="min-w-[220px]">
           <div className="flex items-center gap-2.5">
             <LeafTile size={40} radius={11} leafHeight={28} />
@@ -125,7 +125,7 @@ export function Footer() {
   )
 }
 
-function FooterHeading({ children }: { children: string }) {
+function FooterHeading({ children }: { readonly children: string }) {
   return (
     <div className="mb-3 text-xs font-semibold tracking-[0.2em] uppercase text-text-3">
       {children}

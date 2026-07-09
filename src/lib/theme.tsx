@@ -10,25 +10,25 @@ function readTheme(): Theme {
   return readPref(THEME_KEY, 'dark') === 'light' ? 'light' : 'dark'
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(readTheme)
+export function ThemeProvider({ children }: { readonly children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(readTheme)
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
+    document.documentElement.dataset.theme = theme
   }, [theme])
 
-  const setTheme = useCallback((next: Theme) => {
+  const updateTheme = useCallback((next: Theme) => {
     writePref(THEME_KEY, next)
-    setThemeState(next)
+    setTheme(next)
   }, [])
 
   const toggleTheme = useCallback(() => {
-    setThemeState((prev) => {
+    setTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark'
       writePref(THEME_KEY, next)
       return next
     })
   }, [])
 
-  return <ThemeContext value={{ theme, setTheme, toggleTheme }}>{children}</ThemeContext>
+  return <ThemeContext value={{ theme, setTheme: updateTheme, toggleTheme }}>{children}</ThemeContext>
 }

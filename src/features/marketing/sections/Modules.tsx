@@ -21,7 +21,7 @@ export function Modules() {
     <section className="mx-auto max-w-[1200px] px-6 pt-2 pb-10">
       <div className="rounded-[22px] border border-border bg-bg-elevated p-7">
         <span className="badge">{lt('landing_mod_badge')}</span>
-        <h3 className="mt-3.5 mb-4 max-w-[56ch] font-display text-[length:clamp(1.25rem,2vw,1.625rem)] leading-[1.35] font-semibold tracking-[-0.01em] text-text">
+        <h3 className="mt-3.5 mb-4 max-w-[56ch] font-display text-[clamp(1.25rem,2vw,1.625rem)] leading-[1.35] font-semibold tracking-[-0.01em] text-text">
           {lt('landing_mod_title')}
         </h3>
         <div className="flex flex-wrap gap-2">

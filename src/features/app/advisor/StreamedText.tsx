@@ -11,9 +11,9 @@ import type { MessageStatus } from './types'
  * re-localizes mid-stream.
  */
 export interface StreamedTextProps {
-  text: LText
-  status?: MessageStatus
-  streamedLen?: number
+  readonly text: LText
+  readonly status?: MessageStatus
+  readonly streamedLen?: number
 }
 
 export function StreamedText({ text, status, streamedLen }: StreamedTextProps) {

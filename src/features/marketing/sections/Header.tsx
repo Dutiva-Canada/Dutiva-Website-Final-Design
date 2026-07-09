@@ -17,11 +17,11 @@ const NAV_ITEMS: { href: string; key: LandingMessageKey }[] = [
 
 /* Compact desktop control pill (lang / theme) — prototype `.hdr-ctrl`. */
 const CTRL =
-  'inline-flex h-9 min-w-9 cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-border-strong bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color,background-color,color] duration-[160ms] ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-gold-border hover:bg-[rgba(127,127,127,0.06)] motion-reduce:transition-none'
+  'inline-flex h-9 min-w-9 cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-border-strong bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color,background-color,color] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(127,127,127,0.06)] motion-reduce:transition-none'
 
 /* Large mobile pill (lang · theme · hamburger) — prototype `.hdr-pill`. */
 const PILL =
-  'inline-flex h-[46px] min-w-[46px] cursor-pointer items-center justify-center gap-[7px] rounded-2xl border border-border-strong bg-bg-elevated px-4 font-sans text-[0.9375rem] font-semibold text-text transition-[border-color,background-color,transform] duration-[160ms] ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-gold-border hover:bg-[rgba(255,255,255,0.05)] active:translate-y-px motion-reduce:transition-none'
+  'inline-flex h-[46px] min-w-[46px] cursor-pointer items-center justify-center gap-[7px] rounded-2xl border border-border-strong bg-bg-elevated px-4 font-sans text-[0.9375rem] font-semibold text-text transition-[border-color,background-color,transform] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(255,255,255,0.05)] active:translate-y-px motion-reduce:transition-none'
 
 export function Header() {
   const { lt, t, L, lang, setLang } = useLanding()
@@ -133,13 +133,13 @@ export function Header() {
       <div
         aria-hidden="true"
         onClick={closeMenu}
-        className={`fixed inset-0 z-40 bg-[rgba(4,6,11,0.6)] backdrop-blur-[4px] transition-opacity duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${
+        className={`fixed inset-0 z-40 bg-[rgba(4,6,11,0.6)] backdrop-blur-xs transition-opacity duration-200 ease-in-out motion-reduce:transition-none ${
           menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
       <aside
         inert={!menuOpen}
-        className={`fixed top-0 right-0 bottom-0 z-[41] flex w-[min(84vw,340px)] flex-col border-l border-border bg-bg-elevated p-5 shadow-[-20px_0_60px_rgba(0,0,0,0.5)] transition-transform duration-[240ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${
+        className={`fixed top-0 right-0 bottom-0 z-41 flex w-[min(84vw,340px)] flex-col border-l border-border bg-bg-elevated p-5 shadow-[-20px_0_60px_rgba(0,0,0,0.5)] transition-transform duration-240 ease-in-out motion-reduce:transition-none ${
           menuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Sparkle, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { pickL } from '@/i18n/core'
+import { keyOfL, pickL } from '@/i18n/core'
 import { useEscapeToClose } from '@/lib/escapeStack'
 import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import { ChatBubble } from '@/features/app/advisor/ChatBubble'
@@ -53,13 +53,13 @@ export function AdvisorRail() {
       <div
         onClick={closeRail}
         aria-hidden="true"
-        className="fixed inset-0 z-[295] bg-[rgba(20,25,32,0.28)]"
+        className="fixed inset-0 z-295 bg-[rgba(20,25,32,0.28)]"
       />
-      <div
-        role="dialog"
+      <dialog
+        open
         aria-modal="true"
         aria-label={x(M.advisor_rail_aria)}
-        className="fixed top-0 right-0 bottom-0 z-[296] flex w-[min(400px,100%)] animate-[slideInRight_.2s_ease] flex-col border-l border-border bg-surface-2 font-sans shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
+        className="fixed top-0 right-0 bottom-0 z-296 m-0 flex w-[min(400px,100%)] animate-[slideInRight_.2s_ease] flex-col border-l border-border bg-surface-2 font-sans shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
       >
         {/* Context header — subject + Advisor eyebrow (initials when the subject is a person). */}
         <div className="flex shrink-0 items-center justify-between border-b border-border-soft px-[18px] py-[16px]">
@@ -95,9 +95,9 @@ export function AdvisorRail() {
         {/* Subject meta chips (entity type · jurisdiction …), when provided. */}
         {chips.length > 0 && (
           <div className="flex shrink-0 flex-wrap items-center gap-[6px] border-b border-border-soft px-[18px] py-[10px]">
-            {chips.map((chip, i) => (
+            {chips.map((chip) => (
               <span
-                key={i}
+                key={keyOfL(chip)}
                 className="rounded-[100px] border border-gold-border bg-surface px-[9px] py-[2px] text-[11.5px] font-semibold text-gold-fg"
               >
                 {pickL(chip, lang)}
@@ -131,7 +131,7 @@ export function AdvisorRail() {
                       />
                     </div>
                     {(message.status === 'done' || message.status === undefined) &&
-                      (message.cards ?? []).map((card, i) => <ToneCard key={i} card={card} />)}
+                      (message.cards ?? []).map((card) => <ToneCard key={keyOfL(card.title)} card={card} />)}
                   </>
                 )}
               </div>
@@ -148,7 +148,7 @@ export function AdvisorRail() {
             autoFocus
           />
         </div>
-      </div>
+      </dialog>
     </>
   )
 }

@@ -5,8 +5,8 @@
  */
 export interface TypingDotsProps {
   /** Localized label, e.g. x(advisorCore.advisor_thinking). */
-  label: string
-  size?: 'md' | 'sm'
+  readonly label: string
+  readonly size?: 'md' | 'sm'
 }
 
 const DELAYS = [0, 0.15, 0.3]

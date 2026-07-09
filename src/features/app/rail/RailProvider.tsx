@@ -23,7 +23,7 @@ const CLOSED: RailHead = { open: false, title: '', meta: {} }
  * keeps the transcript (prototype behaviour); opening on a new subject
  * resets it.
  */
-export function RailProvider({ children }: { children: ReactNode }) {
+export function RailProvider({ children }: { readonly children: ReactNode }) {
   const [head, setHead] = useState<RailHead>(CLOSED)
   const engine = useAdvisorEngine({ idPrefix: 'rail' })
   const navigate = useNavigate()

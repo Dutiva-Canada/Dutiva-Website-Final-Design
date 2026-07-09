@@ -9,5 +9,5 @@ import type { Bi } from '@/i18n/core'
  */
 export function money(amount: number): Bi {
   const grouped = amount.toLocaleString('en-US')
-  return bi(`$${grouped}`, `${grouped.replace(/,/g, ' ')} $`)
+  return bi(`$${grouped}`, `${grouped.replaceAll(',', ' ')} $`)
 }

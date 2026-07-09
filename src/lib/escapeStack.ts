@@ -14,7 +14,7 @@ let listening = false
 
 function onWindowKeyDown(e: KeyboardEvent): void {
   if (e.key !== 'Escape') return
-  const top = stack[stack.length - 1]
+  const top = stack.at(-1)
   if (top) {
     e.stopPropagation()
     top()

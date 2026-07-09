@@ -28,7 +28,7 @@ export function Product() {
         title={lt('landing_prod_title')}
         sub={lt('landing_prod_sub')}
       />
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
         {FEATURES.map((feature) => (
           <div key={feature.title} className="premium-card-soft p-6">
             <span

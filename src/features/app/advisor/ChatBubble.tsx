@@ -9,10 +9,10 @@ import type { ReactNode } from 'react'
  *   `white-space: pre-wrap` so streamed line breaks render.
  */
 export interface ChatBubbleProps {
-  author: 'user' | 'assistant'
+  readonly author: 'user' | 'assistant'
   /** Rail sizing (smaller paddings/typography). */
-  compact?: boolean
-  children: ReactNode
+  readonly compact?: boolean
+  readonly children: ReactNode
 }
 
 export function ChatBubble({ author, compact = false, children }: ChatBubbleProps) {

@@ -1,6 +1,6 @@
 import { ShieldCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { pickL } from '@/i18n/core'
+import { keyOfL, pickL } from '@/i18n/core'
 import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import { CitationChips } from './CitationChips'
 import { cardToneStyles } from './toneStyles'
@@ -13,18 +13,19 @@ import type { ToneCardData } from './types'
  * buttons (primary = white on the tone's dot colour, secondary = outline).
  */
 export interface ToneCardProps {
-  card: ToneCardData
+  readonly card: ToneCardData
+}
+
+function trustNoteFor(tone: ToneCardData['tone']) {
+  if (tone === 'risk') return M.advisor_trust_risk
+  if (tone === 'warning') return M.advisor_trust_warning
+  return null
 }
 
 export function ToneCard({ card }: ToneCardProps) {
   const { x, lang } = useI18n()
   const tone = cardToneStyles[card.tone]
-  const trustNote =
-    card.tone === 'risk'
-      ? M.advisor_trust_risk
-      : card.tone === 'warning'
-        ? M.advisor_trust_warning
-        : null
+  const trustNote = trustNoteFor(card.tone)
   const citations = card.citations ?? []
   const actions = card.actions ?? []
 
@@ -52,9 +53,9 @@ export function ToneCard({ card }: ToneCardProps) {
       )}
       {actions.length > 0 && (
         <div className="mt-[2px] flex gap-[8px]">
-          {actions.map((action, i) => (
+          {actions.map((action) => (
             <button
-              key={i}
+              key={keyOfL(action.label)}
               type="button"
               onClick={action.onClick}
               className={

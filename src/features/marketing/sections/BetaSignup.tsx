@@ -1,12 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { ArrowRight, CircleCheck, ShieldCheck } from 'lucide-react'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 
-/** Same validation regex as the prototype's beta-form handler. */
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const SIGNUPS_KEY = 'dutiva-beta-signups'
+
+/** Same validation shape as the prototype's beta-form handler (linear-time). */
+function isValidEmail(value: string): boolean {
+  const at = value.indexOf('@')
+  if (at <= 0 || at === value.length - 1) return false
+  const domain = value.slice(at + 1)
+  const dot = domain.lastIndexOf('.')
+  if (dot <= 0 || dot === domain.length - 1) return false
+  return !value.startsWith(' ') && !value.endsWith(' ') && !value.includes(' ')
+}
 
 const LABEL = 'text-[0.8125rem] font-semibold text-text'
 const INPUT =
@@ -41,10 +49,10 @@ export function BetaSignup() {
     [],
   )
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
     const value = email.trim()
-    if (!EMAIL_RE.test(value)) {
+    if (!isValidEmail(value)) {
       setMessage({ key: 'landing_cta_error', isError: true })
       return
     }
@@ -68,10 +76,10 @@ export function BetaSignup() {
 
   return (
     <section id="start" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 pt-6 pb-[72px]">
-      <div className="premium-card grid items-center gap-10 p-[clamp(28px,4vw,56px)] [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+      <div className="premium-card grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] items-center gap-10 p-[clamp(28px,4vw,56px)]">
         <div>
           <span className="badge">{lt('landing_cta_badge')}</span>
-          <h2 className="mt-4 font-display text-[length:clamp(1.75rem,3vw,2.5rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-text">
+          <h2 className="mt-4 font-display text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-text">
             {lt('landing_cta_title')}
           </h2>
           <p className="mt-3.5 max-w-[44ch] text-base leading-[1.6] text-text-2">
@@ -163,7 +171,7 @@ export function BetaSignup() {
               <div
                 role="status"
                 aria-live="polite"
-                className="text-[0.8125rem] leading-[1.5]"
+                className="text-[0.8125rem] leading-normal"
                 style={{
                   display: message ? 'block' : 'none',
                   color: message?.isError ? 'var(--danger)' : 'var(--text-2)',
@@ -179,7 +187,7 @@ export function BetaSignup() {
                 >
                   {lt('landing_cta_privacy_link')}
                 </a>
-                .
+                {'.'}
               </p>
               <div className="inline-flex items-center gap-2 text-xs text-text-3">
                 <ShieldCheck size={14} className="text-gold-strong" />

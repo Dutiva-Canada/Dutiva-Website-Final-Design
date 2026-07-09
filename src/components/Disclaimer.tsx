@@ -18,8 +18,8 @@ export function Disclaimer({
   variant = 'inline',
   className,
 }: {
-  variant?: 'inline' | 'block'
-  className?: string
+  readonly variant?: 'inline' | 'block'
+  readonly className?: string
 }) {
   const { x } = useI18n()
   const extra = className ? ` ${className}` : ''
@@ -27,9 +27,9 @@ export function Disclaimer({
   if (variant === 'block') {
     return (
       <div
-        className={`flex items-start gap-[8px] text-[11.5px] leading-[1.5] text-text-muted${extra}`}
+        className={`flex items-start gap-[8px] text-[11.5px] leading-normal text-text-muted${extra}`}
       >
-        <Info size={14} strokeWidth={1.7} className="mt-[1px] shrink-0" aria-hidden="true" />
+        <Info size={14} strokeWidth={1.7} className="mt-px shrink-0" aria-hidden="true" />
         <span>{x(common.disclaimer_full)}</span>
       </div>
     )

@@ -39,7 +39,7 @@ export function Workflows() {
         title={lt('landing_wf_title')}
         sub={lt('landing_wf_sub')}
       />
-      <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2.5">
         {TILES.map((tile) => (
           <div key={tile.label} className="rounded-xl border border-border bg-bg-elevated p-4">
             <tile.icon size={18} className="text-gold-strong" />
@@ -53,7 +53,7 @@ export function Workflows() {
       <div className="mt-4 max-w-[560px] rounded-2xl border border-border bg-bg-elevated px-[22px] py-5">
         <div className="mb-2.5 flex flex-wrap items-center gap-2.5">
           <span className="font-semibold text-text">{lt('landing_wf_ex_name')}</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-risk-border bg-risk-bg px-2.5 py-[3px] text-[0.6875rem] font-bold tracking-[0.05em] uppercase text-risk-fg">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-risk-border bg-risk-bg px-2.5 py-[3px] text-[0.6875rem] font-bold tracking-wider uppercase text-risk-fg">
             <span className="h-1.5 w-1.5 rounded-full bg-risk-fg" />
             {lt('landing_wf_ex_risk')}
           </span>

@@ -1,5 +1,5 @@
 import { useI18n } from '@/i18n/context'
-import { pickL } from '@/i18n/core'
+import { keyOfL, pickL } from '@/i18n/core'
 import type { LText } from '@/i18n/core'
 
 /**
@@ -11,13 +11,13 @@ import type { LText } from '@/i18n/core'
  *   empty state ("Terminate an employee · Ontario, BC, federal & more").
  */
 export interface SuggestionChip {
-  label: LText
-  onClick: () => void
+  readonly label: LText
+  readonly onClick: () => void
 }
 
 export interface SuggestionChipsProps {
-  chips: SuggestionChip[]
-  variant?: 'suggest' | 'followup'
+  readonly chips: readonly SuggestionChip[]
+  readonly variant?: 'suggest' | 'followup'
 }
 
 export function SuggestionChips({ chips, variant = 'suggest' }: SuggestionChipsProps) {
@@ -29,8 +29,8 @@ export function SuggestionChips({ chips, variant = 'suggest' }: SuggestionChipsP
       : 'cursor-pointer rounded-[100px] border border-border bg-surface px-[13px] py-[7px] text-[12.5px] font-semibold text-text-2'
   return (
     <div className="flex max-w-[620px] flex-wrap gap-[8px]">
-      {chips.map((chip, i) => (
-        <button key={i} type="button" onClick={chip.onClick} className={chipClass}>
+      {chips.map((chip) => (
+        <button key={keyOfL(chip.label)} type="button" onClick={chip.onClick} className={chipClass}>
           {pickL(chip.label, lang)}
         </button>
       ))}
@@ -39,19 +39,19 @@ export function SuggestionChips({ chips, variant = 'suggest' }: SuggestionChipsP
 }
 
 export interface SuggestionGridChip {
-  label: LText
-  sub: LText
-  onClick: () => void
+  readonly label: LText
+  readonly sub: LText
+  readonly onClick: () => void
 }
 
-export function SuggestionChipGrid({ chips }: { chips: SuggestionGridChip[] }) {
+export function SuggestionChipGrid({ chips }: { readonly chips: readonly SuggestionGridChip[] }) {
   const { lang } = useI18n()
   if (chips.length === 0) return null
   return (
     <div className="grid grid-cols-2 gap-[10px] text-left">
-      {chips.map((chip, i) => (
+      {chips.map((chip) => (
         <button
-          key={i}
+          key={keyOfL(chip.label)}
           type="button"
           onClick={chip.onClick}
           className="flex cursor-pointer flex-col gap-[2px] rounded-[11px] border border-border bg-surface px-[14px] py-[12px] text-left"

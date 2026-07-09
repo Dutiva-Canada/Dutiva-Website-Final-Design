@@ -13,27 +13,27 @@ function readLang(): Lang {
   return readPref(LANG_KEY, 'en') === 'fr' ? 'fr' : 'en'
 }
 
-export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(readLang)
+export function LangProvider({ children }: { readonly children: ReactNode }) {
+  const [lang, setLang] = useState<Lang>(readLang)
 
   useEffect(() => {
     document.documentElement.setAttribute('lang', lang)
   }, [lang])
 
-  const setLang = useCallback((next: Lang) => {
+  const updateLang = useCallback((next: Lang) => {
     writePref(LANG_KEY, next)
-    setLangState(next)
+    setLang(next)
   }, [])
 
   const value = useMemo<LangContextValue>(
     () => ({
       lang,
-      setLang,
+      setLang: updateLang,
       t: (key) => pick(messages[key], lang),
       L: (en, fr) => (lang === 'fr' ? fr : en),
       x: (v) => pick(v, lang),
     }),
-    [lang, setLang],
+    [lang, updateLang],
   )
 
   return <LangContext value={value}>{children}</LangContext>

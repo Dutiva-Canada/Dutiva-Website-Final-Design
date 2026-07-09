@@ -136,7 +136,7 @@ export function SettingsView() {
             <ShieldCheck
               size={18}
               strokeWidth={1.7}
-              className="mt-[1px] shrink-0 text-accent"
+              className="mt-px shrink-0 text-accent"
               aria-hidden="true"
             />
             <span className="text-[13px] leading-[1.55] text-text-2">
@@ -155,9 +155,9 @@ export function SettingsView() {
             <div>
               <span className="text-[12px] text-text-muted">{x(M.settings_provinces_of_op)}</span>
               <div className="mt-[6px] flex flex-wrap gap-[6px]">
-                {provinces.map((prov, i) => (
+                {provinces.map((prov) => (
                   <span
-                    key={i}
+                    key={prov.en}
                     className="rounded-[100px] bg-inset px-[11px] py-[4px] text-[12.5px] font-semibold text-text-2"
                   >
                     {x(prov)}
@@ -177,9 +177,9 @@ export function SettingsView() {
         {/* Users & team */}
         <Section label={x(M.settings_team)}>
           <Card>
-            {team.map((m, i) => (
+            {team.map((m) => (
               <div
-                key={i}
+                key={m.initials}
                 className="flex items-center gap-[12px] border-t border-inset px-[18px] py-[13px]"
               >
                 <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
@@ -245,9 +245,9 @@ export function SettingsView() {
                   <div>{x(M.settings_col_cases)}</div>
                   <div>{x(M.settings_col_signals)}</div>
                 </div>
-                {roleRows.map((ro, i) => (
+                {roleRows.map((ro) => (
                   <div
-                    key={i}
+                    key={ro.role.en}
                     className="grid grid-cols-[1.4fr_1fr_1fr_1.1fr_1fr] items-center gap-[8px] border-t border-inset px-[18px] py-[11px] text-[12.5px]"
                   >
                     <div className="font-semibold text-text">{x(ro.role)}</div>
@@ -268,9 +268,9 @@ export function SettingsView() {
         {/* Data retention */}
         <Section label={x(M.settings_retention)}>
           <Card>
-            {retentionRows.map((rt, i) => (
+            {retentionRows.map((rt) => (
               <div
-                key={i}
+                key={rt.t.en}
                 className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[12px]"
               >
                 <div className="text-[13px] font-semibold text-text">{x(rt.t)}</div>
@@ -286,9 +286,9 @@ export function SettingsView() {
         {/* Security */}
         <Section label={x(M.settings_security)}>
           <Card>
-            {securityRows.map((sec, i) => (
+            {securityRows.map((sec) => (
               <div
-                key={i}
+                key={sec.t.en}
                 className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[12px]"
               >
                 <div className="text-[13px] font-semibold text-text">{x(sec.t)}</div>
@@ -301,9 +301,9 @@ export function SettingsView() {
         {/* Integrations & billing */}
         <Section label={x(M.settings_integrations)}>
           <Card>
-            {integrations.map((ig, i) => (
+            {integrations.map((ig) => (
               <div
-                key={i}
+                key={ig.t.en}
                 className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[12px]"
               >
                 <div className="text-[13px] font-semibold text-text">{x(ig.t)}</div>
@@ -337,13 +337,13 @@ export function SettingsView() {
         {/* Audit log */}
         <Section label={x(M.settings_audit)}>
           <Card>
-            {auditEvents.map((ev, i) => (
+            {auditEvents.map((ev) => (
               <div
-                key={i}
+                key={ev.text.en}
                 className="flex items-start gap-[12px] border-t border-inset px-[18px] py-[11px]"
               >
                 <StatusChip tone={ev.tone}>{x(ev.kind)}</StatusChip>
-                <div className="min-w-0 flex-1 text-[12.5px] leading-[1.5] text-text-2">
+                <div className="min-w-0 flex-1 text-[12.5px] leading-normal text-text-2">
                   {x(ev.text)}
                 </div>
                 <span className="shrink-0 text-[11.5px] text-text-faint">{x(ev.when)}</span>
