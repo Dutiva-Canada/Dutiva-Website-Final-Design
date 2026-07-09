@@ -5,15 +5,13 @@ import { pick } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { SuggestionChipGrid } from '@/features/app/advisor/SuggestionChips'
+import { dotToneClass, statusChipClass } from '@/components/chips'
+import { homePriorities, severityLabels } from '@/features/app/views/home/homeData'
+import type { HomeAction } from '@/features/app/views/home/homeData'
 import { homeSuggestionChips } from './advisorFlows'
 import type { HomeSuggestionChip } from './advisorFlows'
-import {
-  buildDailyBrief,
-  buildHomeMetrics,
-  homePriorities,
-  severityLabels,
-} from './advisorHomeData'
-import type { HomeMetric, PriorityAction, PriorityTone } from './advisorHomeData'
+import { buildDailyBrief, buildHomeMetrics } from './advisorHomeData'
+import type { HomeMetric } from './advisorHomeData'
 
 /**
  * Advisor home — the empty state shown when no conversation is active
@@ -35,18 +33,6 @@ const metricTrendClass: Record<HomeMetric['trendTone'], string> = {
   muted: 'text-text-muted',
 }
 
-const priorityDotClass: Record<PriorityTone, string> = {
-  risk: 'bg-risk-dot',
-  warning: 'bg-gold-dot',
-  info: 'bg-accent',
-}
-
-const priorityChipClass: Record<PriorityTone, string> = {
-  risk: 'bg-risk-bg text-risk-fg',
-  warning: 'bg-warn-bg text-warn-fg',
-  info: 'bg-accent-soft text-accent',
-}
-
 const metricLabelKeys = {
   compliance: M.advisorview_metric_compliance,
   risk: M.advisorview_metric_risk,
@@ -59,7 +45,7 @@ export interface AdvisorHomeProps {
   onSend: (text: string) => void
   /** Suggestion-grid chip click (starts that chip's flow with its seed text). */
   onChip: (chip: HomeSuggestionChip) => void
-  onPriorityAction: (action: PriorityAction) => void
+  onPriorityAction: (action: HomeAction) => void
   /** Metric tile deep link (route segment under /app). */
   onMetricClick: (view: HomeMetric['view']) => void
 }
@@ -137,13 +123,11 @@ export function AdvisorHome({ onSend, onChip, onPriorityAction, onMetricClick }:
               <div key={p.id} className="border-t border-inset px-[16px] py-[13px]">
                 <div className="flex items-start gap-[11px]">
                   <div
-                    className={`mt-[5px] h-[8px] w-[8px] shrink-0 rounded-full ${priorityDotClass[p.tone]}`}
+                    className={`mt-[5px] h-[8px] w-[8px] shrink-0 rounded-full ${dotToneClass(p.tone)}`}
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-[8px]">
-                      <span
-                        className={`inline-flex rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${priorityChipClass[p.tone]}`}
-                      >
+                      <span className={statusChipClass(p.tone)}>
                         {pick(severityLabels[p.severity], lang)}
                       </span>
                       <span className="text-[13.5px] font-semibold text-text">

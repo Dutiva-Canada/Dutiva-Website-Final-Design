@@ -36,7 +36,7 @@ import { readNavNewChat, readNavStartFlow } from './advisorNav'
 import { advisorSession } from './advisorSession'
 import type { SessionChat } from './advisorSession'
 import type { FlowKeyOrFallback, MessageExtras, SuggestChipSpec } from './advisorFlows'
-import type { PriorityAction } from './advisorHomeData'
+import type { HomeAction } from '@/features/app/views/home/homeData'
 
 /**
  * Advisor view — the full-page AI chat (prototype `isAdvisorView`):
@@ -417,13 +417,21 @@ export function AdvisorView() {
   const openCompRail = usePayRail()
   const openWellbeingRail = useWellbeingRail()
 
-  const runPriorityAction = (action: PriorityAction) => {
+  /* Resolve the canonical HomeAction (home/homeData) inside the Advisor:
+     'chat'/'flow' use the in-view thread machinery instead of navigating. */
+  const runPriorityAction = (action: HomeAction) => {
     switch (action.kind) {
-      case 'open-case':
-        navigate(`/app/cases/${action.caseId}`)
+      case 'route':
+        navigate(action.to)
         break
-      case 'draft-doc':
-        openDocStudio(action.docKey)
+      case 'chat':
+        selectChatRef.current(action.chatId)
+        break
+      case 'doc':
+        openDocStudio(action.templateKey)
+        break
+      case 'flow':
+        startFlowRef.current(action.flowKey, action.prompt)
         break
       case 'comp-rail':
         openCompRail(action.employeeId)

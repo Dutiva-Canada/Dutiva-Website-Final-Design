@@ -1,14 +1,25 @@
-import { useState } from 'react'
-import type { ReactNode } from 'react'
+﻿import { useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import type { Bi, LText } from '@/i18n/core'
 import { pickL } from '@/i18n/core'
+import type { Bi } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
-import { statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { common } from '@/i18n/messages/common'
 import { settingsMessages as M } from '@/i18n/messages/settings'
+import {
+  aiToggles,
+  auditEvents,
+  initialPrefs,
+  notificationToggles,
+  provinces,
+  retentionRows,
+  roleRows,
+  securityRows,
+  team,
+} from './settingsData'
+import type { ChipTone, PrefKey } from './settingsData'
+import { Card, Section, StatusChip, ToggleRow, segClass } from './settingsPrimitives'
 
 /**
  * Settings view — port of the prototype's largest static view
@@ -17,238 +28,9 @@ import { settingsMessages as M } from '@/i18n/messages/settings'
  * Appearance/Language segments drive the real ThemeProvider / LangProvider;
  * preference toggles flip local state (prototype `settingsPrefs`); the
  * Calendar-sync integration starts in its error state and Retry clears it
- * with a toast, exactly like `retryIntegration()`.
+ * with a toast, exactly like `retryIntegration()`. Content tables live in
+ * settingsData.ts; shared building blocks in settingsPrimitives.tsx.
  */
-
-type PrefKey =
-  'emailDigest' | 'riskAlerts' | 'autoEscalate' | 'weeklyDigest' | 'aiContext' | 'aiCitations'
-
-/* Prototype initial state (line 2406). */
-const initialPrefs: Record<PrefKey, boolean> = {
-  emailDigest: true,
-  riskAlerts: true,
-  autoEscalate: false,
-  weeklyDigest: true,
-  aiContext: true,
-  aiCitations: true,
-}
-
-interface ToggleSpec {
-  key: PrefKey
-  label: Bi
-  sub: Bi
-}
-
-const notificationToggles: ToggleSpec[] = [
-  {
-    key: 'emailDigest',
-    label: M.settings_toggle_email_digest,
-    sub: M.settings_toggle_email_digest_sub,
-  },
-  {
-    key: 'riskAlerts',
-    label: M.settings_toggle_risk_alerts,
-    sub: M.settings_toggle_risk_alerts_sub,
-  },
-  {
-    key: 'autoEscalate',
-    label: M.settings_toggle_auto_escalate,
-    sub: M.settings_toggle_auto_escalate_sub,
-  },
-  {
-    key: 'weeklyDigest',
-    label: M.settings_toggle_weekly_digest,
-    sub: M.settings_toggle_weekly_digest_sub,
-  },
-]
-
-const aiToggles: ToggleSpec[] = [
-  { key: 'aiContext', label: M.settings_toggle_ai_context, sub: M.settings_toggle_ai_context_sub },
-  {
-    key: 'aiCitations',
-    label: M.settings_toggle_ai_citations,
-    sub: M.settings_toggle_ai_citations_sub,
-  },
-]
-
-const provinces: Bi[] = [
-  M.settings_prov_ontario,
-  M.settings_prov_bc,
-  M.settings_prov_quebec,
-  M.settings_prov_alberta,
-  M.settings_prov_federal,
-]
-
-const team: { name: LText; role: Bi; initials: string }[] = [
-  { name: 'Riley Summers', role: M.settings_role_owner, initials: 'RS' },
-  { name: 'Fatima Haddad', role: M.settings_role_hr, initials: 'FH' },
-  { name: 'Dana Okonkwo', role: M.settings_role_manager, initials: 'DO' },
-  { name: 'Marcus Bell', role: M.settings_role_finance, initials: 'MB' },
-  { name: M.settings_team_counsel_name, role: M.settings_team_counsel_role, initials: 'PC' },
-  { name: M.settings_team_pending_name, role: M.settings_team_pending_role, initials: '…' },
-]
-
-/* Roles & permissions matrix (buildSettingsView `roles`). */
-const F = M.settings_perm_full
-const V = M.settings_perm_view
-const N = M.settings_perm_none
-const T = M.settings_perm_team
-const AS = M.settings_perm_assigned
-const roleRows: { role: Bi; a: Bi; b: Bi; c: Bi; d: Bi }[] = [
-  { role: M.settings_role_owner, a: F, b: F, c: F, d: F },
-  { role: M.settings_role_hr, a: F, b: F, c: F, d: F },
-  { role: M.settings_role_manager, a: T, b: N, c: N, d: T },
-  { role: M.settings_role_finance, a: V, b: F, c: N, d: N },
-  { role: M.settings_role_legal, a: V, b: N, c: AS, d: N },
-  { role: M.settings_role_viewer, a: V, b: N, c: N, d: N },
-]
-
-const retentionRows: { t: Bi; v: Bi }[] = [
-  { t: M.settings_retention_employment, v: M.settings_retention_employment_v },
-  { t: M.settings_retention_cases, v: M.settings_retention_cases_v },
-  { t: M.settings_retention_accommodation, v: M.settings_retention_accommodation_v },
-  { t: M.settings_retention_advisor, v: M.settings_retention_advisor_v },
-]
-
-const securityRows: { t: Bi; v: Bi }[] = [
-  { t: M.settings_security_2fa, v: M.settings_security_2fa_v },
-  { t: M.settings_security_sso, v: M.settings_security_sso_v },
-  { t: M.settings_security_timeout, v: M.settings_security_timeout_v },
-  { t: M.settings_security_residency, v: M.settings_security_residency_v },
-]
-
-type ChipTone = 'risk' | 'warning' | 'success' | 'info'
-
-function StatusChip({ tone, children }: { tone: ChipTone; children: ReactNode }) {
-  return <span className={statusChipClass(tone)}>{children}</span>
-}
-
-const auditEvents: { kind: Bi; tone: ChipTone; text: Bi; when: Bi }[] = [
-  {
-    kind: M.settings_audit_kind_restricted,
-    tone: 'warning',
-    text: M.settings_audit_ev1_text,
-    when: M.settings_audit_ev1_when,
-  },
-  {
-    kind: M.settings_audit_kind_document,
-    tone: 'info',
-    text: M.settings_audit_ev2_text,
-    when: M.settings_audit_ev2_when,
-  },
-  {
-    kind: M.settings_audit_kind_export,
-    tone: 'info',
-    text: M.settings_audit_ev3_text,
-    when: M.settings_audit_ev3_when,
-  },
-  {
-    kind: M.settings_audit_kind_legal,
-    tone: 'warning',
-    text: M.settings_audit_ev4_text,
-    when: M.settings_audit_ev4_when,
-  },
-  {
-    kind: M.settings_audit_kind_case,
-    tone: 'info',
-    text: M.settings_audit_ev5_text,
-    when: M.settings_audit_ev5_when,
-  },
-  {
-    kind: M.settings_audit_kind_comp,
-    tone: 'warning',
-    text: M.settings_audit_ev6_text,
-    when: M.settings_audit_ev6_when,
-  },
-  {
-    kind: M.settings_audit_kind_permissions,
-    tone: 'risk',
-    text: M.settings_audit_ev7_text,
-    when: M.settings_audit_ev7_when,
-  },
-  {
-    kind: M.settings_audit_kind_retention,
-    tone: 'risk',
-    text: M.settings_audit_ev8_text,
-    when: M.settings_audit_ev8_when,
-  },
-]
-
-/* Section eyebrow + content (markup: 13px/700 text-3 label, 10px below). */
-function Section({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div>
-      <div className="mb-[10px] text-[13px] font-bold text-text-3">{label}</div>
-      {children}
-    </div>
-  )
-}
-
-function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return (
-    <div className={`overflow-hidden rounded-[12px] border border-border bg-surface ${className}`}>
-      {children}
-    </div>
-  )
-}
-
-/* Prototype seg() — segmented control button (line 4908). */
-function segClass(on: boolean): string {
-  return `cursor-pointer rounded-[6px] border-none px-[11px] py-[5px] font-sans text-[12px] font-semibold transition-colors duration-150 ${
-    on ? 'bg-surface text-text' : 'bg-transparent text-text-muted'
-  }`
-}
-
-/* Prototype buildToggleStyle / buildToggleKnobStyle (lines 3533–3538). */
-function ToggleSwitch({
-  on,
-  label,
-  onToggle,
-}: {
-  on: boolean
-  label: string
-  onToggle: () => void
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      onClick={onToggle}
-      className={`relative h-[22px] w-[38px] shrink-0 cursor-pointer rounded-[100px] border-none transition-colors duration-150 ${
-        on ? 'bg-navy' : 'bg-border'
-      }`}
-    >
-      <div
-        className={`absolute top-[3px] h-[16px] w-[16px] rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-[left] duration-150 ${
-          on ? 'left-[19px]' : 'left-[3px]'
-        }`}
-      />
-    </button>
-  )
-}
-
-function ToggleRow({
-  spec,
-  on,
-  onToggle,
-}: {
-  spec: ToggleSpec
-  on: boolean
-  onToggle: () => void
-}) {
-  const { x } = useI18n()
-  return (
-    <div className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[14px]">
-      <div className="min-w-0">
-        <div className="text-[13.5px] font-semibold text-text">{x(spec.label)}</div>
-        <div className="mt-[2px] text-[12px] text-text-muted">{x(spec.sub)}</div>
-      </div>
-      <ToggleSwitch on={on} label={x(spec.label)} onToggle={onToggle} />
-    </div>
-  )
-}
 
 export function SettingsView() {
   const { x, lang, setLang } = useI18n()

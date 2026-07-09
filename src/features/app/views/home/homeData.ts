@@ -262,80 +262,8 @@ export const homeMetricChips: HomeMetricChip[] = [
   },
 ]
 
-/* -------------------------------------------------------------- workflows */
-
-export interface HomeWorkflow {
-  id: string
-  name: Bi
-  person: Bi
-  step: number
-  of: number
-  next: Bi
-  /** Prototype `dueLabel` — "Due Jul 11" / "Éch. 11 juil.". */
-  dueLabel: Bi
-  /** Prototype `docsLabel` — "2 of 4 docs" / "2 doc. sur 4". */
-  docsLabel: Bi
-  /** Prototype `stepLabel` — "Step 4/9" / "Étape 4/9". */
-  stepLabel: Bi
-  impact: Bi
-  riskLabel: Bi | null
-  riskTone: PriorityTone
-  action: HomeAction
-}
-
-/** Prototype `workflowsInFlight()` — the three active workflows. */
-export const homeWorkflows: HomeWorkflow[] = [
-  {
-    id: 'wf1',
-    name: bi('Termination', 'Cessation d’emploi'),
-    person: bi('Jordan Mensah', 'Jordan Mensah'),
-    step: 4,
-    of: 9,
-    next: bi('Legal review of notice', 'Examen juridique du préavis'),
-    dueLabel: bi('Due Jul 11', 'Éch. 11 juil.'),
-    docsLabel: bi('2 of 4 docs', '2 doc. sur 4'),
-    stepLabel: bi('Step 4/9', 'Étape 4/9'),
-    impact: bi('+2 score on close', '+2 au score à la clôture'),
-    riskLabel: bi('High', 'Élevé'),
-    riskTone: 'risk',
-    action: { kind: 'route', to: '/app/cases/case1' },
-  },
-  {
-    id: 'wf2',
-    name: bi('Accommodation', 'Accommodement'),
-    person: bi('Amara Okafor', 'Amara Okafor'),
-    step: 3,
-    of: 6,
-    next: bi('90-day review meeting', 'Réunion d’examen — 90 jours'),
-    dueLabel: bi('Due Jul 14', 'Éch. 14 juil.'),
-    docsLabel: bi('1 of 2 docs', '1 doc. sur 2'),
-    stepLabel: bi('Step 3/6', 'Étape 3/6'),
-    impact: bi('Keeps review defensible', 'Examen défendable'),
-    riskLabel: bi('Due Jul 14', 'Éch. 14 juil.'),
-    riskTone: 'warning',
-    action: { kind: 'route', to: '/app/cases/case3' },
-  },
-  {
-    id: 'wf3',
-    name: bi('Hiring', 'Embauche'),
-    person: bi('Senior Analyst', 'Analyste principal'),
-    step: 2,
-    of: 7,
-    next: bi('Generate offer letter', 'Générer la lettre d’offre'),
-    dueLabel: bi('Due Jul 18', 'Éch. 18 juil.'),
-    docsLabel: bi('0 of 3 docs', '0 doc. sur 3'),
-    stepLabel: bi('Step 2/7', 'Étape 2/7'),
-    impact: bi('BC written-offer rules', 'Règles d’offre écrite C.-B.'),
-    riskLabel: null,
-    riskTone: 'info',
-    action: { kind: 'chat', chatId: 'c2' },
-  },
-]
-
-/** Progress-fill width, per prototype `Math.round((w.step / w.of) * 100) + '%'`. */
-export function workflowFillWidth(w: HomeWorkflow): string {
-  return `${Math.round((w.step / w.of) * 100)}%`
-}
+/* Workflows-in-flight rows live in the workflows feature (workflowsData.ts);
+   HomeWorkflowsCard renders that canonical list. */
 
 /** Prototype `onAskBrief` — "Ask about this brief" flow prompt (explicit 'fallback' key, 4826). */
 export const askBriefPrompt: Bi = bi(

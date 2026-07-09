@@ -1,16 +1,25 @@
 import { useI18n } from '@/i18n/context'
 import { homeMessages as M } from '@/i18n/messages/home'
 import { statusChipBaseClass, chipToneClass } from '@/components/chips'
-import { homeWorkflows, workflowFillWidth } from './homeData'
-import type { HomeAction, HomeWorkflow } from './homeData'
+import { inFlightWorkflows } from '@/features/app/views/workflows/workflowsData'
+import type { InFlightWorkflow, WorkflowNav } from '@/features/app/views/workflows/workflowsData'
+import type { HomeAction } from './homeData'
 
 /**
  * WorkflowCards — the "Workflows in flight" list. Two placements, per the
  * prototype's Home markup: `rail` (desktop right column, lines 517–532) and
- * `mobile` (after Act now on phones, lines 430–445).
+ * `mobile` (after Act now on phones, lines 430–445). Rows come from the
+ * workflows feature's canonical `inFlightWorkflows`.
  */
 
-function WorkflowRisk({ w, small }: { w: HomeWorkflow; small: boolean }) {
+/** Row navigation (prototype `openCase` / `selectChat`) as a Home action. */
+function navToAction(nav: WorkflowNav): HomeAction {
+  return nav.kind === 'case'
+    ? { kind: 'route', to: `/app/cases/${nav.caseId}` }
+    : { kind: 'chat', chatId: nav.chatId }
+}
+
+function WorkflowRisk({ w, small }: { w: InFlightWorkflow; small: boolean }) {
   const { x } = useI18n()
   if (!w.riskLabel) return null
   return (
@@ -24,19 +33,22 @@ function WorkflowRisk({ w, small }: { w: HomeWorkflow; small: boolean }) {
   )
 }
 
-function WorkflowProgress({ w, gapTop }: { w: HomeWorkflow; gapTop: string }) {
+function WorkflowProgress({ w, gapTop }: { w: InFlightWorkflow; gapTop: string }) {
   const { x } = useI18n()
   return (
     <div className={`flex items-center gap-[8px] ${gapTop}`}>
       <div className="h-[6px] flex-1 overflow-hidden rounded-full bg-inset">
-        <div className="h-full rounded-full bg-navy" style={{ width: workflowFillWidth(w) }} />
+        <div
+          className="h-full rounded-full bg-navy"
+          style={{ width: `${Math.round((w.step / w.of) * 100)}%` }}
+        />
       </div>
       <span className="text-[11px] font-bold whitespace-nowrap text-text-3">{x(w.stepLabel)}</span>
     </div>
   )
 }
 
-function WorkflowMetaLines({ w }: { w: HomeWorkflow }) {
+function WorkflowMetaLines({ w }: { w: InFlightWorkflow }) {
   const { x } = useI18n()
   return (
     <>
@@ -66,11 +78,11 @@ export function HomeWorkflowsRailCard({ onAction }: { onAction: (action: HomeAct
         </button>
       </div>
       <div className="flex flex-col gap-[13px]">
-        {homeWorkflows.map((w) => (
+        {inFlightWorkflows.map((w) => (
           <button
             key={w.id}
             type="button"
-            onClick={() => onAction(w.action)}
+            onClick={() => onAction(navToAction(w.open))}
             className="block w-full cursor-pointer border-none bg-transparent p-0 text-left font-sans"
           >
             <div className="flex flex-wrap items-center gap-[7px]">
@@ -107,11 +119,11 @@ export function HomeWorkflowsMobileList({ onAction }: { onAction: (action: HomeA
         </button>
       </div>
       <div className="rounded-[12px] border border-border bg-surface px-[14px] py-[4px]">
-        {homeWorkflows.map((w) => (
+        {inFlightWorkflows.map((w) => (
           <button
             key={w.id}
             type="button"
-            onClick={() => onAction(w.action)}
+            onClick={() => onAction(navToAction(w.open))}
             className="block w-full cursor-pointer border-t border-t-border-soft bg-transparent py-[11px] text-left font-sans"
           >
             <div className="flex flex-wrap items-center gap-[8px]">

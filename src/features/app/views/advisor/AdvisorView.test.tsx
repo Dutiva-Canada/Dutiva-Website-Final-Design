@@ -94,6 +94,47 @@ describe('AdvisorView', () => {
       expect(screen.getByText(/Noted — I've added that to this case/)).toBeInTheDocument()
     })
 
+    it('runs the termination intake: quick form → answer chips → assessment with docs and follow-ups', () => {
+      renderApp(<AdvisorView />, { route: '/app/advisor' })
+
+      /* Start the flagship flow from the suggestion grid. */
+      fireEvent.click(screen.getByRole('button', { name: /Terminate an employee/ }))
+      expect(screen.getByText('I need to terminate an employee in Ontario.')).toBeInTheDocument()
+      expect(screen.getByText('Termination — new case')).toBeInTheDocument()
+
+      /* Intro streams, then the intake quick form renders (5 labelled selects). */
+      act(() => {
+        vi.advanceTimersByTime(849 + 4000)
+      })
+      expect(screen.getByText(/To calculate this correctly and flag any risk/)).toBeInTheDocument()
+      expect(screen.getByLabelText('Employment type')).toBeInTheDocument()
+      expect(screen.getByLabelText('Length of service')).toBeInTheDocument()
+
+      /* Change an answer, then submit. */
+      fireEvent.change(screen.getByLabelText('Reason for termination'), {
+        target: { value: 'Performance' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+
+      /* The answers land as user chips and the form is gone. */
+      expect(screen.getByText('Performance')).toBeInTheDocument()
+      expect(screen.getByText('Written, no termination clause')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Continue' })).not.toBeInTheDocument()
+
+      /* Assessment turn streams: risk card, citations, doc chips, follow-ups. */
+      act(() => {
+        vi.advanceTimersByTime(849 + 12000)
+      })
+      expect(screen.getByText("Here's the assessment for this case.")).toBeInTheDocument()
+      expect(screen.getByText('Notice exposure risk')).toBeInTheDocument()
+      expect(screen.getByText('ESA s.57 — Notice of termination')).toBeInTheDocument()
+      expect(screen.getByText('Termination Letter')).toBeInTheDocument()
+      expect(screen.getAllByRole('button', { name: 'Generate' })).toHaveLength(3)
+      expect(
+        screen.getByRole('button', { name: 'Run severance estimator (beta)' }),
+      ).toBeInTheDocument()
+    })
+
     it('starts a routed flow from the home composer and lists the new thread under Today', () => {
       renderApp(<AdvisorView />, { route: '/app/advisor' })
 
