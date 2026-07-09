@@ -17,6 +17,10 @@ import {
 import type { ComplianceItem, TimelineEvent, TimelineKind } from '@/data'
 import { useRail } from '@/features/app/rail/railContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
+import {
+  contextFromEmployee,
+  useWorkspaceContext,
+} from '@/features/app/workspaceContext/workspaceContextStore'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { employeesMessages as M } from '@/i18n/messages/employees'
 import { dotToneClass, sourceChipClass, statusChipClass } from './chipStyles'
@@ -108,6 +112,7 @@ export function EmployeeProfileView() {
   const { openRail, closeRail } = useRail()
   const { openDocFromLibrary } = useDocStudio()
   const askAdvisor = useAskAdvisorAboutEmployee()
+  const { setContext } = useWorkspaceContext()
   const [tab, setTab] = useState<ProfileTab>(() => readNavTab(location.state) ?? 'overview')
 
   /* Same component instance across profile navigations — re-apply the deep-linked
@@ -115,6 +120,13 @@ export function EmployeeProfileView() {
   useEffect(() => {
     setTab(readNavTab(location.state) ?? 'overview')
   }, [employeeId, location.state])
+
+  /* Prototype `openProfile()` pins the person as the Advisor's workspace
+     context ("Advisor is using · Working with …"). */
+  useEffect(() => {
+    const contextEmp = employees.find((e) => e.id === employeeId)
+    if (contextEmp) setContext(contextFromEmployee(contextEmp))
+  }, [employeeId, setContext])
 
   const emp = employees.find((e) => e.id === employeeId)
   const det = emp ? employeeDetails[emp.id] : undefined

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Check, ChevronLeft, FileText, Info, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -19,6 +19,10 @@ import type { ComplianceItem, Tone } from '@/data'
 import { useRail } from '@/features/app/rail/railContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
+import {
+  contextFromEmployee,
+  useWorkspaceContext,
+} from '@/features/app/workspaceContext/workspaceContextStore'
 import { cardToneStyles } from '@/features/app/advisor/toneStyles'
 import type { ToneCardData } from '@/features/app/advisor/types'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
@@ -87,6 +91,13 @@ function CaseDetail({ caze }: { caze: WorkspaceCase }) {
 
   const emp = caze.empId ? employees.find((e) => e.id === caze.empId) : undefined
   const det = emp ? employeeDetails[emp.id] : undefined
+
+  /* Prototype: opening a case pins it as the Advisor's workspace context
+     ("Advisor is using · On case …", logic 4281). */
+  const { setContext } = useWorkspaceContext()
+  useEffect(() => {
+    if (emp) setContext(contextFromEmployee(emp, caze.type, 'case'))
+  }, [emp, caze.type, setContext])
   const linkedTasks = tasks.filter((t) => t.chatId === caze.chatId)
   const [taskDone, setTaskDone] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(linkedTasks.map((t) => [t.id, t.done])),

@@ -131,4 +131,51 @@ export const shellMessages = defineMessages({
   shell_open_menu: { en: 'Open menu', fr: 'Ouvrir le menu' }, // [FR self-authored]
   shell_close_menu: { en: 'Close menu', fr: 'Fermer le menu' }, // [FR self-authored]
   shell_primary_nav: { en: 'Primary navigation', fr: 'Navigation principale' }, // [FR self-authored]
+
+  /* ── Workspace context banner (prototype `contextBanner`, markup 309–326;
+        labels at logic 4947 + `contextLabelFor` 4103–4108 + buildI18n 5082) ── */
+  shell_ctx_using: { en: 'Advisor is using · ', fr: 'Le Conseiller utilise · ' },
+  shell_ctx_employee: { en: 'Working with', fr: 'Travaille avec' },
+  shell_ctx_document: { en: 'Editing', fr: 'Modifie' },
+  shell_ctx_compliance: { en: 'Reviewing', fr: 'Examine' },
+  shell_ctx_compensation: { en: 'Reviewing pay for', fr: 'Examine la rémunération de' },
+  shell_ctx_wellbeing: { en: 'Supporting', fr: 'Soutient' },
+  shell_ctx_case: { en: 'On case', fr: 'Sur le dossier' },
+  shell_open_record: { en: 'Open record', fr: 'Ouvrir le dossier' },
+  shell_ctx_remove_aria: { en: 'Remove this context item', fr: 'Retirer cet élément de contexte' }, // [FR self-authored]
+  shell_ctx_clear_aria: { en: 'Clear context', fr: 'Effacer le contexte' }, // [FR self-authored]
+
+  /* ── Advisor-mode module banner (prototype `moduleContext`, markup 328–333;
+        specialties at logic 4954–4961, FR from frDict) ────────────────────── */
+  shell_advisor_mode: { en: 'Advisor mode', fr: 'Mode Conseiller' },
+  shell_mod_compensation: { en: 'Compensation specialist', fr: 'Spécialiste de la rémunération' },
+  shell_mod_compensation_note: {
+    en: 'I’ll frame answers around pay bands, equity, and market benchmarks.',
+    fr: 'Je cadrerai les réponses autour des échelles salariales, de l’équité et des repères du marché.',
+  },
+  shell_mod_compliance: { en: 'Compliance consultant', fr: 'Conseiller en conformité' },
+  shell_mod_compliance_note: {
+    en: 'I’ll weigh jurisdiction, applicable legislation, and risk on every answer.',
+    fr: 'Je pèserai la compétence, la législation applicable et le risque dans chaque réponse.',
+  },
+  shell_mod_wellbeing: { en: 'Wellbeing & accommodation', fr: 'Bien-être et accommodement' },
+  shell_mod_wellbeing_note: {
+    en: 'I’ll keep guidance supportive and non-diagnostic.',
+    fr: 'Je garderai des conseils bienveillants et non diagnostiques.',
+  },
+  shell_mod_communications: { en: 'Communications', fr: 'Communications' },
+  shell_mod_communications_note: {
+    en: 'I’ll check jurisdiction and tone before anything goes out.',
+    fr: 'Je vérifierai la compétence et le ton avant tout envoi.',
+  },
+  shell_mod_templates: { en: 'Documentation', fr: 'Documentation' },
+  shell_mod_templates_note: {
+    en: 'I’ll draft and tailor documents to the right jurisdiction.',
+    fr: 'Je rédigerai et adapterai les documents à la bonne compétence.',
+  },
+  shell_mod_cases: { en: 'Case coordination', fr: 'Coordination des dossiers' },
+  shell_mod_cases_note: {
+    en: 'I’ll connect tasks, documents, and compliance across the file.',
+    fr: 'Je relierai les tâches, les documents et la conformité dans tout le dossier.',
+  },
 })

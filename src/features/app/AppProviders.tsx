@@ -3,6 +3,7 @@ import { ToastsProvider } from './toasts/ToastsProvider'
 import { RailProvider } from './rail/RailProvider'
 import { SearchProvider } from './search/SearchProvider'
 import { DocStudioProvider } from './docstudio/DocStudioProvider'
+import { WorkspaceContextProvider } from './workspaceContext/WorkspaceContextProvider'
 
 /**
  * Workspace-scoped providers. Overlay hosts (ToastHost, AdvisorRail,
@@ -15,7 +16,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <ToastsProvider>
       <RailProvider>
         <SearchProvider>
-          <DocStudioProvider>{children}</DocStudioProvider>
+          <DocStudioProvider>
+            <WorkspaceContextProvider>{children}</WorkspaceContextProvider>
+          </DocStudioProvider>
         </SearchProvider>
       </RailProvider>
     </ToastsProvider>
