@@ -10,6 +10,11 @@ import type { DocCase, DocEmployee, DocTemplate, GeneratedDoc, TemplateCategory 
  * fixtures serve the identical content synchronously. Field-for-field the two
  * sources match: the views were seeded from the same handoff data the
  * fixtures are generated from.
+ *
+ * The anon key this reads with is a project-wide credential: PostgREST
+ * exposes every table/view granted to `anon` in the shared project's public
+ * schema, not just doclib_*. See docs/DATA_MODEL.md and the note in
+ * .env.example.
  */
 
 export interface DoclibData {
