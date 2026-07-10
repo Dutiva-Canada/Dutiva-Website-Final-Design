@@ -6,13 +6,13 @@
 
 interface LeafTileProps {
   /** Tile edge in px (prototype: 46 header · 38 drawer · 40 footer). */
-  size: number
+  readonly size: number
   /** Tile corner radius in px (13 · 11 · 11). */
-  radius: number
+  readonly radius: number
   /** Rendered leaf height in px (32 · 26 · 28). */
-  leafHeight: number
+  readonly leafHeight: number
   /** Header tile carries a drop shadow; the drawer/footer tiles do not. */
-  shadow?: boolean
+  readonly shadow?: boolean
 }
 
 export function LeafTile({ size, radius, leafHeight, shadow = false }: LeafTileProps) {
@@ -36,7 +36,7 @@ export function LeafTile({ size, radius, leafHeight, shadow = false }: LeafTileP
   )
 }
 
-export function Wordmark({ fontSize = '1.15rem' }: { fontSize?: string }) {
+export function Wordmark({ fontSize = '1.15rem' }: { readonly fontSize?: string }) {
   return (
     <span className="font-display font-bold text-text" style={{ fontSize }}>
       Duti<span className="text-gold-strong">va</span>

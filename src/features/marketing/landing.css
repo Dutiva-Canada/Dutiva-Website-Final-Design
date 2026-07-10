@@ -31,7 +31,6 @@
   --ok-fg: #2f6a4f;
 }
 
-/* Prototype: ::selection { background: rgba(212,175,55,0.25) } */
 .surface-marketing ::selection {
   background: rgba(var(--dutiva-gold-rgb), 0.25);
 }
