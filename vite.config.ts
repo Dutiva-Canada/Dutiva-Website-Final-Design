@@ -23,5 +23,18 @@ export default defineConfig({
        real Supabase read returns updated_at-sorted rows instead of the
        fixture order tests assert against. */
     env: { VITE_SUPABASE_URL: '', VITE_SUPABASE_ANON_KEY: '' },
+    /* Thresholds set a few points under the measured baseline (statements
+       83.7%, branches 69.9%, functions 80.5%, lines 85.1%) so normal
+       fluctuation doesn't flake CI, while a real coverage regression still
+       fails `npm run test:coverage`. */
+    coverage: {
+      provider: 'v8',
+      thresholds: {
+        statements: 80,
+        branches: 65,
+        functions: 75,
+        lines: 80,
+      },
+    },
   },
 })
