@@ -310,7 +310,7 @@ export function StudioScreen() {
               {jurisdictionInfo.length}
             </div>
             <div className="mt-[3px] text-[10.5px] whitespace-nowrap text-text-muted">
-              {t('doclib_studio_jurisdiction')}
+              {t('doclib_studio_jurisdictions')}
             </div>
           </div>
         </div>

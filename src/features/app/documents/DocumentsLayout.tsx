@@ -39,9 +39,15 @@ function ViewingAsBar() {
 export function DocumentsLayout() {
   return (
     <DoclibProvider>
-      <div className="mx-auto max-w-[1240px]">
-        <ViewingAsBar />
-        <Outlet />
+      {/* The shell's flex column doesn't scroll itself (AppShell.tsx) — every
+          top-level view supplies its own flex-1 overflow-y-auto scroll
+          container (see e.g. PoliciesView); this layout is the doclib
+          screens' equivalent. min-h-0 lets it shrink so overflow can engage. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-[1240px]">
+          <ViewingAsBar />
+          <Outlet />
+        </div>
       </div>
     </DoclibProvider>
   )

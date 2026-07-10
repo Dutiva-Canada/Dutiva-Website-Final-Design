@@ -18,5 +18,10 @@ export default defineConfig({
        loaded machine that alone can exceed the 5s default. */
     testTimeout: 20000,
     hookTimeout: 20000,
+    /* Force the doclib data layer onto its bundled fixtures, independent of
+       any local .env: Vite loads .env for `vitest` same as `vite dev`, and a
+       real Supabase read returns updated_at-sorted rows instead of the
+       fixture order tests assert against. */
+    env: { VITE_SUPABASE_URL: '', VITE_SUPABASE_ANON_KEY: '' },
   },
 })

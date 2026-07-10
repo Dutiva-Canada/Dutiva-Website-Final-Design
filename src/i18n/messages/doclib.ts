@@ -40,6 +40,7 @@ export const doclibMessages = defineMessages({
   doclib_studio_filters: { en: 'Filters', fr: 'Filtres' },
   doclib_studio_category: { en: 'Category', fr: 'Catégorie' },
   doclib_studio_jurisdiction: { en: 'Jurisdiction', fr: 'Juridiction' },
+  doclib_studio_jurisdictions: { en: 'Jurisdictions', fr: 'Juridictions' },
   doclib_studio_risk: { en: 'Risk level', fr: 'Niveau de risque' },
   doclib_studio_review: { en: 'Review', fr: 'Révision' },
   doclib_studio_all: { en: 'All', fr: 'Tous' },
