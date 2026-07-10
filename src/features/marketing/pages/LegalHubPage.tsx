@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { LEGAL_HUB_GROUPS } from '../legal/legalHubData'
+import type { LegalHubRow } from '../legal/legalHubData'
 import { MarketingPageShell, PageHero, PageSection } from './MarketingPage'
 
 /** /legal — index of the 26 policy documents, grouped per the prototype (legalHub_* strings). */
@@ -18,7 +19,7 @@ export function LegalHubPage() {
       {LEGAL_HUB_GROUPS.map((group) => (
         <PageSection key={group.titleKey} title={t(group.titleKey)}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
-            {group.rows.map((row) => (
+            {group.rows.map((row: LegalHubRow) => (
               <Link
                 key={row.slug}
                 to={`/legal/${row.slug}`}

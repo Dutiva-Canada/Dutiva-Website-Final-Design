@@ -61,7 +61,7 @@ export function PolicyPage() {
           <div className="premium-card mt-6 p-[clamp(20px,3vw,28px)]">
             {edition.callout.map((entry, index) => (
               <p
-                key={index}
+                key={entry}
                 className={`${index > 0 ? 'mt-3 ' : ''}text-[0.9375rem] leading-[1.65] text-text-2`}
               >
                 {entry}
@@ -70,21 +70,21 @@ export function PolicyPage() {
           </div>
         )}
 
-        {edition.sections.map((section, sectionIndex) => (
-          <section key={sectionIndex}>
+        {edition.sections.map((section) => (
+          <section key={section.title}>
             <h2 className="mt-9 font-display text-[1.25rem] font-semibold tracking-[-0.01em] text-text">
               {section.title}
             </h2>
-            {groupPolicyBlocks(section.blocks).map((group, groupIndex) =>
+            {groupPolicyBlocks(section.blocks).map((group) =>
               group.kind === 'p' ? (
-                <p key={groupIndex} className="mt-3.5 text-[0.9375rem] leading-[1.7] text-text-2">
+                <p key={group.text} className="mt-3.5 text-[0.9375rem] leading-[1.7] text-text-2">
                   {group.text}
                 </p>
               ) : (
-                <ul key={groupIndex} className="mt-3.5 grid list-disc gap-2 pl-5">
-                  {group.items.map((item, itemIndex) => (
+                <ul key={group.items.join('|')} className="mt-3.5 grid list-disc gap-2 pl-5">
+                  {group.items.map((item) => (
                     <li
-                      key={itemIndex}
+                      key={item}
                       className="text-[0.9375rem] leading-[1.65] text-text-2 marker:text-gold-strong"
                     >
                       {item}

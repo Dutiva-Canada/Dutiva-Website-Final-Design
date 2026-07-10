@@ -35,7 +35,7 @@ export function TemplateUsagePage() {
           {STEPS.map((step, index) => (
             <div key={step.titleKey} className="premium-card-soft p-[22px]">
               {/* bg-gold-subtle: the marketing surface's gold wash (--gold-bg is app-surface only). */}
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-(--gold-border) bg-gold-subtle font-display text-sm font-bold text-gold-strong">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gold-border bg-gold-subtle font-display text-sm font-bold text-gold-strong">
                 {index + 1}
               </span>
               <div className="mt-3 text-[0.9375rem] font-semibold text-text">

@@ -20,7 +20,7 @@ export function AboutPage() {
 
       <PageSection title={t('about_s1')}>
         <div className="premium-card p-[clamp(24px,3vw,40px)]">
-          <p className="max-w-[58ch] font-display text-[clamp(1.125rem,1.8vw,1.375rem)] leading-[1.5] font-medium text-text">
+          <p className="max-w-[58ch] font-display text-[clamp(1.125rem,1.8vw,1.375rem)] leading-normal font-medium text-text">
             {t('about_mission')}
           </p>
         </div>

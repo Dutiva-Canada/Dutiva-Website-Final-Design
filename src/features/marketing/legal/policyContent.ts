@@ -2,7 +2,7 @@ import type { Lang } from '@/i18n/core'
 
 /**
  * Typed collection over the bilingual policy documents shipped by the
- * dutiva.ca content-migration handoff (`content/<slug>.{en,fr}.json`).
+ * dutiva.ca content-migration handoff (`content/<slug>.{en,fr}.ts`).
  *
  * The EN and FR editions of a document are NOT structurally parallel — most
  * pairs differ in section, block, or callout counts (the French editions were
@@ -37,7 +37,7 @@ export interface PolicyDoc {
   fr?: PolicyEdition
 }
 
-const editionModules = import.meta.glob<PolicyEdition>('./content/*.json', {
+const editionModules = import.meta.glob<PolicyEdition>('./content/*.ts', {
   eager: true,
   import: 'default',
 })
@@ -45,7 +45,7 @@ const editionModules = import.meta.glob<PolicyEdition>('./content/*.json', {
 function buildCollection(): Map<string, PolicyDoc> {
   const docs = new Map<string, PolicyDoc>()
   for (const [path, edition] of Object.entries(editionModules)) {
-    const match = /\/([a-z0-9-]+)\.(en|fr)\.json$/.exec(path)
+    const match = /\/([a-z0-9-]+)\.(en|fr)\.ts$/.exec(path)
     if (!match) continue
     const slug = match[1]
     const lang = match[2] as Lang
@@ -90,7 +90,7 @@ export type PolicyBlockGroup = { kind: 'p'; text: string } | { kind: 'list'; ite
 export function groupPolicyBlocks(blocks: PolicyBlock[]): PolicyBlockGroup[] {
   const groups: PolicyBlockGroup[] = []
   for (const block of blocks) {
-    const last = groups[groups.length - 1]
+    const last = groups.at(-1)
     if (block.type === 'li') {
       if (last?.kind === 'list') last.items.push(block.text)
       else groups.push({ kind: 'list', items: [block.text] })
