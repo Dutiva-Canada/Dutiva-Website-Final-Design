@@ -1,0 +1,150 @@
+# HR Documents Library — data model
+
+Transcribed from the handoff's "Data Model & Handoff" screen (the authoritative
+starting spec). The prototype shipped this as an in-app dev view; per the handoff
+README it is deliberately NOT a product route — it lives here as engineering
+documentation instead. The live demo schema is `doclib` in the Dutiva Supabase
+project (see `supabase/migrations/`); ids are semantic text slugs for the demo
+seed (production would use uuids).
+
+**Stack:** React 19 + Vite,Supabase (Postgres + RLS + Storage),Vercel,Provider-agnostic e-signature
+
+## Entities
+
+### `organizations` (identity, RLS)
+
+The tenant + its compliance profile (size, union, sector) that drives conditional obligations.
+
+- **Fields:** `id`, `name`, `employee_count`, `size_tier`, `unionized`, `sector`, `federally_regulated`, `primary_jurisdiction`, `created_at`
+- **Relations:** has many organization_members, employees, documents, templates
+- **Surfaces in UI:** Workspace switcher
+
+### `profiles` (identity, RLS)
+
+A user account (mirrors auth.users).
+
+- **Fields:** `id`, `full_name`, `email`, `avatar_url`
+- **Relations:** belongs to many organizations via organization_members
+- **Surfaces in UI:** User menu, created_by/updated_by
+
+### `organization_members` (identity, RLS)
+
+Join of profile ↔ organization + role. The heart of RLS.
+
+- **Fields:** `id`, `organization_id`, `profile_id`, `role (owner|hr|manager|viewer|external)`, `created_at`
+- **Relations:** → organizations; → profiles
+- **Surfaces in UI:** Role switcher, permission gating
+
+### `employees` (records, RLS)
+
+The workforce roster.
+
+- **Fields:** `id`, `organization_id`, `name`, `role`, `jurisdiction`, `status`
+- **Relations:** has many documents; has many employee_cases
+- **Surfaces in UI:** Generation context, repository filter
+
+### `employee_cases` (records, RLS)
+
+A case file (termination, accommodation…) grouping related documents.
+
+- **Fields:** `id`, `organization_id`, `employee_id`, `title`, `jurisdiction`, `risk`
+- **Relations:** → employees; has many documents
+- **Surfaces in UI:** Generation context, repository filter
+
+### `document_template_categories` (library)
+
+Global category taxonomy (hiring, policies…).
+
+- **Fields:** `id`, `key`, `name_en`, `name_fr`, `order`
+- **Relations:** has many document_templates
+- **Surfaces in UI:** Studio category sections & filter
+
+### `document_templates` (library)
+
+The reusable template record (T01–T16). Content lives in versions.
+
+- **Fields:** `id`, `category_id`, `template_key`, `name_en/fr`, `description_en/fr`, `jurisdictions_supported[]`, `risk_level`, `requires_lawyer_review`, `is_active`, `status`, `created_at`, `updated_at`
+- **Relations:** → category; has many document_template_versions
+- **Surfaces in UI:** Studio template cards & detail
+
+### `document_template_versions` (library)
+
+A versioned content payload. Old documents stay tied to the exact version used.
+
+- **Fields:** `id`, `template_id`, `version_number`, `language`, `body_content`, `schema_json`, `question_flow_json`, `clause_library_json`, `statutory_references_json`, `effective_date`, `deprecated_at`, `created_by`
+- **Relations:** → document_templates; referenced by documents.template_version_id
+- **Surfaces in UI:** Template detail, generation questions & preview
+
+### `document_generation_sessions` (documents, RLS)
+
+An in-progress generation (answers + autosave) before a document exists.
+
+- **Fields:** `id`, `organization_id`, `template_version_id`, `employee_id?`, `case_id?`, `answers_json`, `language`, `jurisdiction`, `created_by`
+- **Relations:** → template_version; becomes a documents row on save
+- **Surfaces in UI:** The guided generation wizard
+
+### `documents` (documents, RLS)
+
+The organization's real saved/generated document.
+
+- **Fields:** `id`, `organization_id`, `employee_id?`, `case_id?`, `template_id`, `template_version_id`, `title`, `language`, `jurisdiction`, `status`, `risk_level`, `review_status`, `signature_status`, `current_version_id`, `created_by`, `updated_by`, `created_at`, `updated_at`, `archived_at`
+- **Relations:** → template_version (frozen); → employee/case; has many document_versions, recipients, signatures, audit_events
+- **Surfaces in UI:** Repository row + document detail header
+
+### `document_versions` (documents, RLS)
+
+Every generated/revised version with the answers and rendered content.
+
+- **Fields:** `id`, `document_id`, `version_number`, `content`, `answers_json`, `generated_fields_json`, `change_summary`, `created_by`, `created_at`
+- **Relations:** → documents
+- **Surfaces in UI:** Versions tab
+
+### `document_recipients` (audit, RLS)
+
+Signers/reviewers, supporting multiple parties and signing order.
+
+- **Fields:** `id`, `document_id`, `recipient_type (employee|manager|hr|external)`, `name`, `email`, `signing_order`, `status`, `signed_at`
+- **Relations:** → documents
+- **Surfaces in UI:** Recipients & signatures tab
+
+### `document_signatures` (audit, RLS)
+
+Provider-agnostic envelope status — not tied to one vendor.
+
+- **Fields:** `id`, `document_id`, `provider`, `external_envelope_id`, `status`, `sent_at`, `viewed_at`, `signed_at`, `declined_at`, `expires_at`
+- **Relations:** → documents
+- **Surfaces in UI:** Recipients & signatures tab
+
+### `document_exports` (audit, RLS)
+
+A record of each export (PDF/DOCX) for traceability.
+
+- **Fields:** `id`, `document_id`, `format`, `exported_by`, `created_at`
+- **Relations:** → documents
+- **Surfaces in UI:** Export action + audit entries
+
+### `document_audit_events` (audit, RLS)
+
+Append-only log of every meaningful action.
+
+- **Fields:** `id`, `organization_id`, `document_id`, `actor_id`, `event_type`, `event_metadata`, `created_at`
+- **Relations:** → documents; → profiles (actor)
+- **Surfaces in UI:** Audit trail tab
+
+## End-to-end flow
+
+1. {"n":1,"key":"studio","label_en":"Template library","label_fr":"Bibliothèque de modèles","entity":"document_templates"}
+2. {"n":2,"key":"detail","label_en":"Template detail","label_fr":"Détail du modèle","entity":"document_template_versions"}
+3. {"n":3,"key":"questions","label_en":"Guided questions","label_fr":"Questions guidées","entity":"document_generation_sessions"}
+4. {"n":4,"key":"preview","label_en":"Live preview","label_fr":"Aperçu en direct","entity":"generation_sessions.answers_json"}
+5. {"n":5,"key":"review","label_en":"Review / risk check","label_fr":"Révision / risque","entity":"documents.review_status"}
+6. {"n":6,"key":"save","label_en":"Save to repository","label_fr":"Enregistrer au dépôt","entity":"documents + document_versions"}
+7. {"n":7,"key":"sign","label_en":"Export / e-sign","label_fr":"Export / signature","entity":"document_signatures"}
+8. {"n":8,"key":"audit","label_en":"Versions & audit trail","label_fr":"Versions et journal d’audit","entity":"document_audit_events"}
+
+## Audit event catalogue
+
+`template_opened`, `generation_started`, `draft_saved`, `document_created`, `document_updated`, `version_created`, `review_requested`, `review_approved`, `review_rejected`, `sent_for_signature`, `signature_viewed`, `signature_completed`, `document_exported`, `document_archived`, `document_restored`, `permission_changed`, `comment_added`
+
+`document_audit_events` is append-only: no UPDATE/DELETE is granted on it, even
+to service roles.

@@ -1,0 +1,597 @@
+/* GENERATED from the HR Documents Library handoff (dutiva-data.js) — do not
+   hand-edit. Regenerate with scripts/generate-doclib.mjs (see repo docs). */
+import type { Bi } from '@/i18n/core'
+import type {
+  CapabilityMatrix,
+  DocRiskLevel,
+  DocStatus,
+  JurisdictionInfo,
+  OrgProfile,
+  ReviewStatus,
+  RiskLevelInfo,
+  RoleInfo,
+  Sector,
+  SignatureStatus,
+  SizeThreshold,
+  SizeTier,
+  StatusInfo,
+  TemplateCategory,
+} from './types'
+
+export const templateCategories: TemplateCategory[] = [
+  {
+    id: 'hiring',
+    order: 1,
+    icon: 'briefcase',
+    name: {
+      en: 'Hiring & onboarding',
+      fr: 'Embauche et intégration',
+    },
+    desc: {
+      en: 'Offers and the agreements that start the relationship.',
+      fr: 'Offres et ententes qui amorcent la relation.',
+    },
+  },
+  {
+    id: 'agreements',
+    order: 2,
+    icon: 'file-lock',
+    name: {
+      en: 'Agreements & IP',
+      fr: 'Ententes et PI',
+    },
+    desc: {
+      en: 'Confidentiality and restrictive-covenant agreements.',
+      fr: 'Ententes de confidentialité et clauses restrictives.',
+    },
+  },
+  {
+    id: 'policies',
+    order: 3,
+    icon: 'book',
+    name: {
+      en: 'Policies & handbook',
+      fr: 'Politiques et manuel',
+    },
+    desc: {
+      en: 'The standing rules every employee is held to.',
+      fr: 'Les règles permanentes applicables à tout le personnel.',
+    },
+  },
+  {
+    id: 'discipline',
+    order: 4,
+    icon: 'list-checks',
+    name: {
+      en: 'Performance & discipline',
+      fr: 'Rendement et discipline',
+    },
+    desc: {
+      en: 'Warnings and structured improvement plans.',
+      fr: 'Avertissements et plans d’amélioration structurés.',
+    },
+  },
+  {
+    id: 'termination',
+    order: 5,
+    icon: 'file-x',
+    name: {
+      en: 'Termination & offboarding',
+      fr: 'Cessation et départ',
+    },
+    desc: {
+      en: 'The highest-risk documents — review before use.',
+      fr: 'Les documents les plus à risque — à réviser avant usage.',
+    },
+  },
+]
+
+export const jurisdictionInfo: JurisdictionInfo[] = [
+  {
+    code: 'ON',
+    name: {
+      en: 'Ontario',
+      fr: 'Ontario',
+    },
+    statute: {
+      en: 'Employment Standards Act, 2000',
+      fr: 'Loi de 2000 sur les normes d’emploi',
+    },
+    also: [
+      {
+        en: 'Occupational Health and Safety Act',
+        fr: 'Loi sur la santé et la sécurité au travail',
+      },
+      {
+        en: 'Human Rights Code (Ontario)',
+        fr: 'Code des droits de la personne (Ontario)',
+      },
+    ],
+  },
+  {
+    code: 'QC',
+    name: {
+      en: 'Québec',
+      fr: 'Québec',
+    },
+    statute: {
+      en: 'Act respecting labour standards (LSA)',
+      fr: 'Loi sur les normes du travail (LNT)',
+    },
+    also: [
+      {
+        en: 'Charter of human rights and freedoms',
+        fr: 'Charte des droits et libertés de la personne',
+      },
+      {
+        en: 'Law 25 (private-sector privacy)',
+        fr: 'Loi 25 (renseignements personnels)',
+      },
+    ],
+  },
+  {
+    code: 'FED',
+    name: {
+      en: 'Federal',
+      fr: 'Fédéral',
+    },
+    statute: {
+      en: 'Canada Labour Code, Part III',
+      fr: 'Code canadien du travail, Partie III',
+    },
+    also: [
+      {
+        en: 'Canadian Human Rights Act',
+        fr: 'Loi canadienne sur les droits de la personne',
+      },
+      {
+        en: 'PIPEDA',
+        fr: 'LPRPDE',
+      },
+    ],
+  },
+]
+
+export const workspaceRoles: RoleInfo[] = [
+  {
+    key: 'owner',
+    label: {
+      en: 'Owner / Admin',
+      fr: 'Propriétaire / Admin',
+    },
+    initials: 'MC',
+    desc: {
+      en: 'Full access to every document and setting.',
+      fr: 'Accès complet à tous les documents et réglages.',
+    },
+  },
+  {
+    key: 'hr',
+    label: {
+      en: 'HR manager',
+      fr: 'Gestionnaire RH',
+    },
+    initials: 'RS',
+    desc: {
+      en: 'Create, edit, review, export, and send for signature.',
+      fr: 'Créer, modifier, réviser, exporter, envoyer pour signature.',
+    },
+  },
+  {
+    key: 'manager',
+    label: {
+      en: 'Manager',
+      fr: 'Gestionnaire',
+    },
+    initials: 'MC',
+    desc: {
+      en: 'Access limited to assigned employees and cases.',
+      fr: 'Accès limité aux employés et dossiers assignés.',
+    },
+  },
+  {
+    key: 'viewer',
+    label: {
+      en: 'Viewer',
+      fr: 'Lecteur',
+    },
+    initials: 'VP',
+    desc: {
+      en: 'Read-only across the workspace.',
+      fr: 'Lecture seule dans l’espace de travail.',
+    },
+  },
+  {
+    key: 'external',
+    label: {
+      en: 'External signer',
+      fr: 'Signataire externe',
+    },
+    initials: 'EX',
+    desc: {
+      en: 'Sees only the signing package assigned to them.',
+      fr: 'Voit uniquement le dossier de signature assigné.',
+    },
+  },
+]
+
+export const riskLevelInfo: Record<DocRiskLevel, RiskLevelInfo> = {
+  low: {
+    key: 'low',
+    tone: 'ok',
+    order: 1,
+    label: {
+      en: 'Low risk',
+      fr: 'Risque faible',
+    },
+    desc: {
+      en: 'Routine document. Standard HR review is enough.',
+      fr: 'Document courant. Une révision RH standard suffit.',
+    },
+  },
+  medium: {
+    key: 'medium',
+    tone: 'warn',
+    order: 2,
+    label: {
+      en: 'Medium risk',
+      fr: 'Risque moyen',
+    },
+    desc: {
+      en: 'Some legal exposure. HR review required before use.',
+      fr: 'Exposition juridique modérée. Révision RH requise.',
+    },
+  },
+  high: {
+    key: 'high',
+    tone: 'risk',
+    order: 3,
+    label: {
+      en: 'High risk',
+      fr: 'Risque élevé',
+    },
+    desc: {
+      en: 'Significant exposure. Lawyer review recommended.',
+      fr: 'Exposition importante. Révision juridique recommandée.',
+    },
+  },
+}
+
+export const documentStatusInfo: Record<DocStatus, StatusInfo> = {
+  draft: {
+    tone: 'neutral',
+    label: {
+      en: 'Draft',
+      fr: 'Brouillon',
+    },
+  },
+  in_review: {
+    tone: 'info',
+    label: {
+      en: 'In review',
+      fr: 'En révision',
+    },
+  },
+  needs_revision: {
+    tone: 'warn',
+    label: {
+      en: 'Needs revision',
+      fr: 'À réviser',
+    },
+  },
+  approved: {
+    tone: 'ok',
+    label: {
+      en: 'Approved',
+      fr: 'Approuvé',
+    },
+  },
+  sent_for_signature: {
+    tone: 'info',
+    label: {
+      en: 'Sent for signature',
+      fr: 'Envoyé pour signature',
+    },
+  },
+  partially_signed: {
+    tone: 'warn',
+    label: {
+      en: 'Partially signed',
+      fr: 'Partiellement signé',
+    },
+  },
+  signed: {
+    tone: 'ok',
+    label: {
+      en: 'Signed',
+      fr: 'Signé',
+    },
+  },
+  exported: {
+    tone: 'ok',
+    label: {
+      en: 'Exported',
+      fr: 'Exporté',
+    },
+  },
+  archived: {
+    tone: 'neutral',
+    label: {
+      en: 'Archived',
+      fr: 'Archivé',
+    },
+  },
+  voided: {
+    tone: 'risk',
+    label: {
+      en: 'Voided',
+      fr: 'Annulé',
+    },
+  },
+  deleted: {
+    tone: 'risk',
+    label: {
+      en: 'Deleted',
+      fr: 'Supprimé',
+    },
+  },
+}
+
+export const reviewStatusInfo: Record<ReviewStatus, StatusInfo> = {
+  not_reviewed: {
+    tone: 'neutral',
+    label: {
+      en: 'Not reviewed',
+      fr: 'Non révisé',
+    },
+  },
+  hr_review_required: {
+    tone: 'warn',
+    label: {
+      en: 'HR review required',
+      fr: 'Révision RH requise',
+    },
+  },
+  lawyer_review_recommended: {
+    tone: 'risk',
+    label: {
+      en: 'Lawyer review recommended',
+      fr: 'Révision juridique recommandée',
+    },
+  },
+  approved_for_use: {
+    tone: 'ok',
+    label: {
+      en: 'Approved for use',
+      fr: 'Approuvé pour utilisation',
+    },
+  },
+}
+
+export const signatureStatusInfo: Record<SignatureStatus, StatusInfo> = {
+  not_sent: {
+    tone: 'neutral',
+    label: {
+      en: 'Not sent',
+      fr: 'Non envoyé',
+    },
+  },
+  sent: {
+    tone: 'info',
+    label: {
+      en: 'Sent',
+      fr: 'Envoyé',
+    },
+  },
+  viewed: {
+    tone: 'info',
+    label: {
+      en: 'Viewed',
+      fr: 'Consulté',
+    },
+  },
+  pending: {
+    tone: 'warn',
+    label: {
+      en: 'Pending',
+      fr: 'En attente',
+    },
+  },
+  partially_signed: {
+    tone: 'warn',
+    label: {
+      en: 'Partially signed',
+      fr: 'Partiellement signé',
+    },
+  },
+  signed: {
+    tone: 'ok',
+    label: {
+      en: 'Signed',
+      fr: 'Signé',
+    },
+  },
+  declined: {
+    tone: 'risk',
+    label: {
+      en: 'Declined',
+      fr: 'Refusé',
+    },
+  },
+  expired: {
+    tone: 'risk',
+    label: {
+      en: 'Expired',
+      fr: 'Expiré',
+    },
+  },
+  voided: {
+    tone: 'risk',
+    label: {
+      en: 'Voided',
+      fr: 'Annulé',
+    },
+  },
+}
+
+export const capabilityMatrix: CapabilityMatrix = {
+  view_repository: ['owner', 'hr', 'manager', 'viewer'],
+  view_studio: ['owner', 'hr', 'manager', 'viewer'],
+  generate: ['owner', 'hr', 'manager'],
+  edit: ['owner', 'hr'],
+  request_review: ['owner', 'hr', 'manager'],
+  approve_review: ['owner', 'hr'],
+  send_for_signature: ['owner', 'hr'],
+  export: ['owner', 'hr', 'manager'],
+  archive: ['owner', 'hr'],
+  restore: ['owner'],
+  void: ['owner'],
+  manage_permissions: ['owner'],
+  view_audit: ['owner', 'hr'],
+}
+
+export const sectors: Sector[] = [
+  {
+    key: 'transport_wh',
+    federallyRegulated: false,
+    name: {
+      en: 'Transportation & warehousing',
+      fr: 'Transport et entreposage',
+    },
+  },
+  {
+    key: 'retail_hosp',
+    federallyRegulated: false,
+    name: {
+      en: 'Retail & hospitality',
+      fr: 'Commerce de détail et hôtellerie',
+    },
+  },
+  {
+    key: 'construction',
+    federallyRegulated: false,
+    name: {
+      en: 'Construction',
+      fr: 'Construction',
+    },
+  },
+  {
+    key: 'prof_services',
+    federallyRegulated: false,
+    name: {
+      en: 'Professional services',
+      fr: 'Services professionnels',
+    },
+  },
+  {
+    key: 'manufacturing',
+    federallyRegulated: false,
+    name: {
+      en: 'Manufacturing',
+      fr: 'Fabrication',
+    },
+  },
+  {
+    key: 'healthcare',
+    federallyRegulated: false,
+    name: {
+      en: 'Healthcare & social',
+      fr: 'Santé et services sociaux',
+    },
+  },
+  {
+    key: 'banking',
+    federallyRegulated: true,
+    name: {
+      en: 'Banking & finance',
+      fr: 'Banques et finance',
+    },
+  },
+  {
+    key: 'telecom',
+    federallyRegulated: true,
+    name: {
+      en: 'Telecommunications',
+      fr: 'Télécommunications',
+    },
+  },
+  {
+    key: 'interprov',
+    federallyRegulated: true,
+    name: {
+      en: 'Interprovincial transport',
+      fr: 'Transport interprovincial',
+    },
+  },
+]
+
+export const sizeTiers: SizeTier[] = [
+  {
+    key: 'micro',
+    min: 1,
+    max: 4,
+    label: {
+      en: 'Micro employer',
+      fr: 'Micro-employeur',
+    },
+  },
+  {
+    key: 'small',
+    min: 5,
+    max: 49,
+    label: {
+      en: 'Small employer',
+      fr: 'Petit employeur',
+    },
+  },
+  {
+    key: 'mid',
+    min: 50,
+    max: 249,
+    label: {
+      en: 'Mid-sized employer',
+      fr: 'Employeur de taille moyenne',
+    },
+  },
+  {
+    key: 'large',
+    min: 250,
+    max: null,
+    label: {
+      en: 'Large employer',
+      fr: 'Grand employeur',
+    },
+  },
+]
+
+export const sizeThresholds: SizeThreshold[] = [
+  {
+    at: 25,
+    text: {
+      en: 'Written disconnecting-from-work & electronic-monitoring policies (ON, ESA); Québec Bill 96 OQLF registration.',
+      fr: 'Politiques écrites sur la déconnexion et la surveillance électronique (ON, LNE); inscription à l’OQLF (Loi 96, QC).',
+    },
+  },
+  {
+    at: 50,
+    text: {
+      en: 'Group / mass-termination enhanced notice and government notification (ESA / Canada Labour Code).',
+      fr: 'Avis bonifié de licenciement collectif et notification au gouvernement (LNE / Code canadien du travail).',
+    },
+  },
+]
+
+export const defaultOrgProfile: OrgProfile = {
+  name: 'Northgate Logistics Inc.',
+  headcount: 42,
+  unionized: false,
+  sector: 'transport_wh',
+  primaryJurisdiction: 'ON',
+}
+
+export const unionNote: Bi = {
+  en: 'In a unionized workplace the collective agreement and grievance procedure govern discipline and termination — adapt this document to the CA or use the negotiated process.',
+  fr: 'En milieu syndiqué, la convention collective et la procédure de grief régissent la discipline et la cessation — adaptez ce document à la convention ou suivez le processus négocié.',
+}
+
+export const DOC_ORG_NAME = 'Northgate Logistics Inc.'

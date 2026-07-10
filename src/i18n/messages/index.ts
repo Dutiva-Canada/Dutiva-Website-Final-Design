@@ -26,6 +26,7 @@ import { blogMessages } from './blog'
 import { tmplGuideMessages } from './templateUsage'
 import { limitsMessages } from './knownLimitations'
 import { legalHubMessages } from './legalHub'
+import { doclibMessages } from './doclib'
 
 /**
  * Merged message catalogue. Each feature contributes one module keyed by
@@ -62,6 +63,7 @@ export const messages = {
   ...tmplGuideMessages,
   ...limitsMessages,
   ...legalHubMessages,
+  ...doclibMessages,
 } as const
 
 export type MessageKey = keyof typeof messages
