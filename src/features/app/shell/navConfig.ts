@@ -122,12 +122,6 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    heading: M.shell_sec_insights,
-    items: [
-      { key: 'reports', to: '/app/reports', icon: ChartNoAxesColumn, label: M.shell_nav_analytics },
-    ],
-  },
-  {
     /* HR Documents Library (Document Studio + Repository). Studio owns the
        studio/templates/generate subpaths; the repository item owns the rest
        of /app/documents (incl. /app/documents/:docId). */
@@ -154,6 +148,12 @@ export const NAV_GROUPS: NavGroup[] = [
             (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
           ),
       },
+    ],
+  },
+  {
+    heading: M.shell_sec_insights,
+    items: [
+      { key: 'reports', to: '/app/reports', icon: ChartNoAxesColumn, label: M.shell_nav_analytics },
     ],
   },
 ]
