@@ -211,7 +211,7 @@ export function Sidebar({
                 key={item.key}
                 item={item}
                 expanded={expanded}
-                active={isNavActive(item.to, pathname)}
+                active={item.isActive ? item.isActive(pathname) : isNavActive(item.to, pathname)}
                 onNavigate={onCloseDrawer}
               />
             ))}

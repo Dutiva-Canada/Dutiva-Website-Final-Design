@@ -1,0 +1,246 @@
+import type { Bi, Lang } from '@/i18n/core'
+import { pick } from '@/i18n/core'
+import { doclibMessages } from '@/i18n/messages/doclib'
+import { jurisdictionInfo, sizeThresholds, unionNote, capabilityMatrix, DOC_ORG_NAME } from './data'
+import type {
+  ClauseGate,
+  DocCapability,
+  DocStatus,
+  DocTemplate,
+  GeneratedDoc,
+  Jurisdiction,
+  OrgProfile,
+  PreviewBlock,
+  WorkspaceRole,
+} from './data'
+
+/**
+ * The library's pure logic: merge-field resolution, conditional-clause
+ * evaluation, the org-profile applicability engine, and role/status action
+ * gating. The handoff shipped these as behavior descriptions plus data
+ * (`when` gates, thresholds, the capability matrix) rather than code — rules
+ * here are reconstructed from those sources and locked in by engine.test.ts's
+ * (template × jurisdiction × headcount × union) matrix, the tests the README
+ * says matter most. NOTE (handoff): this evaluation belongs server-side in
+ * real production so finalized documents can't drift from the engine.
+ */
+
+/* ── Conditional clauses ─────────────────────────────────────────────────── */
+
+export interface ClauseContext {
+  jurisdiction: Jurisdiction
+  headcount: number
+  unionized: boolean
+}
+
+/** A gated block renders only when every present test passes. */
+export function gatePasses(gate: ClauseGate | undefined, ctx: ClauseContext): boolean {
+  if (!gate) return true
+  if (gate.juris && gate.juris !== ctx.jurisdiction) return false
+  if (gate.min_headcount !== undefined && ctx.headcount < gate.min_headcount) return false
+  if (gate.union !== undefined && ctx.unionized !== gate.union) return false
+  return true
+}
+
+/** The blocks a generated document actually contains for this context. */
+export function resolveBlocks(template: DocTemplate, ctx: ClauseContext): PreviewBlock[] {
+  return template.preview.filter((block) => gatePasses(block.when, ctx))
+}
+
+/* ── Merge fields ────────────────────────────────────────────────────────── */
+
+export interface MergeSegment {
+  kind: 'text' | 'filled' | 'unfilled'
+  text: string
+}
+
+const TOKEN_RE = /\{\{([a-z0-9_]+)\}\}/g
+
+/** Computed tokens available beyond the wizard answers. */
+export function computedTokens(
+  jurisdiction: Jurisdiction,
+  lang: Lang,
+  today: string,
+): Record<string, string> {
+  const info = jurisdictionInfo.find((j) => j.code === jurisdiction)
+  return {
+    org: DOC_ORG_NAME,
+    today,
+    jurisdiction: info ? pick(info.name, lang) : jurisdiction,
+    statute: info ? pick(info.statute, lang) : '',
+  }
+}
+
+/**
+ * Split block text into segments so the renderer can style filled (`.mf.filled`)
+ * vs unfilled (`.mf`) merge fields distinctly — the prototype's live-preview
+ * treatment. Unfilled tokens keep a readable placeholder form.
+ */
+export function mergeSegments(text: string, answers: Record<string, string>): MergeSegment[] {
+  const segments: MergeSegment[] = []
+  let last = 0
+  for (const match of text.matchAll(TOKEN_RE)) {
+    const index = match.index
+    if (index > last) segments.push({ kind: 'text', text: text.slice(last, index) })
+    const token = match[1] ?? ''
+    const value = answers[token]
+    if (value !== undefined && String(value).trim() !== '') {
+      segments.push({ kind: 'filled', text: String(value) })
+    } else {
+      segments.push({ kind: 'unfilled', text: token.replace(/_/g, ' ') })
+    }
+    last = index + match[0].length
+  }
+  if (last < text.length) segments.push({ kind: 'text', text: text.slice(last) })
+  return segments
+}
+
+/** Distinct merge tokens across a template's blocks (answer-backed only). */
+export function templateTokens(template: DocTemplate): string[] {
+  const computed = new Set(['org', 'today', 'jurisdiction', 'statute'])
+  const tokens = new Set<string>()
+  for (const block of template.preview) {
+    for (const lang of ['en', 'fr'] as const) {
+      const text = block.text?.[lang] ?? ''
+      for (const match of text.matchAll(TOKEN_RE)) {
+        const token = match[1] ?? ''
+        if (!computed.has(token)) tokens.add(token)
+      }
+    }
+  }
+  return [...tokens]
+}
+
+/** Fill progress for the review step: X of Y answer-backed fields filled. */
+export function fillProgress(
+  template: DocTemplate,
+  answers: Record<string, string>,
+): { filled: number; total: number } {
+  const tokens = templateTokens(template)
+  const filled = tokens.filter((t) => (answers[t] ?? '').trim() !== '').length
+  return { filled, total: tokens.length }
+}
+
+/* ── Applicability engine ────────────────────────────────────────────────── */
+
+export type ApplicabilityKind = 'required' | 'applies' | 'below' | 'union'
+
+export interface Applicability {
+  kind: ApplicabilityKind
+  label: Bi
+  reason: Bi
+}
+
+/**
+ * Whole-template size triggers. The handoff's data encodes clause-level gates
+ * (`when`) but describes one template-level rule in prose + thresholds data:
+ * group/mass-termination provisions (T15) trigger at 50+ employees.
+ * ⚠ Legal-facing thresholds — must be verified by counsel before real use.
+ */
+const TEMPLATE_SIZE_TRIGGERS: Record<string, number> = { T15: 50 }
+
+const APPLIC_LABEL: Record<ApplicabilityKind, Bi> = {
+  required: doclibMessages.doclib_applic_required,
+  applies: doclibMessages.doclib_applic_applies,
+  below: doclibMessages.doclib_applic_below,
+  union: doclibMessages.doclib_applic_union,
+}
+
+const APPLIES_REASON: Bi = {
+  en: 'Standard obligations for your organization profile.',
+  fr: 'Obligations habituelles pour le profil de votre organisation.', // [FR self-authored]
+}
+
+/**
+ * Given the org compliance profile, how does this template apply?
+ * Precedence: collective agreement > size trigger > size-gated clause > default.
+ */
+export function applicability(template: DocTemplate, org: OrgProfile): Applicability {
+  const unionGated = template.preview.some((b) => b.when?.union !== undefined)
+  if (unionGated && org.unionized) {
+    return { kind: 'union', label: APPLIC_LABEL.union, reason: unionNote }
+  }
+
+  const sizeTrigger = TEMPLATE_SIZE_TRIGGERS[template.tid]
+  if (sizeTrigger !== undefined) {
+    const threshold = sizeThresholds.find((t) => t.at === sizeTrigger)
+    const reason = threshold?.text ?? APPLIES_REASON
+    return org.headcount >= sizeTrigger
+      ? { kind: 'required', label: APPLIC_LABEL.required, reason }
+      : { kind: 'below', label: APPLIC_LABEL.below, reason }
+  }
+
+  const sizeGates = template.preview
+    .map((b) => b.when?.min_headcount)
+    .filter((n): n is number => n !== undefined)
+  const activeGate = sizeGates.find((gate) => org.headcount >= gate)
+  if (activeGate !== undefined) {
+    const threshold = sizeThresholds.find((t) => t.at === activeGate)
+    return {
+      kind: 'required',
+      label: APPLIC_LABEL.required,
+      reason: threshold?.text ?? APPLIES_REASON,
+    }
+  }
+
+  return { kind: 'applies', label: APPLIC_LABEL.applies, reason: APPLIES_REASON }
+}
+
+/* ── Roles & document actions ────────────────────────────────────────────── */
+
+export function can(role: WorkspaceRole, capability: DocCapability): boolean {
+  return capabilityMatrix[capability].includes(role)
+}
+
+export type DocAction =
+  | 'edit'
+  | 'request_review'
+  | 'approve'
+  | 'send_for_signature'
+  | 'export'
+  | 'archive'
+  | 'restore'
+  | 'void'
+
+interface ActionRule {
+  capability: DocCapability
+  /** Statuses the action is available from (absent = any non-terminal). */
+  from?: DocStatus[]
+  notFrom?: DocStatus[]
+}
+
+/* Status gating per the prototype's docActionsFor(): terminal statuses only
+   allow restore/void paths; signature flow requires an approved document. */
+const ACTION_RULES: Record<DocAction, ActionRule> = {
+  edit: {
+    capability: 'edit',
+    notFrom: [
+      'signed',
+      'exported',
+      'archived',
+      'voided',
+      'deleted',
+      'sent_for_signature',
+      'partially_signed',
+    ],
+  },
+  request_review: { capability: 'request_review', from: ['draft', 'needs_revision'] },
+  approve: { capability: 'approve_review', from: ['in_review'] },
+  send_for_signature: { capability: 'send_for_signature', from: ['approved'] },
+  export: { capability: 'export', notFrom: ['archived', 'voided', 'deleted'] },
+  archive: { capability: 'archive', notFrom: ['archived', 'voided', 'deleted'] },
+  restore: { capability: 'restore', from: ['archived'] },
+  void: { capability: 'void', notFrom: ['voided', 'deleted', 'archived'] },
+}
+
+/** The action buttons this role can use on this document, in display order. */
+export function docActionsFor(doc: GeneratedDoc, role: WorkspaceRole): DocAction[] {
+  const status: DocStatus = doc.archived ? 'archived' : doc.status
+  return (Object.keys(ACTION_RULES) as DocAction[]).filter((action) => {
+    const rule = ACTION_RULES[action]
+    if (!can(role, rule.capability)) return false
+    if (rule.from && !rule.from.includes(status)) return false
+    if (rule.notFrom && rule.notFrom.includes(status)) return false
+    return true
+  })
+}

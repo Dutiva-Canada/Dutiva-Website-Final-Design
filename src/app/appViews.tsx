@@ -26,6 +26,13 @@ import type { RouteObject } from 'react-router-dom'
 /* prettier-ignore */ const CompensationView = lazy(() => import('@/features/app/views/compensation/CompensationView').then((m) => ({ default: m.CompensationView })))
 /* prettier-ignore */ const WellbeingView = lazy(() => import('@/features/app/views/wellbeing/WellbeingView').then((m) => ({ default: m.WellbeingView })))
 /* prettier-ignore */ const SettingsView = lazy(() => import('@/features/app/views/settings/SettingsView').then((m) => ({ default: m.SettingsView })))
+/* HR Documents Library (Document Studio + Repository) */
+/* prettier-ignore */ const DocumentsLayout = lazy(() => import('@/features/app/documents/DocumentsLayout').then((m) => ({ default: m.DocumentsLayout })))
+/* prettier-ignore */ const StudioScreen = lazy(() => import('@/features/app/documents/screens/StudioScreen').then((m) => ({ default: m.StudioScreen })))
+/* prettier-ignore */ const TemplateDetailScreen = lazy(() => import('@/features/app/documents/screens/TemplateDetailScreen').then((m) => ({ default: m.TemplateDetailScreen })))
+/* prettier-ignore */ const GenerateScreen = lazy(() => import('@/features/app/documents/screens/GenerateScreen').then((m) => ({ default: m.GenerateScreen })))
+/* prettier-ignore */ const RepositoryScreen = lazy(() => import('@/features/app/documents/screens/RepositoryScreen').then((m) => ({ default: m.RepositoryScreen })))
+/* prettier-ignore */ const DocumentDetailScreen = lazy(() => import('@/features/app/documents/screens/DocumentDetailScreen').then((m) => ({ default: m.DocumentDetailScreen })))
 
 export const appViewRoutes: RouteObject[] = [
   { path: 'home', element: <HomeView /> },
@@ -46,4 +53,15 @@ export const appViewRoutes: RouteObject[] = [
   { path: 'compensation', element: <CompensationView /> },
   { path: 'wellbeing', element: <WellbeingView /> },
   { path: 'settings', element: <SettingsView /> },
+  {
+    path: 'documents',
+    element: <DocumentsLayout />,
+    children: [
+      { index: true, element: <RepositoryScreen /> },
+      { path: 'studio', element: <StudioScreen /> },
+      { path: 'templates/:tid', element: <TemplateDetailScreen /> },
+      { path: 'generate/:templateId', element: <GenerateScreen /> },
+      { path: ':docId', element: <DocumentDetailScreen /> },
+    ],
+  },
 ]
