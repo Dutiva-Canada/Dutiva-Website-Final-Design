@@ -68,7 +68,7 @@ export const shellMessages = defineMessages({
   shell_nav_workflows: { en: 'Workflows', fr: 'Processus' },
   shell_nav_people: { en: 'People', fr: 'Personnel' },
   shell_nav_cases: { en: 'Case Files', fr: 'Dossiers' },
-  shell_nav_documents: { en: 'Documents', fr: 'Documents' },
+  shell_nav_documents: { en: 'HR Library', fr: 'Bibliothèque RH' }, // [FR self-authored]
   shell_nav_knowledge: { en: 'Knowledge Base', fr: 'Base de connaissances' },
   shell_nav_compliance: { en: 'Compliance', fr: 'Conformité' },
   shell_nav_compensation: { en: 'Compensation', fr: 'Rémunération' },
