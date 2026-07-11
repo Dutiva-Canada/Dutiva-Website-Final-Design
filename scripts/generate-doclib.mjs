@@ -390,7 +390,7 @@ const enKeys = Object.keys(i18n.en)
 const frKeys = new Set(Object.keys(i18n.fr))
 if (enKeys.length !== frKeys.size || enKeys.some((k) => !frKeys.has(k)))
   fail('i18n en/fr key sets differ')
-const keyFor = (k) => 'doclib_' + k.replace(/[.\-]/g, '_')
+const keyFor = (k) => 'doclib_' + k.replace(/[.-]/g, '_')
 const seen = new Set()
 const lines = enKeys.map((k) => {
   const nk = keyFor(k)
