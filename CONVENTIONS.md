@@ -17,7 +17,7 @@ Scripts: `npm run dev | build | typecheck | lint | test | format | check`.
 ```text
 src/
   app/            App root, providers, router, route tables
-  components/     Shared UI primitives (Badge, ToneCard, Toast …)
+  components/     Cross-feature shared UI (Disclaimer, chip tone/status classes)
   data/           Entity types + realistic sample fixtures (swap for Supabase later)
   features/
     marketing/    Landing page (dutiva.ca) — sections + its i18n module
@@ -28,6 +28,9 @@ src/
       search/     Global search overlay
       rail/       Advisor rail (contextual right panel)
       toasts/     Toast context + host
+      docstudio/  Guided document-generation overlay (right-hand drawer, live preview)
+      documents/  HR Documents Library — repository, template, and studio screens
+      workspaceContext/  "Advisor is using …" pinned-entity banner state
   i18n/           Language provider + message catalogue
   lib/            prefs, theme, generic hooks/utils
   styles/         tokens.css, surfaces.css, patterns.css, animations.css, base.css
@@ -39,6 +42,9 @@ src/
 | Path | Renders |
 | --- | --- |
 | `/` | Marketing landing page |
+| `/about · /faq · /blog` | Marketing subpages (dutiva.ca content migration) |
+| `/guides/template-usage · /known-limitations` | Marketing subpages |
+| `/legal` → `/legal/:slug` | Policy index → one of 26 policy documents |
 | `/app/welcome` | App entry stage (sign-in preview) |
 | `/app` → `/app/home` | Workspace shell redirect |
 | `/app/home · advisor · workflows · cases · employees · compliance · policies · templates · tasks · calendar · reports · knowledge · communications · compensation · wellbeing · settings` | The 16 views |
