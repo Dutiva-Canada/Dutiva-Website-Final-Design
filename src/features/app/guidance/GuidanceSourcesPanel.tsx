@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
 import { ExternalLink, Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { guidanceMessages as M } from '@/i18n/messages/guidance'
+import { authMessages as A } from '@/i18n/messages/auth'
 import { useAuth } from '../auth/authContext'
+import { AuthSignInForm } from '../auth/AuthSignInForm'
 import { fetchGuidanceSources, fetchRecentLawUpdates } from './api'
 import type { GuidanceSource, LawUpdate } from './api'
 
@@ -20,10 +21,7 @@ type LoadState =
  */
 export function GuidanceSourcesPanel() {
   const { x } = useI18n()
-  const { status: authStatus, signInWithEmail, signOut } = useAuth()
-  const [email, setEmail] = useState('')
-  const [sending, setSending] = useState(false)
-  const [signInError, setSignInError] = useState<string | undefined>()
+  const { status: authStatus, signOut } = useAuth()
   const [load, setLoad] = useState<LoadState>({ status: 'idle' })
 
   useEffect(() => {
@@ -46,16 +44,6 @@ export function GuidanceSourcesPanel() {
     }
   }, [authStatus])
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    setSending(true)
-    setSignInError(undefined)
-    void signInWithEmail(email).then((error) => {
-      setSending(false)
-      if (error) setSignInError(error)
-    })
-  }
-
   return (
     <div className="mt-[28px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]">
       <div className="flex items-center justify-between gap-[12px]">
@@ -69,41 +57,20 @@ export function GuidanceSourcesPanel() {
             onClick={() => void signOut()}
             className="shrink-0 cursor-pointer rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2"
           >
-            {x(M.guidance_sign_out)}
+            {x(A.auth_sign_out)}
           </button>
         )}
       </div>
 
       {authStatus === 'signed-out' && (
-        <form onSubmit={handleSubmit} className="mt-[16px] flex flex-col gap-[10px]">
+        <div className="mt-[16px] flex flex-col gap-[10px]">
           <p className="text-[13px] text-text-2">{x(M.guidance_signin_prompt)}</p>
-          <div className="flex flex-wrap gap-[8px]">
-            <label className="sr-only" htmlFor="guidance-signin-email">
-              {x(M.guidance_email_label)}
-            </label>
-            <input
-              id="guidance-signin-email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={x(M.guidance_email_placeholder)}
-              className="min-w-0 flex-1 rounded-[10px] border border-border bg-bg px-[14px] py-[9px] font-sans text-[13.5px] text-text"
-            />
-            <button
-              type="submit"
-              disabled={sending}
-              className="shrink-0 cursor-pointer rounded-[10px] bg-navy px-[16px] py-[9px] text-[13.5px] font-semibold text-white disabled:opacity-60"
-            >
-              {sending ? x(M.guidance_sending) : x(M.guidance_send_link)}
-            </button>
-          </div>
-          {signInError && <p className="text-[12.5px] text-risk-fg">{signInError}</p>}
-        </form>
+          <AuthSignInForm idPrefix="guidance" />
+        </div>
       )}
 
       {authStatus === 'sent-link' && (
-        <p className="mt-[16px] text-[13px] text-text-2">{x(M.guidance_link_sent)}</p>
+        <p className="mt-[16px] text-[13px] text-text-2">{x(A.auth_link_sent)}</p>
       )}
 
       {authStatus === 'loading' && (

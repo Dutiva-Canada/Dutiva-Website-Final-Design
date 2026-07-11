@@ -17,30 +17,6 @@ export const guidanceMessages = defineMessages({
     en: 'Sign in to see real legal guidance sources and recent law changes.',
     fr: 'Connectez-vous pour voir les sources juridiques réelles et les changements législatifs récents.',
   },
-  guidance_email_label: {
-    en: 'Work email',
-    fr: 'Courriel professionnel',
-  },
-  guidance_email_placeholder: {
-    en: 'you@company.com',
-    fr: 'vous@entreprise.com',
-  },
-  guidance_send_link: {
-    en: 'Send magic link',
-    fr: 'Envoyer le lien magique',
-  },
-  guidance_sending: {
-    en: 'Sending…',
-    fr: 'Envoi en cours…',
-  },
-  guidance_link_sent: {
-    en: 'Check your email for a sign-in link.',
-    fr: 'Consultez votre courriel pour le lien de connexion.',
-  },
-  guidance_sign_out: {
-    en: 'Sign out',
-    fr: 'Se déconnecter',
-  },
   guidance_sources_heading: {
     en: 'Guidance sources',
     fr: 'Sources de référence',
