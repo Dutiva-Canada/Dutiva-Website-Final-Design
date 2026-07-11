@@ -10,6 +10,18 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        /* Splits third-party deps (react, react-router-dom, lucide-react, …)
+           into their own chunk so app code changes don't invalidate vendor
+           caching, and to keep the main entry chunk under the 500kB warning. */
+        codeSplitting: {
+          groups: [{ name: 'vendor', test: /node_modules[\\/]/ }],
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
