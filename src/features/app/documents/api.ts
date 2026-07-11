@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import type { Bi } from '@/i18n/core'
 import { docCases, docEmployees, docTemplates, sampleDocuments, templateCategories } from './data'
 import type { DocCase, DocEmployee, DocTemplate, GeneratedDoc, TemplateCategory } from './data'
@@ -39,112 +40,137 @@ const FIXTURES: DoclibData = {
 const SUPA_URL: string | undefined = import.meta.env.VITE_SUPABASE_URL
 const SUPA_KEY: string | undefined = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-async function rest<T>(view: string, query: string): Promise<T[]> {
+async function rest<T>(view: string, query: string, schema: z.ZodType<T>): Promise<T[]> {
   const res = await fetch(`${SUPA_URL}/rest/v1/${view}?${query}`, {
     headers: { apikey: SUPA_KEY ?? '', Authorization: `Bearer ${SUPA_KEY}` },
   })
   if (!res.ok) throw new Error(`doclib read ${view}: ${res.status}`)
-  return (await res.json()) as T[]
+  return z.array(schema).parse(await res.json())
 }
 
-/* Row shapes as the views return them (snake_case, flattened Bi pairs). */
-interface TemplateRow {
-  id: string
-  category_id: string
-  template_key: string
-  tid: string
-  kind: string
-  core: boolean
-  subject: string
-  name_en: string
-  name_fr: string
-  desc_en: string
-  desc_fr: string
-  jurisdictions_supported: string[]
-  risk_level: string
-  review_status: string
-  requires_lawyer_review: boolean
-  est_minutes: number
-  usage_count: number
-  effective_date: string
-  updated_at: string
-}
-interface TemplateVersionRow {
-  template_id: string
-  version_number: number
-  question_flow_json: unknown
-  clause_library_json: unknown
-  statutory_references_json: unknown
-  jurisdiction_notes_json: unknown
-  includes_json: unknown
-  body_content: string | null
-}
-interface CategoryRow {
-  id: string
-  name_en: string
-  name_fr: string
-  order: number
-  icon: string
-  desc_en: string
-  desc_fr: string
-}
-interface DocumentRow {
-  id: string
-  template_id: string
-  employee_id: string | null
-  case_id: string | null
-  ref: string
-  title_en: string
-  title_fr: string
-  language: string
-  jurisdiction: string
-  status: string
-  risk_level: string
-  review_status: string
-  signature_status: string
-  current_version: number
-  created_by: string
-  updated_by: string
-  created_at: string
-  updated_at: string
-  archived_at: string | null
-  answers_json: Record<string, string>
-}
-interface VersionRow {
-  document_id: string
-  version_number: number
-  change_summary_en: string
-  change_summary_fr: string
-  created_by: string
-  created_at: string
-}
-interface RecipientRow {
-  document_id: string
-  recipient_type: string
-  name: string
-  email: string
-  signing_order: number
-  status: string
-  signed_at: string | null
-}
-interface SignatureRow {
-  document_id: string
-  provider: string
-  external_envelope_id: string
-  status: string
-  sent_at: string | null
-  viewed_at: string | null
-  signed_at: string | null
-  declined_at: string | null
-  expires_at: string | null
-}
-interface AuditRow {
-  document_id: string
-  actor_name: string
-  event_type: string
-  event_metadata: string | null
-  created_at: string
-}
+/* Row shapes as the views return them (snake_case, flattened Bi pairs).
+   Schemas are the single source of truth — the TS types are inferred from
+   them, so a column rename/drop/type-change in the DB fails the parse in
+   `rest()` instead of silently producing malformed domain objects downstream. */
+const templateRowSchema = z.object({
+  id: z.string(),
+  category_id: z.string(),
+  template_key: z.string(),
+  tid: z.string(),
+  kind: z.string(),
+  core: z.boolean(),
+  subject: z.string(),
+  name_en: z.string(),
+  name_fr: z.string(),
+  desc_en: z.string(),
+  desc_fr: z.string(),
+  jurisdictions_supported: z.array(z.string()),
+  risk_level: z.string(),
+  review_status: z.string(),
+  requires_lawyer_review: z.boolean(),
+  est_minutes: z.number(),
+  usage_count: z.number(),
+  effective_date: z.string(),
+  updated_at: z.string(),
+})
+
+const templateVersionRowSchema = z.object({
+  template_id: z.string(),
+  version_number: z.number(),
+  question_flow_json: z.unknown(),
+  clause_library_json: z.unknown(),
+  statutory_references_json: z.unknown(),
+  jurisdiction_notes_json: z.unknown(),
+  includes_json: z.unknown(),
+  body_content: z.string().nullable(),
+})
+
+const categoryRowSchema = z.object({
+  id: z.string(),
+  name_en: z.string(),
+  name_fr: z.string(),
+  order: z.number(),
+  icon: z.string(),
+  desc_en: z.string(),
+  desc_fr: z.string(),
+})
+
+const documentRowSchema = z.object({
+  id: z.string(),
+  template_id: z.string(),
+  employee_id: z.string().nullable(),
+  case_id: z.string().nullable(),
+  ref: z.string(),
+  title_en: z.string(),
+  title_fr: z.string(),
+  language: z.string(),
+  jurisdiction: z.string(),
+  status: z.string(),
+  risk_level: z.string(),
+  review_status: z.string(),
+  signature_status: z.string(),
+  current_version: z.number(),
+  created_by: z.string(),
+  updated_by: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  archived_at: z.string().nullable(),
+  answers_json: z.record(z.string(), z.string()),
+})
+
+const versionRowSchema = z.object({
+  document_id: z.string(),
+  version_number: z.number(),
+  change_summary_en: z.string(),
+  change_summary_fr: z.string(),
+  created_by: z.string(),
+  created_at: z.string(),
+})
+
+const recipientRowSchema = z.object({
+  document_id: z.string(),
+  recipient_type: z.string(),
+  name: z.string(),
+  email: z.string(),
+  signing_order: z.number(),
+  status: z.string(),
+  signed_at: z.string().nullable(),
+})
+
+const signatureRowSchema = z.object({
+  document_id: z.string(),
+  provider: z.string(),
+  external_envelope_id: z.string(),
+  status: z.string(),
+  sent_at: z.string().nullable(),
+  viewed_at: z.string().nullable(),
+  signed_at: z.string().nullable(),
+  declined_at: z.string().nullable(),
+  expires_at: z.string().nullable(),
+})
+
+const auditRowSchema = z.object({
+  document_id: z.string(),
+  actor_name: z.string(),
+  event_type: z.string(),
+  event_metadata: z.string().nullable(),
+  created_at: z.string(),
+})
+
+const employeeRowSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  jurisdiction: z.string(),
+})
+
+const caseRowSchema = z.object({
+  id: z.string(),
+  employee_id: z.string(),
+  title_en: z.string(),
+  title_fr: z.string(),
+  jurisdiction: z.string(),
+  risk: z.string(),
+})
 
 const bi = (en: string, fr: string): Bi => ({ en, fr })
 
@@ -154,29 +180,19 @@ const bi = (en: string, fr: string): Bi => ({ en, fr })
 async function fetchFromSupabase(): Promise<DoclibData> {
   const [tplRows, verRows, catRows, docRows, verEntries, recRows, sigRows, auditRows] =
     await Promise.all([
-      rest<TemplateRow>('doclib_templates', 'select=*&order=tid'),
-      rest<TemplateVersionRow>('doclib_template_versions', 'select=*'),
-      rest<CategoryRow>('doclib_template_categories', 'select=*&order=order'),
-      rest<DocumentRow>('doclib_documents', 'select=*&order=updated_at.desc'),
-      rest<VersionRow>('doclib_document_versions', 'select=*&order=version_number'),
-      rest<RecipientRow>('doclib_document_recipients', 'select=*&order=signing_order'),
-      rest<SignatureRow>('doclib_document_signatures', 'select=*'),
-      rest<AuditRow>('doclib_document_audit_events', 'select=*&order=created_at'),
+      rest('doclib_templates', 'select=*&order=tid', templateRowSchema),
+      rest('doclib_template_versions', 'select=*', templateVersionRowSchema),
+      rest('doclib_template_categories', 'select=*&order=order', categoryRowSchema),
+      rest('doclib_documents', 'select=*&order=updated_at.desc', documentRowSchema),
+      rest('doclib_document_versions', 'select=*&order=version_number', versionRowSchema),
+      rest('doclib_document_recipients', 'select=*&order=signing_order', recipientRowSchema),
+      rest('doclib_document_signatures', 'select=*', signatureRowSchema),
+      rest('doclib_document_audit_events', 'select=*&order=created_at', auditRowSchema),
       // employees + cases are tiny; fetched below to stay under the parallel-arity noise
     ])
   const [empRows, caseRows] = await Promise.all([
-    rest<{ id: string; name: string; jurisdiction: string }>(
-      'doclib_employees',
-      'select=*&order=name',
-    ),
-    rest<{
-      id: string
-      employee_id: string
-      title_en: string
-      title_fr: string
-      jurisdiction: string
-      risk: string
-    }>('doclib_employee_cases', 'select=*'),
+    rest('doclib_employees', 'select=*&order=name', employeeRowSchema),
+    rest('doclib_employee_cases', 'select=*', caseRowSchema),
   ])
 
   const versionByTpl = new Map(verRows.map((v) => [v.template_id, v]))
