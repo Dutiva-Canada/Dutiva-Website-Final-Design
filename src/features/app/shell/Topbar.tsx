@@ -10,6 +10,7 @@ import {
   useAskAdvisorBriefing,
   railViewKeyFromPathname,
 } from '@/features/app/rail/useAskAdvisorBriefing'
+import { AuthMenuButton } from '@/features/app/auth/AuthMenuButton'
 import { LangToggle, ThemeToggle } from './ShellControls'
 import { cx } from './cx'
 
@@ -105,6 +106,7 @@ export function Topbar({ title }: { title: string }) {
         >
           <Search size={18} strokeWidth={1.7} />
         </button>
+        <AuthMenuButton />
         <div className="relative">
           <button
             type="button"

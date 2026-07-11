@@ -5,6 +5,7 @@ import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { useSearch } from '@/features/app/search/searchContext'
+import { AuthMenuButton } from '@/features/app/auth/AuthMenuButton'
 import { ThemeToggle } from './ShellControls'
 import { cx } from './cx'
 import { isNavActive } from './navConfig'
@@ -42,6 +43,7 @@ export function MobileTopbar({ title, onOpenDrawer }: { title: string; onOpenDra
         >
           <Search size={19} strokeWidth={1.8} className="text-text" />
         </button>
+        <AuthMenuButton compact />
       </div>
     </div>
   )
