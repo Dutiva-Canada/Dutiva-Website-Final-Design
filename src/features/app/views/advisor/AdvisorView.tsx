@@ -5,6 +5,8 @@ import type { LText } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
+import { useAuth } from '@/features/app/auth/authContext'
+import { sendAdvisorMessage } from '@/features/app/advisor/chatApi'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
@@ -97,6 +99,12 @@ export function AdvisorView() {
   const location = useLocation()
   const { showToast } = useToasts()
   const { openDocStudio } = useDocStudio()
+  const { status: authStatus } = useAuth()
+  /* Real-backend conversation id for the active thread's free-form messages
+     (see sendInThread) — reset alongside the engine whenever the thread
+     changes. Scripted flows/quick-forms/follow-ups never touch this. */
+  const conversationIdRef = useRef<string | null>(null)
+  const [sendingReal, setSendingReal] = useState(false)
 
   /* Session-scoped state lives in the advisorSession module store so
      conversations survive navigating away and back (prototype app-level
@@ -246,6 +254,7 @@ export function AdvisorView() {
     if (!exists) return
     stashActive()
     updateActiveChatId(chatId)
+    conversationIdRef.current = null
     engine.reset(transcripts.current.get(chatId) ?? seedFor(chatId))
   }
   selectChatRef.current = selectChat
@@ -253,6 +262,7 @@ export function AdvisorView() {
   const newConversation = () => {
     stashActive()
     updateActiveChatId(null)
+    conversationIdRef.current = null
     engine.reset([])
   }
   newConversationRef.current = newConversation
@@ -298,6 +308,7 @@ export function AdvisorView() {
       ...prev,
     ])
     updateActiveChatId(id)
+    conversationIdRef.current = null
     engine.reset([])
     pushUser(userText)
 
@@ -330,10 +341,34 @@ export function AdvisorView() {
   }
   startFlowRef.current = startFlow
 
-  /** Free-form send inside an active thread (prototype `sendComposer`). */
+  /**
+   * Free-form send inside an active thread (prototype `sendComposer`).
+   * Signed in: routes to the real advisor-chat backend (see chatApi.ts).
+   * Otherwise (or on failure): the prototype's canned acknowledgement —
+   * scripted flows, quick-forms, and follow-up chips are untouched either way.
+   */
   const sendInThread = (text: string) => {
     pushUser(text)
-    pushAdvisor({ text: genericAck })
+    if (authStatus !== 'signed-in') {
+      pushAdvisor({ text: genericAck })
+      return
+    }
+    setSendingReal(true)
+    void sendAdvisorMessage(text, conversationIdRef.current)
+      .then((result) => {
+        conversationIdRef.current = result.conversationId
+        pushAdvisor({ text: result.reply || genericAck })
+      })
+      .catch((error: unknown) => {
+        console.error('advisor: real chat request failed', error)
+        pushAdvisor({
+          text: '',
+          isError: true,
+          errorText: M.advisorview_real_chat_error,
+          retryText: M.advisorview_real_chat_retry_prompt,
+        })
+      })
+      .finally(() => setSendingReal(false))
   }
 
   /** Follow-up chip click (prototype `handleFollowup`). */
@@ -474,7 +509,7 @@ export function AdvisorView() {
       {hasActiveChat ? (
         <ChatPane
           messages={engine.messages}
-          busy={engine.busy}
+          busy={engine.busy || sendingReal}
           jurisdiction={flowJurisdictions[activeFlowKey]}
           getExtras={getExtras}
           onSend={sendInThread}

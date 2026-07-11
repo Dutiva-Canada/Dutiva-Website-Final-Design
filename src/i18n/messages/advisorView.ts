@@ -54,4 +54,14 @@ export const advisorViewMessages = defineMessages({
     en: 'Case shared with employment counsel',
     fr: 'Dossier partagé avec le conseiller juridique en emploi', // [FR self-authored]
   },
+
+  /* Real advisor-chat backend failure (no prototype counterpart). */
+  advisorview_real_chat_error: {
+    en: 'The AI Advisor is temporarily unavailable.',
+    fr: 'L’Advisor IA est temporairement indisponible.',
+  },
+  advisorview_real_chat_retry_prompt: {
+    en: 'You can type your question again to retry.',
+    fr: 'Vous pouvez retaper votre question pour réessayer.',
+  },
 })
