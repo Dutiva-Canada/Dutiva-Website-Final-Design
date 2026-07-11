@@ -28,6 +28,7 @@ import { limitsMessages } from './knownLimitations'
 import { legalHubMessages } from './legalHub'
 import { doclibMessages } from './doclib'
 import { guidanceMessages } from './guidance'
+import { authMessages } from './auth'
 
 /**
  * Merged message catalogue. Each feature contributes one module keyed by
@@ -66,6 +67,7 @@ export const messages = {
   ...legalHubMessages,
   ...doclibMessages,
   ...guidanceMessages,
+  ...authMessages,
 } as const
 
 export type MessageKey = keyof typeof messages
