@@ -286,9 +286,16 @@ export function AdvisorView() {
     const start = readNavStartFlow(state)
     if (start) {
       navigate(location.pathname, { replace: true, state: null })
+      /* An explicit flowKey (a deliberate structured-workflow request from
+         elsewhere in the app) always wins. Only a bare free-form prompt
+         falls back to keyword routing — and only when signed out; signed
+         in, free text always goes to the real backend (see startFlow's
+         'fallback' branch). */
       const key =
         start.flowKey ??
-        routeFlowKeyFromText(typeof start.prompt === 'string' ? start.prompt : start.prompt.en)
+        (authStatus === 'signed-in'
+          ? 'fallback'
+          : routeFlowKeyFromText(typeof start.prompt === 'string' ? start.prompt : start.prompt.en))
       startFlowRef.current(key, start.prompt)
       return
     }
@@ -296,7 +303,7 @@ export function AdvisorView() {
       navigate(location.pathname, { replace: true, state: null })
       newConversationRef.current()
     }
-  }, [location.state, location.pathname, navigate])
+  }, [location.state, location.pathname, navigate, authStatus])
 
   /* ----------------------------------------------------------- chat flows */
 
@@ -321,6 +328,30 @@ export function AdvisorView() {
       return
     }
     if (flowKey === 'fallback') {
+      /* Free text that matched no known flow keyword. Signed in: ask the
+         real backend instead of the scripted "point you in the right
+         direction" chips — same pattern as sendInThread. Signed out (or on
+         failure): the original scripted fallback, unchanged. */
+      if (authStatus === 'signed-in') {
+        const userTextString = typeof userText === 'string' ? userText : userText.en
+        setSendingReal(true)
+        void sendAdvisorMessage(userTextString, conversationIdRef.current)
+          .then((result) => {
+            conversationIdRef.current = result.conversationId
+            pushAdvisor({ text: result.reply || genericAck })
+          })
+          .catch((error: unknown) => {
+            console.error('advisor: real chat request failed', error)
+            pushAdvisor({
+              text: '',
+              isError: true,
+              errorText: M.advisorview_real_chat_error,
+              retryText: M.advisorview_real_chat_retry_prompt,
+            })
+          })
+          .finally(() => setSendingReal(false))
+        return
+      }
       const turnId = pushAdvisor({ text: fallbackIntro })
       updateExtras((prev) => ({ ...prev, [turnId]: { suggestChips: fallbackChips } }))
       return
@@ -522,7 +553,9 @@ export function AdvisorView() {
         />
       ) : (
         <AdvisorHome
-          onSend={(text) => startFlow(routeFlowKeyFromText(text), text)}
+          onSend={(text) =>
+            startFlow(authStatus === 'signed-in' ? 'fallback' : routeFlowKeyFromText(text), text)
+          }
           onChip={(chip) => startFlow(chip.flowKey, chip.seed)}
           onPriorityAction={runPriorityAction}
           onMetricClick={(view) => navigate(`/app/${view}`)}

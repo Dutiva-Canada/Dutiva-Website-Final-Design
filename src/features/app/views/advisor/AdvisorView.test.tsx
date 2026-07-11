@@ -159,4 +159,54 @@ describe('AdvisorView', () => {
       ).toBeInTheDocument()
     })
   })
+
+  describe('signed in', () => {
+    afterEach(() => {
+      vi.doUnmock('@/lib/supabaseClient')
+      vi.resetModules()
+    })
+
+    it('routes home-composer text containing a flow keyword to real AI, not the scripted flow', async () => {
+      const fakeSession = { user: { id: 'u1' } }
+      const invoke = vi.fn().mockResolvedValue({
+        data: { data: { reply: 'Real AI answer about termination.', conversation_id: 'conv-1' } },
+        error: null,
+      })
+      vi.doMock('@/lib/supabaseClient', () => ({
+        supabase: {
+          auth: {
+            getSession: () => Promise.resolve({ data: { session: fakeSession } }),
+            onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+          },
+          functions: { invoke },
+        },
+      }))
+      vi.resetModules()
+
+      const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+      const { AdvisorView: AdvisorViewFresh } = await import('./AdvisorView')
+      const { resetAdvisorSession: resetAdvisorSessionFresh } = await import('./advisorSession')
+      resetAdvisorSessionFresh()
+
+      renderAppFresh(<AdvisorViewFresh />, { route: '/app/advisor' })
+
+      const composer = await screen.findByPlaceholderText('Ask Advisor anything about your team…')
+      fireEvent.change(composer, { target: { value: 'I need to terminate an employee' } })
+      fireEvent.keyDown(composer, { key: 'Enter' })
+
+      expect(invoke).toHaveBeenCalledWith('advisor-chat', {
+        body: { message: 'I need to terminate an employee', conversation_id: null },
+      })
+      /* Real (unmocked) timers: the engine's 850ms thinking delay plus the
+         streaming animation exceed testing-library's default 1000ms wait. */
+      expect(
+        await screen.findByText('Real AI answer about termination.', {}, { timeout: 3000 }),
+      ).toBeInTheDocument()
+      /* The scripted termination quick-form must NOT have launched. */
+      expect(
+        screen.queryByText(/To calculate this correctly and flag any risk/),
+      ).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Employment type')).not.toBeInTheDocument()
+    })
+  })
 })
