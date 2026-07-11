@@ -4,6 +4,7 @@ import { pick } from '@/i18n/core'
 import { knowledgeMessages as M } from '@/i18n/messages/knowledge'
 import { knowledgeItems } from '@/data'
 import { useRail } from '@/features/app/rail/railContext'
+import { GuidanceSourcesPanel } from '@/features/app/guidance/GuidanceSourcesPanel'
 
 /**
  * Knowledge Base — the HR library article list (App v2.dc.html markup lines
@@ -15,6 +16,9 @@ import { useRail } from '@/features/app/rail/railContext'
  * The prototype matches its EN state strings; here matching runs against the
  * current language so FR users can search FR titles (same decision as
  * `filterSearchEntries` in the search corpus).
+ *
+ * GuidanceSourcesPanel below the article list is real backend data with no
+ * prototype counterpart — see its own doc comment.
  */
 export function KnowledgeView() {
   const { x, lang } = useI18n()
@@ -39,7 +43,7 @@ export function KnowledgeView() {
           aria-label={x(M.knowledge_filter_placeholder)}
           className="mb-[18px] w-full rounded-[10px] border border-border bg-surface px-[16px] py-[11px] font-sans text-[13.5px] text-text"
         />
-        <div className="flex flex-col gap-[10px]">
+        <div data-testid="knowledge-articles" className="flex flex-col gap-[10px]">
           {items.map((a) => (
             <button
               key={a.id}
@@ -52,6 +56,7 @@ export function KnowledgeView() {
             </button>
           ))}
         </div>
+        <GuidanceSourcesPanel />
       </div>
     </div>
   )

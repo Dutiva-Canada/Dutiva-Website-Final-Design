@@ -17,7 +17,8 @@ describe('KnowledgeView', () => {
   it('renders every knowledge article with its tag', () => {
     renderApp(<KnowledgeView />, { route: '/app/knowledge', path: '/app/knowledge' })
 
-    expect(screen.getAllByRole('button')).toHaveLength(knowledgeItems.length)
+    const articles = within(screen.getByTestId('knowledge-articles'))
+    expect(articles.getAllByRole('button')).toHaveLength(knowledgeItems.length)
     expect(
       screen.getByText('Ontario ESA: Notice of termination & severance pay'),
     ).toBeInTheDocument()
@@ -30,10 +31,11 @@ describe('KnowledgeView', () => {
   it('filters articles by title or tag (case-insensitive substring)', () => {
     renderApp(<KnowledgeView />, { route: '/app/knowledge', path: '/app/knowledge' })
     const input = screen.getByPlaceholderText('Search HR knowledge…')
+    const articles = within(screen.getByTestId('knowledge-articles'))
 
     /* Title match. */
     fireEvent.change(input, { target: { value: 'SEVERANCE' } })
-    expect(screen.getAllByRole('button')).toHaveLength(1)
+    expect(articles.getAllByRole('button')).toHaveLength(1)
     expect(
       screen.getByText('Ontario ESA: Notice of termination & severance pay'),
     ).toBeInTheDocument()
@@ -43,14 +45,14 @@ describe('KnowledgeView', () => {
 
     /* Tag match. */
     fireEvent.change(input, { target: { value: 'british columbia' } })
-    expect(screen.getAllByRole('button')).toHaveLength(1)
+    expect(articles.getAllByRole('button')).toHaveLength(1)
     expect(
       screen.getByText('BC Employment Standards: written offer requirements'),
     ).toBeInTheDocument()
 
     /* Clearing restores the full list. */
     fireEvent.change(input, { target: { value: '' } })
-    expect(screen.getAllByRole('button')).toHaveLength(knowledgeItems.length)
+    expect(articles.getAllByRole('button')).toHaveLength(knowledgeItems.length)
   })
 
   it('opens the Advisor rail on the article when clicked', () => {

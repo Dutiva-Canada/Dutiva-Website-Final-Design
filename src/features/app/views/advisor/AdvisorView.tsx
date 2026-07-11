@@ -5,6 +5,8 @@ import type { LText } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
+import { useAuth } from '@/features/app/auth/authContext'
+import { sendAdvisorMessage } from '@/features/app/advisor/chatApi'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
@@ -97,6 +99,12 @@ export function AdvisorView() {
   const location = useLocation()
   const { showToast } = useToasts()
   const { openDocStudio } = useDocStudio()
+  const { status: authStatus } = useAuth()
+  /* Real-backend conversation id for the active thread's free-form messages
+     (see sendInThread) — reset alongside the engine whenever the thread
+     changes. Scripted flows/quick-forms/follow-ups never touch this. */
+  const conversationIdRef = useRef<string | null>(null)
+  const [sendingReal, setSendingReal] = useState(false)
 
   /* Session-scoped state lives in the advisorSession module store so
      conversations survive navigating away and back (prototype app-level
@@ -246,6 +254,7 @@ export function AdvisorView() {
     if (!exists) return
     stashActive()
     updateActiveChatId(chatId)
+    conversationIdRef.current = null
     engine.reset(transcripts.current.get(chatId) ?? seedFor(chatId))
   }
   selectChatRef.current = selectChat
@@ -253,6 +262,7 @@ export function AdvisorView() {
   const newConversation = () => {
     stashActive()
     updateActiveChatId(null)
+    conversationIdRef.current = null
     engine.reset([])
   }
   newConversationRef.current = newConversation
@@ -276,9 +286,16 @@ export function AdvisorView() {
     const start = readNavStartFlow(state)
     if (start) {
       navigate(location.pathname, { replace: true, state: null })
+      /* An explicit flowKey (a deliberate structured-workflow request from
+         elsewhere in the app) always wins. Only a bare free-form prompt
+         falls back to keyword routing — and only when signed out; signed
+         in, free text always goes to the real backend (see startFlow's
+         'fallback' branch). */
       const key =
         start.flowKey ??
-        routeFlowKeyFromText(typeof start.prompt === 'string' ? start.prompt : start.prompt.en)
+        (authStatus === 'signed-in'
+          ? 'fallback'
+          : routeFlowKeyFromText(typeof start.prompt === 'string' ? start.prompt : start.prompt.en))
       startFlowRef.current(key, start.prompt)
       return
     }
@@ -286,7 +303,7 @@ export function AdvisorView() {
       navigate(location.pathname, { replace: true, state: null })
       newConversationRef.current()
     }
-  }, [location.state, location.pathname, navigate])
+  }, [location.state, location.pathname, navigate, authStatus])
 
   /* ----------------------------------------------------------- chat flows */
 
@@ -298,6 +315,7 @@ export function AdvisorView() {
       ...prev,
     ])
     updateActiveChatId(id)
+    conversationIdRef.current = null
     engine.reset([])
     pushUser(userText)
 
@@ -310,6 +328,30 @@ export function AdvisorView() {
       return
     }
     if (flowKey === 'fallback') {
+      /* Free text that matched no known flow keyword. Signed in: ask the
+         real backend instead of the scripted "point you in the right
+         direction" chips — same pattern as sendInThread. Signed out (or on
+         failure): the original scripted fallback, unchanged. */
+      if (authStatus === 'signed-in') {
+        const userTextString = typeof userText === 'string' ? userText : userText.en
+        setSendingReal(true)
+        void sendAdvisorMessage(userTextString, conversationIdRef.current)
+          .then((result) => {
+            conversationIdRef.current = result.conversationId
+            pushAdvisor({ text: result.reply || genericAck })
+          })
+          .catch((error: unknown) => {
+            console.error('advisor: real chat request failed', error)
+            pushAdvisor({
+              text: '',
+              isError: true,
+              errorText: M.advisorview_real_chat_error,
+              retryText: M.advisorview_real_chat_retry_prompt,
+            })
+          })
+          .finally(() => setSendingReal(false))
+        return
+      }
       const turnId = pushAdvisor({ text: fallbackIntro })
       updateExtras((prev) => ({ ...prev, [turnId]: { suggestChips: fallbackChips } }))
       return
@@ -330,10 +372,34 @@ export function AdvisorView() {
   }
   startFlowRef.current = startFlow
 
-  /** Free-form send inside an active thread (prototype `sendComposer`). */
+  /**
+   * Free-form send inside an active thread (prototype `sendComposer`).
+   * Signed in: routes to the real advisor-chat backend (see chatApi.ts).
+   * Otherwise (or on failure): the prototype's canned acknowledgement —
+   * scripted flows, quick-forms, and follow-up chips are untouched either way.
+   */
   const sendInThread = (text: string) => {
     pushUser(text)
-    pushAdvisor({ text: genericAck })
+    if (authStatus !== 'signed-in') {
+      pushAdvisor({ text: genericAck })
+      return
+    }
+    setSendingReal(true)
+    void sendAdvisorMessage(text, conversationIdRef.current)
+      .then((result) => {
+        conversationIdRef.current = result.conversationId
+        pushAdvisor({ text: result.reply || genericAck })
+      })
+      .catch((error: unknown) => {
+        console.error('advisor: real chat request failed', error)
+        pushAdvisor({
+          text: '',
+          isError: true,
+          errorText: M.advisorview_real_chat_error,
+          retryText: M.advisorview_real_chat_retry_prompt,
+        })
+      })
+      .finally(() => setSendingReal(false))
   }
 
   /** Follow-up chip click (prototype `handleFollowup`). */
@@ -474,7 +540,7 @@ export function AdvisorView() {
       {hasActiveChat ? (
         <ChatPane
           messages={engine.messages}
-          busy={engine.busy}
+          busy={engine.busy || sendingReal}
           jurisdiction={flowJurisdictions[activeFlowKey]}
           getExtras={getExtras}
           onSend={sendInThread}
@@ -487,7 +553,9 @@ export function AdvisorView() {
         />
       ) : (
         <AdvisorHome
-          onSend={(text) => startFlow(routeFlowKeyFromText(text), text)}
+          onSend={(text) =>
+            startFlow(authStatus === 'signed-in' ? 'fallback' : routeFlowKeyFromText(text), text)
+          }
           onChip={(chip) => startFlow(chip.flowKey, chip.seed)}
           onPriorityAction={runPriorityAction}
           onMetricClick={(view) => navigate(`/app/${view}`)}
