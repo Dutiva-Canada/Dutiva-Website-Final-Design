@@ -5,9 +5,11 @@ import { renderApp } from '@/test/renderApp'
 import { PolicyPage } from './PolicyPage'
 
 describe('PolicyPage', () => {
-  it('renders the Terms of Service document in English', () => {
+  it('renders the Terms of Service document in English', async () => {
     renderApp(<PolicyPage />, { route: '/legal/terms', path: '/legal/:slug' })
-    expect(screen.getByRole('heading', { level: 1, name: 'Terms of Service' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Terms of Service' }),
+    ).toBeInTheDocument()
     const main = within(screen.getByRole('main'))
     const meta = main.getByText(/Last updated/)
     expect(meta).toHaveTextContent('Last updated: June 1, 2026')
@@ -28,17 +30,20 @@ describe('PolicyPage', () => {
   it('re-localizes to French via the header language toggle', async () => {
     const user = userEvent.setup()
     renderApp(<PolicyPage />, { route: '/legal/terms', path: '/legal/:slug' })
+    await screen.findByRole('heading', { level: 1, name: 'Terms of Service' })
     const [langToggle] = screen.getAllByRole('button', { name: 'Toggle language' })
     expect(langToggle).toBeDefined()
     await user.click(langToggle as HTMLElement)
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Conditions d’utilisation' }),
+      await screen.findByRole('heading', { level: 1, name: 'Conditions d’utilisation' }),
     ).toBeInTheDocument()
   })
 
-  it('renders a formerly FR-only document in English now that its EN edition shipped', () => {
+  it('renders a formerly FR-only document in English now that its EN edition shipped', async () => {
     renderApp(<PolicyPage />, { route: '/legal/disclaimer', path: '/legal/:slug' })
-    expect(screen.getByRole('heading', { level: 1, name: 'Legal Disclaimer' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Legal Disclaimer' }),
+    ).toBeInTheDocument()
     // Complete catalogue → the language-fallback notice must not appear.
     expect(
       within(screen.getByRole('main')).queryByText(
