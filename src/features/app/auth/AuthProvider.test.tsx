@@ -6,9 +6,11 @@ import userEvent from '@testing-library/user-event'
 /**
  * `@/lib/supabaseClient` is mocked per test (vi.doMock + resetModules, same
  * pattern as documents/api.test.ts) so both the fake client's shape and
- * whether it exists at all can vary per test. AuthProvider and useAuth are
- * re-imported fresh each time so the Probe component shares the same
- * AuthContext module instance as the provider under test.
+ * whether it exists at all can vary per test. AuthProvider, useAuth, AND
+ * LangProvider are all re-imported fresh (dynamically, after resetModules)
+ * so every module involved shares one module graph — AuthProvider now calls
+ * useI18n(), and a statically-imported LangProvider would carry a stale
+ * LangContext instance that doesn't match the freshly re-imported one.
  */
 describe('AuthProvider', () => {
   afterEach(() => {
@@ -21,6 +23,7 @@ describe('AuthProvider', () => {
     vi.resetModules()
     const { AuthProvider } = await import('./AuthProvider')
     const { useAuth } = await import('./authContext')
+    const { LangProvider } = await import('@/i18n/LangProvider')
 
     function Probe() {
       const { status, signInWithEmail } = useAuth()
@@ -36,9 +39,11 @@ describe('AuthProvider', () => {
 
     const user = userEvent.setup()
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
+      <LangProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </LangProvider>,
     )
     expect(screen.getByTestId('status')).toHaveTextContent('signed-out')
     await user.click(screen.getByRole('button', { name: 'send' }))
@@ -65,6 +70,7 @@ describe('AuthProvider', () => {
     vi.resetModules()
     const { AuthProvider } = await import('./AuthProvider')
     const { useAuth } = await import('./authContext')
+    const { LangProvider } = await import('@/i18n/LangProvider')
 
     function Probe() {
       const { status, signOut } = useAuth()
@@ -78,12 +84,97 @@ describe('AuthProvider', () => {
 
     const user = userEvent.setup()
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
+      <LangProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </LangProvider>,
     )
     expect(await screen.findByTestId('status')).toHaveTextContent('signed-in')
     await user.click(screen.getByRole('button', { name: 'signout' }))
     expect(await screen.findByTestId('status')).toHaveTextContent('signed-out')
+  })
+
+  it('rejects a non-dutiva.ca email without ever calling signInWithOtp', async () => {
+    const signInWithOtp = vi.fn().mockResolvedValue({ error: null })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () => Promise.resolve({ data: { session: null } }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+          signInWithOtp,
+        },
+      },
+    }))
+    vi.resetModules()
+    const { AuthProvider } = await import('./AuthProvider')
+    const { useAuth } = await import('./authContext')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+
+    function Probe() {
+      const { signInWithEmail } = useAuth()
+      const [error, setError] = useState<string>()
+      return (
+        <div>
+          <button onClick={() => void signInWithEmail('someone@gmail.com').then(setError)}>
+            send
+          </button>
+          {error && <span data-testid="error">{error}</span>}
+        </div>
+      )
+    }
+
+    const user = userEvent.setup()
+    render(
+      <LangProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </LangProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: 'send' }))
+    expect(await screen.findByTestId('error')).toHaveTextContent('dutiva.ca')
+    expect(signInWithOtp).not.toHaveBeenCalled()
+  })
+
+  it('allows a @dutiva.ca email through to signInWithOtp', async () => {
+    const signInWithOtp = vi.fn().mockResolvedValue({ error: null })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () => Promise.resolve({ data: { session: null } }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+          signInWithOtp,
+        },
+      },
+    }))
+    vi.resetModules()
+    const { AuthProvider } = await import('./AuthProvider')
+    const { useAuth } = await import('./authContext')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+
+    function Probe() {
+      const { status, signInWithEmail } = useAuth()
+      return (
+        <div>
+          <span data-testid="status">{status}</span>
+          <button onClick={() => void signInWithEmail('riley@dutiva.ca')}>send</button>
+        </div>
+      )
+    }
+
+    const user = userEvent.setup()
+    render(
+      <LangProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </LangProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: 'send' }))
+    expect(signInWithOtp).toHaveBeenCalledWith(
+      expect.objectContaining({ email: 'riley@dutiva.ca' }),
+    )
+    expect(await screen.findByTestId('status')).toHaveTextContent('sent-link')
   })
 })

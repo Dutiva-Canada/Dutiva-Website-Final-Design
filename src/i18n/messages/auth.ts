@@ -39,6 +39,10 @@ export const authMessages = defineMessages({
     en: 'Check your email for a sign-in link.',
     fr: 'Consultez votre courriel pour le lien de connexion.',
   },
+  auth_domain_restricted: {
+    en: 'Sign-in is limited to @dutiva.ca team accounts.',
+    fr: 'La connexion est réservée aux comptes de l’équipe @dutiva.ca.',
+  },
   auth_menu_title: {
     en: 'Account',
     fr: 'Compte',
