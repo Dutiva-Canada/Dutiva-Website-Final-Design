@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { FolderOpen, Plus, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
@@ -301,7 +302,10 @@ export function CasesProductionView() {
                 key={caze.id}
                 className="flex flex-wrap items-center gap-[12px] border-t border-inset px-[18px] py-[13px] first:border-t-0"
               >
-                <div className="min-w-0 flex-1 basis-[240px]">
+                <Link
+                  to={`/app/cases/${caze.id}`}
+                  className="min-w-0 flex-1 basis-[240px] hover:opacity-80"
+                >
                   <div className="truncate text-[13.5px] font-semibold text-text">{caze.title}</div>
                   <div className="truncate text-[12px] text-text-muted">
                     {[
@@ -313,7 +317,7 @@ export function CasesProductionView() {
                       .filter(Boolean)
                       .join(' · ')}
                   </div>
-                </div>
+                </Link>
                 <span className={statusChipClass(STATUS_TONE[caze.status])}>
                   {x(STATUS_LABEL[caze.status])}
                 </span>

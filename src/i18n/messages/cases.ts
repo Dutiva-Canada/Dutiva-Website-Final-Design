@@ -230,4 +230,34 @@ export const casesMessages = defineMessages({
   cases_prod_status_open: { en: 'Open', fr: 'Ouvert' },
   cases_prod_status_in_review: { en: 'In review', fr: 'En révision' },
   cases_prod_status_resolved: { en: 'Resolved', fr: 'Résolu' },
+
+  /* ── Production case detail (Phase 11) — [FR self-authored] ───────────── */
+  cases_prod_back: { en: 'All cases', fr: 'Tous les dossiers' },
+  cases_prod_not_found: {
+    en: 'This case doesn’t exist or was removed.',
+    fr: 'Ce dossier n’existe pas ou a été retiré.',
+  },
+  cases_prod_detail_employee: { en: 'Employee', fr: 'Employé' },
+  cases_prod_detail_type: { en: 'Type', fr: 'Type' },
+  cases_prod_detail_province: { en: 'Province', fr: 'Province' },
+  cases_prod_detail_due: { en: 'Due', fr: 'Échéance' },
+  cases_prod_notes_title: { en: 'Notes', fr: 'Notes' },
+  cases_prod_notes_empty: {
+    en: 'No notes yet — record the key facts as the case progresses.',
+    fr: 'Aucune note pour l’instant — consignez les faits importants au fil du dossier.',
+  },
+  cases_prod_note_placeholder: {
+    en: 'Add a note to the case record…',
+    fr: 'Ajouter une note au dossier…',
+  },
+  cases_prod_note_add: { en: 'Add note', fr: 'Ajouter la note' },
+  cases_prod_note_added: { en: 'Note added', fr: 'Note ajoutée' },
+  cases_prod_note_failed: {
+    en: 'Couldn’t add the note. Try again.',
+    fr: 'Impossible d’ajouter la note. Réessayez.',
+  },
+  cases_prod_detail_error: {
+    en: 'Couldn’t load this case.',
+    fr: 'Impossible de charger ce dossier.',
+  },
 })
