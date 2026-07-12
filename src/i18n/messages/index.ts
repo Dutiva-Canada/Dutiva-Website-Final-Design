@@ -6,6 +6,7 @@ import { searchMessages } from './search'
 import { docstudioMessages } from './docstudio'
 import { homeMessages } from './home'
 import { advisorViewMessages } from './advisorView'
+import { advisorWorkspaceMessages } from './advisorWorkspace'
 import { workflowsMessages } from './workflows'
 import { casesMessages } from './cases'
 import { employeesMessages } from './employees'
@@ -45,6 +46,7 @@ export const messages = {
   ...docstudioMessages,
   ...homeMessages,
   ...advisorViewMessages,
+  ...advisorWorkspaceMessages,
   ...workflowsMessages,
   ...casesMessages,
   ...employeesMessages,

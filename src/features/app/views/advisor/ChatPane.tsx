@@ -1,11 +1,13 @@
 ﻿import { useEffect, useRef } from 'react'
-import { FileText, Sparkle, TriangleAlert } from 'lucide-react'
+import { FileText, Globe, Heart, ShieldCheck, Sparkle, TriangleAlert } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
 import { keyOfL, pickL } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
 import { advisorCore } from '@/i18n/messages/advisorCore'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
+import { advisorWorkspaceMessages as W } from '@/i18n/messages/advisorWorkspace'
 import { ChatBubble } from '@/features/app/advisor/ChatBubble'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { ReasoningExpander } from '@/features/app/advisor/ReasoningExpander'
@@ -17,6 +19,8 @@ import type { ChatMessage } from '@/features/app/advisor/types'
 import { documentTemplatesByKey, followupReplies } from '@/data'
 import { estimatorFollowup } from './advisorFlows'
 import type { MessageExtras, QuickFormState, SuggestChipSpec } from './advisorFlows'
+import { PROVINCE_CHIPS, scenarioFollowupLabels } from './advisorScenarios'
+import type { ScenarioBanner, ScenarioBannerTone } from './advisorScenarios'
 
 /**
  * Active conversation pane (prototype `hasActiveConversation` markup):
@@ -40,12 +44,23 @@ export interface ChatPaneProps {
   readonly onSuggestChip: (chip: SuggestChipSpec) => void
   readonly onQuickFormChange: (messageId: string, fieldIndex: number, valueEn: string) => void
   readonly onQuickFormSubmit: (messageId: string) => void
+  /** Province chip pick on a jurisdiction-unknown turn (response experience). */
+  readonly onPickProvince?: (province: Bi) => void
+  /** Opens the Compliance Workspace sheet below the xl breakpoint. */
+  readonly onOpenWorkspace?: () => void
 }
 
-/** Follow-up chip label: canned-reply label, or the beta-estimator label. */
+/** Follow-up chip label: canned-reply label, scenario label, or estimator. */
 function followupLabel(labelEn: string): LText {
   if (labelEn === estimatorFollowup.labelEn) return estimatorFollowup.label
-  return followupReplies[labelEn]?.label ?? labelEn
+  return followupReplies[labelEn]?.label ?? scenarioFollowupLabels[labelEn] ?? labelEn
+}
+
+/** Inline tone banner styling (prototype `bannerStyle`). */
+const BANNER_TONE: Record<ScenarioBannerTone, { card: string; text: string; icon: LucideIcon }> = {
+  risk: { card: 'border-risk-border bg-risk-bg', text: 'text-risk-fg', icon: TriangleAlert },
+  support: { card: 'border-support-border bg-support-bg', text: 'text-support-fg', icon: Heart },
+  info: { card: 'border-gold-border bg-gold-bg', text: 'text-gold-fg', icon: Globe },
 }
 
 function docTitle(templateKey: string): LText {
@@ -64,6 +79,8 @@ export function ChatPane({
   onSuggestChip,
   onQuickFormChange,
   onQuickFormSubmit,
+  onPickProvince,
+  onOpenWorkspace,
 }: ChatPaneProps) {
   const { x, lang } = useI18n()
   const scrollRef = useRef<HTMLDivElement | null>(null)
@@ -77,10 +94,20 @@ export function ChatPane({
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {/* Jurisdiction context line — always visible on an active conversation. */}
-      <div className="flex shrink-0 justify-center border-b border-border-soft px-[24px] py-[8px]">
+      <div className="flex shrink-0 items-center justify-center gap-[10px] border-b border-border-soft px-[14px] py-[8px]">
         <span className="rounded-[100px] border border-gold-border bg-gold-bg px-[10px] py-[3px] text-[11.5px] font-semibold text-gold-fg">
           {pickL(jurisdiction, lang)}
         </span>
+        {onOpenWorkspace && (
+          <button
+            type="button"
+            onClick={onOpenWorkspace}
+            className="flex cursor-pointer items-center gap-[5px] rounded-[100px] border border-gold-border bg-gold-bg px-[11px] py-[4px] font-sans text-[11.5px] font-bold whitespace-nowrap text-gold-fg xl:hidden"
+          >
+            <ShieldCheck size={13} strokeWidth={1.9} aria-hidden="true" />
+            {x(W.advws_open_workspace)}
+          </button>
+        )}
       </div>
 
       {/* Transcript — polite live region so streamed replies are announced. */}
@@ -100,6 +127,7 @@ export function ChatPane({
                 onSuggestChip={onSuggestChip}
                 onQuickFormChange={onQuickFormChange}
                 onQuickFormSubmit={onQuickFormSubmit}
+                onPickProvince={onPickProvince}
               />
             ),
           )}
@@ -159,6 +187,7 @@ interface AdvisorTurnProps {
   readonly onSuggestChip: (chip: SuggestChipSpec) => void
   readonly onQuickFormChange: (messageId: string, fieldIndex: number, valueEn: string) => void
   readonly onQuickFormSubmit: (messageId: string) => void
+  readonly onPickProvince?: (province: Bi) => void
 }
 
 function AdvisorTurn({
@@ -170,6 +199,7 @@ function AdvisorTurn({
   onSuggestChip,
   onQuickFormChange,
   onQuickFormSubmit,
+  onPickProvince,
 }: AdvisorTurnProps) {
   const { x, lang } = useI18n()
   const status = message.status ?? 'done'
@@ -182,6 +212,8 @@ function AdvisorTurn({
   const followups = extras?.followups ?? []
   const suggestChips = extras?.suggestChips ?? []
   const quickForm = extras?.quickForm
+  const banner = extras?.banner
+  const provincePrompt = extras?.provincePrompt === true
 
   return (
     <div className={`flex items-start gap-[12px] ${ENTRANCE}`}>
@@ -228,12 +260,18 @@ function AdvisorTurn({
               </ChatBubble>
             )}
 
+            {done && banner && <TurnBanner banner={banner} />}
+
             {done && cards.length > 0 && (
               <div className="flex max-w-[620px] flex-col gap-[10px]">
                 {cards.map((card) => (
                   <ToneCard key={keyOfL(card.title)} card={card} />
                 ))}
               </div>
+            )}
+
+            {done && provincePrompt && onPickProvince && (
+              <ProvincePrompt onPickProvince={onPickProvince} />
             )}
 
             {done && docs.length > 0 && (
@@ -296,6 +334,55 @@ function AdvisorTurn({
             )}
           </>
         )}
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------ turn banner */
+
+/** Inline risk / info / support banner (prototype `turn.hasBanner`). */
+function TurnBanner({ banner }: { readonly banner: ScenarioBanner }) {
+  const { lang } = useI18n()
+  const tone = BANNER_TONE[banner.tone]
+  const Icon = tone.icon
+  return (
+    <div
+      className={`flex max-w-[640px] items-start gap-[9px] rounded-[11px] border px-[13px] py-[11px] ${tone.card}`}
+    >
+      <Icon
+        size={14}
+        strokeWidth={1.9}
+        className={`mt-px shrink-0 ${tone.text}`}
+        aria-hidden="true"
+      />
+      <div className={`text-[13px] leading-normal ${tone.text}`}>
+        <strong className="font-bold">{pickL(banner.title, lang)}</strong>
+        {pickL(banner.text, lang)}
+      </div>
+    </div>
+  )
+}
+
+/* -------------------------------------------------------- province prompt */
+
+/** Collect-jurisdiction chips (prototype `turn.hasProvincePrompt`). */
+function ProvincePrompt({ onPickProvince }: { readonly onPickProvince: (province: Bi) => void }) {
+  const { x, lang } = useI18n()
+  return (
+    <div className="max-w-[560px] rounded-[12px] border border-border bg-surface p-[14px]">
+      <div className="mb-[9px] text-[12px] font-semibold text-text-3">{x(W.advws_province_q)}</div>
+      <div className="flex flex-wrap gap-[8px]">
+        {PROVINCE_CHIPS.map((province) => (
+          <button
+            key={province.en}
+            type="button"
+            onClick={() => onPickProvince(province)}
+            className="cursor-pointer rounded-[9px] border border-gold-border bg-gold-bg px-[14px] py-[8px] font-sans text-[13px] font-semibold text-gold-fg"
+          >
+            {pickL(province, lang)}
+          </button>
+        ))}
       </div>
     </div>
   )

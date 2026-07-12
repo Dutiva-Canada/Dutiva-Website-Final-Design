@@ -50,6 +50,10 @@
   --color-ok-bg: var(--ok-bg);
   --color-ok-border: var(--ok-border);
   --color-ok-fg: var(--ok-fg);
+  --color-support-bg: var(--support-bg);
+  --color-support-border: var(--support-border);
+  --color-support-fg: var(--support-fg);
+  --color-support-text: var(--support-text);
   --color-cite-bg: var(--cite-bg);
 
   /* Marketing-surface vocabulary (design-system ramp) */
