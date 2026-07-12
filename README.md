@@ -22,22 +22,23 @@ themed (light/dark, persisted as `dutiva-theme`).
 
 ## Scripts
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Vite dev server |
-| `npm run build` | Typecheck + production build |
-| `npm run preview` | Serve the production build |
-| `npm run typecheck` | `tsc -b` (strict) |
-| `npm run lint` | oxlint |
-| `npm run test` | Vitest (jsdom + Testing Library) |
-| `npm run format` | Prettier |
-| `npm run check` | typecheck + lint + test |
+| Command             | What it does                     |
+| ------------------- | -------------------------------- |
+| `npm run dev`       | Vite dev server                  |
+| `npm run build`     | Typecheck + production build     |
+| `npm run preview`   | Serve the production build       |
+| `npm run typecheck` | `tsc -b` (strict)                |
+| `npm run lint`      | oxlint                           |
+| `npm run test`      | Vitest (jsdom + Testing Library) |
+| `npm run format`    | Prettier                         |
+| `npm run check`     | typecheck + lint + test          |
 
 ## Architecture
 
-See [CONVENTIONS.md](CONVENTIONS.md) for the full engineering conventions:
-directory layout, route map, theming/surface model, i18n rules, data layer, and
-the quality bar. In short:
+Working on this repo with an AI coding agent? Start with
+[AGENTS.md](AGENTS.md). See [CONVENTIONS.md](CONVENTIONS.md) for the full
+engineering conventions: directory layout, route map, theming/surface model,
+i18n rules, data layer, and the quality bar. In short:
 
 - **React 19 + TypeScript (strict) + Vite + Tailwind v4.**
 - **Design tokens** ported from the Dutiva design system live in `src/styles/`;
