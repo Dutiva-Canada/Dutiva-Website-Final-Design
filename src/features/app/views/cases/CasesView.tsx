@@ -6,8 +6,10 @@ import { pickL } from '@/i18n/core'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { casesMessages as M } from '@/i18n/messages/cases'
 import { statusChipClass } from '@/components/chips'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { barToneClass, listCases, addCreatedCase } from './caseModel'
 import type { WorkspaceCase } from './caseModel'
+import { CasesProductionView } from './CasesProductionView'
 import { NewCaseModal } from './NewCaseModal'
 
 /**
@@ -15,8 +17,17 @@ import { NewCaseModal } from './NewCaseModal'
  * `buildCasesView`). Open-count header + New case button, then one card per
  * case with type/province/owner/opened meta, status chip, summary and a
  * step-progress bar. Rows navigate to /app/cases/:caseId.
+ *
+ * Production renders the real case files (CasesProductionView,
+ * public.hr_cases) instead of the Northgate fixtures below.
  */
 export function CasesView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <CasesProductionView />
+  return <CasesDemoView />
+}
+
+function CasesDemoView() {
   const { x, lang } = useI18n()
   const navigate = useNavigate()
   const { showToast } = useToasts()
