@@ -130,6 +130,17 @@ itself handle both modes (fixtures in demo, real data + its own empty
 state in production). Don't thread mode conditionals through a view that
 is still fully fixture-driven — the route-level gate already covers it.
 
+**Employees is the reference implementation** (Phase 3): the context
+exposes `organizationId` (auto-provisioned via the backend's
+`create_organization()` RPC on the admin's first switch to production),
+`public.employees` is org-scoped by RLS (`is_org_member` read /
+`is_org_admin` write — migration 0006), `EmployeesView` switches on mode,
+and the production roster lives in its own lean component
+(`EmployeesProductionView` + `productionApi.ts`, zod-validated rows that
+throw on failure rather than silently emptying). Follow that shape —
+per-tenant table keyed by `organization_id`, a `productionApi.ts`
+boundary, a separate production view component — for the next module.
+
 ## Icons & assets
 
 - **lucide-react only** (pinned `^0.542.0`), stroke width per prototype (app uses

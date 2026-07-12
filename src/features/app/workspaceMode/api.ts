@@ -65,6 +65,45 @@ export async function saveStoredMode(userId: string, mode: WorkspaceMode): Promi
   }
 }
 
+/** The admin's active organization, if one has been provisioned. */
+export async function fetchOrganizationId(userId: string): Promise<string | null> {
+  if (!supabase) return null
+  try {
+    const { data, error } = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .limit(1)
+      .maybeSingle()
+    if (error || !data) return null
+    return z.object({ organization_id: z.string() }).parse(data).organization_id
+  } catch {
+    return null
+  }
+}
+
+/**
+ * First-run provisioning: the create_organization() RPC inserts the org and
+ * the caller as its active owner atomically (SECURITY DEFINER, backend-owned).
+ */
+export async function bootstrapOrganization(
+  name: string,
+  legalName: string,
+): Promise<string | null> {
+  if (!supabase) return null
+  try {
+    const { data, error } = await supabase.rpc('create_organization', {
+      org_name: name,
+      org_legal_name: legalName,
+    })
+    if (error || !data) return null
+    return z.object({ id: z.string() }).parse(data).id
+  } catch {
+    return null
+  }
+}
+
 export async function fetchAdminProfile(userId: string): Promise<AdminProfile | null> {
   if (!supabase) return null
   try {

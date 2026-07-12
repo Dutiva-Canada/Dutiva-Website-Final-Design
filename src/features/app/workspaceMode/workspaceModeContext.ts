@@ -22,6 +22,12 @@ export interface WorkspaceModeContextValue {
   isAdmin: boolean
   /** Northgate Logistics Inc. fixture identity in demo; the admin's real profile in production. */
   identity: WorkspaceIdentity
+  /**
+   * The admin's real organization (auto-provisioned on first switch to
+   * production via the create_organization() RPC). Always null in demo mode
+   * — production modules scope every real read/write to this id.
+   */
+  organizationId: string | null
   /** No-op for non-admins — the toggle is only ever rendered for isAdmin. */
   setMode: (mode: WorkspaceMode) => Promise<void>
 }
