@@ -158,7 +158,11 @@ where flipping a policy back to `up_to_date` stamps `last_reviewed`.
 **Reports followed in Phase 8 with no table and no writes** — it
 aggregates live from the other modules' `productionApi.list*` functions;
 aggregation-only views should reuse those boundaries rather than issuing
-their own queries.
+their own queries. **Home followed in Phase 9** the same way: a brand-new
+workspace keeps the welcome state (`HomeProductionEmptyState`), and once
+records exist `HomeProductionView` renders the real command centre —
+stat tiles deep-linking to modules, a due-soon list over cases + tasks
+(overdue flagged), and a policy-attention row.
 
 ## Icons & assets
 
