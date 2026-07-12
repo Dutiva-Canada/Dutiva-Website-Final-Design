@@ -155,6 +155,10 @@ findings will appear in the register alongside manually logged ones.
 **Policies followed in Phase 7** (`public.hr_policies`, migration 0008) —
 a register whose rows are written policies or known gaps (`missing`),
 where flipping a policy back to `up_to_date` stamps `last_reviewed`.
+**Reports followed in Phase 8 with no table and no writes** — it
+aggregates live from the other modules' `productionApi.list*` functions;
+aggregation-only views should reuse those boundaries rather than issuing
+their own queries.
 
 ## Icons & assets
 

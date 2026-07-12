@@ -3,12 +3,17 @@ import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { reportsMessages as M } from '@/i18n/messages/reports'
 import { shellMessages } from '@/i18n/messages/shell'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { ReportsProductionView } from './ReportsProductionView'
 
 /**
  * Reports view — headcount-by-province bars + compliance-score trend line
  * (prototype `buildReportsView()` + reports markup, App v2.dc.html lines
  * 1204–1231). The numbers are the prototype's viewmodel constants (they do
  * not exist as entity fixtures).
+ *
+ * Production renders ReportsProductionView — live aggregation over the
+ * modules already on real persistence — instead of the constants below.
  */
 
 /* FR for 'Federal' from the prototype frDict; province codes are neutral. */
@@ -31,6 +36,12 @@ const trendPoints = scoreTrend
 const latestScore = scoreTrend[scoreTrend.length - 1] ?? 0
 
 export function ReportsView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <ReportsProductionView />
+  return <ReportsDemoView />
+}
+
+function ReportsDemoView() {
   const { x } = useI18n()
 
   return (
