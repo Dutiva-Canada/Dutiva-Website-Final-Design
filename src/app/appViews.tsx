@@ -71,10 +71,10 @@ export const appViewRoutes: RouteObject[] = [
      in production, including the hr_case_notes thread on the detail). */
   { path: 'cases', element: <CasesView /> },
   { path: 'cases/:caseId', element: <CaseDetailView /> },
-  /* Employees list handles both modes itself (real persistence in
-     production); the fixture profile route stays gated. */
+  /* Employees list + profile handle both modes themselves (real
+     persistence in production, including the hr_employee_notes thread). */
   { path: 'employees', element: <EmployeesView /> },
-  { path: 'employees/:employeeId', element: gated(<EmployeeProfileView />) },
+  { path: 'employees/:employeeId', element: <EmployeeProfileView /> },
   /* Compliance handles both modes itself (real persistence in production). */
   { path: 'compliance', element: <ComplianceView /> },
   /* Policies handles both modes itself (real persistence in production). */

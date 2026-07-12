@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { Plus, Trash2, Users } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
@@ -254,12 +255,12 @@ export function EmployeesProductionView() {
                 <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
                   {initialsOf(emp.name)}
                 </div>
-                <div className="min-w-0 flex-1">
+                <Link to={`/app/employees/${emp.id}`} className="min-w-0 flex-1 hover:opacity-80">
                   <div className="truncate text-[13.5px] font-semibold text-text">{emp.name}</div>
                   <div className="truncate text-[12px] text-text-muted">
                     {[emp.title, emp.province].filter(Boolean).join(' · ')}
                   </div>
-                </div>
+                </Link>
                 <span className={statusChipClass(STATUS_TONE[emp.status])}>
                   {x(STATUS_LABEL[emp.status])}
                 </span>
