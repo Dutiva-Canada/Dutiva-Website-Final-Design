@@ -148,7 +148,10 @@ with no migration at all** — it reuses the backend's own
 a fitting per-tenant table, prefer wiring to it over minting a parallel
 one (check its RLS and check-constraints first, and tolerate enum values
 beyond what the UI writes, the way `tasks/productionApi.ts` treats
-statuses it never sets).
+statuses it never sets). **Compliance followed in Phase 6**, same
+zero-migration pattern on `public.compliance_findings` — the table the
+backend's AI assessment pipeline writes to, so pipeline-generated
+findings will appear in the register alongside manually logged ones.
 
 ## Icons & assets
 
