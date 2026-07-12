@@ -37,4 +37,41 @@ export const tasksMessages = defineMessages({
     en: 'Open linked conversation for {title}',
     fr: 'Ouvrir la conversation liée pour {title}', // [FR self-authored]
   },
+
+  /* ── Production tasks (real persistence — no design-handoff counterpart;
+     [FR self-authored] throughout) ───────────────────────────────────────── */
+  tasks_prod_add: { en: 'Add task', fr: 'Ajouter une tâche' },
+  tasks_prod_cancel: { en: 'Cancel', fr: 'Annuler' },
+  tasks_prod_title_label: { en: 'Task', fr: 'Tâche' },
+  tasks_prod_priority: { en: 'Priority', fr: 'Priorité' },
+  tasks_prod_due: { en: 'Due date', fr: 'Échéance' },
+  tasks_prod_save: { en: 'Save task', fr: 'Enregistrer la tâche' },
+  tasks_prod_count_open: { en: 'open', fr: 'ouvertes' },
+  tasks_prod_loading: { en: 'Loading…', fr: 'Chargement…' },
+  tasks_prod_empty_title: { en: 'No tasks yet', fr: 'Aucune tâche pour l’instant' },
+  tasks_prod_empty_body: {
+    en: 'Add your first task to start tracking real work.',
+    fr: 'Ajoutez votre première tâche pour commencer à suivre le travail réel.',
+  },
+  tasks_prod_error: { en: 'Couldn’t load tasks.', fr: 'Impossible de charger les tâches.' },
+  tasks_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  tasks_prod_added: { en: 'Task added', fr: 'Tâche ajoutée' },
+  tasks_prod_add_failed: {
+    en: 'Couldn’t add the task. Try again.',
+    fr: 'Impossible d’ajouter la tâche. Réessayez.',
+  },
+  tasks_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  tasks_prod_removed: { en: 'Task removed', fr: 'Tâche retirée' },
+  tasks_prod_remove_failed: {
+    en: 'Couldn’t remove the task.',
+    fr: 'Impossible de retirer la tâche.',
+  },
+  tasks_prod_toggle_failed: {
+    en: 'Couldn’t update the task.',
+    fr: 'Impossible de mettre à jour la tâche.',
+  },
+  tasks_prod_priority_low: { en: 'Low', fr: 'Faible' },
+  tasks_prod_priority_medium: { en: 'Medium', fr: 'Moyenne' },
+  tasks_prod_priority_high: { en: 'High', fr: 'Élevée' },
+  tasks_prod_priority_critical: { en: 'Critical', fr: 'Critique' },
 })

@@ -9,6 +9,8 @@ import { cases, chats, taskPriorityLabels, taskPriorityTones, tasks } from '@/da
 import type { Task, Tone } from '@/data'
 import { statusChipClass } from '@/components/chips'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { TasksProductionView } from './TasksProductionView'
 
 /**
  * Tasks view — the Advisor-generated checklist (prototype `buildTasksView()`
@@ -16,6 +18,9 @@ import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
  * clickable body that opens the linked Advisor conversation, and status +
  * priority chips. Toggling only flips local done state (prototype
  * `toggleTask()` — no toast).
+ *
+ * Production renders the real checklist (TasksProductionView, the backend's
+ * public.compliance_tasks) instead of the Northgate fixtures below.
  */
 
 /** Linked case (matched on chatId) or, failing that, the chat thread itself. */
@@ -27,6 +32,12 @@ function linkedFor(task: Task): Bi | null {
 }
 
 export function TasksView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <TasksProductionView />
+  return <TasksDemoView />
+}
+
+function TasksDemoView() {
   const { x } = useI18n()
   const navigate = useNavigate()
   /* Fixture done flags are the seed; toggles live in view state. */

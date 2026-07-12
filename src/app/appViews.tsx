@@ -78,7 +78,8 @@ export const appViewRoutes: RouteObject[] = [
   { path: 'compliance', element: gated(<ComplianceView />) },
   { path: 'policies', element: gated(<PoliciesView />) },
   { path: 'templates', element: gated(<TemplatesView />) },
-  { path: 'tasks', element: gated(<TasksView />) },
+  /* Tasks handles both modes itself (real persistence in production). */
+  { path: 'tasks', element: <TasksView /> },
   { path: 'calendar', element: gated(<CalendarView />) },
   { path: 'reports', element: gated(<ReportsView />) },
   { path: 'knowledge', element: <KnowledgeView /> },
