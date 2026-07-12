@@ -142,7 +142,13 @@ per-tenant table keyed by `organization_id`, a `productionApi.ts`
 boundary, a separate production view component — for the next module.
 **Cases followed it in Phase 4** (`public.hr_cases`, migration 0007;
 `CasesProductionView` adds the first status-update write path and links
-cases to real employees via `employee_id`).
+cases to real employees via `employee_id`). **Tasks followed in Phase 5
+with no migration at all** — it reuses the backend's own
+`public.compliance_tasks` table and RLS; when the live schema already has
+a fitting per-tenant table, prefer wiring to it over minting a parallel
+one (check its RLS and check-constraints first, and tolerate enum values
+beyond what the UI writes, the way `tasks/productionApi.ts` treats
+statuses it never sets).
 
 ## Icons & assets
 
