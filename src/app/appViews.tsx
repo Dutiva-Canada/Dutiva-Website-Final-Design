@@ -82,7 +82,8 @@ export const appViewRoutes: RouteObject[] = [
   { path: 'templates', element: gated(<TemplatesView />) },
   /* Tasks handles both modes itself (real persistence in production). */
   { path: 'tasks', element: <TasksView /> },
-  { path: 'calendar', element: gated(<CalendarView />) },
+  /* Calendar handles both modes itself (real due dates in production). */
+  { path: 'calendar', element: <CalendarView /> },
   /* Reports handles both modes itself (live aggregation in production). */
   { path: 'reports', element: <ReportsView /> },
   { path: 'knowledge', element: <KnowledgeView /> },
