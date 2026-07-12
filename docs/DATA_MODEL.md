@@ -7,6 +7,11 @@ documentation instead. The live demo schema is `doclib` in the Dutiva Supabase
 project (see `supabase/migrations/`); ids are semantic text slugs for the demo
 seed (production would use uuids).
 
+The full design handoff this was transcribed from — README, prototype HTML,
+`dutiva-data.js`, and reference screenshots — is committed at
+[`docs/design-handoff-hr-documents-library/`](./design-handoff-hr-documents-library/README.md),
+so it's reproducible for contributors instead of living only on one machine.
+
 **Stack:** React 19 + Vite,Supabase (Postgres + RLS + Storage),Vercel,Provider-agnostic e-signature
 
 ## Entities

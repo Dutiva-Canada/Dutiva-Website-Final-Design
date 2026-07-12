@@ -26,6 +26,13 @@ export interface ToggleSpec {
   sub: Bi
 }
 
+/* Prototype seg() — segmented control button (line 4908). */
+export function segClass(on: boolean): string {
+  return `cursor-pointer rounded-[6px] border-none px-[11px] py-[5px] font-sans text-[12px] font-semibold transition-colors duration-150 ${
+    on ? 'bg-surface text-text' : 'bg-transparent text-text-muted'
+  }`
+}
+
 export const notificationToggles: ToggleSpec[] = [
   {
     key: 'emailDigest',

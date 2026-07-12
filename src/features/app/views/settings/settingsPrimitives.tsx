@@ -4,10 +4,11 @@ import { statusChipClass } from '@/components/chips'
 import type { ChipTone, ToggleSpec } from './settingsData'
 
 /**
- * Settings-view building blocks: section eyebrow, surface card, the
- * prototype's segmented-control class (`seg()`, line 4908), the 38×22
+ * Settings-view building blocks: section eyebrow, surface card, the 38×22
  * toggle switch (`buildToggleStyle`/`buildToggleKnobStyle`, 3533–3538),
- * labelled toggle rows and status chips.
+ * labelled toggle rows and status chips. `segClass` (the prototype's `seg()`,
+ * line 4908) lives in ./settingsData — a plain function export here would
+ * trip the fast-refresh only-export-components rule.
  */
 
 /* Section eyebrow + content (markup: 13px/700 text-3 label, 10px below). */
@@ -26,13 +27,6 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
       {children}
     </div>
   )
-}
-
-/* Prototype seg() — segmented control button (line 4908). */
-export function segClass(on: boolean): string {
-  return `cursor-pointer rounded-[6px] border-none px-[11px] py-[5px] font-sans text-[12px] font-semibold transition-colors duration-150 ${
-    on ? 'bg-surface text-text' : 'bg-transparent text-text-muted'
-  }`
 }
 
 export function StatusChip({ tone, children }: { tone: ChipTone; children: ReactNode }) {

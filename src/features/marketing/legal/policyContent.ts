@@ -8,8 +8,14 @@ import type { Lang } from '@/i18n/core'
  * pairs differ in section, block, or callout counts (the French editions were
  * drafted as whole documents, not sentence-by-sentence translations). So a
  * document stores two independent language editions rather than zipped `Bi`
- * fields, and `resolvePolicyEdition` picks the active language's edition,
+ * fields, and `loadPolicyEdition` loads the active language's edition,
  * falling back to the other language when one side is missing.
+ *
+ * Each edition is loaded lazily (one dynamic import per slug+lang) rather
+ * than bundled eagerly: the 26 documents × 2 languages are prose-heavy and
+ * only ever needed one at a time (a single /legal/:slug page render), so
+ * eager-bundling them all into whichever chunk imports this module inflates
+ * that chunk by hundreds of kB for content almost never read.
  */
 
 export interface PolicyBlock {
@@ -31,27 +37,26 @@ export interface PolicyEdition {
   sections: PolicySection[]
 }
 
+type EditionLoader = () => Promise<PolicyEdition>
+
 export interface PolicyDoc {
   slug: string
-  en?: PolicyEdition
-  fr?: PolicyEdition
+  en?: EditionLoader
+  fr?: EditionLoader
 }
 
-const editionModules = import.meta.glob<PolicyEdition>('./content/*.ts', {
-  eager: true,
-  import: 'default',
-})
+const editionLoaders = import.meta.glob<PolicyEdition>('./content/*.ts', { import: 'default' })
 
 function buildCollection(): Map<string, PolicyDoc> {
   const docs = new Map<string, PolicyDoc>()
-  for (const [path, edition] of Object.entries(editionModules)) {
+  for (const [path, load] of Object.entries(editionLoaders)) {
     const match = /\/([a-z0-9-]+)\.(en|fr)\.ts$/.exec(path)
     if (!match) continue
     const slug = match[1]
     const lang = match[2] as Lang
     if (!slug) continue
     const doc = docs.get(slug) ?? { slug }
-    doc[lang] = edition
+    doc[lang] = load
     docs.set(slug, doc)
   }
   return docs
@@ -69,16 +74,16 @@ export interface ResolvedPolicyEdition {
   lang: Lang
 }
 
-/** The active language's edition, or the other language's when missing. */
-export function resolvePolicyEdition(
+/** Loads the active language's edition, or the other language's when missing. */
+export async function loadPolicyEdition(
   doc: PolicyDoc,
   lang: Lang,
-): ResolvedPolicyEdition | undefined {
+): Promise<ResolvedPolicyEdition | undefined> {
   const preferred = doc[lang]
-  if (preferred) return { edition: preferred, lang }
+  if (preferred) return { edition: await preferred(), lang }
   const other: Lang = lang === 'en' ? 'fr' : 'en'
   const fallback = doc[other]
-  return fallback ? { edition: fallback, lang: other } : undefined
+  return fallback ? { edition: await fallback(), lang: other } : undefined
 }
 
 /**

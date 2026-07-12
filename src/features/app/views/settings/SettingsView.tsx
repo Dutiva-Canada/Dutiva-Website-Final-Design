@@ -16,10 +16,11 @@ import {
   retentionRows,
   roleRows,
   securityRows,
+  segClass,
   team,
 } from './settingsData'
 import type { ChipTone, PrefKey } from './settingsData'
-import { Card, Section, StatusChip, ToggleRow, segClass } from './settingsPrimitives'
+import { Card, Section, StatusChip, ToggleRow } from './settingsPrimitives'
 
 /**
  * Settings view — port of the prototype's largest static view
