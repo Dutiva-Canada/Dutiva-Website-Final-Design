@@ -5,6 +5,8 @@ import type { WorkspaceMode } from './workspaceModeContext'
 export interface AdminProfile {
   companyName: string
   contactName: string
+  province: string
+  city: string
 }
 
 const preferenceRowSchema = z.object({ mode: z.enum(['demo', 'production']) })
@@ -13,6 +15,8 @@ const profileRowSchema = z.object({
   legal_name: z.string().nullable(),
   company_name: z.string().nullable(),
   primary_contact: z.string().nullable(),
+  province: z.string().nullable(),
+  city: z.string().nullable(),
 })
 
 /**
@@ -66,7 +70,7 @@ export async function fetchAdminProfile(userId: string): Promise<AdminProfile | 
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('legal_name, company_name, primary_contact')
+      .select('legal_name, company_name, primary_contact, province, city')
       .eq('id', userId)
       .maybeSingle()
     if (error || !data) return null
@@ -74,6 +78,8 @@ export async function fetchAdminProfile(userId: string): Promise<AdminProfile | 
     return {
       companyName: row.legal_name ?? row.company_name ?? 'Dutiva Canada Inc.',
       contactName: row.primary_contact ?? 'Martin Constantineau',
+      province: row.province ?? 'Ontario',
+      city: row.city ?? 'Ottawa',
     }
   } catch {
     return null

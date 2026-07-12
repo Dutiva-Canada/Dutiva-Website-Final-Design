@@ -104,8 +104,7 @@ describe('HomeView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  maybeSingle: () =>
-                    Promise.resolve({ data: { mode: 'production' }, error: null }),
+                  maybeSingle: () => Promise.resolve({ data: { mode: 'production' }, error: null }),
                 }),
               }),
             }
@@ -119,6 +118,8 @@ describe('HomeView in production mode', () => {
                       legal_name: 'Dutiva Canada Inc.',
                       company_name: null,
                       primary_contact: 'Martin Constantineau',
+                      province: 'Ontario',
+                      city: 'Ottawa',
                     },
                     error: null,
                   }),

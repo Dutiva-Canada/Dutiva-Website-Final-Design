@@ -187,6 +187,17 @@ const VIEW_LABELS: Record<string, Bi> = {
   communications: M.shell_v_communications,
 }
 
+/**
+ * Like viewLabelFor, but always the module's own label — no fixture-employee
+ * name special case. Used by ModeGate to title production empty states, where
+ * surfacing a fixture person's name would itself be a demo-data leak.
+ */
+export function moduleLabelFor(pathname: string): Bi {
+  const segment = pathname.replace(/^\/app\/?/, '').split('/')[0] ?? ''
+  if (segment === 'documents') return DL.doclib_nav_documents
+  return VIEW_LABELS[segment] ?? M.shell_v_home
+}
+
 export function viewLabelFor(pathname: string): Bi {
   const parts = pathname.replace(/^\/app\/?/, '').split('/')
   const segment = parts[0] ?? ''

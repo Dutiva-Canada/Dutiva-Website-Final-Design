@@ -111,16 +111,24 @@ Supabase config, signed-out, or non-admin all resolve to `'demo'`, so this
 is safe to read from any view without a route guard or breaking tests
 (`VITE_SUPABASE_*` are forced empty for the whole suite).
 
-Phase 1 (this feature's first PR) wired the toggle itself (Settings →
-Workspace, admin-only), the shell identity (`Sidebar.tsx`), and gave Home a
-real empty state (`HomeProductionEmptyState.tsx`) when in production. Every
-other module (Cases, Employees, Compliance, Tasks, …) still renders its
-`src/data/` fixtures regardless of mode — wiring each one to
-`useWorkspaceMode()` (real empty state now, real persistence later) is
-follow-up work, one module per PR. When you pick one up: gate its fixture
-import on `mode === 'production'` the same way `HomeView.tsx` does, and add
-an empty-state view alongside the existing fixture-driven one rather than
-threading conditionals through it.
+Phase 1 wired the toggle itself (Settings → Workspace, admin-only), the
+shell identity (`Sidebar.tsx`), and Home's tailored empty state
+(`HomeProductionEmptyState.tsx`). Phase 2 made production a true reset
+stage everywhere: fixture-driven views are wrapped in `ModeGate` at the
+route table (`src/app/appViews.tsx`) — demo renders them unchanged,
+production renders the shared `ProductionEmptyState` titled by module —
+and the shell surfaces are mode-aware (topbar notifications, sidebar nav
+badges, the global search corpus, Settings' Northgate-only sections, the
+Advisor's fixture threads and home widgets). Deliberately ungated:
+Advisor chat (real backend), Knowledge (generic HR-law reference + the
+real guidance panel), Settings, and the Document Studio catalog screens
+(real product templates — only the fixture repository is gated).
+
+Wiring a module to real persistence is follow-up work, one module per PR:
+remove the view's `gated(…)` wrapper in `appViews.tsx` and make the view
+itself handle both modes (fixtures in demo, real data + its own empty
+state in production). Don't thread mode conditionals through a view that
+is still fully fixture-driven — the route-level gate already covers it.
 
 ## Icons & assets
 
