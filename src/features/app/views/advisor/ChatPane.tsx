@@ -48,6 +48,16 @@ export interface ChatPaneProps {
   readonly onPickProvince?: (province: Bi) => void
   /** Opens the Compliance Workspace sheet below the xl breakpoint. */
   readonly onOpenWorkspace?: () => void
+  /** Pill tint: warn while jurisdiction is unknown, support in supportive mode. */
+  readonly jurisdictionTone?: JurisdictionPillTone
+}
+
+export type JurisdictionPillTone = 'gold' | 'warn' | 'support'
+
+const JURISDICTION_PILL: Record<JurisdictionPillTone, string> = {
+  gold: 'border-gold-border bg-gold-bg text-gold-fg',
+  warn: 'border-warn-border bg-warn-bg text-warn-fg',
+  support: 'border-support-border bg-support-bg text-support-fg',
 }
 
 /** Follow-up chip label: canned-reply label, scenario label, or estimator. */
@@ -81,6 +91,7 @@ export function ChatPane({
   onQuickFormSubmit,
   onPickProvince,
   onOpenWorkspace,
+  jurisdictionTone = 'gold',
 }: ChatPaneProps) {
   const { x, lang } = useI18n()
   const scrollRef = useRef<HTMLDivElement | null>(null)
@@ -95,7 +106,9 @@ export function ChatPane({
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {/* Jurisdiction context line — always visible on an active conversation. */}
       <div className="flex shrink-0 items-center justify-center gap-[10px] border-b border-border-soft px-[14px] py-[8px]">
-        <span className="rounded-[100px] border border-gold-border bg-gold-bg px-[10px] py-[3px] text-[11.5px] font-semibold text-gold-fg">
+        <span
+          className={`rounded-[100px] border px-[10px] py-[3px] text-[11.5px] font-semibold ${JURISDICTION_PILL[jurisdictionTone]}`}
+        >
           {pickL(jurisdiction, lang)}
         </span>
         {onOpenWorkspace && (

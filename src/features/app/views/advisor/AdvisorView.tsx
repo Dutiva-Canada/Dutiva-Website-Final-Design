@@ -20,6 +20,7 @@ import {
 import type { FixtureAction, FixtureToneCard } from '@/data'
 import { AdvisorHome } from './AdvisorHome'
 import { ChatPane } from './ChatPane'
+import type { JurisdictionPillTone } from './ChatPane'
 import { ComplianceWorkspace } from './ComplianceWorkspace'
 import type { WorkspaceState } from './ComplianceWorkspace'
 import { ThreadList } from './ThreadList'
@@ -688,6 +689,14 @@ export function AdvisorView() {
         : activeScenario.turn
     : undefined
   const jurisdictionLine = currentScenarioTurn?.jurisdictionLine ?? flowJurisdictions[activeFlowKey]
+  const jurisdictionTone: JurisdictionPillTone =
+    currentScenarioTurn === undefined
+      ? 'gold'
+      : currentScenarioTurn.response.route.responseMode === 'supportive'
+        ? 'support'
+        : currentScenarioTurn.response.jurisdiction.status === 'unknown'
+          ? 'warn'
+          : 'gold'
 
   const activeResponse = activeResponseState?.response ?? null
   const workspaceState: WorkspaceState =
@@ -742,6 +751,7 @@ export function AdvisorView() {
             messages={engine.messages}
             busy={engine.busy || sendingReal}
             jurisdiction={jurisdictionLine}
+            jurisdictionTone={jurisdictionTone}
             getExtras={getExtras}
             onSend={sendInThread}
             onRetry={engine.retryTurn}

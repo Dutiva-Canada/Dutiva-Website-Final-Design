@@ -437,3 +437,46 @@ export interface CalendarMonth {
   /** Day highlighted as "today" in the prototype. */
   todayDay: number
 }
+
+/* ---------------------------------------------------------------- memory */
+
+/**
+ * Advisor Memory model (`Advisor Memory.dc.html`): three scopes, two
+ * confidence states only — Confirmed (authoritative source) vs Inferred
+ * (Advisor-derived, never treated as fact until a human confirms). Every
+ * fact carries provenance and a visibility scope. Memory supplies facts
+ * only — risk, legal basis and citations are recomputed fresh every turn.
+ */
+
+export type MemoryScope = 'person' | 'case' | 'thread'
+
+export type MemoryConfidence = 'confirmed' | 'inferred'
+
+export type MemorySourceType = 'hris' | 'document' | 'chat' | 'manual' | 'inference' | 'case'
+
+/** Who can see a fact: the HR team, case participants + counsel, or restricted. */
+export type MemoryVisibility = 'hr' | 'case' | 'restricted'
+
+export type MemoryCategory =
+  'employment' | 'compensation' | 'matter' | 'record' | 'note' | 'case' | 'conversation'
+
+export interface MemoryFact {
+  id: string
+  scope: MemoryScope
+  /**
+   * Scope target: person → employee id (`e1`), case → case id (`case1`),
+   * thread → chat id (`c1`) — the same ids the app's routes use.
+   */
+  entityId: string
+  category: MemoryCategory
+  statement: Bi
+  confidence: MemoryConfidence
+  source: { type: MemorySourceType; detail: Bi }
+  /** Raw date labels ("Jul 5", "Mar 2018") — language-neutral like fixtures. */
+  learned: Bi
+  /** Last human confirmation; null while still inferred. */
+  confirmed: Bi | null
+  visibility: MemoryVisibility
+  /** Access-controlled by default (compensation, health). */
+  sensitive: boolean
+}

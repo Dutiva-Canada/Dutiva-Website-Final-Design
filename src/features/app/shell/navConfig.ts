@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   Book,
+  Brain,
   Calendar,
   ChartNoAxesColumn,
   DollarSign,
@@ -21,6 +22,7 @@ import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { doclibMessages as DL } from '@/i18n/messages/doclib'
+import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { cases, employeeDetails, employees } from '@/data'
 
 /**
@@ -71,6 +73,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: M.shell_nav_workflows,
         badge: { value: WORKFLOWS_BADGE, tone: 'gold' },
       },
+      { key: 'memory', to: '/app/memory', icon: Brain, label: MEM.memory_nav_memory },
     ],
   },
   {
@@ -167,6 +170,7 @@ export function isNavActive(to: string, pathname: string): boolean {
 const VIEW_LABELS: Record<string, Bi> = {
   home: M.shell_v_home,
   advisor: M.shell_v_advisor,
+  memory: MEM.memory_title,
   workflows: M.shell_v_workflows,
   cases: M.shell_v_cases,
   employees: M.shell_v_employees,

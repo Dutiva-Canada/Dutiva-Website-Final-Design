@@ -10,6 +10,12 @@ import type { RouteObject } from 'react-router-dom'
  */
 /* prettier-ignore */ const HomeView = lazy(() => import('@/features/app/views/home/HomeView').then((m) => ({ default: m.HomeView })))
 /* prettier-ignore */ const AdvisorView = lazy(() => import('@/features/app/views/advisor/AdvisorView').then((m) => ({ default: m.AdvisorView })))
+/* Advisor Memory (person / case / chat recall / manager) */
+/* prettier-ignore */ const MemoryLayout = lazy(() => import('@/features/app/views/memory/MemoryLayout').then((m) => ({ default: m.MemoryLayout })))
+/* prettier-ignore */ const MemoryManagerView = lazy(() => import('@/features/app/views/memory/MemoryManagerView').then((m) => ({ default: m.MemoryManagerView })))
+/* prettier-ignore */ const PersonMemoryView = lazy(() => import('@/features/app/views/memory/PersonMemoryView').then((m) => ({ default: m.PersonMemoryView })))
+/* prettier-ignore */ const CaseMemoryView = lazy(() => import('@/features/app/views/memory/CaseMemoryView').then((m) => ({ default: m.CaseMemoryView })))
+/* prettier-ignore */ const ChatRecallView = lazy(() => import('@/features/app/views/memory/ChatRecallView').then((m) => ({ default: m.ChatRecallView })))
 /* prettier-ignore */ const WorkflowsView = lazy(() => import('@/features/app/views/workflows/WorkflowsView').then((m) => ({ default: m.WorkflowsView })))
 /* prettier-ignore */ const CasesView = lazy(() => import('@/features/app/views/cases/CasesView').then((m) => ({ default: m.CasesView })))
 /* prettier-ignore */ const CaseDetailView = lazy(() => import('@/features/app/views/cases/CaseDetailView').then((m) => ({ default: m.CaseDetailView })))
@@ -37,6 +43,16 @@ import type { RouteObject } from 'react-router-dom'
 export const appViewRoutes: RouteObject[] = [
   { path: 'home', element: <HomeView /> },
   { path: 'advisor', element: <AdvisorView /> },
+  {
+    path: 'memory',
+    element: <MemoryLayout />,
+    children: [
+      { index: true, element: <MemoryManagerView /> },
+      { path: 'people/:personId', element: <PersonMemoryView /> },
+      { path: 'cases/:caseId', element: <CaseMemoryView /> },
+      { path: 'conversations/:threadId', element: <ChatRecallView /> },
+    ],
+  },
   { path: 'workflows', element: <WorkflowsView /> },
   { path: 'cases', element: <CasesView /> },
   { path: 'cases/:caseId', element: <CaseDetailView /> },
