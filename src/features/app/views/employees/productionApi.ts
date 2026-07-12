@@ -93,6 +93,75 @@ export async function removeEmployee(id: string): Promise<void> {
   if (error) throw error
 }
 
+/* ── Employee profile (Phase 12): single fetch, status, notes thread ────── */
+
+export interface ProductionEmployeeNote {
+  id: string
+  body: string
+  /** ISO timestamp — displayed date-only. */
+  createdAt: string
+}
+
+const noteRowSchema = z.object({
+  id: z.string(),
+  body: z.string(),
+  created_at: z.string(),
+})
+
+export async function getEmployee(id: string): Promise<ProductionEmployee | null> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('employees')
+    .select(SELECT_COLUMNS)
+    .eq('id', id)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  return toEmployee(rowSchema.parse(data))
+}
+
+export async function updateEmployeeStatus(
+  id: string,
+  status: ProductionEmployeeStatus,
+): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { error } = await supabase
+    .from('employees')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export async function listEmployeeNotes(employeeId: string): Promise<ProductionEmployeeNote[]> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('hr_employee_notes')
+    .select('id, body, created_at')
+    .eq('employee_id', employeeId)
+    .order('created_at')
+  if (error) throw error
+  return z
+    .array(noteRowSchema)
+    .parse(data)
+    .map((r) => ({ id: r.id, body: r.body, createdAt: r.created_at }))
+}
+
+export async function addEmployeeNote(
+  organizationId: string,
+  employeeId: string,
+  body: string,
+): Promise<ProductionEmployeeNote> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('hr_employee_notes')
+    .insert({ organization_id: organizationId, employee_id: employeeId, body })
+    .select('id, body, created_at')
+    .single()
+  if (error) throw error
+  const row = noteRowSchema.parse(data)
+  return { id: row.id, body: row.body, createdAt: row.created_at }
+}
+
 /**
  * Province of employment options — DB stores the EN name (matches the
  * `profiles.province` convention); the form displays the active language.

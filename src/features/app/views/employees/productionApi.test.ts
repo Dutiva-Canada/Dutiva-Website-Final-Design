@@ -95,4 +95,56 @@ describe('employees productionApi', () => {
     await api.removeEmployee('emp-1')
     expect(eq).toHaveBeenCalledWith('id', 'emp-1')
   })
+
+  it('getEmployee returns null for a missing id', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+    const eq = vi.fn().mockReturnValue({ maybeSingle })
+    const select = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ select }) },
+    }))
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    expect(await api.getEmployee('nope')).toBeNull()
+  })
+
+  it('updateEmployeeStatus updates by id; notes list/insert use the org + employee ids', async () => {
+    const NOTE = {
+      id: 'n1',
+      body: 'Met for onboarding check-in.',
+      created_at: '2026-07-12T13:00:00Z',
+    }
+    const eqUpdate = vi.fn().mockResolvedValue({ error: null })
+    const update = vi.fn().mockReturnValue({ eq: eqUpdate })
+    const order = vi.fn().mockResolvedValue({ data: [NOTE], error: null })
+    const eqNotes = vi.fn().mockReturnValue({ order })
+    const selectNotes = vi.fn().mockReturnValue({ eq: eqNotes })
+    const single = vi.fn().mockResolvedValue({ data: NOTE, error: null })
+    const insert = vi.fn().mockReturnValue({ select: () => ({ single }) })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ update, select: selectNotes, insert }) },
+    }))
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    await api.updateEmployeeStatus('emp-1', 'on_leave')
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'on_leave' }))
+    expect(eqUpdate).toHaveBeenCalledWith('id', 'emp-1')
+
+    const notes = await api.listEmployeeNotes('emp-1')
+    expect(eqNotes).toHaveBeenCalledWith('employee_id', 'emp-1')
+    expect(notes[0]).toEqual({
+      id: 'n1',
+      body: 'Met for onboarding check-in.',
+      createdAt: '2026-07-12T13:00:00Z',
+    })
+
+    await api.addEmployeeNote('org-1', 'emp-1', 'Met for onboarding check-in.')
+    expect(insert).toHaveBeenCalledWith({
+      organization_id: 'org-1',
+      employee_id: 'emp-1',
+      body: 'Met for onboarding check-in.',
+    })
+  })
 })

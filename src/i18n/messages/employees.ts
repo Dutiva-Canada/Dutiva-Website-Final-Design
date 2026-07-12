@@ -262,4 +262,45 @@ export const employeesMessages = defineMessages({
   employees_prod_status_active: { en: 'Active', fr: 'Actif' },
   employees_prod_status_on_leave: { en: 'On leave', fr: 'En congé' },
   employees_prod_status_terminated: { en: 'Terminated', fr: 'Fin d’emploi' },
+
+  /* ── Production employee profile (Phase 12) — [FR self-authored] ──────── */
+  employees_prod_back: { en: 'All employees', fr: 'Tous les employés' },
+  employees_prod_not_found: {
+    en: 'This employee doesn’t exist or was removed.',
+    fr: 'Cet employé n’existe pas ou a été retiré.',
+  },
+  employees_prod_detail_error: {
+    en: 'Couldn’t load this profile.',
+    fr: 'Impossible de charger ce profil.',
+  },
+  employees_prod_detail_title: { en: 'Job title', fr: 'Titre du poste' },
+  employees_prod_detail_email: { en: 'Email', fr: 'Courriel' },
+  employees_prod_detail_province: { en: 'Province', fr: 'Province' },
+  employees_prod_detail_start: { en: 'Start date', fr: 'Entrée en fonction' },
+  employees_prod_status_aria: { en: 'Employee status', fr: 'Statut de l’employé' },
+  employees_prod_status_updated: { en: 'Status updated', fr: 'Statut mis à jour' },
+  employees_prod_status_update_failed: {
+    en: 'Couldn’t update the status.',
+    fr: 'Impossible de mettre à jour le statut.',
+  },
+  employees_prod_cases_title: { en: 'Open cases', fr: 'Dossiers ouverts' },
+  employees_prod_cases_none: {
+    en: 'No open cases involve this employee.',
+    fr: 'Aucun dossier ouvert ne concerne cet employé.',
+  },
+  employees_prod_notes_title: { en: 'Notes', fr: 'Notes' },
+  employees_prod_notes_empty: {
+    en: 'No notes yet — record context as you work with this employee.',
+    fr: 'Aucune note pour l’instant — consignez le contexte au fil du travail avec cet employé.',
+  },
+  employees_prod_note_placeholder: {
+    en: 'Add a note to this profile…',
+    fr: 'Ajouter une note à ce profil…',
+  },
+  employees_prod_note_add: { en: 'Add note', fr: 'Ajouter la note' },
+  employees_prod_note_added: { en: 'Note added', fr: 'Note ajoutée' },
+  employees_prod_note_failed: {
+    en: 'Couldn’t add the note. Try again.',
+    fr: 'Impossible d’ajouter la note. Réessayez.',
+  },
 })

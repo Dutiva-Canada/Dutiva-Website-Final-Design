@@ -14,6 +14,8 @@ import {
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { employeesMessages as M } from '@/i18n/messages/employees'
 import { statusChipClass } from '@/components/chips'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { EmployeeProfileProductionView } from './EmployeeProfileProductionView'
 import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
 import {
   EmployeeCasesTab,
@@ -80,6 +82,13 @@ function readNavTab(state: unknown): ProfileTab | null {
 }
 
 export function EmployeeProfileView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  /* Production: the real record (employees + hr_employee_notes + cases). */
+  if (workspaceMode === 'production') return <EmployeeProfileProductionView />
+  return <EmployeeProfileDemoView />
+}
+
+function EmployeeProfileDemoView() {
   const { employeeId } = useParams()
   const location = useLocation()
   const { x, lang } = useI18n()

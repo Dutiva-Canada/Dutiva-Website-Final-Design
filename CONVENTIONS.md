@@ -168,7 +168,10 @@ with month navigation from today. **Case detail followed in Phase 11**
 (`public.hr_case_notes`, migration 0009): production case rows open a
 real working record — facts header, status select, and a notes thread.
 Child tables denormalize `organization_id` so RLS stays a direct
-`is_org_member`/`is_org_admin` check instead of a join.
+`is_org_member`/`is_org_admin` check instead of a join. **Employee
+profiles followed in Phase 12** (`public.hr_employee_notes`, migration
+0010), adding the first cross-module linkage: a profile lists the
+employee's open `hr_cases`, linking through to the case detail.
 
 ## Icons & assets
 
