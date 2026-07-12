@@ -5,9 +5,11 @@ import type { AdvisorResponse } from '@/features/app/advisor/contract'
 
 /**
  * The six demonstrated response modes from the Advisor chat handoff
- * (`Advisor Response Experience.dc.html` `scenarios()`): HR compliance
- * (termination), high-risk escalation, HR accommodation, jurisdiction-unknown,
- * supportive triage, and current-info with live web sources.
+ * (`docs/design-handoff-advisor-chat/` — `Advisor Response Experience.dc.html`
+ * `scenarios()`; `AGENT.md` is the normative spec these turns follow): HR
+ * compliance (termination), high-risk escalation, HR accommodation,
+ * jurisdiction-unknown, supportive triage, and current-info with live web
+ * sources.
  *
  * These are the signed-out / engine-unavailable preview conversations and the
  * reference fixtures for the response contract — the live engine returns the
