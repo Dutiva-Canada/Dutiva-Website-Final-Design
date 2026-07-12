@@ -152,6 +152,9 @@ statuses it never sets). **Compliance followed in Phase 6**, same
 zero-migration pattern on `public.compliance_findings` — the table the
 backend's AI assessment pipeline writes to, so pipeline-generated
 findings will appear in the register alongside manually logged ones.
+**Policies followed in Phase 7** (`public.hr_policies`, migration 0008) —
+a register whose rows are written policies or known gaps (`missing`),
+where flipping a policy back to `up_to_date` stamps `last_reviewed`.
 
 ## Icons & assets
 

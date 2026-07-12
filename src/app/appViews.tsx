@@ -77,7 +77,8 @@ export const appViewRoutes: RouteObject[] = [
   { path: 'employees/:employeeId', element: gated(<EmployeeProfileView />) },
   /* Compliance handles both modes itself (real persistence in production). */
   { path: 'compliance', element: <ComplianceView /> },
-  { path: 'policies', element: gated(<PoliciesView />) },
+  /* Policies handles both modes itself (real persistence in production). */
+  { path: 'policies', element: <PoliciesView /> },
   { path: 'templates', element: gated(<TemplatesView />) },
   /* Tasks handles both modes itself (real persistence in production). */
   { path: 'tasks', element: <TasksView /> },

@@ -6,7 +6,9 @@ import type { Policy } from '@/data'
 import { statusChipClass } from '@/components/chips'
 import { useRail } from '@/features/app/rail/railContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { policiesMessages as M } from '@/i18n/messages/policies'
+import { PoliciesProductionView } from './PoliciesProductionView'
 
 const lcFirst = (s: string): string => (s.length > 0 ? s.charAt(0).toLowerCase() + s.slice(1) : s)
 
@@ -25,8 +27,17 @@ const lastReviewed = (updated: Bi): Bi =>
  * `buildPoliciesView()`: status rows (Up to date / Needs review / Missing)
  * with "Review with Advisor" opening the rail; the rail card's primary action
  * drafts the policy in Document Studio ("Draft it now" when Missing).
+ *
+ * Production renders the real register (PoliciesProductionView,
+ * public.hr_policies) instead of the Northgate fixtures below.
  */
 export function PoliciesView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <PoliciesProductionView />
+  return <PoliciesDemoView />
+}
+
+function PoliciesDemoView() {
   const { x } = useI18n()
   const { openRail, closeRail } = useRail()
   const { openDocStudio } = useDocStudio()
