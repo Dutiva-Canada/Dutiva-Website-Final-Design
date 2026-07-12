@@ -9,7 +9,7 @@ import { HomeCompliancePanel } from './HomeCompliancePanel'
 import { HomeActNowSection, HomeThisWeekSection, HomeWatchingSection } from './HomePriorityQueue'
 import { HomeWorkflowCatalog } from './HomeWorkflowCatalog'
 import { HomeWorkflowsMobileList, HomeWorkflowsRailCard } from './HomeWorkflowsCard'
-import { HomeProductionEmptyState } from './HomeProductionEmptyState'
+import { HomeProductionView } from './HomeProductionView'
 import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
 import { useHomeActions } from './useHomeActions'
 
@@ -21,14 +21,15 @@ import { useHomeActions } from './useHomeActions'
  * + desktop WorkflowCards) → AdvisorComposer.
  *
  * In production mode (admin-only, see WorkspaceModeProvider) this renders
- * HomeProductionEmptyState instead — the Northgate Logistics Inc. fixtures
- * below stay demo-only until each module is wired to real persistence.
+ * HomeProductionView instead — the real command centre (live counts, due
+ * soon, policy attention), or the welcome state while the workspace is
+ * empty. The Northgate Logistics Inc. fixtures below stay demo-only.
  */
 export function HomeView() {
   const { x } = useI18n()
   const navigate = useNavigate()
   const runAction = useHomeActions()
-  const { mode, identity } = useWorkspaceMode()
+  const { mode } = useWorkspaceMode()
 
   /* Prototype `onHomeSend` — free-typed text keeps keyword routing (no key). */
   const sendToAdvisor = (text: string) => {
@@ -36,7 +37,7 @@ export function HomeView() {
   }
 
   if (mode === 'production') {
-    return <HomeProductionEmptyState identity={identity} onSend={sendToAdvisor} />
+    return <HomeProductionView onSend={sendToAdvisor} />
   }
 
   return (
