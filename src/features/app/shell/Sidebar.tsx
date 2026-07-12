@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { useSearch } from '@/features/app/search/searchContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useProductionNavBadges } from '@/features/app/workspaceMode/useProductionNavBadges'
 import type { NavBadgeTone, NavItem } from './navConfig'
 import { NAV_GROUPS, isNavActive } from './navConfig'
 import { cx } from './cx'
@@ -76,6 +77,7 @@ export function Sidebar({
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { identity, mode: workspaceMode } = useWorkspaceMode()
+  const productionBadges = useProductionNavBadges()
 
   /* Hover-rail expansion with the prototype's 150ms leave delay. */
   const [hovered, setHovered] = useState(false)
@@ -211,11 +213,12 @@ export function Sidebar({
             {group.items.map((item) => (
               <NavLinkItem
                 key={item.key}
-                /* Nav badges are fixture counts (open cases, tasks, …) —
-                   production has no data behind them yet. */
+                /* Fixture badge counts are demo-only; production swaps in
+                   live open counts (useProductionNavBadges), shown only for
+                   modules that actually have open work. */
                 item={
-                  workspaceMode === 'production' && item.badge
-                    ? { ...item, badge: undefined }
+                  workspaceMode === 'production'
+                    ? { ...item, badge: productionBadges[item.key] }
                     : item
                 }
                 expanded={expanded}

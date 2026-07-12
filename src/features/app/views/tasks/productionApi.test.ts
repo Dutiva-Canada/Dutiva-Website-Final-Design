@@ -100,4 +100,18 @@ describe('tasks productionApi', () => {
       expect.objectContaining({ status: 'open', completed_at: null }),
     )
   })
+
+  it('countOpenTasks issues a head count excluding completed', async () => {
+    const neq = vi.fn().mockResolvedValue({ count: 2, error: null })
+    const eq = vi.fn().mockReturnValue({ neq })
+    const select = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ select }) },
+    }))
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    expect(await api.countOpenTasks('org-1')).toBe(2)
+    expect(neq).toHaveBeenCalledWith('status', 'completed')
+  })
 })

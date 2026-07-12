@@ -167,3 +167,15 @@ export async function addCaseNote(
   const row = noteRowSchema.parse(data)
   return { id: row.id, body: row.body, createdAt: row.created_at }
 }
+
+/** Open-case count for the nav badge — a server-side head count, no rows. */
+export async function countOpenCases(organizationId: string): Promise<number> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { count, error } = await supabase
+    .from('hr_cases')
+    .select('id', { count: 'exact', head: true })
+    .eq('organization_id', organizationId)
+    .neq('status', 'resolved')
+  if (error) throw error
+  return count ?? 0
+}

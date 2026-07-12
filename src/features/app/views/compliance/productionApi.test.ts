@@ -96,4 +96,18 @@ describe('compliance productionApi', () => {
 
     await expect(api.listFindings('org-1')).rejects.toThrow()
   })
+
+  it('countOpenFindings issues a head count excluding resolved and dismissed', async () => {
+    const notFn = vi.fn().mockResolvedValue({ count: 1, error: null })
+    const eq = vi.fn().mockReturnValue({ not: notFn })
+    const select = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ select }) },
+    }))
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    expect(await api.countOpenFindings('org-1')).toBe(1)
+    expect(notFn).toHaveBeenCalledWith('status', 'in', '(resolved,dismissed)')
+  })
 })

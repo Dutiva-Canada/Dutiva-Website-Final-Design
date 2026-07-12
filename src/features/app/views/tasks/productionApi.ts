@@ -107,3 +107,15 @@ export async function removeTask(id: string): Promise<void> {
   const { error } = await supabase.from('compliance_tasks').delete().eq('id', id)
   if (error) throw error
 }
+
+/** Open-task count for the nav badge — matches the checklist's !done rule. */
+export async function countOpenTasks(organizationId: string): Promise<number> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { count, error } = await supabase
+    .from('compliance_tasks')
+    .select('id', { count: 'exact', head: true })
+    .eq('organization_id', organizationId)
+    .neq('status', 'completed')
+  if (error) throw error
+  return count ?? 0
+}

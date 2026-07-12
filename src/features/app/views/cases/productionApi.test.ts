@@ -137,4 +137,19 @@ describe('cases productionApi', () => {
       body: 'Spoke with the employee.',
     })
   })
+
+  it('countOpenCases issues a head count excluding resolved', async () => {
+    const neq = vi.fn().mockResolvedValue({ count: 4, error: null })
+    const eq = vi.fn().mockReturnValue({ neq })
+    const select = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ select }) },
+    }))
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    expect(await api.countOpenCases('org-1')).toBe(4)
+    expect(select).toHaveBeenCalledWith('id', { count: 'exact', head: true })
+    expect(neq).toHaveBeenCalledWith('status', 'resolved')
+  })
 })

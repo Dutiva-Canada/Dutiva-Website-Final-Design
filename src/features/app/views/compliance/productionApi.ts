@@ -113,3 +113,15 @@ export async function removeFinding(id: string): Promise<void> {
   const { error } = await supabase.from('compliance_findings').delete().eq('id', id)
   if (error) throw error
 }
+
+/** Open-finding count for the nav badge — resolved and dismissed are closed. */
+export async function countOpenFindings(organizationId: string): Promise<number> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { count, error } = await supabase
+    .from('compliance_findings')
+    .select('id', { count: 'exact', head: true })
+    .eq('organization_id', organizationId)
+    .not('status', 'in', '(resolved,dismissed)')
+  if (error) throw error
+  return count ?? 0
+}
