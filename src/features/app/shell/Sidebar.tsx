@@ -4,8 +4,9 @@ import { Plus, Search, Settings, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { useSearch } from '@/features/app/search/searchContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import type { NavBadgeTone, NavItem } from './navConfig'
-import { NAV_GROUPS, WORKSPACE_NAME, WORKSPACE_USER, isNavActive } from './navConfig'
+import { NAV_GROUPS, isNavActive } from './navConfig'
 import { cx } from './cx'
 
 /**
@@ -74,6 +75,7 @@ export function Sidebar({
   const { openSearch } = useSearch()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { identity } = useWorkspaceMode()
 
   /* Hover-rail expansion with the prototype's 150ms leave delay. */
   const [hovered, setHovered] = useState(false)
@@ -143,7 +145,7 @@ export function Sidebar({
         {expanded && (
           <div className="min-w-0">
             <div className="truncate text-[14px] leading-[1.2] font-bold text-text">
-              {WORKSPACE_NAME}
+              {identity.companyName}
             </div>
             <div className="truncate text-[11px] text-text-muted">{x(M.shell_hr_workspace)}</div>
           </div>
@@ -237,8 +239,8 @@ export function Sidebar({
             type="button"
             onClick={() => setProfileOpen((open) => !open)}
             aria-label={L(
-              `Account menu for ${WORKSPACE_USER.name}`,
-              `Menu du compte de ${WORKSPACE_USER.name}`,
+              `Account menu for ${identity.user.name}`,
+              `Menu du compte de ${identity.user.name}`,
             )}
             aria-expanded={profileOpen}
             className={cx(
@@ -248,12 +250,12 @@ export function Sidebar({
             )}
           >
             <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-navy text-[11.5px] font-bold text-[#F2D9A8]">
-              {WORKSPACE_USER.initials}
+              {identity.user.initials}
             </div>
             {expanded && (
               <div className="min-w-0 text-left">
-                <div className="truncate text-[13px] font-semibold">{WORKSPACE_USER.name}</div>
-                <div className="text-[11px] text-text-muted">{x(WORKSPACE_USER.role)}</div>
+                <div className="truncate text-[13px] font-semibold">{identity.user.name}</div>
+                <div className="text-[11px] text-text-muted">{x(identity.user.role)}</div>
               </div>
             )}
           </button>
@@ -264,8 +266,8 @@ export function Sidebar({
               className="absolute bottom-full left-0 z-[60] mb-[6px] w-[200px] overflow-hidden rounded-[11px] border border-border bg-surface shadow-[0_16px_36px_rgba(27,36,48,0.2)]"
             >
               <div className="border-b border-border-soft px-[14px] py-[12px]">
-                <div className="text-[13px] font-bold text-text">{WORKSPACE_USER.name}</div>
-                <div className="text-[11.5px] text-text-muted">{WORKSPACE_USER.email}</div>
+                <div className="text-[13px] font-bold text-text">{identity.user.name}</div>
+                <div className="text-[11.5px] text-text-muted">{identity.user.email}</div>
               </div>
               <button
                 type="button"

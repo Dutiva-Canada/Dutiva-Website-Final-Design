@@ -5,6 +5,7 @@ import { pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { common } from '@/i18n/messages/common'
 import { settingsMessages as M } from '@/i18n/messages/settings'
 import {
@@ -37,6 +38,7 @@ export function SettingsView() {
   const { x, lang, setLang } = useI18n()
   const { theme, setTheme } = useTheme()
   const { showToast } = useToasts()
+  const { mode: workspaceMode, isAdmin, identity, setMode: setWorkspaceMode } = useWorkspaceMode()
 
   const [prefs, setPrefs] = useState<Record<PrefKey, boolean>>(initialPrefs)
   const [integrationError, setIntegrationError] = useState(true)
@@ -149,9 +151,43 @@ export function SettingsView() {
         {/* Workspace */}
         <Section label={x(M.settings_workspace)}>
           <div className="flex flex-col gap-[12px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]">
+            {isAdmin && (
+              <div>
+                <span className="text-[12px] text-text-muted">{x(M.settings_workspace_mode)}</span>
+                <div
+                  role="tablist"
+                  aria-label={x(M.settings_workspace_mode)}
+                  className="mt-[6px] flex w-fit gap-[6px] rounded-[12px] border border-border bg-inset px-[6px] py-[5px]"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={workspaceMode === 'demo'}
+                    onClick={() => void setWorkspaceMode('demo')}
+                    className={segClass(workspaceMode === 'demo')}
+                  >
+                    {x(M.settings_workspace_mode_demo)}
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={workspaceMode === 'production'}
+                    onClick={() => void setWorkspaceMode('production')}
+                    className={segClass(workspaceMode === 'production')}
+                  >
+                    {x(M.settings_workspace_mode_production)}
+                  </button>
+                </div>
+                <p className="mt-[8px] text-[11.5px] leading-[1.5] text-text-faint">
+                  {x(M.settings_workspace_mode_note)}
+                </p>
+              </div>
+            )}
             <div>
               <span className="text-[12px] text-text-muted">{x(M.settings_company)}</span>
-              <div className="text-[14px] font-semibold text-text">Northgate Logistics Inc.</div>
+              <div className="text-[14px] font-semibold text-text">
+                {workspaceMode === 'production' ? identity.companyName : 'Northgate Logistics Inc.'}
+              </div>
             </div>
             <div>
               <span className="text-[12px] text-text-muted">{x(M.settings_provinces_of_op)}</span>

@@ -81,3 +81,62 @@ describe('HomeView', () => {
     view.unmount()
   })
 })
+
+describe('HomeView in production mode', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  it('renders the real empty state instead of the Northgate fixtures', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { id: 'u1', email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
+        from: vi.fn((table: string) => {
+          if (table === 'workspace_preferences') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () =>
+                    Promise.resolve({ data: { mode: 'production' }, error: null }),
+                }),
+              }),
+            }
+          }
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({
+                    data: {
+                      legal_name: 'Dutiva Canada Inc.',
+                      company_name: null,
+                      primary_contact: 'Martin Constantineau',
+                    },
+                    error: null,
+                  }),
+              }),
+            }),
+          }
+        }),
+      },
+    }))
+    vi.resetModules()
+
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { HomeView: HomeViewFresh } = await import('./HomeView')
+
+    renderAppFresh(<HomeViewFresh />, { route: '/app/home' })
+
+    expect(await screen.findByText('Your workspace is ready.')).toBeInTheDocument()
+    expect(screen.getByText(/Dutiva Canada Inc\./)).toBeInTheDocument()
+    expect(screen.queryByText('Good to see you, Riley.')).not.toBeInTheDocument()
+  })
+})

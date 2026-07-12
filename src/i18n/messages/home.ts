@@ -71,4 +71,16 @@ export const homeMessages = defineMessages({
     en: 'Ask Advisor anything about your team…',
     fr: 'Demandez au Conseiller à propos de votre équipe…',
   },
+
+  /* ── Production-mode empty state (admin-only; not in the design handoff —
+     new for the production-readiness work) — [FR self-authored] ─────────── */
+  home_production_title: {
+    en: 'Your workspace is ready.',
+    fr: 'Votre espace de travail est prêt.',
+  },
+  home_production_body: {
+    en: 'This is your real, empty Dutiva workspace — no cases, tasks, or alerts yet. Ask the Advisor anything to get started, or switch back to Demo in Settings for a walkthrough with sample data.',
+    fr: 'Voici votre espace de travail Dutiva réel et vide — aucun dossier, aucune tâche, aucune alerte pour l’instant. Posez une question au Conseiller pour commencer, ou repassez en mode Démo dans les paramètres pour une visite guidée avec des données d’exemple.',
+  },
+  home_production_workspace_label: { en: 'Workspace', fr: 'Espace de travail' },
 })

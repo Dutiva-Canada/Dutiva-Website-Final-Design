@@ -48,6 +48,12 @@ npm run dev        # start the dev server
   support and compliance-oriented guidance. It does not provide legal
   advice.") must ship near CTAs, generated documents, and Advisor output —
   via the shared `Disclaimer` component, never re-typed.
+- **Workspace mode.** The app defaults to a demo experience (Northgate
+  Logistics Inc. fixtures) for everyone; a signed-in admin can switch to a
+  real, empty "production" workspace via `useWorkspaceMode()`. See
+  CONVENTIONS.md's Workspace mode section before wiring a module's fixtures
+  to real persistence — the pattern (and the module-by-module rollout it's
+  part of) is already established.
 
 ## Design handoffs
 
