@@ -162,7 +162,9 @@ their own queries. **Home followed in Phase 9** the same way: a brand-new
 workspace keeps the welcome state (`HomeProductionEmptyState`), and once
 records exist `HomeProductionView` renders the real command centre —
 stat tiles deep-linking to modules, a due-soon list over cases + tasks
-(overdue flagged), and a policy-attention row.
+(overdue flagged), and a policy-attention row. **Calendar followed in
+Phase 10**: the demo's month grid rebuilt over real case/task due dates,
+with month navigation from today.
 
 ## Icons & assets
 

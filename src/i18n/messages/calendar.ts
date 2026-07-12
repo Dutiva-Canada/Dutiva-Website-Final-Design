@@ -31,4 +31,24 @@ export const calendarMessages = defineMessages({
     en: 'Scheduled for July {day}, 2026.',
     fr: 'Prévu pour le {day} juillet 2026.', // [FR self-authored]
   },
+
+  /* ── Production calendar (real due dates — no design-handoff counterpart;
+     [FR self-authored] throughout) ───────────────────────────────────────── */
+  calendar_prod_loading: { en: 'Loading…', fr: 'Chargement…' },
+  calendar_prod_error: {
+    en: 'Couldn’t load deadlines.',
+    fr: 'Impossible de charger les échéances.',
+  },
+  calendar_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  calendar_prod_prev_month: { en: 'Previous month', fr: 'Mois précédent' },
+  calendar_prod_next_month: { en: 'Next month', fr: 'Mois suivant' },
+  calendar_prod_deadlines: { en: 'Deadlines this month', fr: 'Échéances ce mois-ci' },
+  calendar_prod_none_month: {
+    en: 'No deadlines this month.',
+    fr: 'Aucune échéance ce mois-ci.',
+  },
+  calendar_prod_source_note: {
+    en: 'Due dates from your open cases and tasks.',
+    fr: 'Échéances tirées de vos dossiers et tâches ouverts.',
+  },
 })

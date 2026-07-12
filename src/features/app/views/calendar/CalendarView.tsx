@@ -7,6 +7,8 @@ import type { CalendarEvent } from '@/data'
 import { chipToneClass } from '@/components/chips'
 import { useRail } from '@/features/app/rail/railContext'
 import type { RailContextValue } from '@/features/app/rail/railContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { CalendarProductionView } from './CalendarProductionView'
 
 /**
  * Calendar view — the July 2026 month grid with event chips plus the
@@ -66,11 +68,7 @@ function openEventRail(openRail: RailContextValue['openRail'], ev: CalendarEvent
 
 function DayLabel({ label }: { readonly label: Bi }) {
   const { x } = useI18n()
-  return (
-    <div className="text-center text-[11px] font-bold text-text-muted">
-      {x(label)}
-    </div>
-  )
+  return <div className="text-center text-[11px] font-bold text-text-muted">{x(label)}</div>
 }
 
 function EventChip({ ev }: { readonly ev: CalendarEvent }) {
@@ -101,9 +99,7 @@ function DayCell({ cell }: { readonly cell: DayCell }) {
     >
       <div
         className={`text-[12px] ${
-          day === calendarMonth.todayDay
-            ? 'font-bold text-accent'
-            : 'font-semibold text-text-2'
+          day === calendarMonth.todayDay ? 'font-bold text-accent' : 'font-semibold text-text-2'
         }`}
       >
         {day}
@@ -143,6 +139,13 @@ function UpcomingEvent({ ev }: { readonly ev: CalendarEvent }) {
 }
 
 export function CalendarView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  /* Production: the same month grid over real case/task due dates. */
+  if (workspaceMode === 'production') return <CalendarProductionView />
+  return <CalendarDemoView />
+}
+
+function CalendarDemoView() {
   const { x } = useI18n()
 
   return (
