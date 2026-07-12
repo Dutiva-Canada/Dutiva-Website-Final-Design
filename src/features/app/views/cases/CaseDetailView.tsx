@@ -17,6 +17,8 @@ import {
 import type { ComplianceItem, Task } from '@/data'
 import { useRail } from '@/features/app/rail/railContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { CaseDetailProductionView } from './CaseDetailProductionView'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import {
   contextFromEmployee,
@@ -61,6 +63,13 @@ import type {
  * The tab bodies live in `caseDetailTabs.tsx`; this file owns all state.
  */
 export function CaseDetailView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  /* Production: the real working record (hr_cases + hr_case_notes). */
+  if (workspaceMode === 'production') return <CaseDetailProductionView />
+  return <CaseDetailDemoView />
+}
+
+function CaseDetailDemoView() {
   const { caseId } = useParams()
   const caze = caseId ? findCase(caseId) : undefined
   if (!caze) return <CaseNotFound />

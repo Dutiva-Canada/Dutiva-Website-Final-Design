@@ -291,3 +291,149 @@ describe('CasesView in production mode', () => {
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'resolved' }))
   })
 })
+
+describe('CaseDetailView in production mode', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  it('shows the real case record and appends a note through the real insert path', async () => {
+    const CASE_ROW = {
+      id: 'case-1',
+      title: 'Accommodation — ergonomic assessment',
+      case_type: 'Accommodation',
+      employee_id: null,
+      province: 'Ontario',
+      status: 'open',
+      due_date: '2026-08-01',
+    }
+    const noteRows: Record<string, unknown>[] = [
+      { id: 'n1', body: 'Assessment scheduled with provider.', created_at: '2026-07-10T10:00:00Z' },
+    ]
+    const noteInsert = vi.fn((row: Record<string, unknown>) => ({
+      select: () => ({
+        single: () => {
+          const created = {
+            id: `n${noteRows.length + 1}`,
+            body: row.body,
+            created_at: '2026-07-12T13:00:00Z',
+          }
+          noteRows.push(created)
+          return Promise.resolve({ data: created, error: null })
+        },
+      }),
+    }))
+
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { id: 'u1', email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn((fn: string) =>
+          Promise.resolve(
+            fn === 'is_admin_user' ? { data: true, error: null } : { data: null, error: null },
+          ),
+        ),
+        from: vi.fn((table: string) => {
+          if (table === 'workspace_preferences') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () => Promise.resolve({ data: { mode: 'production' }, error: null }),
+                }),
+              }),
+            }
+          }
+          if (table === 'profiles') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () =>
+                    Promise.resolve({
+                      data: {
+                        legal_name: 'Dutiva Canada Inc.',
+                        company_name: null,
+                        primary_contact: 'Martin Constantineau',
+                        province: 'Ontario',
+                        city: 'Ottawa',
+                      },
+                      error: null,
+                    }),
+                }),
+              }),
+            }
+          }
+          if (table === 'organization_members') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    limit: () => ({
+                      maybeSingle: () =>
+                        Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                    }),
+                  }),
+                }),
+              }),
+            }
+          }
+          if (table === 'hr_cases') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () => Promise.resolve({ data: CASE_ROW, error: null }),
+                  order: () => Promise.resolve({ data: [CASE_ROW], error: null }),
+                }),
+              }),
+            }
+          }
+          if (table === 'hr_case_notes') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  order: () => Promise.resolve({ data: [...noteRows], error: null }),
+                }),
+              }),
+              insert: noteInsert,
+            }
+          }
+          throw new Error(`unexpected table: ${table}`)
+        }),
+      },
+    }))
+    vi.resetModules()
+
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { CaseDetailView: CaseDetailViewFresh } = await import('./CaseDetailView')
+
+    renderAppFresh(<CaseDetailViewFresh />, {
+      route: '/app/cases/case-1',
+      path: '/app/cases/:caseId',
+    })
+
+    /* Real facts header + existing note. */
+    expect(await screen.findByText('Accommodation — ergonomic assessment')).toBeInTheDocument()
+    expect(screen.getByText('2026-08-01')).toBeInTheDocument()
+    expect(screen.getByText('Assessment scheduled with provider.')).toBeInTheDocument()
+    /* Demo fixture detail is gone. */
+    expect(screen.queryByText('Advisor recommendation')).not.toBeInTheDocument()
+
+    /* Add a note through the real path. */
+    fireEvent.change(screen.getByLabelText('Add a note to the case record…'), {
+      target: { value: 'Provider confirmed for next week.' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Add note' }))
+
+    expect(await screen.findByText('Provider confirmed for next week.')).toBeInTheDocument()
+    expect(noteInsert).toHaveBeenCalledWith({
+      organization_id: 'org-1',
+      case_id: 'case-1',
+      body: 'Provider confirmed for next week.',
+    })
+  })
+})

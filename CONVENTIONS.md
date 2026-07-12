@@ -164,7 +164,11 @@ records exist `HomeProductionView` renders the real command centre —
 stat tiles deep-linking to modules, a due-soon list over cases + tasks
 (overdue flagged), and a policy-attention row. **Calendar followed in
 Phase 10**: the demo's month grid rebuilt over real case/task due dates,
-with month navigation from today.
+with month navigation from today. **Case detail followed in Phase 11**
+(`public.hr_case_notes`, migration 0009): production case rows open a
+real working record — facts header, status select, and a notes thread.
+Child tables denormalize `organization_id` so RLS stays a direct
+`is_org_member`/`is_org_admin` check instead of a join.
 
 ## Icons & assets
 
