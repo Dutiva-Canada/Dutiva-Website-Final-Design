@@ -98,6 +98,30 @@ these routes — never view-state flags.
 - Sample people/cases (Jordan Mensah, etc.) are realistic fixtures, not shippable
   content — keep them clearly grouped under `src/data/`.
 
+## Workspace mode (demo ⇄ production)
+
+`useWorkspaceMode()` (`src/features/app/workspaceMode/`) resolves to `'demo'`
+or `'production'` and exposes the current `identity` (company + user). It
+defaults to `'demo'` — today's Northgate Logistics Inc./Riley Summers
+experience — for everyone; `'production'` only ever activates for a
+signed-in, confirmed admin (`is_admin_user()` RPC, backed by the real
+`admin_users` table — today: just Martin) who has explicitly stored that
+preference (`workspace_preferences`, RLS-gated to the admin's own row). No
+Supabase config, signed-out, or non-admin all resolve to `'demo'`, so this
+is safe to read from any view without a route guard or breaking tests
+(`VITE_SUPABASE_*` are forced empty for the whole suite).
+
+Phase 1 (this feature's first PR) wired the toggle itself (Settings →
+Workspace, admin-only), the shell identity (`Sidebar.tsx`), and gave Home a
+real empty state (`HomeProductionEmptyState.tsx`) when in production. Every
+other module (Cases, Employees, Compliance, Tasks, …) still renders its
+`src/data/` fixtures regardless of mode — wiring each one to
+`useWorkspaceMode()` (real empty state now, real persistence later) is
+follow-up work, one module per PR. When you pick one up: gate its fixture
+import on `mode === 'production'` the same way `HomeView.tsx` does, and add
+an empty-state view alongside the existing fixture-driven one rather than
+threading conditionals through it.
+
 ## Icons & assets
 
 - **lucide-react only** (pinned `^0.542.0`), stroke width per prototype (app uses
