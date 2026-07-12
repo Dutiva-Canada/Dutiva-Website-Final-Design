@@ -1,0 +1,112 @@
+import { z } from 'zod'
+import { supabase } from '@/lib/supabaseClient'
+
+/**
+ * Real persistence for Case Files (production mode) — public.hr_cases,
+ * org-scoped by RLS (migration 0007). Same boundary contract as the
+ * employees productionApi: zod-validated rows, throws on failure (these
+ * calls only run for the signed-in admin in production, where an error
+ * must surface).
+ */
+
+export type ProductionCaseType = 'Termination' | 'Performance' | 'Accommodation' | 'Onboarding'
+export type ProductionCaseStatus = 'open' | 'in_review' | 'resolved'
+
+export const PRODUCTION_CASE_TYPES: readonly ProductionCaseType[] = [
+  'Termination',
+  'Performance',
+  'Accommodation',
+  'Onboarding',
+]
+
+export const PRODUCTION_CASE_STATUSES: readonly ProductionCaseStatus[] = [
+  'open',
+  'in_review',
+  'resolved',
+]
+
+export interface ProductionCase {
+  id: string
+  title: string
+  caseType: ProductionCaseType
+  employeeId: string | null
+  province: string
+  status: ProductionCaseStatus
+  dueDate: string | null
+}
+
+export interface NewCase {
+  title: string
+  caseType: ProductionCaseType
+  employeeId: string
+  province: string
+  dueDate: string
+}
+
+const rowSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  case_type: z.enum(['Termination', 'Performance', 'Accommodation', 'Onboarding']),
+  employee_id: z.string().nullable(),
+  province: z.string(),
+  status: z.enum(['open', 'in_review', 'resolved']),
+  due_date: z.string().nullable(),
+})
+
+const SELECT_COLUMNS = 'id, title, case_type, employee_id, province, status, due_date'
+
+function toCase(row: z.infer<typeof rowSchema>): ProductionCase {
+  return {
+    id: row.id,
+    title: row.title,
+    caseType: row.case_type,
+    employeeId: row.employee_id,
+    province: row.province,
+    status: row.status,
+    dueDate: row.due_date,
+  }
+}
+
+export async function listCases(organizationId: string): Promise<ProductionCase[]> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('hr_cases')
+    .select(SELECT_COLUMNS)
+    .eq('organization_id', organizationId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return z.array(rowSchema).parse(data).map(toCase)
+}
+
+export async function addCase(organizationId: string, fields: NewCase): Promise<ProductionCase> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('hr_cases')
+    .insert({
+      organization_id: organizationId,
+      title: fields.title,
+      case_type: fields.caseType,
+      employee_id: fields.employeeId || null,
+      province: fields.province,
+      due_date: fields.dueDate || null,
+    })
+    .select(SELECT_COLUMNS)
+    .single()
+  if (error) throw error
+  return toCase(rowSchema.parse(data))
+}
+
+export async function updateCaseStatus(id: string, status: ProductionCaseStatus): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { error } = await supabase
+    .from('hr_cases')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export async function removeCase(id: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { error } = await supabase.from('hr_cases').delete().eq('id', id)
+  if (error) throw error
+}

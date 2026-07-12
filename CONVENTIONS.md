@@ -140,6 +140,9 @@ and the production roster lives in its own lean component
 throw on failure rather than silently emptying). Follow that shape —
 per-tenant table keyed by `organization_id`, a `productionApi.ts`
 boundary, a separate production view component — for the next module.
+**Cases followed it in Phase 4** (`public.hr_cases`, migration 0007;
+`CasesProductionView` adds the first status-update write path and links
+cases to real employees via `employee_id`).
 
 ## Icons & assets
 

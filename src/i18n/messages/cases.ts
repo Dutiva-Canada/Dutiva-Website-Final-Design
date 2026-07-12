@@ -184,4 +184,50 @@ export const casesMessages = defineMessages({
   },
   /* A11y-only (tablist labels). */
   cases_tabs_aria: { en: 'Case workspace sections', fr: 'Sections du dossier' }, // [FR self-authored]
+
+  /* ── Production case files (real persistence — no design-handoff
+     counterpart; [FR self-authored] throughout) ─────────────────────────── */
+  cases_prod_new: { en: 'New case', fr: 'Nouveau dossier' },
+  cases_prod_cancel: { en: 'Cancel', fr: 'Annuler' },
+  cases_prod_title_label: { en: 'Case title', fr: 'Titre du dossier' },
+  cases_prod_type: { en: 'Case type', fr: 'Type de dossier' },
+  cases_prod_employee: { en: 'Employee (optional)', fr: 'Employé (facultatif)' },
+  cases_prod_employee_none: { en: 'No linked employee', fr: 'Aucun employé lié' },
+  cases_prod_province: { en: 'Province', fr: 'Province' },
+  cases_prod_due: { en: 'Due date', fr: 'Échéance' },
+  cases_prod_save: { en: 'Create case', fr: 'Créer le dossier' },
+  cases_prod_count_one: { en: 'case', fr: 'dossier' },
+  cases_prod_count_many: { en: 'cases', fr: 'dossiers' },
+  cases_prod_loading: { en: 'Loading…', fr: 'Chargement…' },
+  cases_prod_empty_title: { en: 'No cases yet', fr: 'Aucun dossier pour l’instant' },
+  cases_prod_empty_body: {
+    en: 'Open your first case to start tracking real HR work.',
+    fr: 'Ouvrez votre premier dossier pour commencer à suivre le travail RH réel.',
+  },
+  cases_prod_error: { en: 'Couldn’t load cases.', fr: 'Impossible de charger les dossiers.' },
+  cases_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  cases_prod_added: { en: 'Case created', fr: 'Dossier créé' },
+  cases_prod_add_failed: {
+    en: 'Couldn’t create the case. Try again.',
+    fr: 'Impossible de créer le dossier. Réessayez.',
+  },
+  cases_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  cases_prod_removed: { en: 'Case removed', fr: 'Dossier retiré' },
+  cases_prod_remove_failed: {
+    en: 'Couldn’t remove the case.',
+    fr: 'Impossible de retirer le dossier.',
+  },
+  cases_prod_status_updated: { en: 'Status updated', fr: 'Statut mis à jour' },
+  cases_prod_status_update_failed: {
+    en: 'Couldn’t update the status.',
+    fr: 'Impossible de mettre à jour le statut.',
+  },
+  cases_prod_status_aria: { en: 'Case status', fr: 'Statut du dossier' },
+  cases_prod_type_termination: { en: 'Termination', fr: 'Cessation d’emploi' },
+  cases_prod_type_performance: { en: 'Performance', fr: 'Rendement' },
+  cases_prod_type_accommodation: { en: 'Accommodation', fr: 'Accommodement' },
+  cases_prod_type_onboarding: { en: 'Onboarding', fr: 'Intégration' },
+  cases_prod_status_open: { en: 'Open', fr: 'Ouvert' },
+  cases_prod_status_in_review: { en: 'In review', fr: 'En révision' },
+  cases_prod_status_resolved: { en: 'Resolved', fr: 'Résolu' },
 })
