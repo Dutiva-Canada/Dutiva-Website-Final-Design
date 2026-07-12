@@ -172,6 +172,10 @@ Child tables denormalize `organization_id` so RLS stays a direct
 profiles followed in Phase 12** (`public.hr_employee_notes`, migration
 0010), adding the first cross-module linkage: a profile lists the
 employee's open `hr_cases`, linking through to the case detail.
+**Phase 13 made the sidebar badges live in production**
+(`useProductionNavBadges` + `countOpen*` head-count queries in each
+productionApi): real open counts for Cases/Tasks/Compliance, refreshed on
+every route change, shown only when a module has open work.
 
 ## Icons & assets
 
