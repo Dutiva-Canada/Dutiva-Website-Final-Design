@@ -75,7 +75,8 @@ export const appViewRoutes: RouteObject[] = [
      production); the fixture profile route stays gated. */
   { path: 'employees', element: <EmployeesView /> },
   { path: 'employees/:employeeId', element: gated(<EmployeeProfileView />) },
-  { path: 'compliance', element: gated(<ComplianceView />) },
+  /* Compliance handles both modes itself (real persistence in production). */
+  { path: 'compliance', element: <ComplianceView /> },
   { path: 'policies', element: gated(<PoliciesView />) },
   { path: 'templates', element: gated(<TemplatesView />) },
   /* Tasks handles both modes itself (real persistence in production). */
