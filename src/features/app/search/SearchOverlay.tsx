@@ -5,6 +5,7 @@ import { Lock, Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { searchMessages as M } from '@/i18n/messages/search'
 import { useEscapeToClose } from '@/lib/escapeStack'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useSearch } from './searchContext'
 import { filterSearchEntries, pinnedChatEntries, searchTabs } from './searchCorpus'
 import type {
@@ -38,11 +39,18 @@ function SearchDialog() {
   const [tab, setTab] = useState<SearchTabKey>('all')
   const [rawActiveIdx, setRawActiveIdx] = useState(0)
 
-  const results = useMemo(() => filterSearchEntries(tab, query, lang), [tab, query, lang])
+  /* The corpus is built from the demo fixtures — in production mode the
+     workspace is empty, so search over it is too. */
+  const { mode } = useWorkspaceMode()
+  const production = mode === 'production'
+  const results = useMemo(
+    () => (production ? [] : filterSearchEntries(tab, query, lang)),
+    [production, tab, query, lang],
+  )
   /* Prototype clamps the active row against the current result count. */
   const activeIdx = Math.min(rawActiveIdx, Math.max(results.length - 1, 0))
 
-  const showRecent = !query
+  const showRecent = !query && !production
   const noResults = !!query && results.length === 0
 
   /* Focus the input on open; restore focus to the trigger on close
@@ -201,9 +209,11 @@ function SearchDialog() {
             </>
           )}
 
-          <div className="px-[10px] pt-[10px] pb-[4px] text-[11px] font-bold tracking-[.04em] text-text-muted uppercase">
-            {x(M.search_results)}
-          </div>
+          {!(production && !query) && (
+            <div className="px-[10px] pt-[10px] pb-[4px] text-[11px] font-bold tracking-[.04em] text-text-muted uppercase">
+              {x(M.search_results)}
+            </div>
+          )}
           {results.map((r, i) => (
             <button
               key={r.id}

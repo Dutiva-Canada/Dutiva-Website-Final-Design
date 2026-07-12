@@ -1,13 +1,26 @@
 /* oxlint-disable react/only-export-components -- route table, not a component
    module: the lazy() wrappers here don't participate in fast refresh. */
 import { lazy } from 'react'
+import type { ReactNode } from 'react'
 import type { RouteObject } from 'react-router-dom'
+import { ModeGate } from '@/features/app/workspaceMode/ModeGate'
 
 /**
  * Child routes rendered inside the AppShell outlet. Each view is lazy-loaded
  * so the marketing landing page (and any single view) doesn't pull the whole
  * workspace into the initial chunk.
+ *
+ * gated() wraps a fixture-driven view in ModeGate: demo renders it as-is,
+ * production renders the shared empty state. Ungated on purpose: home and
+ * advisor (own production variants), knowledge (generic HR-law reference +
+ * the real guidance panel), settings (hosts the toggle), and the Document
+ * Studio screens (the template catalog is real product content — only the
+ * fixture repository is gated). Remove a view's gate when it gains real
+ * persistence.
  */
+function gated(view: ReactNode) {
+  return <ModeGate>{view}</ModeGate>
+}
 /* prettier-ignore */ const HomeView = lazy(() => import('@/features/app/views/home/HomeView').then((m) => ({ default: m.HomeView })))
 /* prettier-ignore */ const AdvisorView = lazy(() => import('@/features/app/views/advisor/AdvisorView').then((m) => ({ default: m.AdvisorView })))
 /* Advisor Memory (person / case / chat recall / manager) */
@@ -45,7 +58,7 @@ export const appViewRoutes: RouteObject[] = [
   { path: 'advisor', element: <AdvisorView /> },
   {
     path: 'memory',
-    element: <MemoryLayout />,
+    element: gated(<MemoryLayout />),
     children: [
       { index: true, element: <MemoryManagerView /> },
       { path: 'people/:personId', element: <PersonMemoryView /> },
@@ -53,31 +66,31 @@ export const appViewRoutes: RouteObject[] = [
       { path: 'conversations/:threadId', element: <ChatRecallView /> },
     ],
   },
-  { path: 'workflows', element: <WorkflowsView /> },
-  { path: 'cases', element: <CasesView /> },
-  { path: 'cases/:caseId', element: <CaseDetailView /> },
-  { path: 'employees', element: <EmployeesView /> },
-  { path: 'employees/:employeeId', element: <EmployeeProfileView /> },
-  { path: 'compliance', element: <ComplianceView /> },
-  { path: 'policies', element: <PoliciesView /> },
-  { path: 'templates', element: <TemplatesView /> },
-  { path: 'tasks', element: <TasksView /> },
-  { path: 'calendar', element: <CalendarView /> },
-  { path: 'reports', element: <ReportsView /> },
+  { path: 'workflows', element: gated(<WorkflowsView />) },
+  { path: 'cases', element: gated(<CasesView />) },
+  { path: 'cases/:caseId', element: gated(<CaseDetailView />) },
+  { path: 'employees', element: gated(<EmployeesView />) },
+  { path: 'employees/:employeeId', element: gated(<EmployeeProfileView />) },
+  { path: 'compliance', element: gated(<ComplianceView />) },
+  { path: 'policies', element: gated(<PoliciesView />) },
+  { path: 'templates', element: gated(<TemplatesView />) },
+  { path: 'tasks', element: gated(<TasksView />) },
+  { path: 'calendar', element: gated(<CalendarView />) },
+  { path: 'reports', element: gated(<ReportsView />) },
   { path: 'knowledge', element: <KnowledgeView /> },
-  { path: 'communications', element: <CommunicationsView /> },
-  { path: 'compensation', element: <CompensationView /> },
-  { path: 'wellbeing', element: <WellbeingView /> },
+  { path: 'communications', element: gated(<CommunicationsView />) },
+  { path: 'compensation', element: gated(<CompensationView />) },
+  { path: 'wellbeing', element: gated(<WellbeingView />) },
   { path: 'settings', element: <SettingsView /> },
   {
     path: 'documents',
     element: <DocumentsLayout />,
     children: [
-      { index: true, element: <RepositoryScreen /> },
+      { index: true, element: gated(<RepositoryScreen />) },
       { path: 'studio', element: <StudioScreen /> },
       { path: 'templates/:tid', element: <TemplateDetailScreen /> },
       { path: 'generate/:templateId', element: <GenerateScreen /> },
-      { path: ':docId', element: <DocumentDetailScreen /> },
+      { path: ':docId', element: gated(<DocumentDetailScreen />) },
     ],
   },
 ]

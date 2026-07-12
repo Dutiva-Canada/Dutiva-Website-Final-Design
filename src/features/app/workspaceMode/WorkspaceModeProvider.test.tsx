@@ -40,7 +40,13 @@ describe('WorkspaceModeProvider', () => {
     session: { user: { id: string; email: string } } | null
     isAdmin?: boolean
     storedMode?: 'demo' | 'production'
-    profile?: { legal_name: string | null; company_name: string | null; primary_contact: string | null }
+    profile?: {
+      legal_name: string | null
+      company_name: string | null
+      primary_contact: string | null
+      province: string | null
+      city: string | null
+    }
   }) {
     const from = vi.fn((table: string) => {
       if (table === 'workspace_preferences') {
@@ -117,6 +123,8 @@ describe('WorkspaceModeProvider', () => {
         legal_name: 'Dutiva Canada Inc.',
         company_name: null,
         primary_contact: 'Martin Constantineau',
+        province: 'Ontario',
+        city: 'Ottawa',
       },
     })
     await renderProbe()

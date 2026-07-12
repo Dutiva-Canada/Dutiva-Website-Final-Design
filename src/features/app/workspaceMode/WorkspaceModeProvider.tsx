@@ -65,6 +65,8 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         storedMode,
         identity: {
           companyName: profile?.companyName ?? 'Dutiva Canada Inc.',
+          province: profile?.province ?? 'Ontario',
+          city: profile?.city ?? 'Ottawa',
           user: {
             name: contactName,
             initials: initialsOf(contactName),
@@ -92,7 +94,8 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
   )
 
   const value = useMemo(() => {
-    const mode: WorkspaceMode = admin.isAdmin && admin.storedMode === 'production' ? 'production' : 'demo'
+    const mode: WorkspaceMode =
+      admin.isAdmin && admin.storedMode === 'production' ? 'production' : 'demo'
     return {
       mode,
       isAdmin: admin.isAdmin,

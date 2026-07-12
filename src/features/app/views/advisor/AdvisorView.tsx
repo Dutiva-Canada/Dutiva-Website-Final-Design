@@ -10,6 +10,7 @@ import { sendAdvisorMessage } from '@/features/app/advisor/chatApi'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import {
   chats,
   followupFallbackText,
@@ -133,6 +134,7 @@ export function AdvisorView() {
   const { showToast } = useToasts()
   const { openDocStudio } = useDocStudio()
   const { status: authStatus } = useAuth()
+  const { mode: workspaceMode } = useWorkspaceMode()
   /* Real-backend conversation id for the active thread's free-form messages
      (see sendInThread) — reset alongside the engine whenever the thread
      changes. Scripted flows/quick-forms/follow-ups never touch this. */
@@ -714,16 +716,22 @@ export function AdvisorView() {
 
   /* Scenario threads group like the handoff prototype: s1 under Pinned only,
      the rest under Today. Fixture chats keep the App v2 grouping (a pinned
-     chat also shows in its recency bucket). */
+     chat also shows in its recency bucket). In production mode only the
+     real conversations started this session appear — the demo scenario and
+     Northgate fixture threads are demo-only. */
   const allThreads: { id: string; title: Bi; pinned: boolean; bucket: string }[] = [
     ...sessionChats.map((c) => ({ id: c.id, title: c.title, pinned: c.pinned, bucket: c.bucket })),
-    ...scenarioThreads.map((t) => ({
-      id: t.id,
-      title: t.scenario.title,
-      pinned: t.scenario.pinned,
-      bucket: t.scenario.pinned ? 'pinned' : 'today',
-    })),
-    ...chats.map((c) => ({ id: c.id, title: c.title, pinned: c.pinned, bucket: c.bucket })),
+    ...(workspaceMode === 'production'
+      ? []
+      : [
+          ...scenarioThreads.map((t) => ({
+            id: t.id,
+            title: t.scenario.title,
+            pinned: t.scenario.pinned,
+            bucket: t.scenario.pinned ? 'pinned' : 'today',
+          })),
+          ...chats.map((c) => ({ id: c.id, title: c.title, pinned: c.pinned, bucket: c.bucket })),
+        ]),
   ]
   const groups: ThreadGroup[] = [
     { label: M.advisorview_group_pinned, items: allThreads.filter((t) => t.pinned) },

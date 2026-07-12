@@ -120,6 +120,8 @@ describe('SettingsView workspace-mode toggle (admin only)', () => {
                       legal_name: 'Dutiva Canada Inc.',
                       company_name: null,
                       primary_contact: 'Martin Constantineau',
+                      province: 'Ontario',
+                      city: 'Ottawa',
                     },
                     error: null,
                   }),
@@ -149,7 +151,18 @@ describe('SettingsView workspace-mode toggle (admin only)', () => {
       expect.objectContaining({ user_id: 'u1', mode: 'production' }),
     )
 
+    /* Workspace card swaps to the real region; the Northgate fixture
+       sections (team, audit log, integrations & billing) disappear. */
+    expect(screen.getByText('Ottawa')).toBeInTheDocument()
+    expect(screen.queryByText('Ottawa (HQ) · Montréal · Vancouver')).not.toBeInTheDocument()
+    expect(screen.queryByText('Riley Summers')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Riley Summers viewed compensation — Jordan Mensah'),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Integrations & billing')).not.toBeInTheDocument()
+
     await user.click(screen.getByRole('tab', { name: 'Demo' }))
     expect(await screen.findByText('Northgate Logistics Inc.')).toBeInTheDocument()
+    expect(screen.getByText('Riley Summers')).toBeInTheDocument()
   })
 })

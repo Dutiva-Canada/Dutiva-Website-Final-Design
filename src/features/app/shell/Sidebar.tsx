@@ -75,7 +75,7 @@ export function Sidebar({
   const { openSearch } = useSearch()
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const { identity } = useWorkspaceMode()
+  const { identity, mode: workspaceMode } = useWorkspaceMode()
 
   /* Hover-rail expansion with the prototype's 150ms leave delay. */
   const [hovered, setHovered] = useState(false)
@@ -211,7 +211,13 @@ export function Sidebar({
             {group.items.map((item) => (
               <NavLinkItem
                 key={item.key}
-                item={item}
+                /* Nav badges are fixture counts (open cases, tasks, …) —
+                   production has no data behind them yet. */
+                item={
+                  workspaceMode === 'production' && item.badge
+                    ? { ...item, badge: undefined }
+                    : item
+                }
                 expanded={expanded}
                 active={item.isActive ? item.isActive(pathname) : isNavActive(item.to, pathname)}
                 onNavigate={onCloseDrawer}

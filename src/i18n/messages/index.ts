@@ -31,6 +31,7 @@ import { doclibMessages } from './doclib'
 import { guidanceMessages } from './guidance'
 import { authMessages } from './auth'
 import { memoryMessages } from './memory'
+import { workspaceModeMessages } from './workspaceMode'
 
 /**
  * Merged message catalogue. Each feature contributes one module keyed by
@@ -72,6 +73,7 @@ export const messages = {
   ...guidanceMessages,
   ...authMessages,
   ...memoryMessages,
+  ...workspaceModeMessages,
 } as const
 
 export type MessageKey = keyof typeof messages

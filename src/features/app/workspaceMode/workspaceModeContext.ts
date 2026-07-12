@@ -5,6 +5,9 @@ export type WorkspaceMode = 'demo' | 'production'
 
 export interface WorkspaceIdentity {
   companyName: string
+  /** Real operating region — set only on the production identity (from `profiles`). */
+  province?: string
+  city?: string
   user: {
     name: string
     initials: string

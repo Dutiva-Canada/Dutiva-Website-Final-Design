@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
+import { AuthProvider } from '@/features/app/auth/AuthProvider'
+import { WorkspaceModeProvider } from '@/features/app/workspaceMode/WorkspaceModeProvider'
 import { SearchProvider } from './SearchProvider'
 import { useSearch } from './searchContext'
 import { SearchOverlay } from './SearchOverlay'
@@ -28,15 +30,22 @@ function LocationProbe() {
 }
 
 function renderHarness() {
+  /* Auth + workspace-mode providers: SearchOverlay reads useWorkspaceMode()
+     (production empties the corpus). Supabase is unconfigured in the suite,
+     so this resolves to demo and the corpus behaves exactly as before. */
   return render(
     <LangProvider>
-      <SearchProvider>
-        <MemoryRouter initialEntries={['/app/home']}>
-          <OpenTrigger />
-          <SearchOverlay />
-          <LocationProbe />
-        </MemoryRouter>
-      </SearchProvider>
+      <AuthProvider>
+        <WorkspaceModeProvider>
+          <SearchProvider>
+            <MemoryRouter initialEntries={['/app/home']}>
+              <OpenTrigger />
+              <SearchOverlay />
+              <LocationProbe />
+            </MemoryRouter>
+          </SearchProvider>
+        </WorkspaceModeProvider>
+      </AuthProvider>
     </LangProvider>,
   )
 }

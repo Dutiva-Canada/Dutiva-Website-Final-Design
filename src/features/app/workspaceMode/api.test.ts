@@ -82,7 +82,13 @@ describe('workspaceMode api', () => {
 
   it('fetchAdminProfile falls back to Dutiva Canada Inc. defaults for null fields', async () => {
     const maybeSingle = vi.fn().mockResolvedValue({
-      data: { legal_name: null, company_name: null, primary_contact: null },
+      data: {
+        legal_name: null,
+        company_name: null,
+        primary_contact: null,
+        province: null,
+        city: null,
+      },
       error: null,
     })
     const eq = vi.fn().mockReturnValue({ maybeSingle })
@@ -96,6 +102,8 @@ describe('workspaceMode api', () => {
     expect(await api.fetchAdminProfile('u1')).toEqual({
       companyName: 'Dutiva Canada Inc.',
       contactName: 'Martin Constantineau',
+      province: 'Ontario',
+      city: 'Ottawa',
     })
   })
 
