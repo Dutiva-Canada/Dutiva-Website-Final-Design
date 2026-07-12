@@ -95,10 +95,15 @@ describe('AdvisorView', () => {
     })
 
     it('runs the termination intake: quick form → answer chips → assessment with docs and follow-ups', () => {
-      renderApp(<AdvisorView />, { route: '/app/advisor' })
-
-      /* Start the flagship flow from the suggestion grid. */
-      fireEvent.click(screen.getByRole('button', { name: /Terminate an employee/ }))
+      /* The intake flow is started by its navigation contract (Home /
+         Workflows dispatch { prompt, flowKey } router state). */
+      renderApp(<AdvisorView />, {
+        route: '/app/advisor',
+        state: {
+          prompt: 'I need to terminate an employee in Ontario.',
+          flowKey: 'termination',
+        },
+      })
       expect(screen.getByText('I need to terminate an employee in Ontario.')).toBeInTheDocument()
       expect(screen.getByText('Termination — new case')).toBeInTheDocument()
 
@@ -135,28 +140,57 @@ describe('AdvisorView', () => {
       ).toBeInTheDocument()
     })
 
-    it('starts a routed flow from the home composer and lists the new thread under Today', () => {
+    it('routes home-composer text to a demo response mode and lists the thread under Today', () => {
       renderApp(<AdvisorView />, { route: '/app/advisor' })
 
       const composer = screen.getByPlaceholderText('Ask Advisor anything about your team…')
-      fireEvent.change(composer, { target: { value: 'We need a remote work policy update' } })
+      fireEvent.change(composer, {
+        target: { value: 'What changed in Ontario employment law this year?' },
+      })
       fireEvent.keyDown(composer, { key: 'Enter' })
 
-      /* New generated thread (policy flow) is selected and grouped under Today. */
-      expect(screen.getByRole('button', { name: /Policy question/ })).toBeInTheDocument()
-      expect(screen.getByText('We need a remote work policy update')).toBeInTheDocument()
-      expect(screen.getByText('Multi-province')).toBeInTheDocument()
+      /* Current-info scenario (s6) is selected and grouped under Today. */
+      expect(screen.getAllByText('What changed in ON law?').length).toBeGreaterThan(0)
+      expect(
+        screen.getByText('What changed in Ontario employment law this year?'),
+      ).toBeInTheDocument()
+      expect(screen.getByText('Ontario — current-source check')).toBeInTheDocument()
 
       act(() => {
         vi.advanceTimersByTime(849 + 8000)
       })
+      expect(screen.getByText(/Working for Workers series continued/)).toBeInTheDocument()
+      /* Info banner + follow-ups render once the turn is done. */
+      expect(screen.getByText('Uses live web sources.')).toBeInTheDocument()
       expect(
-        screen.getByText(/A solid remote work policy for a multi-province team/),
+        screen.getByRole('button', { name: 'Summarize the minimum-wage change' }),
       ).toBeInTheDocument()
-      expect(screen.getByText('Policy is overdue')).toBeInTheDocument()
-      expect(
-        screen.getByRole('button', { name: 'Compare to current in-office policy' }),
-      ).toBeInTheDocument()
+    })
+
+    it('asks for jurisdiction first when no province cue is given (never assumes Ontario)', () => {
+      renderApp(<AdvisorView />, { route: '/app/advisor' })
+
+      const composer = screen.getByPlaceholderText('Ask Advisor anything about your team…')
+      fireEvent.change(composer, {
+        target: { value: "What's the notice period we owe an employee?" },
+      })
+      fireEvent.keyDown(composer, { key: 'Enter' })
+
+      act(() => {
+        vi.advanceTimersByTime(849 + 8000)
+      })
+      /* Jurisdiction-unknown turn: asks first, withholds statutory figures. */
+      expect(screen.getByText(/I need to know the jurisdiction/)).toBeInTheDocument()
+      expect(screen.getByText('Which jurisdiction applies?')).toBeInTheDocument()
+      expect(screen.getAllByText('Confirm jurisdiction before use').length).toBeGreaterThan(0)
+
+      /* Confirming a province resolves the thread to the assumed state. */
+      fireEvent.click(screen.getByRole('button', { name: 'Ontario' }))
+      act(() => {
+        vi.advanceTimersByTime(849 + 8000)
+      })
+      expect(screen.getByText(/Thanks — Ontario it is/)).toBeInTheDocument()
+      expect(screen.getAllByText('Ontario — ESA, 2000').length).toBeGreaterThan(0)
     })
   })
 

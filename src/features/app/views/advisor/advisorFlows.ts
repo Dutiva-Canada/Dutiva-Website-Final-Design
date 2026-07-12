@@ -1,6 +1,7 @@
 import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import type { ChatFlowKey } from '@/data'
+import type { ScenarioBanner } from './advisorScenarios'
 
 /**
  * Advisor conversation-engine content that lives in the view (not entity
@@ -220,9 +221,12 @@ export function freshQuickForm(): QuickFormState {
 
 /**
  * Per-message extras the shared advisor `ChatMessage` doesn't carry:
- * document generate chips, follow-up chips, topic suggest chips, and the
+ * document generate chips, follow-up chips, topic suggest chips, the
  * termination quick form (prototype message fields `docs` / `followups` /
- * `suggestChips` / `quickForm`).
+ * `suggestChips` / `quickForm`), and the response-experience additions —
+ * inline tone banner and the collect-jurisdiction province prompt
+ * (`Advisor Response Experience.dc.html` turn fields `banner` /
+ * `provincePrompt`).
  */
 export interface MessageExtras {
   docs?: string[]
@@ -230,6 +234,9 @@ export interface MessageExtras {
   followups?: string[]
   suggestChips?: SuggestChipSpec[]
   quickForm?: QuickFormState
+  banner?: ScenarioBanner
+  /** Render the ask-for-province chips under this turn. */
+  provincePrompt?: boolean
 }
 
 /**

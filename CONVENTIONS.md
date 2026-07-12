@@ -42,6 +42,8 @@ src/
 | `/app/welcome` | App entry stage (sign-in preview) |
 | `/app` → `/app/home` | Workspace shell redirect |
 | `/app/home · advisor · workflows · cases · employees · compliance · policies · templates · tasks · calendar · reports · knowledge · communications · compensation · wellbeing · settings` | The 16 views |
+| `/app/memory` | Advisor Memory manager |
+| `/app/memory/people/:personId · cases/:caseId · conversations/:threadId` | Memory person / case / chat-recall surfaces |
 | `/app/cases/:caseId` | Case detail |
 | `/app/employees/:employeeId` | Employee profile |
 

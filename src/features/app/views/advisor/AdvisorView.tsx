@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { bi } from '@/i18n/core'
-import type { LText } from '@/i18n/core'
+import type { Bi, LText } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
@@ -20,6 +20,9 @@ import {
 import type { FixtureAction, FixtureToneCard } from '@/data'
 import { AdvisorHome } from './AdvisorHome'
 import { ChatPane } from './ChatPane'
+import type { JurisdictionPillTone } from './ChatPane'
+import { ComplianceWorkspace } from './ComplianceWorkspace'
+import type { WorkspaceState } from './ComplianceWorkspace'
 import { ThreadList } from './ThreadList'
 import type { ThreadGroup } from './ThreadList'
 import {
@@ -34,9 +37,17 @@ import {
   terminationAssessment,
   terminationIntro,
 } from './advisorFlows'
+import {
+  advisorScenarioList,
+  advisorScenarios,
+  routeScenarioFromText,
+  scenarioAck,
+  scenarioAckSignedOut,
+} from './advisorScenarios'
+import type { AdvisorScenario, ScenarioId, ScenarioTurn } from './advisorScenarios'
 import { readNavNewChat, readNavStartFlow } from './advisorNav'
 import { advisorSession } from './advisorSession'
-import type { SessionChat } from './advisorSession'
+import type { SessionChat, ThreadResponseState } from './advisorSession'
 import type { FlowKeyOrFallback, MessageExtras, SuggestChipSpec } from './advisorFlows'
 import type { HomeAction } from '@/features/app/views/home/homeData'
 
@@ -76,6 +87,28 @@ for (const chat of chats) {
     }
   }
 }
+
+/**
+ * The six demo response-mode threads (Advisor chat handoff scenarios) —
+ * always listed; their transcript + workspace payload seed on first select.
+ */
+const scenarioThreadId = (id: ScenarioId) => `scn-${id}`
+
+const scenarioThreads = advisorScenarioList.map((scenario) => ({
+  id: scenarioThreadId(scenario.id),
+  scenario,
+}))
+
+function scenarioForThread(chatId: string | null): AdvisorScenario | undefined {
+  return scenarioThreads.find((t) => t.id === chatId)?.scenario
+}
+
+const freshResponseState = (scenarioId: ScenarioId | null): ThreadResponseState => ({
+  scenarioId,
+  provinceResolved: false,
+  webOn: true,
+  response: null,
+})
 
 /** Freeze in-flight turns when a thread is stashed (switching threads). */
 function settle(messages: ChatMessage[]): ChatMessage[] {
@@ -117,9 +150,7 @@ export function AdvisorView() {
       return next
     })
   }
-  const [extras, setExtras] = useState<Record<string, MessageExtras>>(
-    () => advisorSession.extras,
-  )
+  const [extras, setExtras] = useState<Record<string, MessageExtras>>(() => advisorSession.extras)
   const updateExtras = (
     updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
   ) => {
@@ -129,6 +160,21 @@ export function AdvisorView() {
       return next
     })
   }
+  /* Per-thread response-experience state (scenario, province, web toggle,
+     latest structured payload) — mirrors advisorSession like extras. */
+  const [responseState, setResponseState] = useState<Record<string, ThreadResponseState>>(
+    () => advisorSession.responseState,
+  )
+  const patchResponseState = (chatId: string, patch: Partial<ThreadResponseState>) => {
+    setResponseState((prev) => {
+      const current = prev[chatId] ?? freshResponseState(null)
+      const next = { ...prev, [chatId]: { ...current, ...patch } }
+      advisorSession.responseState = next
+      return next
+    })
+  }
+  /* Compliance Workspace as a sheet below the xl breakpoint. */
+  const [workspaceOpen, setWorkspaceOpen] = useState(false)
   const transcripts = useRef(advisorSession.transcripts)
   const nextEngineId = useRef(1)
   /* Per-mount engine prefix — restored transcript ids never collide with the
@@ -205,7 +251,9 @@ export function AdvisorView() {
     const resumed = advisorSession.activeChatId
     if (
       resumed !== null &&
-      (chats.some((c) => c.id === resumed) || advisorSession.chats.some((c) => c.id === resumed))
+      (chats.some((c) => c.id === resumed) ||
+        advisorSession.chats.some((c) => c.id === resumed) ||
+        scenarioForThread(resumed) !== undefined)
     ) {
       return resumed
     }
@@ -214,6 +262,7 @@ export function AdvisorView() {
   const updateActiveChatId = (id: string | null) => {
     advisorSession.activeChatId = id
     setActiveChatId(id)
+    setWorkspaceOpen(false)
   }
 
   const initialMessages = useRef<ChatMessage[] | null>(null)
@@ -246,16 +295,112 @@ export function AdvisorView() {
   stashRef.current = stashActive
   useEffect(() => () => stashRef.current(), [])
 
+  /* ------------------------------------------------- response experience */
+
+  /**
+   * Append one scenario advisor turn: streams the reply, attaches its chat
+   * extras (banner / gated docs / follow-ups / province prompt), and replaces
+   * the thread's structured payload — a fresh turn context every time, per
+   * the response contract.
+   */
+  const pushScenarioTurn = (chatId: string, turn: ScenarioTurn) => {
+    const turnId = pushAdvisor({ text: turn.reply })
+    const messageExtras: MessageExtras = {}
+    if (turn.banner) messageExtras.banner = turn.banner
+    /* Obey the gates, always — document chips only render when the route
+       allows documents (handoff rule 3). */
+    if ((turn.docs?.length ?? 0) > 0 && turn.response.route.documentsAllowed) {
+      messageExtras.docs = turn.docs
+    }
+    if ((turn.followups?.length ?? 0) > 0) messageExtras.followups = turn.followups
+    if (turn.provincePrompt === true) messageExtras.provincePrompt = true
+    if (Object.keys(messageExtras).length > 0) {
+      updateExtras((prev) => ({ ...prev, [turnId]: messageExtras }))
+    }
+    patchResponseState(chatId, { response: turn.response })
+  }
+
+  /** Start one of the six demo response-mode conversations. */
+  const startScenario = (scenarioId: ScenarioId, userText?: LText) => {
+    const scenario = advisorScenarios[scenarioId]
+    stashActive()
+    const id = `session-${advisorSession.nextChatSeq++}`
+    updateSessionChats((prev) => [
+      {
+        id,
+        title: scenario.title,
+        pinned: false,
+        bucket: 'today',
+        flowKey: 'fallback',
+        scenarioId,
+      },
+      ...prev,
+    ])
+    updateActiveChatId(id)
+    conversationIdRef.current = null
+    setResponseState((prev) => {
+      const next = { ...prev, [id]: freshResponseState(scenarioId) }
+      advisorSession.responseState = next
+      return next
+    })
+    engine.reset([])
+    pushUser(userText ?? scenario.user)
+    pushScenarioTurn(id, scenario.turn)
+  }
+
+  /** Province chip pick on a jurisdiction-unknown turn (prototype `pickProvince`). */
+  const pickProvince = (province: LText) => {
+    const chatId = activeChatId
+    if (chatId === null) return
+    const state = responseState[chatId]
+    if (state === undefined || state.scenarioId === null) return
+    const scenario = advisorScenarios[state.scenarioId]
+    if (!scenario.resolved || state.provinceResolved) return
+    pushUser('', [province])
+    patchResponseState(chatId, { provinceResolved: true })
+    pushScenarioTurn(chatId, scenario.resolved)
+  }
+
+  /** Web-search toggle on a current-info turn (prototype `toggleWeb`). */
+  const toggleWeb = () => {
+    const chatId = activeChatId
+    if (chatId === null) return
+    const state = responseState[chatId]
+    if (state === undefined || state.scenarioId === null) return
+    const scenario = advisorScenarios[state.scenarioId]
+    if (!scenario.webOff) return
+    const webOn = !state.webOn
+    patchResponseState(chatId, { webOn })
+    pushScenarioTurn(chatId, webOn ? scenario.turn : scenario.webOff)
+  }
+
   /* ---------------------------------------------------- thread navigation */
 
   const selectChat = (chatId: string) => {
     if (chatId === activeChatId) return
-    const exists = chats.some((c) => c.id === chatId) || sessionChats.some((c) => c.id === chatId)
+    const scenario = scenarioForThread(chatId)
+    const exists =
+      chats.some((c) => c.id === chatId) ||
+      sessionChats.some((c) => c.id === chatId) ||
+      scenario !== undefined
     if (!exists) return
     stashActive()
     updateActiveChatId(chatId)
     conversationIdRef.current = null
-    engine.reset(transcripts.current.get(chatId) ?? seedFor(chatId))
+    const stashed = transcripts.current.get(chatId)
+    if (scenario && !stashed) {
+      /* First visit to a demo thread — seed and stream it. */
+      setResponseState((prev) => {
+        const next = { ...prev, [chatId]: freshResponseState(scenario.id) }
+        advisorSession.responseState = next
+        return next
+      })
+      engine.reset([])
+      pushUser(scenario.user)
+      pushScenarioTurn(chatId, scenario.turn)
+      return
+    }
+    engine.reset(stashed ?? seedFor(chatId))
   }
   selectChatRef.current = selectChat
 
@@ -339,6 +484,7 @@ export function AdvisorView() {
           .then((result) => {
             conversationIdRef.current = result.conversationId
             pushAdvisor({ text: result.reply || genericAck })
+            patchResponseState(id, { response: result.response })
           })
           .catch((error: unknown) => {
             console.error('advisor: real chat request failed', error)
@@ -367,19 +513,30 @@ export function AdvisorView() {
       cards: flow.cards?.map(toToneCard),
     })
     if ((flow.docs?.length ?? 0) > 0 || (flow.followups?.length ?? 0) > 0) {
-      updateExtras((prev) => ({ ...prev, [turnId]: { docs: flow.docs, followups: flow.followups } }))
+      updateExtras((prev) => ({
+        ...prev,
+        [turnId]: { docs: flow.docs, followups: flow.followups },
+      }))
     }
   }
   startFlowRef.current = startFlow
 
   /**
    * Free-form send inside an active thread (prototype `sendComposer`).
-   * Signed in: routes to the real advisor-chat backend (see chatApi.ts).
-   * Otherwise (or on failure): the prototype's canned acknowledgement —
-   * scripted flows, quick-forms, and follow-up chips are untouched either way.
+   * Demo scenario threads keep the prototype's scripted acknowledgements.
+   * Signed in elsewhere: routes to the real advisor-chat backend (see
+   * chatApi.ts); a structured payload on the result replaces the thread's
+   * workspace payload — and its absence clears it (fresh turn context).
+   * Otherwise (or on failure): the prototype's canned acknowledgement.
    */
   const sendInThread = (text: string) => {
+    const chatId = activeChatId
     pushUser(text)
+    const isScenarioThread = chatId !== null && responseState[chatId]?.scenarioId != null
+    if (isScenarioThread) {
+      pushAdvisor({ text: authStatus === 'signed-in' ? scenarioAck : scenarioAckSignedOut })
+      return
+    }
     if (authStatus !== 'signed-in') {
       pushAdvisor({ text: genericAck })
       return
@@ -389,6 +546,7 @@ export function AdvisorView() {
       .then((result) => {
         conversationIdRef.current = result.conversationId
         pushAdvisor({ text: result.reply || genericAck })
+        if (chatId !== null) patchResponseState(chatId, { response: result.response })
       })
       .catch((error: unknown) => {
         console.error('advisor: real chat request failed', error)
@@ -509,12 +667,62 @@ export function AdvisorView() {
   const activeFixture = activeChatId !== null ? chats.find((c) => c.id === activeChatId) : undefined
   const activeSession =
     activeChatId !== null ? sessionChats.find((c) => c.id === activeChatId) : undefined
-  const hasActiveChat = activeFixture !== undefined || activeSession !== undefined
+  const activeScenarioThread = scenarioForThread(activeChatId)
+  const hasActiveChat =
+    activeFixture !== undefined || activeSession !== undefined || activeScenarioThread !== undefined
   const activeFlowKey: FlowKeyOrFallback =
     activeFixture?.flowKey ?? activeSession?.flowKey ?? 'fallback'
 
-  const allThreads = [
+  /* Response-experience state of the active thread: which scenario turn is
+     current (jurisdiction resolved / web toggled) drives the jurisdiction
+     pill and the workspace payload. */
+  const activeResponseState = activeChatId !== null ? responseState[activeChatId] : undefined
+  const activeScenario =
+    activeResponseState?.scenarioId != null
+      ? advisorScenarios[activeResponseState.scenarioId]
+      : undefined
+  const currentScenarioTurn: ScenarioTurn | undefined = activeScenario
+    ? activeScenario.resolved && activeResponseState?.provinceResolved === true
+      ? activeScenario.resolved
+      : activeScenario.webOff && activeResponseState?.webOn === false
+        ? activeScenario.webOff
+        : activeScenario.turn
+    : undefined
+  const jurisdictionLine = currentScenarioTurn?.jurisdictionLine ?? flowJurisdictions[activeFlowKey]
+  const jurisdictionTone: JurisdictionPillTone =
+    currentScenarioTurn === undefined
+      ? 'gold'
+      : currentScenarioTurn.response.route.responseMode === 'supportive'
+        ? 'support'
+        : currentScenarioTurn.response.jurisdiction.status === 'unknown'
+          ? 'warn'
+          : 'gold'
+
+  const activeResponse = activeResponseState?.response ?? null
+  const workspaceState: WorkspaceState =
+    authStatus !== 'signed-in'
+      ? { kind: 'locked' }
+      : engine.busy || sendingReal
+        ? { kind: 'running' }
+        : activeResponse !== null
+          ? {
+              kind: 'ready',
+              response: activeResponse,
+              provincePrompt: currentScenarioTurn?.provincePrompt === true,
+            }
+          : { kind: 'idle' }
+
+  /* Scenario threads group like the handoff prototype: s1 under Pinned only,
+     the rest under Today. Fixture chats keep the App v2 grouping (a pinned
+     chat also shows in its recency bucket). */
+  const allThreads: { id: string; title: Bi; pinned: boolean; bucket: string }[] = [
     ...sessionChats.map((c) => ({ id: c.id, title: c.title, pinned: c.pinned, bucket: c.bucket })),
+    ...scenarioThreads.map((t) => ({
+      id: t.id,
+      title: t.scenario.title,
+      pinned: t.scenario.pinned,
+      bucket: t.scenario.pinned ? 'pinned' : 'today',
+    })),
     ...chats.map((c) => ({ id: c.id, title: c.title, pinned: c.pinned, bucket: c.bucket })),
   ]
   const groups: ThreadGroup[] = [
@@ -538,25 +746,38 @@ export function AdvisorView() {
         onNewConversation={newConversation}
       />
       {hasActiveChat ? (
-        <ChatPane
-          messages={engine.messages}
-          busy={engine.busy || sendingReal}
-          jurisdiction={flowJurisdictions[activeFlowKey]}
-          getExtras={getExtras}
-          onSend={sendInThread}
-          onRetry={engine.retryTurn}
-          onFollowup={handleFollowup}
-          onGenerateDoc={openDocStudio}
-          onSuggestChip={onSuggestChip}
-          onQuickFormChange={changeQuickField}
-          onQuickFormSubmit={submitQuickForm}
-        />
+        <>
+          <ChatPane
+            messages={engine.messages}
+            busy={engine.busy || sendingReal}
+            jurisdiction={jurisdictionLine}
+            jurisdictionTone={jurisdictionTone}
+            getExtras={getExtras}
+            onSend={sendInThread}
+            onRetry={engine.retryTurn}
+            onFollowup={handleFollowup}
+            onGenerateDoc={openDocStudio}
+            onSuggestChip={onSuggestChip}
+            onQuickFormChange={changeQuickField}
+            onQuickFormSubmit={submitQuickForm}
+            onPickProvince={pickProvince}
+            onOpenWorkspace={() => setWorkspaceOpen(true)}
+          />
+          <ComplianceWorkspace
+            state={workspaceState}
+            onPickProvince={pickProvince}
+            onToggleWeb={activeScenario?.webOff ? toggleWeb : undefined}
+            mobileOpen={workspaceOpen}
+            onCloseMobile={() => setWorkspaceOpen(false)}
+          />
+        </>
       ) : (
         <AdvisorHome
-          onSend={(text) =>
-            startFlow(authStatus === 'signed-in' ? 'fallback' : routeFlowKeyFromText(text), text)
-          }
-          onChip={(chip) => startFlow(chip.flowKey, chip.seed)}
+          onSend={(text) => {
+            if (authStatus === 'signed-in') startFlow('fallback', text)
+            else startScenario(routeScenarioFromText(text), text)
+          }}
+          onScenario={(scenarioId) => startScenario(scenarioId)}
           onPriorityAction={runPriorityAction}
           onMetricClick={(view) => navigate(`/app/${view}`)}
         />

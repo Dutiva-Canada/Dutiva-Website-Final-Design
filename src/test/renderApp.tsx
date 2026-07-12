@@ -14,6 +14,8 @@ interface RenderAppOptions {
    * '/app/cases/:caseId'. Defaults to '*' (matches anything).
    */
   path?: string
+  /** Router state for the initial entry (navigation contracts). */
+  state?: unknown
 }
 
 /**
@@ -23,12 +25,12 @@ interface RenderAppOptions {
  */
 export function renderApp(
   ui: ReactElement,
-  { route = '/app/home', path = '*' }: RenderAppOptions = {},
+  { route = '/app/home', path = '*', state }: RenderAppOptions = {},
 ): RenderResult {
   return render(
     <ThemeProvider>
       <LangProvider>
-        <MemoryRouter initialEntries={[route]}>
+        <MemoryRouter initialEntries={[state === undefined ? route : { pathname: route, state }]}>
           <AppProviders>
             <Routes>
               <Route path={path} element={ui} />

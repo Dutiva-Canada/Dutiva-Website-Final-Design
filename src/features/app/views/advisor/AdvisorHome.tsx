@@ -8,8 +8,8 @@ import { SuggestionChipGrid } from '@/features/app/advisor/SuggestionChips'
 import { dotToneClass, statusChipClass } from '@/components/chips'
 import { homePriorities, severityLabels } from '@/features/app/views/home/homeData'
 import type { HomeAction } from '@/features/app/views/home/homeData'
-import { homeSuggestionChips } from './advisorFlows'
-import type { HomeSuggestionChip } from './advisorFlows'
+import { scenarioSuggestions } from './advisorScenarios'
+import type { ScenarioId } from './advisorScenarios'
 import { buildDailyBrief, buildHomeMetrics } from './advisorHomeData'
 import type { HomeMetric } from './advisorHomeData'
 
@@ -41,16 +41,21 @@ const metricLabelKeys = {
 } as const
 
 export interface AdvisorHomeProps {
-  /** Free-form send from the home composer (routes a flow). */
+  /** Free-form send from the home composer (routes a response mode). */
   onSend: (text: string) => void
-  /** Suggestion-grid chip click (starts that chip's flow with its seed text). */
-  onChip: (chip: HomeSuggestionChip) => void
+  /** Suggestion-grid chip click — starts that demo response-mode scenario. */
+  onScenario: (scenarioId: ScenarioId) => void
   onPriorityAction: (action: HomeAction) => void
   /** Metric tile deep link (route segment under /app). */
   onMetricClick: (view: HomeMetric['view']) => void
 }
 
-export function AdvisorHome({ onSend, onChip, onPriorityAction, onMetricClick }: AdvisorHomeProps) {
+export function AdvisorHome({
+  onSend,
+  onScenario,
+  onPriorityAction,
+  onMetricClick,
+}: AdvisorHomeProps) {
   const { x, lang } = useI18n()
   const [whyOpen, setWhyOpen] = useState<Record<string, boolean>>({})
   const metrics = useMemo(() => buildHomeMetrics(), [])
@@ -176,13 +181,13 @@ export function AdvisorHome({ onSend, onChip, onPriorityAction, onMetricClick }:
           />
         </div>
 
-        {/* Suggestion chip grid */}
+        {/* Suggestion chip grid — the six demo response modes */}
         <div className="mt-[22px]">
           <SuggestionChipGrid
-            chips={homeSuggestionChips.map((chip) => ({
+            chips={scenarioSuggestions.map((chip) => ({
               label: chip.label,
               sub: chip.sub,
-              onClick: () => onChip(chip),
+              onClick: () => onScenario(chip.scenarioId),
             }))}
           />
         </div>
