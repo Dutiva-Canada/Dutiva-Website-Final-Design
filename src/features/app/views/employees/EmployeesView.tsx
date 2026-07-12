@@ -8,6 +8,8 @@ import { employees } from '@/data'
 import type { Employee } from '@/data'
 import { employeesMessages as M } from '@/i18n/messages/employees'
 import { statusChipClass } from '@/components/chips'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { EmployeesProductionView } from './EmployeesProductionView'
 import { OrgChart } from './OrgChart'
 import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
 
@@ -17,8 +19,18 @@ import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
  * chart segmented control, the name/role/province filter, the roster table
  * (stacked cards on phones), per-row status chips and the gold "Ask Advisor"
  * spark that opens the contextual rail. Rows open the profile route.
+ *
+ * First module off the route-level ModeGate: production renders the real
+ * roster (EmployeesProductionView, public.employees) instead of the
+ * Northgate fixtures below.
  */
 export function EmployeesView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <EmployeesProductionView />
+  return <EmployeesDemoView />
+}
+
+function EmployeesDemoView() {
   const { x, lang } = useI18n()
   const navigate = useNavigate()
   const askAdvisor = useAskAdvisorAboutEmployee()

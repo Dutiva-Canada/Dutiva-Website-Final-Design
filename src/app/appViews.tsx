@@ -69,7 +69,9 @@ export const appViewRoutes: RouteObject[] = [
   { path: 'workflows', element: gated(<WorkflowsView />) },
   { path: 'cases', element: gated(<CasesView />) },
   { path: 'cases/:caseId', element: gated(<CaseDetailView />) },
-  { path: 'employees', element: gated(<EmployeesView />) },
+  /* Employees list handles both modes itself (real persistence in
+     production); the fixture profile route stays gated. */
+  { path: 'employees', element: <EmployeesView /> },
   { path: 'employees/:employeeId', element: gated(<EmployeeProfileView />) },
   { path: 'compliance', element: gated(<ComplianceView />) },
   { path: 'policies', element: gated(<PoliciesView />) },

@@ -3,7 +3,14 @@ import type { ReactNode } from 'react'
 import { bi } from '@/i18n/core'
 import { WORKSPACE_NAME, WORKSPACE_USER } from '@/features/app/shell/navConfig'
 import { useAuth } from '@/features/app/auth/authContext'
-import { checkIsAdmin, fetchAdminProfile, fetchStoredMode, saveStoredMode } from './api'
+import {
+  bootstrapOrganization,
+  checkIsAdmin,
+  fetchAdminProfile,
+  fetchOrganizationId,
+  fetchStoredMode,
+  saveStoredMode,
+} from './api'
 import { WorkspaceModeContext } from './workspaceModeContext'
 import type { WorkspaceIdentity, WorkspaceMode } from './workspaceModeContext'
 
@@ -21,9 +28,15 @@ interface AdminState {
   isAdmin: boolean
   storedMode: WorkspaceMode
   identity: WorkspaceIdentity | null
+  organizationId: string | null
 }
 
-const SIGNED_OUT_STATE: AdminState = { isAdmin: false, storedMode: 'demo', identity: null }
+const SIGNED_OUT_STATE: AdminState = {
+  isAdmin: false,
+  storedMode: 'demo',
+  identity: null,
+  organizationId: null,
+}
 
 /**
  * Resolves the workspace mode: 'production' only for a signed-in, confirmed
@@ -53,18 +66,30 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         return
       }
 
-      const [storedMode, profile] = await Promise.all([
+      const [storedMode, profile, existingOrgId] = await Promise.all([
         fetchStoredMode(userId),
         fetchAdminProfile(userId),
+        fetchOrganizationId(userId),
       ])
       if (cancelled) return
+
+      const companyName = profile?.companyName ?? 'Dutiva Canada Inc.'
+      /* An admin already in production without an org (e.g. the preference
+         predates the org feature) gets provisioned on load; otherwise the
+         org is created the first time they switch (see setMode). */
+      let organizationId = existingOrgId
+      if (storedMode === 'production' && organizationId === null) {
+        organizationId = await bootstrapOrganization(companyName, companyName)
+        if (cancelled) return
+      }
 
       const contactName = profile?.contactName ?? 'Martin Constantineau'
       setAdmin({
         isAdmin: true,
         storedMode,
+        organizationId,
         identity: {
-          companyName: profile?.companyName ?? 'Dutiva Canada Inc.',
+          companyName,
           province: profile?.province ?? 'Ontario',
           city: profile?.city ?? 'Ottawa',
           user: {
@@ -88,9 +113,16 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       if (!admin.isAdmin || !session) return
       const ok = await saveStoredMode(session.user.id, next)
       if (!ok) return
-      setAdmin((prev) => ({ ...prev, storedMode: next }))
+      /* First switch to production provisions the real organization (the
+         RPC also inserts the caller as its active owner). */
+      let organizationId = admin.organizationId
+      if (next === 'production' && organizationId === null) {
+        const companyName = admin.identity?.companyName ?? 'Dutiva Canada Inc.'
+        organizationId = await bootstrapOrganization(companyName, companyName)
+      }
+      setAdmin((prev) => ({ ...prev, storedMode: next, organizationId }))
     },
-    [admin.isAdmin, session],
+    [admin.isAdmin, admin.organizationId, admin.identity, session],
   )
 
   const value = useMemo(() => {
@@ -100,6 +132,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       mode,
       isAdmin: admin.isAdmin,
       identity: mode === 'production' && admin.identity ? admin.identity : DEMO_IDENTITY,
+      organizationId: mode === 'production' ? admin.organizationId : null,
       setMode,
     }
   }, [admin, setMode])

@@ -92,3 +92,150 @@ describe('EmployeesView', () => {
     })
   })
 })
+
+describe('EmployeesView in production mode', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  /** Admin signed in, production stored, one org, real employees table. */
+  function mockProductionClient(initialRows: Record<string, unknown>[]) {
+    const employeeRows = [...initialRows]
+    const insert = vi.fn((row: Record<string, unknown>) => ({
+      select: () => ({
+        single: () => {
+          const created = {
+            id: `emp-${employeeRows.length + 1}`,
+            name: row.name,
+            title: row.title ?? null,
+            email: row.email ?? null,
+            province: row.province,
+            start_date: row.start_date ?? null,
+            status: 'active',
+          }
+          employeeRows.push(created)
+          return Promise.resolve({ data: created, error: null })
+        },
+      }),
+    }))
+
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { id: 'u1', email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn((fn: string) =>
+          Promise.resolve(
+            fn === 'is_admin_user' ? { data: true, error: null } : { data: null, error: null },
+          ),
+        ),
+        from: vi.fn((table: string) => {
+          if (table === 'workspace_preferences') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () => Promise.resolve({ data: { mode: 'production' }, error: null }),
+                }),
+              }),
+            }
+          }
+          if (table === 'profiles') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () =>
+                    Promise.resolve({
+                      data: {
+                        legal_name: 'Dutiva Canada Inc.',
+                        company_name: null,
+                        primary_contact: 'Martin Constantineau',
+                        province: 'Ontario',
+                        city: 'Ottawa',
+                      },
+                      error: null,
+                    }),
+                }),
+              }),
+            }
+          }
+          if (table === 'organization_members') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    limit: () => ({
+                      maybeSingle: () =>
+                        Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                    }),
+                  }),
+                }),
+              }),
+            }
+          }
+          if (table === 'employees') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  order: () => Promise.resolve({ data: employeeRows, error: null }),
+                }),
+              }),
+              insert,
+            }
+          }
+          throw new Error(`unexpected table: ${table}`)
+        }),
+      },
+    }))
+    vi.resetModules()
+    return { insert }
+  }
+
+  it('renders the real roster from the backend instead of the Northgate fixtures', async () => {
+    mockProductionClient([
+      {
+        id: 'emp-1',
+        name: 'Ana Souza',
+        title: 'Coordinator',
+        email: null,
+        province: 'Ontario',
+        start_date: null,
+        status: 'active',
+      },
+    ])
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
+
+    renderAppFresh(<EmployeesViewFresh />, { route: '/app/employees', path: '/app/employees' })
+
+    expect(await screen.findByText('Ana Souza')).toBeInTheDocument()
+    expect(screen.getByText('1 employee')).toBeInTheDocument()
+    expect(screen.queryByText('Jordan Mensah')).not.toBeInTheDocument()
+    expect(screen.queryByText(/sample records/)).not.toBeInTheDocument()
+  })
+
+  it('adds an employee through the real insert path', async () => {
+    const { insert } = mockProductionClient([])
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
+
+    renderAppFresh(<EmployeesViewFresh />, { route: '/app/employees', path: '/app/employees' })
+
+    expect(await screen.findByText('No employees yet')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add employee' }))
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Ana Souza' } })
+    fireEvent.change(screen.getByLabelText('Job title'), { target: { value: 'Coordinator' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save employee' }))
+
+    expect(await screen.findByText('Ana Souza')).toBeInTheDocument()
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ organization_id: 'org-1', name: 'Ana Souza' }),
+    )
+    expect(screen.getByText('1 employee')).toBeInTheDocument()
+  })
+})

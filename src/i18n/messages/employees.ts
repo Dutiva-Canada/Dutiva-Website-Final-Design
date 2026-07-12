@@ -224,4 +224,42 @@ export const employeesMessages = defineMessages({
     fr: 'Sections du profil de l’employé',
   }, // [FR self-authored]
   employees_view_toggle_aria: { en: 'Roster view', fr: 'Vue du personnel' }, // [FR self-authored]
+
+  /* ── Production roster (real persistence — no design-handoff counterpart;
+     [FR self-authored] throughout) ───────────────────────────────────────── */
+  employees_prod_add: { en: 'Add employee', fr: 'Ajouter un employé' },
+  employees_prod_cancel: { en: 'Cancel', fr: 'Annuler' },
+  employees_prod_name: { en: 'Full name', fr: 'Nom complet' },
+  employees_prod_title: { en: 'Job title', fr: 'Titre du poste' },
+  employees_prod_email: { en: 'Email', fr: 'Courriel' },
+  employees_prod_province: { en: 'Province of employment', fr: 'Province d’emploi' },
+  employees_prod_start_date: { en: 'Start date', fr: 'Date d’entrée en fonction' },
+  employees_prod_save: { en: 'Save employee', fr: 'Enregistrer l’employé' },
+  employees_prod_count_one: { en: 'employee', fr: 'employé' },
+  employees_prod_count_many: { en: 'employees', fr: 'employés' },
+  employees_prod_loading: { en: 'Loading…', fr: 'Chargement…' },
+  employees_prod_empty_title: { en: 'No employees yet', fr: 'Aucun employé pour l’instant' },
+  employees_prod_empty_body: {
+    en: 'Add your first employee to start building your real workspace.',
+    fr: 'Ajoutez votre premier employé pour commencer à bâtir votre espace de travail réel.',
+  },
+  employees_prod_error: {
+    en: 'Couldn’t load employees.',
+    fr: 'Impossible de charger les employés.',
+  },
+  employees_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  employees_prod_added: { en: 'Employee added', fr: 'Employé ajouté' },
+  employees_prod_add_failed: {
+    en: 'Couldn’t add the employee. Try again.',
+    fr: 'Impossible d’ajouter l’employé. Réessayez.',
+  },
+  employees_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  employees_prod_removed: { en: 'Employee removed', fr: 'Employé retiré' },
+  employees_prod_remove_failed: {
+    en: 'Couldn’t remove the employee.',
+    fr: 'Impossible de retirer l’employé.',
+  },
+  employees_prod_status_active: { en: 'Active', fr: 'Actif' },
+  employees_prod_status_on_leave: { en: 'On leave', fr: 'En congé' },
+  employees_prod_status_terminated: { en: 'Terminated', fr: 'Fin d’emploi' },
 })
