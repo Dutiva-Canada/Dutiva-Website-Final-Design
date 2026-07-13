@@ -56,7 +56,11 @@ these routes — never view-state flags.
 - Two token scopes (`src/styles/surfaces.css`): `.surface-marketing` (design-system
   ramp, dark-first) wraps the landing page; `.surface-app` (App v2 ramp,
   light-first) wraps the workspace. Both define `--bg`, `--text`, `--border`, … so
-  the same utility (`bg-bg`, `text-text-2`) resolves per surface.
+  the same utility (`bg-bg`, `text-text-2`) resolves per surface. Most
+  `.surface-marketing` values are ported verbatim from the design system, but a few
+  (`--text-3`, `--muted-2`, `--gold-strong`) are intentionally adjusted for WCAG AA
+  contrast — see the inline comments. Preserve those overrides if the ramp is
+  re-synced upstream.
 - **Never hardcode a colour that exists as a token.** Use the mapped Tailwind
   utilities (`bg-surface`, `text-gold-fg`, `border-risk-border`, …) or
   `var(--token)` in rare inline styles. Prototype-exact pixel values without a
