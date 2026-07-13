@@ -29,7 +29,7 @@ export function MobileTopbar({ title, onOpenDrawer }: { title: string; onOpenDra
       >
         <Menu size={20} strokeWidth={1.8} className="text-text" />
       </button>
-      <span className="font-display text-[16px] font-semibold">{title}</span>
+      <h1 className="m-0 font-display text-[16px] font-semibold">{title}</h1>
       <div className="flex items-center gap-[2px]">
         <ThemeToggle
           className="flex cursor-pointer border-none bg-transparent p-[6px] text-text"

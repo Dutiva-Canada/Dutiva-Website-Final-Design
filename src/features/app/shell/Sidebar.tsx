@@ -121,6 +121,7 @@ export function Sidebar({
 
   return (
     <aside
+      aria-label={x(M.shell_hr_workspace)}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cx(

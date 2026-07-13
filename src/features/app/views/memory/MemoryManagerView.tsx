@@ -168,7 +168,7 @@ export function MemoryManagerView() {
                       {pick(tab.label, lang)}
                       <span
                         className={`inline-flex h-[16px] min-w-[16px] items-center justify-center rounded-[100px] px-[4px] text-[10px] font-extrabold ${
-                          active ? 'bg-white/22 text-white' : 'bg-inset text-text-faint'
+                          active ? 'bg-white/15 text-white' : 'bg-inset text-text-faint'
                         }`}
                       >
                         {counts[tab.key]}
