@@ -135,7 +135,7 @@ export function AppShell() {
           </>
         )}
 
-        <div className="relative flex min-w-0 flex-1 flex-col bg-bg">
+        <main className="relative flex min-w-0 flex-1 flex-col bg-bg">
           {!isMobile && <Topbar title={title} />}
           <WorkspaceContextBanner />
           <ModuleContextBanner />
@@ -146,7 +146,7 @@ export function AppShell() {
               <Outlet />
             </Suspense>
           </div>
-        </div>
+        </main>
       </div>
 
       {isMobile && <MobileNav drawerOpen={drawerOpen} onOpenDrawer={() => setDrawerOpen(true)} />}

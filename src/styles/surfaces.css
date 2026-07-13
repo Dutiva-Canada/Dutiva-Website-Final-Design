@@ -146,17 +146,20 @@
   --ink: #c4c9d9;
   --text: #0c1020;
   --text-2: #424d66;
-  --text-3: #636d82;
+  /* text-3/text-faint and the gold text tokens must hold ≥4.5:1 (WCAG AA) on
+     every light app surface in use — including the gold-tinted panels
+     (gold-bg over --bg ≈ #f0eee7). Values below are the lightest that pass. */
+  --text-3: #5f6980;
   --text-muted: #565f78;
-  --text-faint: #7d8596;
+  --text-faint: #666e80;
   --navy: #1f3a5f;
-  --accent: #8a6a12;
+  --accent: #7d600f;
   --accent-soft: rgba(212, 175, 55, 0.1);
   --accent-soft-border: rgba(212, 175, 55, 0.28);
-  --gold-fg: #8a6a12;
+  --gold-fg: #7d600f;
   --gold-bg: rgba(212, 175, 55, 0.1);
   --gold-border: rgba(212, 175, 55, 0.28);
-  --gold-dot: #a87f2e;
+  --gold-dot: #7d600f;
   --risk-bg: #f8e9e7;
   --risk-border: #e7c7c3;
   --risk-fg: #8a3030;

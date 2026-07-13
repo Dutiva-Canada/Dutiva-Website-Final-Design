@@ -120,7 +120,7 @@ export function Sidebar({
   )
 
   return (
-    <div
+    <aside
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cx(
@@ -339,6 +339,6 @@ export function Sidebar({
           aria-hidden="true"
         />
       )}
-    </div>
+    </aside>
   )
 }
