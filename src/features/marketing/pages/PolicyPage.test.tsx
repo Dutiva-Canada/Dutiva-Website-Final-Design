@@ -31,7 +31,7 @@ describe('PolicyPage', () => {
     const user = userEvent.setup()
     renderApp(<PolicyPage />, { route: '/legal/terms', path: '/legal/:slug' })
     await screen.findByRole('heading', { level: 1, name: 'Terms of Service' })
-    const [langToggle] = screen.getAllByRole('button', { name: 'Toggle language' })
+    const [langToggle] = screen.getAllByRole('button', { name: /Toggle language/ })
     expect(langToggle).toBeDefined()
     await user.click(langToggle as HTMLElement)
     expect(

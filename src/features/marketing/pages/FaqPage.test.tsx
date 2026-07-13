@@ -35,7 +35,7 @@ describe('FaqPage', () => {
   it('re-localizes to French via the header language toggle', async () => {
     const user = userEvent.setup()
     renderApp(<FaqPage />, { route: '/faq', path: '/faq' })
-    const [langToggle] = screen.getAllByRole('button', { name: 'Toggle language' })
+    const [langToggle] = screen.getAllByRole('button', { name: /Toggle language/ })
     expect(langToggle).toBeDefined()
     await user.click(langToggle as HTMLElement)
     expect(

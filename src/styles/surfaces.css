@@ -25,9 +25,11 @@
 
   --text: #f0f2f8;
   --text-2: #9aa2b4;
-  --text-3: #6b7589;
+  /* text-3 must hold ≥4.5:1 (WCAG AA) on every marketing surface up to
+     --bg-softer; #7d889c lands at 4.6–5.5 across the dark ramp. */
+  --text-3: #7d889c;
   --muted: #9aa2b4;
-  --muted-2: #6b7589;
+  --muted-2: #7d889c;
 
   --gold: var(--dutiva-gold);
   --gold-strong: var(--dutiva-gold);
@@ -85,12 +87,15 @@
 
   --text: #0c1020;
   --text-2: #424d66;
-  --text-3: #636d82;
+  /* Same AA constraint as the dark ramp: #5f6980 holds ≥4.5:1 on the light
+     surfaces in use (white, --bg, --bg-soft). */
+  --text-3: #5f6980;
   --muted: #565f78;
-  --muted-2: #7d8596;
+  --muted-2: #5f6980;
 
   --gold: var(--dutiva-gold);
-  --gold-strong: #8a6a12;
+  /* Dark enough to hold ≥4.5:1 (WCAG AA) even on the gold-subtle badge fill. */
+  --gold-strong: #7d600f;
   --gold-subtle: rgba(var(--dutiva-gold-rgb), 0.09);
   --gold-fill-soft: rgba(var(--dutiva-gold-rgb), 0.06);
   --gold-fill-strong: rgba(var(--dutiva-gold-rgb), 0.14);
