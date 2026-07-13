@@ -122,8 +122,10 @@ export function MemoryFactRow({ fact, scopeTag }: MemoryFactRowProps) {
             </span>
           </div>
 
-          {/* Actions — always reachable, emphasized on hover/focus */}
-          <div className="mt-[10px] flex flex-wrap gap-[7px] opacity-60 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100">
+          {/* Actions — rendered at full opacity: a resting dim (opacity-60)
+              pushed the muted/risk button text below the 4.5:1 AA contrast
+              floor, and the audit judges the resting state. */}
+          <div className="mt-[10px] flex flex-wrap gap-[7px]">
             {fact.confidence === 'inferred' && (
               <button
                 type="button"

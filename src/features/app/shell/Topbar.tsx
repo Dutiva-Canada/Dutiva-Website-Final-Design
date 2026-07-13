@@ -87,7 +87,7 @@ export function Topbar({ title }: { title: string }) {
 
   return (
     <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-border bg-bg px-[22px]">
-      <div className="font-display text-[18px] font-semibold text-text">{title}</div>
+      <h1 className="m-0 font-display text-[18px] font-semibold text-text">{title}</h1>
       <div className="flex items-center gap-[14px]">
         {showAskAdvisor && (
           <button
