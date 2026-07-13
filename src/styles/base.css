@@ -2,11 +2,19 @@
    Global resets ported from the prototypes (App v2.dc.html head styles).
    ──────────────────────────────────────────────────────────────────────────── */
 
+/* --bg lives on the .surface-* wrappers, not on body, so the fallback is what
+   actually paints here. It shows wherever the document outgrows the surface
+   (overscroll, injected elements) — keep it matched to the active theme so no
+   dark band appears behind light pages (and vice versa). */
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   background: var(--bg, #0b0e15);
   font-family: var(--font-sans);
+}
+
+[data-theme='light'] body {
+  background: var(--bg, #f3f5fa);
 }
 
 body,
