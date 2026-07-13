@@ -20,7 +20,7 @@ export function MobileTopbar({ title, onOpenDrawer }: { title: string; onOpenDra
   const { x } = useI18n()
   const { openSearch } = useSearch()
   return (
-    <div className="flex h-[56px] shrink-0 items-center justify-between border-b border-border bg-surface px-[14px]">
+    <header className="flex h-[56px] shrink-0 items-center justify-between border-b border-border bg-surface px-[14px]">
       <button
         type="button"
         onClick={onOpenDrawer}
@@ -45,7 +45,7 @@ export function MobileTopbar({ title, onOpenDrawer }: { title: string; onOpenDra
         </button>
         <AuthMenuButton compact />
       </div>
-    </div>
+    </header>
   )
 }
 
