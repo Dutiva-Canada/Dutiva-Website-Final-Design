@@ -68,9 +68,12 @@ function NavLinkItem({
 export function Sidebar({
   mode,
   onCloseDrawer,
+  drawerEntered = true,
 }: {
   mode: SidebarMode
   onCloseDrawer?: () => void
+  /** For `mode="drawer"`: whether the slide-in transition has settled open. */
+  drawerEntered?: boolean
 }) {
   const { x, L } = useI18n()
   const { openSearch } = useSearch()
@@ -129,7 +132,8 @@ export function Sidebar({
           (expanded ? 'z-40 shadow-[8px_0_28px_rgba(0,0,0,0.28)]' : 'z-[5] shadow-none'),
         mode === 'rail' && 'relative z-[1]',
         mode === 'drawer' &&
-          'fixed top-0 bottom-0 left-0 z-[70] shadow-[8px_0_30px_rgba(0,0,0,0.15)]',
+          'fixed top-0 bottom-0 left-0 z-[70] shadow-[8px_0_30px_rgba(0,0,0,0.15)] transition-transform duration-[220ms] ease-[cubic-bezier(0.4,0,0.2,1)]',
+        mode === 'drawer' && (drawerEntered ? 'translate-x-0' : '-translate-x-full'),
       )}
     >
       {/* Workspace header */}
