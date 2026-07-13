@@ -91,7 +91,7 @@
      surfaces in use (white, --bg, --bg-soft). */
   --text-3: #5f6980;
   --muted: #565f78;
-  --muted-2: #7d8596;
+  --muted-2: #5f6980;
 
   --gold: var(--dutiva-gold);
   /* Dark enough to hold ≥4.5:1 (WCAG AA) even on the gold-subtle badge fill. */
