@@ -35,7 +35,7 @@ describe('TemplateUsagePage', () => {
       route: '/guides/template-usage',
       path: '/guides/template-usage',
     })
-    const [langToggle] = screen.getAllByRole('button', { name: 'Toggle language' })
+    const [langToggle] = screen.getAllByRole('button', { name: /Toggle language/ })
     expect(langToggle).toBeDefined()
     await user.click(langToggle as HTMLElement)
     expect(

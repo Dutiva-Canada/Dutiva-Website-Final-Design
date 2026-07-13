@@ -29,7 +29,7 @@ describe('KnownLimitationsPage', () => {
   it('re-localizes to French via the header language toggle', async () => {
     const user = userEvent.setup()
     renderApp(<KnownLimitationsPage />, { route: '/known-limitations', path: '/known-limitations' })
-    const [langToggle] = screen.getAllByRole('button', { name: 'Toggle language' })
+    const [langToggle] = screen.getAllByRole('button', { name: /Toggle language/ })
     expect(langToggle).toBeDefined()
     await user.click(langToggle as HTMLElement)
     expect(screen.getByRole('heading', { level: 1, name: 'Limites connues.' })).toBeInTheDocument()

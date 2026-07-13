@@ -68,7 +68,7 @@ export function Header() {
             <button
               type="button"
               className={CTRL}
-              aria-label={L('Toggle language', 'Changer de langue')}
+              aria-label={`${langLabel} · ${L('Toggle language', 'Changer de langue')}`}
               onClick={toggleLang}
             >
               <Globe size={15} />
@@ -106,7 +106,7 @@ export function Header() {
             <button
               type="button"
               className={PILL}
-              aria-label={L('Toggle language', 'Changer de langue')}
+              aria-label={`${langLabel} · ${L('Toggle language', 'Changer de langue')}`}
               onClick={toggleLang}
             >
               <Globe size={17} />
