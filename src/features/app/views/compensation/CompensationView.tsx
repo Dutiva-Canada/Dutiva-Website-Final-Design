@@ -1,4 +1,4 @@
-﻿import type { KeyboardEvent, MouseEvent } from 'react'
+﻿import type { MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -51,15 +51,11 @@ export function CompensationView() {
   const navigate = useNavigate()
   const { openRail } = useRail()
 
+  /* Row click is a pointer convenience only: the accessible affordance is the
+     name button inside each row. A role="button" row would nest the per-row
+     Ask Advisor button inside another interactive element (nested-interactive). */
   const openCompensationTab = (employeeId: string) => {
     navigate(`/app/employees/${employeeId}`, { state: { tab: 'compensation' } })
-  }
-
-  const activateOnKey = (fn: () => void) => (e: KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      fn()
-    }
   }
 
   /* Prototype `ch.onReview` — where the change stands and what it needs. */
@@ -160,7 +156,7 @@ export function CompensationView() {
             {/* Internal pay-band equity advisory. */}
             <div className="rounded-[12px] border border-gold-border bg-gold-bg px-[17px] py-[15px]">
               <div className="text-[13px] font-bold text-gold-fg">{x(compEquityCard.title)}</div>
-              <div className="mt-[5px] text-[12.5px] leading-[1.55] text-gold-fg opacity-[.92]">
+              <div className="mt-[5px] text-[12.5px] leading-[1.55] text-gold-fg">
                 {x(compEquityCard.body)}
               </div>
             </div>
@@ -178,19 +174,23 @@ export function CompensationView() {
             <div
               key={row.employee.id}
               onClick={() => openCompensationTab(row.employee.id)}
-              onKeyDown={activateOnKey(() => openCompensationTab(row.employee.id))}
-              role="button"
-              tabIndex={0}
-              aria-label={`${x(M.comp_open_aria)} ${row.employee.name}`}
               className="flex cursor-pointer items-center gap-[12px] rounded-[11px] border border-border bg-surface px-[14px] py-[13px]"
             >
               <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
                 {row.employee.initials}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="overflow-hidden text-[13.5px] font-semibold text-ellipsis whitespace-nowrap text-text">
+                <button
+                  type="button"
+                  aria-label={`${x(M.comp_open_aria)} ${row.employee.name}`}
+                  onClick={(ev) => {
+                    ev.stopPropagation()
+                    openCompensationTab(row.employee.id)
+                  }}
+                  className="block w-full cursor-pointer overflow-hidden border-none bg-transparent p-0 text-left font-sans text-[13.5px] font-semibold text-ellipsis whitespace-nowrap text-text"
+                >
                   {row.employee.name}
-                </div>
+                </button>
                 <div className="mt-[2px] text-[12px] text-text-muted">
                   {row.band} · {row.salary !== null ? x(money(row.salary)) : '—'}
                 </div>
@@ -233,19 +233,23 @@ export function CompensationView() {
             <div
               key={row.employee.id}
               onClick={() => openCompensationTab(row.employee.id)}
-              onKeyDown={activateOnKey(() => openCompensationTab(row.employee.id))}
-              role="button"
-              tabIndex={0}
-              aria-label={`${x(M.comp_open_aria)} ${row.employee.name}`}
               className={`grid ${GRID_COLS} cursor-pointer items-center gap-[10px] border-t border-inset px-[16px] py-[12px] hover:bg-bg`}
             >
               <div className="flex min-w-0 items-center gap-[10px]">
                 <div className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-bold text-accent">
                   {row.employee.initials}
                 </div>
-                <span className="overflow-hidden text-[13.5px] font-semibold text-ellipsis whitespace-nowrap text-text">
+                <button
+                  type="button"
+                  aria-label={`${x(M.comp_open_aria)} ${row.employee.name}`}
+                  onClick={(ev) => {
+                    ev.stopPropagation()
+                    openCompensationTab(row.employee.id)
+                  }}
+                  className="cursor-pointer overflow-hidden border-none bg-transparent p-0 text-left font-sans text-[13.5px] font-semibold text-ellipsis whitespace-nowrap text-text"
+                >
                   {row.employee.name}
-                </span>
+                </button>
               </div>
               <div className="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap text-text-2">
                 {x(row.employee.role)}

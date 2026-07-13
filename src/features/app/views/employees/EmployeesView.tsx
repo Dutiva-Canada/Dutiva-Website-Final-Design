@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from 'react'
+import type { MouseEvent as ReactMouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -49,16 +49,10 @@ function EmployeesDemoView() {
       pick(e.province, lang).toLowerCase().includes(q),
   )
 
+  /* Row click is a pointer convenience only: the accessible affordance is the
+     name button inside each row. A role="button" row would nest the per-row
+     Ask Advisor button inside another interactive element (nested-interactive). */
   const openProfile = (e: Employee) => navigate(`/app/employees/${e.id}`)
-  const activateOnKey = (fn: () => void) => (e: ReactKeyboardEvent<HTMLDivElement>) => {
-    /* Only when the row itself is focused — Enter/Space on nested interactive
-       elements (the per-row Ask Advisor button) must keep their own action. */
-    if (e.target !== e.currentTarget) return
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      fn()
-    }
-  }
   const onAsk = (e: Employee) => (ev: ReactMouseEvent) => {
     ev.stopPropagation()
     askAdvisor(e)
@@ -129,20 +123,24 @@ function EmployeesDemoView() {
                   {rows.map((e) => (
                     <div
                       key={e.id}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${x(M.employees_open_profile_for)} ${e.name}`}
                       onClick={() => openProfile(e)}
-                      onKeyDown={activateOnKey(() => openProfile(e))}
                       className="grid cursor-pointer grid-cols-[2.4fr_1.7fr_0.9fr_1fr_0.8fr_34px] items-center gap-[10px] border-t border-t-inset px-[16px] py-[12px] hover:bg-bg"
                     >
                       <div className="flex min-w-0 items-center gap-[10px]">
                         <div className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-bold text-accent">
                           {e.initials}
                         </div>
-                        <span className="overflow-hidden text-[13.5px] font-semibold text-ellipsis whitespace-nowrap text-text">
+                        <button
+                          type="button"
+                          aria-label={`${x(M.employees_open_profile_for)} ${e.name}`}
+                          onClick={(ev) => {
+                            ev.stopPropagation()
+                            openProfile(e)
+                          }}
+                          className="cursor-pointer overflow-hidden border-none bg-transparent p-0 text-left font-sans text-[13.5px] font-semibold text-ellipsis whitespace-nowrap text-text"
+                        >
                           {e.name}
-                        </span>
+                        </button>
                       </div>
                       <div className="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap text-text-2">
                         {x(e.role)}
@@ -169,11 +167,7 @@ function EmployeesDemoView() {
                   {rows.map((e) => (
                     <div
                       key={e.id}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${x(M.employees_open_profile_for)} ${e.name}`}
                       onClick={() => openProfile(e)}
-                      onKeyDown={activateOnKey(() => openProfile(e))}
                       className="flex cursor-pointer flex-col gap-[10px] rounded-[11px] border border-border bg-surface p-[14px]"
                     >
                       <div className="flex items-center gap-[10px]">
@@ -181,7 +175,17 @@ function EmployeesDemoView() {
                           {e.initials}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-[14.5px] font-semibold text-text">{e.name}</div>
+                          <button
+                            type="button"
+                            aria-label={`${x(M.employees_open_profile_for)} ${e.name}`}
+                            onClick={(ev) => {
+                              ev.stopPropagation()
+                              openProfile(e)
+                            }}
+                            className="block cursor-pointer border-none bg-transparent p-0 text-left font-sans text-[14.5px] font-semibold text-text"
+                          >
+                            {e.name}
+                          </button>
                           <div className="text-[12.5px] text-text-muted">{x(e.role)}</div>
                         </div>
                         <button
