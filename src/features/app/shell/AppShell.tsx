@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { shellMessages } from '@/i18n/messages/shell'
@@ -8,6 +8,7 @@ import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { DocStudioOverlay } from '@/features/app/docstudio/DocStudioOverlay'
 import { ToastHost } from '@/features/app/toasts/ToastHost'
 import { Sidebar } from './Sidebar'
+import { cx } from './cx'
 import { Topbar } from './Topbar'
 import { MobileNav, MobileTopbar } from './MobileNav'
 import { ModuleContextBanner } from './ModuleContextBanner'
@@ -29,6 +30,41 @@ function currentLayoutMode(): LayoutMode {
   if (window.matchMedia('(min-width: 1024px)').matches) return 'desktop'
   if (window.matchMedia('(min-width: 768px)').matches) return 'tablet'
   return 'mobile'
+}
+
+/**
+ * Keeps the mobile drawer mounted for the duration of its close transition
+ * (`entered` drives the slide/fade; `mounted` gates whether it's in the DOM
+ * at all) instead of snapping in/out with the raw `open` boolean.
+ */
+function useDrawerTransition(open: boolean, duration = 220) {
+  const [mounted, setMounted] = useState(open)
+  const [entered, setEntered] = useState(open)
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true)
+      return
+    }
+    setEntered(false)
+    const timer = window.setTimeout(() => setMounted(false), duration)
+    return () => window.clearTimeout(timer)
+  }, [open, duration])
+
+  /* Once the drawer mounts with its closed (off-screen/transparent)
+     classes, force a synchronous layout flush before flipping to
+     "entered" — otherwise React/the browser can coalesce both style
+     states into a single paint and skip the transition. Reading
+     `offsetHeight` (rather than requestAnimationFrame) works even when
+     the tab is backgrounded, where rAF callbacks are throttled. */
+  useLayoutEffect(() => {
+    if (mounted && open) {
+      void document.body.offsetHeight
+      setEntered(true)
+    }
+  }, [mounted, open])
+
+  return { mounted, entered }
 }
 
 function useLayoutMode(): LayoutMode {
@@ -58,6 +94,9 @@ export function AppShell() {
 
   const isMobile = layout === 'mobile'
   useEscapeToClose(isMobile && drawerOpen, () => setDrawerOpen(false))
+  const { mounted: drawerMounted, entered: drawerEntered } = useDrawerTransition(
+    isMobile && drawerOpen,
+  )
 
   const title = x(viewLabelFor(pathname))
 
@@ -70,15 +109,22 @@ export function AppShell() {
         {layout === 'desktop' && <div className="w-[64px] shrink-0" />}
         {layout === 'desktop' && <Sidebar mode="hover" />}
         {layout === 'tablet' && <Sidebar mode="rail" />}
-        {isMobile && drawerOpen && (
+        {isMobile && drawerMounted && (
           <>
             <div
               onClick={() => setDrawerOpen(false)}
-              className="fixed inset-0 z-[60] bg-[rgba(20,25,32,0.4)]"
+              className={cx(
+                'fixed inset-0 z-[60] bg-[rgba(20,25,32,0.4)] transition-opacity duration-[220ms] ease-[cubic-bezier(0.4,0,0.2,1)]',
+                drawerEntered ? 'opacity-100' : 'opacity-0',
+              )}
               aria-hidden="true"
             />
             <div role="dialog" aria-modal="true" aria-label={x(shellMessages.shell_primary_nav)}>
-              <Sidebar mode="drawer" onCloseDrawer={() => setDrawerOpen(false)} />
+              <Sidebar
+                mode="drawer"
+                onCloseDrawer={() => setDrawerOpen(false)}
+                drawerEntered={drawerEntered}
+              />
             </div>
           </>
         )}
