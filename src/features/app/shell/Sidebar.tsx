@@ -46,7 +46,10 @@ function NavLinkItem({
     <Link
       to={item.to}
       onClick={onNavigate}
-      aria-label={x(item.label)}
+      /* Icon-only (collapsed) needs the label; expanded must NOT override the
+         visible text (label + badge count) or the accessible name drops the
+         badge — a label-content-name mismatch (WCAG 2.5.3). */
+      aria-label={expanded ? undefined : x(item.label)}
       aria-current={active ? 'page' : undefined}
       className={cx(
         'my-[1px] flex w-full items-center gap-[10px] rounded-[7px] text-[13.5px]',
@@ -189,7 +192,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={openSearch}
-          aria-label={x(M.shell_search)}
+          aria-label={expanded ? undefined : x(M.shell_search)}
           className={cx(
             'mb-[4px] flex w-full cursor-pointer items-center gap-[8px] rounded-[8px] border border-border bg-transparent text-[13px] font-medium text-text-3',
             expanded ? 'px-[12px] py-[8px]' : 'justify-center p-[8px]',
@@ -252,10 +255,14 @@ export function Sidebar({
           <button
             type="button"
             onClick={() => setProfileOpen((open) => !open)}
-            aria-label={L(
-              `Account menu for ${identity.user.name}`,
-              `Menu du compte de ${identity.user.name}`,
-            )}
+            aria-label={
+              expanded
+                ? undefined
+                : L(
+                    `Account menu for ${identity.user.name}`,
+                    `Menu du compte de ${identity.user.name}`,
+                  )
+            }
             aria-expanded={profileOpen}
             className={cx(
               'relative mt-[4px] flex w-full cursor-pointer items-center gap-[9px] rounded-[8px] border-none text-text',
