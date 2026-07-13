@@ -1,8 +1,15 @@
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Info } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { groupPolicyBlocks, policyDoc, resolvePolicyEdition } from '../legal/policyContent'
+import { groupPolicyBlocks, loadPolicyEdition, policyDoc } from '../legal/policyContent'
+import type { ResolvedPolicyEdition } from '../legal/policyContent'
 import { MarketingPageShell } from './MarketingPage'
+
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'notfound' }
+  | { status: 'ready'; data: ResolvedPolicyEdition }
 
 /**
  * /legal/:slug — a single policy document from the bilingual legal content
@@ -10,15 +17,41 @@ import { MarketingPageShell } from './MarketingPage'
  * /legal hub. All 26 documents currently ship both editions; if a future
  * document lands French-first, the French edition renders under the EN UI
  * with a notice and `lang="fr"` on the article.
+ *
+ * Content loads lazily (see policyContent.ts) — the shell renders
+ * immediately and the article fills in once its edition resolves, so a
+ * single document view never downloads the other 25.
  */
 export function PolicyPage() {
   const { slug } = useParams()
   const { t, L, lang } = useI18n()
   const doc = policyDoc(slug ?? '')
-  const resolved = doc ? resolvePolicyEdition(doc, lang) : undefined
-  if (!resolved) return <Navigate to="/legal" replace />
+  const [state, setState] = useState<LoadState>({ status: 'loading' })
 
-  const { edition, lang: editionLang } = resolved
+  useEffect(() => {
+    if (!doc) return
+    setState({ status: 'loading' })
+    let cancelled = false
+    void loadPolicyEdition(doc, lang).then((resolved) => {
+      if (cancelled) return
+      setState(resolved ? { status: 'ready', data: resolved } : { status: 'notfound' })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [doc, lang])
+
+  if (!doc || state.status === 'notfound') return <Navigate to="/legal" replace />
+
+  if (state.status === 'loading') {
+    return (
+      <MarketingPageShell>
+        <div className="mx-auto max-w-[820px] px-6 pt-12 pb-16" />
+      </MarketingPageShell>
+    )
+  }
+
+  const { edition, lang: editionLang } = state.data
   const colon = L(': ', ' : ')
   const metaParts: string[] = []
   if (edition.lastUpdated) {

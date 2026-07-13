@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
 import { useLocation } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
@@ -82,5 +82,163 @@ describe('TasksView', () => {
     )
 
     expect(screen.getByTestId('location')).toHaveTextContent('/app/advisor|c1')
+  })
+})
+
+describe('TasksView in production mode', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  /** Admin signed in, production stored, one org, real compliance_tasks. */
+  function mockProductionClient(initialTasks: Record<string, unknown>[]) {
+    const taskRows = [...initialTasks]
+    const insert = vi.fn((row: Record<string, unknown>) => ({
+      select: () => ({
+        single: () => {
+          const created = {
+            id: `task-${taskRows.length + 1}`,
+            title: row.title,
+            priority: row.priority,
+            status: 'open',
+            due_at: row.due_at ?? null,
+          }
+          taskRows.unshift(created)
+          return Promise.resolve({ data: created, error: null })
+        },
+      }),
+    }))
+    const update = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) }))
+
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { id: 'u1', email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn((fn: string) =>
+          Promise.resolve(
+            fn === 'is_admin_user' ? { data: true, error: null } : { data: null, error: null },
+          ),
+        ),
+        from: vi.fn((table: string) => {
+          if (table === 'workspace_preferences') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () => Promise.resolve({ data: { mode: 'production' }, error: null }),
+                }),
+              }),
+            }
+          }
+          if (table === 'profiles') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () =>
+                    Promise.resolve({
+                      data: {
+                        legal_name: 'Dutiva Canada Inc.',
+                        company_name: null,
+                        primary_contact: 'Martin Constantineau',
+                        province: 'Ontario',
+                        city: 'Ottawa',
+                      },
+                      error: null,
+                    }),
+                }),
+              }),
+            }
+          }
+          if (table === 'organization_members') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    limit: () => ({
+                      maybeSingle: () =>
+                        Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                    }),
+                  }),
+                }),
+              }),
+            }
+          }
+          if (table === 'compliance_tasks') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  order: () => Promise.resolve({ data: taskRows, error: null }),
+                }),
+              }),
+              insert,
+              update,
+            }
+          }
+          throw new Error(`unexpected table: ${table}`)
+        }),
+      },
+    }))
+    vi.resetModules()
+    return { insert, update }
+  }
+
+  it('renders real tasks instead of the Northgate fixtures', async () => {
+    mockProductionClient([
+      {
+        id: 'task-1',
+        title: 'File ROE for departing employee',
+        priority: 'high',
+        status: 'open',
+        due_at: '2026-07-20T00:00:00+00:00',
+      },
+    ])
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { TasksView: TasksViewFresh } = await import('./TasksView')
+
+    renderAppFresh(<TasksViewFresh />, { route: '/app/tasks', path: '/app/tasks' })
+
+    expect(await screen.findByText('File ROE for departing employee')).toBeInTheDocument()
+    expect(screen.getByText('1 open')).toBeInTheDocument()
+    expect(screen.getByText('2026-07-20')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Review termination notice exposure — Jordan Mensah'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('adds a task and toggles it done through the real write paths', async () => {
+    const { insert, update } = mockProductionClient([])
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { TasksView: TasksViewFresh } = await import('./TasksView')
+
+    renderAppFresh(<TasksViewFresh />, { route: '/app/tasks', path: '/app/tasks' })
+
+    expect(await screen.findByText('No tasks yet')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add task' }))
+    fireEvent.change(screen.getByLabelText('Task'), {
+      target: { value: 'Draft vacation policy' },
+    })
+    fireEvent.change(screen.getByLabelText('Priority'), { target: { value: 'critical' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save task' }))
+
+    expect(await screen.findByText('Draft vacation policy')).toBeInTheDocument()
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organization_id: 'org-1',
+        title: 'Draft vacation policy',
+        priority: 'critical',
+      }),
+    )
+    expect(screen.getByText('1 open')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle task done' }))
+    expect(await screen.findByText('0 open')).toBeInTheDocument()
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'completed' }))
+    expect(screen.getByText('Draft vacation policy')).toHaveClass('line-through')
   })
 })

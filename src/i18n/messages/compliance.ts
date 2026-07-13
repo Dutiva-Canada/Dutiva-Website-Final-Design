@@ -76,4 +76,57 @@ export const complianceMessages = defineMessages({
     fr: 'Voici le détail derrière ce signalement, et ce que je ferais ensuite.',
   },
   compliance_open_full_case: { en: 'Open full case', fr: 'Ouvrir le dossier complet' },
+
+  /* ── Production findings register (real persistence — no design-handoff
+     counterpart; [FR self-authored] throughout) ─────────────────────────── */
+  compliance_prod_add: { en: 'Log finding', fr: 'Consigner un constat' },
+  compliance_prod_cancel: { en: 'Cancel', fr: 'Annuler' },
+  compliance_prod_title_label: { en: 'Finding', fr: 'Constat' },
+  compliance_prod_severity: { en: 'Severity', fr: 'Gravité' },
+  compliance_prod_description: { en: 'Description (optional)', fr: 'Description (facultatif)' },
+  compliance_prod_recommendation: {
+    en: 'Recommendation (optional)',
+    fr: 'Recommandation (facultatif)',
+  },
+  compliance_prod_save: { en: 'Save finding', fr: 'Enregistrer le constat' },
+  compliance_prod_count_open: { en: 'open findings', fr: 'constats ouverts' },
+  compliance_prod_count_open_one: { en: 'open finding', fr: 'constat ouvert' },
+  compliance_prod_loading: { en: 'Loading…', fr: 'Chargement…' },
+  compliance_prod_empty_title: {
+    en: 'No findings yet',
+    fr: 'Aucun constat pour l’instant',
+  },
+  compliance_prod_empty_body: {
+    en: 'Log your first compliance finding, or let the Advisor surface them as your workspace grows.',
+    fr: 'Consignez votre premier constat de conformité, ou laissez le Conseiller les relever à mesure que votre espace de travail grandit.',
+  },
+  compliance_prod_error: {
+    en: 'Couldn’t load findings.',
+    fr: 'Impossible de charger les constats.',
+  },
+  compliance_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  compliance_prod_added: { en: 'Finding logged', fr: 'Constat consigné' },
+  compliance_prod_add_failed: {
+    en: 'Couldn’t log the finding. Try again.',
+    fr: 'Impossible de consigner le constat. Réessayez.',
+  },
+  compliance_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  compliance_prod_removed: { en: 'Finding removed', fr: 'Constat retiré' },
+  compliance_prod_remove_failed: {
+    en: 'Couldn’t remove the finding.',
+    fr: 'Impossible de retirer le constat.',
+  },
+  compliance_prod_resolve: { en: 'Mark resolved', fr: 'Marquer comme résolu' },
+  compliance_prod_reopen: { en: 'Reopen', fr: 'Rouvrir' },
+  compliance_prod_resolved_chip: { en: 'Resolved', fr: 'Résolu' },
+  compliance_prod_status_failed: {
+    en: 'Couldn’t update the finding.',
+    fr: 'Impossible de mettre à jour le constat.',
+  },
+  compliance_prod_rec_label: { en: 'Recommendation', fr: 'Recommandation' },
+  compliance_prod_sev_info: { en: 'Info', fr: 'Info' },
+  compliance_prod_sev_low: { en: 'Low', fr: 'Faible' },
+  compliance_prod_sev_medium: { en: 'Medium', fr: 'Moyenne' },
+  compliance_prod_sev_high: { en: 'High', fr: 'Élevée' },
+  compliance_prod_sev_critical: { en: 'Critical', fr: 'Critique' },
 })

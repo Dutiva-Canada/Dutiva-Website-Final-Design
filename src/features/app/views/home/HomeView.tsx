@@ -3,11 +3,13 @@ import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
 import { homeMessages as M } from '@/i18n/messages/home'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { HomeBriefHero } from './HomeBriefHero'
 import { HomeCompliancePanel } from './HomeCompliancePanel'
 import { HomeActNowSection, HomeThisWeekSection, HomeWatchingSection } from './HomePriorityQueue'
 import { HomeWorkflowCatalog } from './HomeWorkflowCatalog'
 import { HomeWorkflowsMobileList, HomeWorkflowsRailCard } from './HomeWorkflowsCard'
+import { HomeProductionView } from './HomeProductionView'
 import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
 import { useHomeActions } from './useHomeActions'
 
@@ -17,15 +19,25 @@ import { useHomeActions } from './useHomeActions'
  * hero (with MetricChips) → PriorityQueue (Act now / mobile WorkflowCards /
  * This week / Watching) → WorkflowLauncher → right rail (CompliancePrediction
  * + desktop WorkflowCards) → AdvisorComposer.
+ *
+ * In production mode (admin-only, see WorkspaceModeProvider) this renders
+ * HomeProductionView instead — the real command centre (live counts, due
+ * soon, policy attention), or the welcome state while the workspace is
+ * empty. The Northgate Logistics Inc. fixtures below stay demo-only.
  */
 export function HomeView() {
   const { x } = useI18n()
   const navigate = useNavigate()
   const runAction = useHomeActions()
+  const { mode } = useWorkspaceMode()
 
   /* Prototype `onHomeSend` — free-typed text keeps keyword routing (no key). */
   const sendToAdvisor = (text: string) => {
     navigate('/app/advisor', { state: { prompt: text } satisfies AdvisorStartFlowNavState })
+  }
+
+  if (mode === 'production') {
+    return <HomeProductionView onSend={sendToAdvisor} />
   }
 
   return (

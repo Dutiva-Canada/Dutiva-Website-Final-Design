@@ -10,6 +10,8 @@ import {
   useAskAdvisorBriefing,
   railViewKeyFromPathname,
 } from '@/features/app/rail/useAskAdvisorBriefing'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { workspaceModeMessages as WM } from '@/i18n/messages/workspaceMode'
 import { AuthMenuButton } from '@/features/app/auth/AuthMenuButton'
 import { LangToggle, ThemeToggle } from './ShellControls'
 import { cx } from './cx'
@@ -71,10 +73,14 @@ export function Topbar({ title }: { title: string }) {
   const askAdvisor = useAskAdvisorBriefing()
   const { pathname } = useLocation()
 
-  const [notifications, setNotifications] = useState(SAMPLE_NOTIFICATIONS)
+  const { mode } = useWorkspaceMode()
+  const [demoNotifications, setDemoNotifications] = useState(SAMPLE_NOTIFICATIONS)
   const [notifOpen, setNotifOpen] = useState(false)
+  /* The sample notifications are demo fixtures — production starts with none. */
+  const notifications = mode === 'production' ? [] : demoNotifications
   const hasUnread = notifications.some((n) => n.unread)
-  const markAllRead = () => setNotifications((list) => list.map((n) => ({ ...n, unread: false })))
+  const markAllRead = () =>
+    setDemoNotifications((list) => list.map((n) => ({ ...n, unread: false })))
 
   /* The prototype hides "Ask Advisor" on the Advisor view itself. */
   const showAskAdvisor = !pathname.startsWith('/app/advisor')
@@ -143,6 +149,11 @@ export function Topbar({ title }: { title: string }) {
                   </button>
                 </div>
                 <div className="max-h-[340px] overflow-y-auto">
+                  {notifications.length === 0 && (
+                    <div className="px-[14px] py-[18px] text-center text-[12.5px] text-text-muted">
+                      {x(WM.wsmode_notifications_empty)}
+                    </div>
+                  )}
                   {notifications.map((n) => (
                     <div
                       key={n.id}

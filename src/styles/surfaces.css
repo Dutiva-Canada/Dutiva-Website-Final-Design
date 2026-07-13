@@ -167,6 +167,10 @@
   --ok-bg: #e7f1ec;
   --ok-border: #b7d9c7;
   --ok-fg: #2f6a4f;
+  --support-bg: #eef4fa;
+  --support-border: #cddbe8;
+  --support-fg: #2f5488;
+  --support-text: #42506a;
   --cite-bg: rgba(255, 255, 255, 0.7);
   --focus: #2563eb;
   --sel: #e6dcbb;
@@ -208,6 +212,10 @@
   --ok-bg: rgba(70, 180, 120, 0.15);
   --ok-border: rgba(70, 180, 120, 0.32);
   --ok-fg: #6fd3a0;
+  --support-bg: rgba(95, 140, 210, 0.15);
+  --support-border: rgba(95, 140, 210, 0.34);
+  --support-fg: #9cc0ec;
+  --support-text: #b7c7de;
   --cite-bg: rgba(255, 255, 255, 0.06);
   --focus: #7fb0f0;
   --sel: #20344f;

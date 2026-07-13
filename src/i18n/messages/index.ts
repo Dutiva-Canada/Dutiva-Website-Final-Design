@@ -6,6 +6,7 @@ import { searchMessages } from './search'
 import { docstudioMessages } from './docstudio'
 import { homeMessages } from './home'
 import { advisorViewMessages } from './advisorView'
+import { advisorWorkspaceMessages } from './advisorWorkspace'
 import { workflowsMessages } from './workflows'
 import { casesMessages } from './cases'
 import { employeesMessages } from './employees'
@@ -29,6 +30,8 @@ import { legalHubMessages } from './legalHub'
 import { doclibMessages } from './doclib'
 import { guidanceMessages } from './guidance'
 import { authMessages } from './auth'
+import { memoryMessages } from './memory'
+import { workspaceModeMessages } from './workspaceMode'
 
 /**
  * Merged message catalogue. Each feature contributes one module keyed by
@@ -45,6 +48,7 @@ export const messages = {
   ...docstudioMessages,
   ...homeMessages,
   ...advisorViewMessages,
+  ...advisorWorkspaceMessages,
   ...workflowsMessages,
   ...casesMessages,
   ...employeesMessages,
@@ -68,6 +72,8 @@ export const messages = {
   ...doclibMessages,
   ...guidanceMessages,
   ...authMessages,
+  ...memoryMessages,
+  ...workspaceModeMessages,
 } as const
 
 export type MessageKey = keyof typeof messages

@@ -1,23 +1,35 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import { advisorResponseSchema } from './contract'
+import type { AdvisorResponse } from './contract'
 
 /**
  * Real AI Advisor replies — calls the `advisor-chat` edge function (bearer
  * JWT via the current Supabase session). See supabase/functions/advisor-chat
- * for the server side: route lookup, DigitalOcean Gradient AI call,
- * conversation persistence, telemetry.
+ * for the server side: route lookup, engine call, conversation persistence,
+ * telemetry.
+ *
+ * The engine contract (`POST /api/advisor/respond`, Engineering Roadmap P0)
+ * adds a structured `advisor_response` payload alongside the conversational
+ * reply. It is optional here so the app keeps working against an engine that
+ * only returns text: when present and valid it feeds the Compliance
+ * Workspace; when absent or malformed the reply still renders and the
+ * workspace shows nothing rather than an unvalidated payload.
  */
 
 const advisorChatResponseSchema = z.object({
   data: z.object({
     reply: z.string(),
     conversation_id: z.string(),
+    advisor_response: z.unknown().optional(),
   }),
 })
 
 export interface AdvisorChatResult {
   reply: string
   conversationId: string
+  /** Validated structured payload, or null if the engine didn't send one. */
+  response: AdvisorResponse | null
 }
 
 export async function sendAdvisorMessage(
@@ -32,5 +44,14 @@ export async function sendAdvisorMessage(
   })
   if (error) throw error
   const parsed = advisorChatResponseSchema.parse(data)
-  return { reply: parsed.data.reply, conversationId: parsed.data.conversation_id }
+  let response: AdvisorResponse | null = null
+  if (parsed.data.advisor_response !== undefined) {
+    const structured = advisorResponseSchema.safeParse(parsed.data.advisor_response)
+    if (structured.success) {
+      response = structured.data
+    } else {
+      console.warn('advisor: structured payload failed contract validation', structured.error)
+    }
+  }
+  return { reply: parsed.data.reply, conversationId: parsed.data.conversation_id, response }
 }

@@ -71,4 +71,51 @@ export const homeMessages = defineMessages({
     en: 'Ask Advisor anything about your team…',
     fr: 'Demandez au Conseiller à propos de votre équipe…',
   },
+
+  /* ── Production-mode empty state (admin-only; not in the design handoff —
+     new for the production-readiness work) — [FR self-authored] ─────────── */
+  home_production_title: {
+    en: 'Your workspace is ready.',
+    fr: 'Votre espace de travail est prêt.',
+  },
+  home_production_body: {
+    en: 'This is your real, empty Dutiva workspace — no cases, tasks, or alerts yet. Ask the Advisor anything to get started, or switch back to Demo in Settings for a walkthrough with sample data.',
+    fr: 'Voici votre espace de travail Dutiva réel et vide — aucun dossier, aucune tâche, aucune alerte pour l’instant. Posez une question au Conseiller pour commencer, ou repassez en mode Démo dans les paramètres pour une visite guidée avec des données d’exemple.',
+  },
+  home_production_workspace_label: { en: 'Workspace', fr: 'Espace de travail' },
+
+  /* ── Production command centre (live counts once the workspace has data —
+     no design-handoff counterpart; [FR self-authored] throughout) ────────── */
+  home_prod_greeting: { en: 'Welcome back.', fr: 'Bon retour.' },
+  home_prod_sub: {
+    en: 'Your workspace, computed live from your real records.',
+    fr: 'Votre espace de travail, calculé en direct à partir de vos enregistrements réels.',
+  },
+  home_prod_loading: { en: 'Loading…', fr: 'Chargement…' },
+  home_prod_error: {
+    en: 'Couldn’t load your workspace summary.',
+    fr: 'Impossible de charger le sommaire de votre espace de travail.',
+  },
+  home_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  home_prod_stat_employees: { en: 'Employees', fr: 'Employés' },
+  home_prod_stat_open_cases: { en: 'Open cases', fr: 'Dossiers ouverts' },
+  home_prod_stat_open_tasks: { en: 'Open tasks', fr: 'Tâches ouvertes' },
+  home_prod_stat_open_findings: { en: 'Open findings', fr: 'Constats ouverts' },
+  home_prod_due_title: { en: 'Due soon', fr: 'Échéances à venir' },
+  home_prod_due_none: {
+    en: 'Nothing with a due date on the horizon.',
+    fr: 'Aucune échéance à l’horizon.',
+  },
+  home_prod_overdue: { en: 'Overdue', fr: 'En retard' },
+  home_prod_kind_case: { en: 'Case', fr: 'Dossier' },
+  home_prod_kind_task: { en: 'Task', fr: 'Tâche' },
+  home_prod_policy_attention_one: {
+    en: 'policy needs attention',
+    fr: 'politique demande votre attention',
+  },
+  home_prod_policy_attention_many: {
+    en: 'policies need attention',
+    fr: 'politiques demandent votre attention',
+  },
+  home_prod_policy_open: { en: 'Open policies', fr: 'Ouvrir les politiques' },
 })

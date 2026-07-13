@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { LEGAL_HUB_GROUPS } from './legalHubData'
-import { groupPolicyBlocks, policyDoc, resolvePolicyEdition } from './policyContent'
+import { groupPolicyBlocks, loadPolicyEdition, policyDoc } from './policyContent'
 import type { PolicyDoc, PolicyEdition } from './policyContent'
 
 describe('policy content collection', () => {
@@ -20,10 +20,11 @@ describe('policy content collection', () => {
     }
   })
 
-  it('every edition has a title and at least one section', () => {
+  it('every edition has a title and at least one section', async () => {
     for (const slug of hubSlugs) {
       const doc = policyDoc(slug)
-      for (const edition of [doc?.en, doc?.fr]) {
+      for (const load of [doc?.en, doc?.fr]) {
+        const edition = await load?.()
         expect(edition?.title, slug).toBeTruthy()
         expect(edition?.sections.length, slug).toBeGreaterThan(0)
       }
@@ -31,24 +32,39 @@ describe('policy content collection', () => {
   })
 })
 
-describe('resolvePolicyEdition', () => {
-  const edition = (title: string): PolicyEdition => ({ title, sections: [] })
+describe('loadPolicyEdition', () => {
+  const editionLoader =
+    (title: string): (() => Promise<PolicyEdition>) =>
+    () =>
+      Promise.resolve({ title, sections: [] })
 
-  it('prefers the requested language', () => {
-    const doc: PolicyDoc = { slug: 'x', en: edition('EN'), fr: edition('FR') }
-    expect(resolvePolicyEdition(doc, 'en')).toEqual({ edition: doc.en, lang: 'en' })
-    expect(resolvePolicyEdition(doc, 'fr')).toEqual({ edition: doc.fr, lang: 'fr' })
+  it('prefers the requested language', async () => {
+    const doc: PolicyDoc = { slug: 'x', en: editionLoader('EN'), fr: editionLoader('FR') }
+    await expect(loadPolicyEdition(doc, 'en')).resolves.toEqual({
+      edition: { title: 'EN', sections: [] },
+      lang: 'en',
+    })
+    await expect(loadPolicyEdition(doc, 'fr')).resolves.toEqual({
+      edition: { title: 'FR', sections: [] },
+      lang: 'fr',
+    })
   })
 
-  it('falls back to the other language when the requested edition is missing', () => {
-    const frOnly: PolicyDoc = { slug: 'x', fr: edition('FR') }
-    expect(resolvePolicyEdition(frOnly, 'en')).toEqual({ edition: frOnly.fr, lang: 'fr' })
-    const enOnly: PolicyDoc = { slug: 'x', en: edition('EN') }
-    expect(resolvePolicyEdition(enOnly, 'fr')).toEqual({ edition: enOnly.en, lang: 'en' })
+  it('falls back to the other language when the requested edition is missing', async () => {
+    const frOnly: PolicyDoc = { slug: 'x', fr: editionLoader('FR') }
+    await expect(loadPolicyEdition(frOnly, 'en')).resolves.toEqual({
+      edition: { title: 'FR', sections: [] },
+      lang: 'fr',
+    })
+    const enOnly: PolicyDoc = { slug: 'x', en: editionLoader('EN') }
+    await expect(loadPolicyEdition(enOnly, 'fr')).resolves.toEqual({
+      edition: { title: 'EN', sections: [] },
+      lang: 'en',
+    })
   })
 
-  it('returns undefined when no edition exists', () => {
-    expect(resolvePolicyEdition({ slug: 'x' }, 'en')).toBeUndefined()
+  it('returns undefined when no edition exists', async () => {
+    await expect(loadPolicyEdition({ slug: 'x' }, 'en')).resolves.toBeUndefined()
   })
 })
 

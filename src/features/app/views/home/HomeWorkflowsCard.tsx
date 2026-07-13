@@ -33,7 +33,13 @@ function WorkflowRisk({ w, small }: { readonly w: InFlightWorkflow; readonly sma
   )
 }
 
-function WorkflowProgress({ w, gapTop }: { readonly w: InFlightWorkflow; readonly gapTop: string }) {
+function WorkflowProgress({
+  w,
+  gapTop,
+}: {
+  readonly w: InFlightWorkflow
+  readonly gapTop: string
+}) {
   const { x } = useI18n()
   return (
     <div className={`flex items-center gap-[8px] ${gapTop}`}>
@@ -63,7 +69,11 @@ function WorkflowMetaLines({ w }: { readonly w: InFlightWorkflow }) {
 }
 
 /** Desktop right-rail card (`showRailWorkflows`). */
-export function HomeWorkflowsRailCard({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
+export function HomeWorkflowsRailCard({
+  onAction,
+}: {
+  readonly onAction: (action: HomeAction) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="hidden rounded-[12px] border border-border bg-surface px-[16px] py-[15px] sm:block">
@@ -102,7 +112,11 @@ export function HomeWorkflowsRailCard({ onAction }: { readonly onAction: (action
 }
 
 /** Mobile list, directly after Act now (`showMobileWorkflows`). */
-export function HomeWorkflowsMobileList({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
+export function HomeWorkflowsMobileList({
+  onAction,
+}: {
+  readonly onAction: (action: HomeAction) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="sm:hidden">

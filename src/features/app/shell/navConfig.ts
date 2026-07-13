@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   Book,
+  Brain,
   Calendar,
   ChartNoAxesColumn,
   DollarSign,
@@ -21,6 +22,7 @@ import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { doclibMessages as DL } from '@/i18n/messages/doclib'
+import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { cases, employeeDetails, employees } from '@/data'
 
 /**
@@ -71,6 +73,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: M.shell_nav_workflows,
         badge: { value: WORKFLOWS_BADGE, tone: 'gold' },
       },
+      { key: 'memory', to: '/app/memory', icon: Brain, label: MEM.memory_nav_memory },
     ],
   },
   {
@@ -167,6 +170,7 @@ export function isNavActive(to: string, pathname: string): boolean {
 const VIEW_LABELS: Record<string, Bi> = {
   home: M.shell_v_home,
   advisor: M.shell_v_advisor,
+  memory: MEM.memory_title,
   workflows: M.shell_v_workflows,
   cases: M.shell_v_cases,
   employees: M.shell_v_employees,
@@ -181,6 +185,17 @@ const VIEW_LABELS: Record<string, Bi> = {
   compensation: M.shell_v_compensation,
   wellbeing: M.shell_v_wellbeing,
   communications: M.shell_v_communications,
+}
+
+/**
+ * Like viewLabelFor, but always the module's own label — no fixture-employee
+ * name special case. Used by ModeGate to title production empty states, where
+ * surfacing a fixture person's name would itself be a demo-data leak.
+ */
+export function moduleLabelFor(pathname: string): Bi {
+  const segment = pathname.replace(/^\/app\/?/, '').split('/')[0] ?? ''
+  if (segment === 'documents') return DL.doclib_nav_documents
+  return VIEW_LABELS[segment] ?? M.shell_v_home
 }
 
 export function viewLabelFor(pathname: string): Bi {

@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from 'vitest'
+﻿import { afterEach, describe, expect, it, vi } from 'vitest'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
@@ -7,6 +7,9 @@ import { SettingsView } from './SettingsView'
 describe('SettingsView', () => {
   it('renders workspace, team, retention, billing, and audit content', () => {
     renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+
+    // No workspace-mode toggle for a signed-out / non-admin visitor.
+    expect(screen.queryByRole('tablist', { name: 'Workspace mode' })).not.toBeInTheDocument()
 
     // Workspace card
     expect(screen.getByText('Northgate Logistics Inc.')).toBeInTheDocument()
@@ -71,5 +74,95 @@ describe('SettingsView', () => {
 
     await user.click(screen.getByRole('tab', { name: 'English' }))
     expect(screen.getByText('Appearance')).toBeInTheDocument()
+  })
+})
+
+describe('SettingsView workspace-mode toggle (admin only)', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  it('lets a confirmed admin switch to production and back', async () => {
+    const upsert = vi.fn().mockResolvedValue({ error: null })
+    let storedMode: 'demo' | 'production' = 'demo'
+
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { id: 'u1', email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
+        from: vi.fn((table: string) => {
+          if (table === 'workspace_preferences') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () => Promise.resolve({ data: { mode: storedMode }, error: null }),
+                }),
+              }),
+              upsert: (row: { mode: 'demo' | 'production' }) => {
+                storedMode = row.mode
+                return upsert(row)
+              },
+            }
+          }
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({
+                    data: {
+                      legal_name: 'Dutiva Canada Inc.',
+                      company_name: null,
+                      primary_contact: 'Martin Constantineau',
+                      province: 'Ontario',
+                      city: 'Ottawa',
+                    },
+                    error: null,
+                  }),
+              }),
+            }),
+          }
+        }),
+      },
+    }))
+    vi.resetModules()
+
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { SettingsView: SettingsViewFresh } = await import('./SettingsView')
+    const user = userEvent.setup()
+
+    renderAppFresh(<SettingsViewFresh />, { route: '/app/settings', path: '/app/settings' })
+
+    const tablist = await screen.findByRole('tablist', { name: 'Workspace mode' })
+    expect(tablist).toBeInTheDocument()
+    // Still demo until the admin explicitly switches.
+    expect(screen.getByText('Northgate Logistics Inc.')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: 'Production' }))
+
+    expect(await screen.findByText('Dutiva Canada Inc.')).toBeInTheDocument()
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ user_id: 'u1', mode: 'production' }),
+    )
+
+    /* Workspace card swaps to the real region; the Northgate fixture
+       sections (team, audit log, integrations & billing) disappear. */
+    expect(screen.getByText('Ottawa')).toBeInTheDocument()
+    expect(screen.queryByText('Ottawa (HQ) · Montréal · Vancouver')).not.toBeInTheDocument()
+    expect(screen.queryByText('Riley Summers')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Riley Summers viewed compensation — Jordan Mensah'),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Integrations & billing')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: 'Demo' }))
+    expect(await screen.findByText('Northgate Logistics Inc.')).toBeInTheDocument()
+    expect(screen.getByText('Riley Summers')).toBeInTheDocument()
   })
 })

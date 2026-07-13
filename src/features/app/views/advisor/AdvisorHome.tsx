@@ -3,13 +3,15 @@ import { CircleHelp, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
+import { workspaceModeMessages as WM } from '@/i18n/messages/workspaceMode'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { SuggestionChipGrid } from '@/features/app/advisor/SuggestionChips'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { dotToneClass, statusChipClass } from '@/components/chips'
 import { homePriorities, severityLabels } from '@/features/app/views/home/homeData'
 import type { HomeAction } from '@/features/app/views/home/homeData'
-import { homeSuggestionChips } from './advisorFlows'
-import type { HomeSuggestionChip } from './advisorFlows'
+import { scenarioSuggestions } from './advisorScenarios'
+import type { ScenarioId } from './advisorScenarios'
 import { buildDailyBrief, buildHomeMetrics } from './advisorHomeData'
 import type { HomeMetric } from './advisorHomeData'
 
@@ -41,20 +43,51 @@ const metricLabelKeys = {
 } as const
 
 export interface AdvisorHomeProps {
-  /** Free-form send from the home composer (routes a flow). */
+  /** Free-form send from the home composer (routes a response mode). */
   onSend: (text: string) => void
-  /** Suggestion-grid chip click (starts that chip's flow with its seed text). */
-  onChip: (chip: HomeSuggestionChip) => void
+  /** Suggestion-grid chip click — starts that demo response-mode scenario. */
+  onScenario: (scenarioId: ScenarioId) => void
   onPriorityAction: (action: HomeAction) => void
   /** Metric tile deep link (route segment under /app). */
   onMetricClick: (view: HomeMetric['view']) => void
 }
 
-export function AdvisorHome({ onSend, onChip, onPriorityAction, onMetricClick }: AdvisorHomeProps) {
+export function AdvisorHome({
+  onSend,
+  onScenario,
+  onPriorityAction,
+  onMetricClick,
+}: AdvisorHomeProps) {
   const { x, lang } = useI18n()
+  const { mode } = useWorkspaceMode()
   const [whyOpen, setWhyOpen] = useState<Record<string, boolean>>({})
   const metrics = useMemo(() => buildHomeMetrics(), [])
   const brief = useMemo(() => buildDailyBrief(), [])
+
+  /* Production: no Northgate metrics/brief/priorities and no demo scenario
+     chips — just the greeting and the (real-backend) composer. */
+  if (mode === 'production') {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto px-[24px] pt-[10vh] pb-[40px]">
+        <div className="w-full max-w-[680px] text-center">
+          <div className="mx-auto mb-[20px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-navy">
+            <Sparkle size={22} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+          </div>
+          <h1 className="m-0 mb-[6px] font-display text-[27px] font-semibold text-text">
+            {x(WM.wsmode_advisor_greeting)}
+          </h1>
+          <p className="m-0 mb-[22px] text-[14.5px] text-text-muted">{x(WM.wsmode_advisor_sub)}</p>
+          <div className="text-left">
+            <ChatComposer
+              variant="home"
+              placeholder={x(M.advisorview_composer_home)}
+              onSend={onSend}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto px-[24px] pt-[6vh] pb-[40px]">
@@ -176,13 +209,13 @@ export function AdvisorHome({ onSend, onChip, onPriorityAction, onMetricClick }:
           />
         </div>
 
-        {/* Suggestion chip grid */}
+        {/* Suggestion chip grid — the six demo response modes */}
         <div className="mt-[22px]">
           <SuggestionChipGrid
-            chips={homeSuggestionChips.map((chip) => ({
+            chips={scenarioSuggestions.map((chip) => ({
               label: chip.label,
               sub: chip.sub,
-              onClick: () => onChip(chip),
+              onClick: () => onScenario(chip.scenarioId),
             }))}
           />
         </div>

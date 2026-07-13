@@ -18,6 +18,8 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { complianceMessages as M } from '@/i18n/messages/compliance'
 import { common } from '@/i18n/messages/common'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { ComplianceProductionView } from './ComplianceProductionView'
 
 /** Category bar/score colours (prototype `scoreColor` / `fillStyle`). */
 const barFillClasses: Record<Tone, string> = {
@@ -54,8 +56,18 @@ const flagRowLabelClass = 'w-[96px] shrink-0 text-[11px] font-bold tracking-[0.0
  * jurisdiction filter, stat cards, obligation register (with evidence
  * toggles), posture-by-area score bars, active risk flags and the regulatory
  * watchlist. Rendered inside the shell outlet (no own topbar/surface).
+ *
+ * Production renders the real findings register (ComplianceProductionView,
+ * the backend's public.compliance_findings) instead of the Northgate
+ * fixtures below.
  */
 export function ComplianceView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <ComplianceProductionView />
+  return <ComplianceDemoView />
+}
+
+function ComplianceDemoView() {
   const { x } = useI18n()
   const navigate = useNavigate()
   const { openRail, closeRail } = useRail()
@@ -239,12 +251,7 @@ export function ComplianceView() {
               )
             })}
             <div className="flex items-start gap-[7px] py-[12px] text-[11px] leading-normal text-text-faint">
-              <Shield
-                size={12}
-                strokeWidth={1.8}
-                className="mt-px shrink-0"
-                aria-hidden="true"
-              />
+              <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
               <span>{x(M.compliance_audit_note)}</span>
             </div>
           </div>

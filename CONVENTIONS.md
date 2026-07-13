@@ -17,7 +17,7 @@ Scripts: `npm run dev | build | typecheck | lint | test | format | check`.
 ```text
 src/
   app/            App root, providers, router, route tables
-  components/     Shared UI primitives (Badge, ToneCard, Toast …)
+  components/     Cross-feature shared UI (Disclaimer, chip tone/status classes)
   data/           Entity types + realistic sample fixtures (swap for Supabase later)
   features/
     marketing/    Landing page (dutiva.ca) — sections + its i18n module
@@ -28,6 +28,9 @@ src/
       search/     Global search overlay
       rail/       Advisor rail (contextual right panel)
       toasts/     Toast context + host
+      docstudio/  Guided document-generation overlay (right-hand drawer, live preview)
+      documents/  HR Documents Library — repository, template, and studio screens
+      workspaceContext/  "Advisor is using …" pinned-entity banner state
   i18n/           Language provider + message catalogue
   lib/            prefs, theme, generic hooks/utils
   styles/         tokens.css, surfaces.css, patterns.css, animations.css, base.css
@@ -39,9 +42,14 @@ src/
 | Path | Renders |
 | --- | --- |
 | `/` | Marketing landing page |
+| `/about · /faq · /blog` | Marketing subpages (dutiva.ca content migration) |
+| `/guides/template-usage · /known-limitations` | Marketing subpages |
+| `/legal` → `/legal/:slug` | Policy index → one of 26 policy documents |
 | `/app/welcome` | App entry stage (sign-in preview) |
 | `/app` → `/app/home` | Workspace shell redirect |
 | `/app/home · advisor · workflows · cases · employees · compliance · policies · templates · tasks · calendar · reports · knowledge · communications · compensation · wellbeing · settings` | The 16 views |
+| `/app/memory` | Advisor Memory manager |
+| `/app/memory/people/:personId · cases/:caseId · conversations/:threadId` | Memory person / case / chat-recall surfaces |
 | `/app/cases/:caseId` | Case detail |
 | `/app/employees/:employeeId` | Employee profile |
 
@@ -93,6 +101,85 @@ these routes — never view-state flags.
   fixtures, so a future Supabase provider can replace the module wholesale.
 - Sample people/cases (Jordan Mensah, etc.) are realistic fixtures, not shippable
   content — keep them clearly grouped under `src/data/`.
+
+## Workspace mode (demo ⇄ production)
+
+`useWorkspaceMode()` (`src/features/app/workspaceMode/`) resolves to `'demo'`
+or `'production'` and exposes the current `identity` (company + user). It
+defaults to `'demo'` — today's Northgate Logistics Inc./Riley Summers
+experience — for everyone; `'production'` only ever activates for a
+signed-in, confirmed admin (`is_admin_user()` RPC, backed by the real
+`admin_users` table — today: just Martin) who has explicitly stored that
+preference (`workspace_preferences`, RLS-gated to the admin's own row). No
+Supabase config, signed-out, or non-admin all resolve to `'demo'`, so this
+is safe to read from any view without a route guard or breaking tests
+(`VITE_SUPABASE_*` are forced empty for the whole suite).
+
+Phase 1 wired the toggle itself (Settings → Workspace, admin-only), the
+shell identity (`Sidebar.tsx`), and Home's tailored empty state
+(`HomeProductionEmptyState.tsx`). Phase 2 made production a true reset
+stage everywhere: fixture-driven views are wrapped in `ModeGate` at the
+route table (`src/app/appViews.tsx`) — demo renders them unchanged,
+production renders the shared `ProductionEmptyState` titled by module —
+and the shell surfaces are mode-aware (topbar notifications, sidebar nav
+badges, the global search corpus, Settings' Northgate-only sections, the
+Advisor's fixture threads and home widgets). Deliberately ungated:
+Advisor chat (real backend), Knowledge (generic HR-law reference + the
+real guidance panel), Settings, and the Document Studio catalog screens
+(real product templates — only the fixture repository is gated).
+
+Wiring a module to real persistence is follow-up work, one module per PR:
+remove the view's `gated(…)` wrapper in `appViews.tsx` and make the view
+itself handle both modes (fixtures in demo, real data + its own empty
+state in production). Don't thread mode conditionals through a view that
+is still fully fixture-driven — the route-level gate already covers it.
+
+**Employees is the reference implementation** (Phase 3): the context
+exposes `organizationId` (auto-provisioned via the backend's
+`create_organization()` RPC on the admin's first switch to production),
+`public.employees` is org-scoped by RLS (`is_org_member` read /
+`is_org_admin` write — migration 0006), `EmployeesView` switches on mode,
+and the production roster lives in its own lean component
+(`EmployeesProductionView` + `productionApi.ts`, zod-validated rows that
+throw on failure rather than silently emptying). Follow that shape —
+per-tenant table keyed by `organization_id`, a `productionApi.ts`
+boundary, a separate production view component — for the next module.
+**Cases followed it in Phase 4** (`public.hr_cases`, migration 0007;
+`CasesProductionView` adds the first status-update write path and links
+cases to real employees via `employee_id`). **Tasks followed in Phase 5
+with no migration at all** — it reuses the backend's own
+`public.compliance_tasks` table and RLS; when the live schema already has
+a fitting per-tenant table, prefer wiring to it over minting a parallel
+one (check its RLS and check-constraints first, and tolerate enum values
+beyond what the UI writes, the way `tasks/productionApi.ts` treats
+statuses it never sets). **Compliance followed in Phase 6**, same
+zero-migration pattern on `public.compliance_findings` — the table the
+backend's AI assessment pipeline writes to, so pipeline-generated
+findings will appear in the register alongside manually logged ones.
+**Policies followed in Phase 7** (`public.hr_policies`, migration 0008) —
+a register whose rows are written policies or known gaps (`missing`),
+where flipping a policy back to `up_to_date` stamps `last_reviewed`.
+**Reports followed in Phase 8 with no table and no writes** — it
+aggregates live from the other modules' `productionApi.list*` functions;
+aggregation-only views should reuse those boundaries rather than issuing
+their own queries. **Home followed in Phase 9** the same way: a brand-new
+workspace keeps the welcome state (`HomeProductionEmptyState`), and once
+records exist `HomeProductionView` renders the real command centre —
+stat tiles deep-linking to modules, a due-soon list over cases + tasks
+(overdue flagged), and a policy-attention row. **Calendar followed in
+Phase 10**: the demo's month grid rebuilt over real case/task due dates,
+with month navigation from today. **Case detail followed in Phase 11**
+(`public.hr_case_notes`, migration 0009): production case rows open a
+real working record — facts header, status select, and a notes thread.
+Child tables denormalize `organization_id` so RLS stays a direct
+`is_org_member`/`is_org_admin` check instead of a join. **Employee
+profiles followed in Phase 12** (`public.hr_employee_notes`, migration
+0010), adding the first cross-module linkage: a profile lists the
+employee's open `hr_cases`, linking through to the case detail.
+**Phase 13 made the sidebar badges live in production**
+(`useProductionNavBadges` + `countOpen*` head-count queries in each
+productionApi): real open counts for Cases/Tasks/Compliance, refreshed on
+every route change, shown only when a module has open work.
 
 ## Icons & assets
 

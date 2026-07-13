@@ -33,4 +33,50 @@ export const policiesMessages = defineMessages({
     // [FR self-authored]
     fr: 'Voici un aperçu rapide de cette politique.',
   },
+
+  /* ── Production policy register (real persistence — no design-handoff
+     counterpart; [FR self-authored] throughout) ─────────────────────────── */
+  policies_prod_add: { en: 'Add policy', fr: 'Ajouter une politique' },
+  policies_prod_cancel: { en: 'Cancel', fr: 'Annuler' },
+  policies_prod_name: { en: 'Policy name', fr: 'Nom de la politique' },
+  policies_prod_status: { en: 'Status', fr: 'Statut' },
+  policies_prod_last_reviewed: {
+    en: 'Last reviewed (optional)',
+    fr: 'Dernière révision (facultatif)',
+  },
+  policies_prod_save: { en: 'Save policy', fr: 'Enregistrer la politique' },
+  policies_prod_count_one: { en: 'policy', fr: 'politique' },
+  policies_prod_count_many: { en: 'policies', fr: 'politiques' },
+  policies_prod_loading: { en: 'Loading…', fr: 'Chargement…' },
+  policies_prod_empty_title: { en: 'No policies yet', fr: 'Aucune politique pour l’instant' },
+  policies_prod_empty_body: {
+    en: 'Add the policies your organization has — or log the ones it’s missing — to start tracking your real policy posture.',
+    fr: 'Ajoutez les politiques de votre organisation — ou consignez celles qui manquent — pour commencer à suivre votre posture réelle en matière de politiques.',
+  },
+  policies_prod_error: {
+    en: 'Couldn’t load policies.',
+    fr: 'Impossible de charger les politiques.',
+  },
+  policies_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  policies_prod_added: { en: 'Policy added', fr: 'Politique ajoutée' },
+  policies_prod_add_failed: {
+    en: 'Couldn’t add the policy. Try again.',
+    fr: 'Impossible d’ajouter la politique. Réessayez.',
+  },
+  policies_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  policies_prod_removed: { en: 'Policy removed', fr: 'Politique retirée' },
+  policies_prod_remove_failed: {
+    en: 'Couldn’t remove the policy.',
+    fr: 'Impossible de retirer la politique.',
+  },
+  policies_prod_status_updated: { en: 'Status updated', fr: 'Statut mis à jour' },
+  policies_prod_status_update_failed: {
+    en: 'Couldn’t update the policy.',
+    fr: 'Impossible de mettre à jour la politique.',
+  },
+  policies_prod_status_aria: { en: 'Policy status', fr: 'Statut de la politique' },
+  policies_prod_reviewed_prefix: { en: 'Last reviewed: ', fr: 'Dernière révision : ' },
+  policies_prod_status_up_to_date: { en: 'Up to date', fr: 'À jour' },
+  policies_prod_status_needs_review: { en: 'Needs review', fr: 'À réviser' },
+  policies_prod_status_missing: { en: 'Missing', fr: 'Manquante' },
 })

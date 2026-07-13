@@ -41,6 +41,16 @@ export const settingsMessages = defineMessages({
     fr: 'Ottawa (siège) · Montréal · Vancouver',
   },
 
+  /* ── Workspace mode toggle (admin-only; not in the design handoff — new for
+     the production-readiness work) — [FR self-authored] ──────────────────── */
+  settings_workspace_mode: { en: 'Workspace mode', fr: 'Mode de l’espace de travail' },
+  settings_workspace_mode_demo: { en: 'Demo', fr: 'Démo' },
+  settings_workspace_mode_production: { en: 'Production', fr: 'Production' },
+  settings_workspace_mode_note: {
+    en: 'Demo shows Northgate Logistics Inc. sample data for training and walkthroughs. Production is your real, empty Dutiva workspace — visible only to you.',
+    fr: 'Le mode Démo affiche les données d’exemple de Northgate Logistics Inc. pour la formation et les démonstrations. Le mode Production est votre espace de travail Dutiva réel et vide — visible pour vous seul.',
+  },
+
   /* ── Users & team ───────────────────────────────────────────────────────── */
   settings_team: { en: 'Users & team', fr: 'Équipe et utilisateurs' },
   settings_role_owner: { en: 'Owner / Admin', fr: 'Propriétaire / Admin' },

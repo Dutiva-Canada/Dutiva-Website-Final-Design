@@ -5,6 +5,7 @@ import { pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { common } from '@/i18n/messages/common'
 import { settingsMessages as M } from '@/i18n/messages/settings'
 import {
@@ -16,10 +17,11 @@ import {
   retentionRows,
   roleRows,
   securityRows,
+  segClass,
   team,
 } from './settingsData'
 import type { ChipTone, PrefKey } from './settingsData'
-import { Card, Section, StatusChip, ToggleRow, segClass } from './settingsPrimitives'
+import { Card, Section, StatusChip, ToggleRow } from './settingsPrimitives'
 
 /**
  * Settings view — port of the prototype's largest static view
@@ -36,6 +38,7 @@ export function SettingsView() {
   const { x, lang, setLang } = useI18n()
   const { theme, setTheme } = useTheme()
   const { showToast } = useToasts()
+  const { mode: workspaceMode, isAdmin, identity, setMode: setWorkspaceMode } = useWorkspaceMode()
 
   const [prefs, setPrefs] = useState<Record<PrefKey, boolean>>(initialPrefs)
   const [integrationError, setIntegrationError] = useState(true)
@@ -48,6 +51,13 @@ export function SettingsView() {
     setIntegrationError(false)
     showToast(M.settings_toast_reconnected, 'ok')
   }
+
+  /* Production shows the real profile's single operating region; demo keeps
+     the Northgate fixture chips. */
+  const provinceChips: string[] =
+    workspaceMode === 'production'
+      ? [identity.province ?? 'Ontario']
+      : provinces.map((prov) => x(prov))
 
   const integrations: { t: Bi; status: Bi; tone: ChipTone; error: boolean }[] = [
     { t: M.settings_int_esign, status: M.settings_int_connected_f, tone: 'success', error: false },
@@ -148,19 +158,53 @@ export function SettingsView() {
         {/* Workspace */}
         <Section label={x(M.settings_workspace)}>
           <div className="flex flex-col gap-[12px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]">
+            {isAdmin && (
+              <div>
+                <span className="text-[12px] text-text-muted">{x(M.settings_workspace_mode)}</span>
+                <div
+                  role="tablist"
+                  aria-label={x(M.settings_workspace_mode)}
+                  className="mt-[6px] flex w-fit gap-[6px] rounded-[12px] border border-border bg-inset px-[6px] py-[5px]"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={workspaceMode === 'demo'}
+                    onClick={() => void setWorkspaceMode('demo')}
+                    className={segClass(workspaceMode === 'demo')}
+                  >
+                    {x(M.settings_workspace_mode_demo)}
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={workspaceMode === 'production'}
+                    onClick={() => void setWorkspaceMode('production')}
+                    className={segClass(workspaceMode === 'production')}
+                  >
+                    {x(M.settings_workspace_mode_production)}
+                  </button>
+                </div>
+                <p className="mt-[8px] text-[11.5px] leading-[1.5] text-text-faint">
+                  {x(M.settings_workspace_mode_note)}
+                </p>
+              </div>
+            )}
             <div>
               <span className="text-[12px] text-text-muted">{x(M.settings_company)}</span>
-              <div className="text-[14px] font-semibold text-text">Northgate Logistics Inc.</div>
+              <div className="text-[14px] font-semibold text-text">
+                {workspaceMode === 'production' ? identity.companyName : 'Northgate Logistics Inc.'}
+              </div>
             </div>
             <div>
               <span className="text-[12px] text-text-muted">{x(M.settings_provinces_of_op)}</span>
               <div className="mt-[6px] flex flex-wrap gap-[6px]">
-                {provinces.map((prov) => (
+                {provinceChips.map((prov) => (
                   <span
-                    key={prov.en}
+                    key={prov}
                     className="rounded-[100px] bg-inset px-[11px] py-[4px] text-[12.5px] font-semibold text-text-2"
                   >
-                    {x(prov)}
+                    {prov}
                   </span>
                 ))}
               </div>
@@ -168,31 +212,37 @@ export function SettingsView() {
             <div>
               <span className="text-[12px] text-text-muted">{x(M.settings_locations)}</span>
               <div className="mt-[2px] text-[13.5px] font-semibold text-text">
-                {x(M.settings_locations_value)}
+                {workspaceMode === 'production'
+                  ? (identity.city ?? 'Ottawa')
+                  : x(M.settings_locations_value)}
               </div>
             </div>
           </div>
         </Section>
 
-        {/* Users & team */}
-        <Section label={x(M.settings_team)}>
-          <Card>
-            {team.map((m) => (
-              <div
-                key={m.initials}
-                className="flex items-center gap-[12px] border-t border-inset px-[18px] py-[13px]"
-              >
-                <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
-                  {m.initials}
+        {/* Users & team — fixture people; production has no team records yet. */}
+        {workspaceMode !== 'production' && (
+          <Section label={x(M.settings_team)}>
+            <Card>
+              {team.map((m) => (
+                <div
+                  key={m.initials}
+                  className="flex items-center gap-[12px] border-t border-inset px-[18px] py-[13px]"
+                >
+                  <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
+                    {m.initials}
+                  </div>
+                  <div>
+                    <div className="text-[13.5px] font-semibold text-text">
+                      {pickL(m.name, lang)}
+                    </div>
+                    <div className="text-[12px] text-text-muted">{x(m.role)}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[13.5px] font-semibold text-text">{pickL(m.name, lang)}</div>
-                  <div className="text-[12px] text-text-muted">{x(m.role)}</div>
-                </div>
-              </div>
-            ))}
-          </Card>
-        </Section>
+              ))}
+            </Card>
+          </Section>
+        )}
 
         {/* Notifications */}
         <Section label={x(M.settings_notifications)}>
@@ -298,62 +348,67 @@ export function SettingsView() {
           </Card>
         </Section>
 
-        {/* Integrations & billing */}
-        <Section label={x(M.settings_integrations)}>
-          <Card>
-            {integrations.map((ig) => (
-              <div
-                key={ig.t.en}
-                className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[12px]"
-              >
-                <div className="text-[13px] font-semibold text-text">{x(ig.t)}</div>
-                <div className="flex items-center gap-[8px]">
-                  <StatusChip tone={ig.tone}>{x(ig.status)}</StatusChip>
-                  {ig.error && (
-                    <button
-                      type="button"
-                      onClick={retryIntegration}
-                      className="cursor-pointer rounded-[8px] border-none bg-accent-soft px-[12px] py-[6px] font-sans text-[12px] font-bold text-accent"
-                    >
-                      {x(M.settings_int_retry)}
-                    </button>
-                  )}
+        {/* Integrations & billing — fixture connections/plan; production has
+            no real integrations wired yet. */}
+        {workspaceMode !== 'production' && (
+          <Section label={x(M.settings_integrations)}>
+            <Card>
+              {integrations.map((ig) => (
+                <div
+                  key={ig.t.en}
+                  className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[12px]"
+                >
+                  <div className="text-[13px] font-semibold text-text">{x(ig.t)}</div>
+                  <div className="flex items-center gap-[8px]">
+                    <StatusChip tone={ig.tone}>{x(ig.status)}</StatusChip>
+                    {ig.error && (
+                      <button
+                        type="button"
+                        onClick={retryIntegration}
+                        className="cursor-pointer rounded-[8px] border-none bg-accent-soft px-[12px] py-[6px] font-sans text-[12px] font-bold text-accent"
+                      >
+                        {x(M.settings_int_retry)}
+                      </button>
+                    )}
+                  </div>
                 </div>
+              ))}
+              <div className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[12px]">
+                <div className="text-[13px] font-semibold text-text">{x(M.settings_billing)}</div>
+                <button
+                  type="button"
+                  onClick={() => showToast(M.settings_toast_billing, 'ok')}
+                  className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-bold text-text"
+                >
+                  {x(M.settings_billing_btn)}
+                </button>
               </div>
-            ))}
-            <div className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[12px]">
-              <div className="text-[13px] font-semibold text-text">{x(M.settings_billing)}</div>
-              <button
-                type="button"
-                onClick={() => showToast(M.settings_toast_billing, 'ok')}
-                className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-bold text-text"
-              >
-                {x(M.settings_billing_btn)}
-              </button>
-            </div>
-          </Card>
-        </Section>
+            </Card>
+          </Section>
+        )}
 
-        {/* Audit log */}
-        <Section label={x(M.settings_audit)}>
-          <Card>
-            {auditEvents.map((ev) => (
-              <div
-                key={ev.text.en}
-                className="flex items-start gap-[12px] border-t border-inset px-[18px] py-[11px]"
-              >
-                <StatusChip tone={ev.tone}>{x(ev.kind)}</StatusChip>
-                <div className="min-w-0 flex-1 text-[12.5px] leading-normal text-text-2">
-                  {x(ev.text)}
+        {/* Audit log — fixture events; production starts with an empty log. */}
+        {workspaceMode !== 'production' && (
+          <Section label={x(M.settings_audit)}>
+            <Card>
+              {auditEvents.map((ev) => (
+                <div
+                  key={ev.text.en}
+                  className="flex items-start gap-[12px] border-t border-inset px-[18px] py-[11px]"
+                >
+                  <StatusChip tone={ev.tone}>{x(ev.kind)}</StatusChip>
+                  <div className="min-w-0 flex-1 text-[12.5px] leading-normal text-text-2">
+                    {x(ev.text)}
+                  </div>
+                  <span className="shrink-0 text-[11.5px] text-text-faint">{x(ev.when)}</span>
                 </div>
-                <span className="shrink-0 text-[11.5px] text-text-faint">{x(ev.when)}</span>
+              ))}
+              <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
+                {x(M.settings_audit_note)}
               </div>
-            ))}
-            <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
-              {x(M.settings_audit_note)}
-            </div>
-          </Card>
-        </Section>
+            </Card>
+          </Section>
+        )}
       </div>
     </div>
   )

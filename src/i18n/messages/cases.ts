@@ -184,4 +184,80 @@ export const casesMessages = defineMessages({
   },
   /* A11y-only (tablist labels). */
   cases_tabs_aria: { en: 'Case workspace sections', fr: 'Sections du dossier' }, // [FR self-authored]
+
+  /* ── Production case files (real persistence — no design-handoff
+     counterpart; [FR self-authored] throughout) ─────────────────────────── */
+  cases_prod_new: { en: 'New case', fr: 'Nouveau dossier' },
+  cases_prod_cancel: { en: 'Cancel', fr: 'Annuler' },
+  cases_prod_title_label: { en: 'Case title', fr: 'Titre du dossier' },
+  cases_prod_type: { en: 'Case type', fr: 'Type de dossier' },
+  cases_prod_employee: { en: 'Employee (optional)', fr: 'Employé (facultatif)' },
+  cases_prod_employee_none: { en: 'No linked employee', fr: 'Aucun employé lié' },
+  cases_prod_province: { en: 'Province', fr: 'Province' },
+  cases_prod_due: { en: 'Due date', fr: 'Échéance' },
+  cases_prod_save: { en: 'Create case', fr: 'Créer le dossier' },
+  cases_prod_count_one: { en: 'case', fr: 'dossier' },
+  cases_prod_count_many: { en: 'cases', fr: 'dossiers' },
+  cases_prod_loading: { en: 'Loading…', fr: 'Chargement…' },
+  cases_prod_empty_title: { en: 'No cases yet', fr: 'Aucun dossier pour l’instant' },
+  cases_prod_empty_body: {
+    en: 'Open your first case to start tracking real HR work.',
+    fr: 'Ouvrez votre premier dossier pour commencer à suivre le travail RH réel.',
+  },
+  cases_prod_error: { en: 'Couldn’t load cases.', fr: 'Impossible de charger les dossiers.' },
+  cases_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  cases_prod_added: { en: 'Case created', fr: 'Dossier créé' },
+  cases_prod_add_failed: {
+    en: 'Couldn’t create the case. Try again.',
+    fr: 'Impossible de créer le dossier. Réessayez.',
+  },
+  cases_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  cases_prod_removed: { en: 'Case removed', fr: 'Dossier retiré' },
+  cases_prod_remove_failed: {
+    en: 'Couldn’t remove the case.',
+    fr: 'Impossible de retirer le dossier.',
+  },
+  cases_prod_status_updated: { en: 'Status updated', fr: 'Statut mis à jour' },
+  cases_prod_status_update_failed: {
+    en: 'Couldn’t update the status.',
+    fr: 'Impossible de mettre à jour le statut.',
+  },
+  cases_prod_status_aria: { en: 'Case status', fr: 'Statut du dossier' },
+  cases_prod_type_termination: { en: 'Termination', fr: 'Cessation d’emploi' },
+  cases_prod_type_performance: { en: 'Performance', fr: 'Rendement' },
+  cases_prod_type_accommodation: { en: 'Accommodation', fr: 'Accommodement' },
+  cases_prod_type_onboarding: { en: 'Onboarding', fr: 'Intégration' },
+  cases_prod_status_open: { en: 'Open', fr: 'Ouvert' },
+  cases_prod_status_in_review: { en: 'In review', fr: 'En révision' },
+  cases_prod_status_resolved: { en: 'Resolved', fr: 'Résolu' },
+
+  /* ── Production case detail (Phase 11) — [FR self-authored] ───────────── */
+  cases_prod_back: { en: 'All cases', fr: 'Tous les dossiers' },
+  cases_prod_not_found: {
+    en: 'This case doesn’t exist or was removed.',
+    fr: 'Ce dossier n’existe pas ou a été retiré.',
+  },
+  cases_prod_detail_employee: { en: 'Employee', fr: 'Employé' },
+  cases_prod_detail_type: { en: 'Type', fr: 'Type' },
+  cases_prod_detail_province: { en: 'Province', fr: 'Province' },
+  cases_prod_detail_due: { en: 'Due', fr: 'Échéance' },
+  cases_prod_notes_title: { en: 'Notes', fr: 'Notes' },
+  cases_prod_notes_empty: {
+    en: 'No notes yet — record the key facts as the case progresses.',
+    fr: 'Aucune note pour l’instant — consignez les faits importants au fil du dossier.',
+  },
+  cases_prod_note_placeholder: {
+    en: 'Add a note to the case record…',
+    fr: 'Ajouter une note au dossier…',
+  },
+  cases_prod_note_add: { en: 'Add note', fr: 'Ajouter la note' },
+  cases_prod_note_added: { en: 'Note added', fr: 'Note ajoutée' },
+  cases_prod_note_failed: {
+    en: 'Couldn’t add the note. Try again.',
+    fr: 'Impossible d’ajouter la note. Réessayez.',
+  },
+  cases_prod_detail_error: {
+    en: 'Couldn’t load this case.',
+    fr: 'Impossible de charger ce dossier.',
+  },
 })

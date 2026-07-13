@@ -1,15 +1,34 @@
 /* oxlint-disable react/only-export-components -- route table, not a component
    module: the lazy() wrappers here don't participate in fast refresh. */
 import { lazy } from 'react'
+import type { ReactNode } from 'react'
 import type { RouteObject } from 'react-router-dom'
+import { ModeGate } from '@/features/app/workspaceMode/ModeGate'
 
 /**
  * Child routes rendered inside the AppShell outlet. Each view is lazy-loaded
  * so the marketing landing page (and any single view) doesn't pull the whole
  * workspace into the initial chunk.
+ *
+ * gated() wraps a fixture-driven view in ModeGate: demo renders it as-is,
+ * production renders the shared empty state. Ungated on purpose: home and
+ * advisor (own production variants), knowledge (generic HR-law reference +
+ * the real guidance panel), settings (hosts the toggle), and the Document
+ * Studio screens (the template catalog is real product content — only the
+ * fixture repository is gated). Remove a view's gate when it gains real
+ * persistence.
  */
+function gated(view: ReactNode) {
+  return <ModeGate>{view}</ModeGate>
+}
 /* prettier-ignore */ const HomeView = lazy(() => import('@/features/app/views/home/HomeView').then((m) => ({ default: m.HomeView })))
 /* prettier-ignore */ const AdvisorView = lazy(() => import('@/features/app/views/advisor/AdvisorView').then((m) => ({ default: m.AdvisorView })))
+/* Advisor Memory (person / case / chat recall / manager) */
+/* prettier-ignore */ const MemoryLayout = lazy(() => import('@/features/app/views/memory/MemoryLayout').then((m) => ({ default: m.MemoryLayout })))
+/* prettier-ignore */ const MemoryManagerView = lazy(() => import('@/features/app/views/memory/MemoryManagerView').then((m) => ({ default: m.MemoryManagerView })))
+/* prettier-ignore */ const PersonMemoryView = lazy(() => import('@/features/app/views/memory/PersonMemoryView').then((m) => ({ default: m.PersonMemoryView })))
+/* prettier-ignore */ const CaseMemoryView = lazy(() => import('@/features/app/views/memory/CaseMemoryView').then((m) => ({ default: m.CaseMemoryView })))
+/* prettier-ignore */ const ChatRecallView = lazy(() => import('@/features/app/views/memory/ChatRecallView').then((m) => ({ default: m.ChatRecallView })))
 /* prettier-ignore */ const WorkflowsView = lazy(() => import('@/features/app/views/workflows/WorkflowsView').then((m) => ({ default: m.WorkflowsView })))
 /* prettier-ignore */ const CasesView = lazy(() => import('@/features/app/views/cases/CasesView').then((m) => ({ default: m.CasesView })))
 /* prettier-ignore */ const CaseDetailView = lazy(() => import('@/features/app/views/cases/CaseDetailView').then((m) => ({ default: m.CaseDetailView })))
@@ -37,31 +56,50 @@ import type { RouteObject } from 'react-router-dom'
 export const appViewRoutes: RouteObject[] = [
   { path: 'home', element: <HomeView /> },
   { path: 'advisor', element: <AdvisorView /> },
-  { path: 'workflows', element: <WorkflowsView /> },
+  {
+    path: 'memory',
+    element: gated(<MemoryLayout />),
+    children: [
+      { index: true, element: <MemoryManagerView /> },
+      { path: 'people/:personId', element: <PersonMemoryView /> },
+      { path: 'cases/:caseId', element: <CaseMemoryView /> },
+      { path: 'conversations/:threadId', element: <ChatRecallView /> },
+    ],
+  },
+  { path: 'workflows', element: gated(<WorkflowsView />) },
+  /* Cases list + detail handle both modes themselves (real persistence
+     in production, including the hr_case_notes thread on the detail). */
   { path: 'cases', element: <CasesView /> },
   { path: 'cases/:caseId', element: <CaseDetailView /> },
+  /* Employees list + profile handle both modes themselves (real
+     persistence in production, including the hr_employee_notes thread). */
   { path: 'employees', element: <EmployeesView /> },
   { path: 'employees/:employeeId', element: <EmployeeProfileView /> },
+  /* Compliance handles both modes itself (real persistence in production). */
   { path: 'compliance', element: <ComplianceView /> },
+  /* Policies handles both modes itself (real persistence in production). */
   { path: 'policies', element: <PoliciesView /> },
-  { path: 'templates', element: <TemplatesView /> },
+  { path: 'templates', element: gated(<TemplatesView />) },
+  /* Tasks handles both modes itself (real persistence in production). */
   { path: 'tasks', element: <TasksView /> },
+  /* Calendar handles both modes itself (real due dates in production). */
   { path: 'calendar', element: <CalendarView /> },
+  /* Reports handles both modes itself (live aggregation in production). */
   { path: 'reports', element: <ReportsView /> },
   { path: 'knowledge', element: <KnowledgeView /> },
-  { path: 'communications', element: <CommunicationsView /> },
-  { path: 'compensation', element: <CompensationView /> },
-  { path: 'wellbeing', element: <WellbeingView /> },
+  { path: 'communications', element: gated(<CommunicationsView />) },
+  { path: 'compensation', element: gated(<CompensationView />) },
+  { path: 'wellbeing', element: gated(<WellbeingView />) },
   { path: 'settings', element: <SettingsView /> },
   {
     path: 'documents',
     element: <DocumentsLayout />,
     children: [
-      { index: true, element: <RepositoryScreen /> },
+      { index: true, element: gated(<RepositoryScreen />) },
       { path: 'studio', element: <StudioScreen /> },
       { path: 'templates/:tid', element: <TemplateDetailScreen /> },
       { path: 'generate/:templateId', element: <GenerateScreen /> },
-      { path: ':docId', element: <DocumentDetailScreen /> },
+      { path: ':docId', element: gated(<DocumentDetailScreen />) },
     ],
   },
 ]

@@ -81,3 +81,221 @@ describe('HomeView', () => {
     view.unmount()
   })
 })
+
+describe('HomeView in production mode', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  it('renders the real empty state instead of the Northgate fixtures', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { id: 'u1', email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
+        from: vi.fn((table: string) => {
+          if (table === 'workspace_preferences') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () => Promise.resolve({ data: { mode: 'production' }, error: null }),
+                }),
+              }),
+            }
+          }
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({
+                    data: {
+                      legal_name: 'Dutiva Canada Inc.',
+                      company_name: null,
+                      primary_contact: 'Martin Constantineau',
+                      province: 'Ontario',
+                      city: 'Ottawa',
+                    },
+                    error: null,
+                  }),
+              }),
+            }),
+          }
+        }),
+      },
+    }))
+    vi.resetModules()
+
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { HomeView: HomeViewFresh } = await import('./HomeView')
+
+    renderAppFresh(<HomeViewFresh />, { route: '/app/home' })
+
+    expect(await screen.findByText('Your workspace is ready.')).toBeInTheDocument()
+    expect(screen.getByText(/Dutiva Canada Inc\./)).toBeInTheDocument()
+    expect(screen.queryByText('Good to see you, Riley.')).not.toBeInTheDocument()
+  })
+})
+
+describe('HomeView production command centre', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  it('renders live stats, due-soon items and the policy attention row from real data', async () => {
+    const tables: Record<string, Record<string, unknown>[]> = {
+      employees: [
+        {
+          id: 'e1',
+          name: 'Ana Souza',
+          title: null,
+          email: null,
+          province: 'Ontario',
+          start_date: null,
+          status: 'active',
+        },
+      ],
+      hr_cases: [
+        {
+          id: 'c1',
+          title: 'Accommodation — ergonomic assessment',
+          case_type: 'Accommodation',
+          employee_id: 'e1',
+          province: 'Ontario',
+          status: 'open',
+          due_date: '2020-01-01',
+        },
+      ],
+      compliance_tasks: [
+        {
+          id: 't1',
+          title: 'File ROE',
+          priority: 'high',
+          status: 'open',
+          due_at: '2099-01-01T00:00:00Z',
+        },
+      ],
+      compliance_findings: [
+        {
+          id: 'f1',
+          title: 'Finding',
+          description: null,
+          recommendation: null,
+          severity: 'high',
+          status: 'open',
+        },
+      ],
+      hr_policies: [
+        { id: 'p1', name: 'Vacation Policy', status: 'needs_review', last_reviewed: null },
+      ],
+    }
+
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { id: 'u1', email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn((fn: string) =>
+          Promise.resolve(
+            fn === 'is_admin_user' ? { data: true, error: null } : { data: null, error: null },
+          ),
+        ),
+        from: vi.fn((table: string) => {
+          if (table === 'workspace_preferences') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () => Promise.resolve({ data: { mode: 'production' }, error: null }),
+                }),
+              }),
+            }
+          }
+          if (table === 'profiles') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () =>
+                    Promise.resolve({
+                      data: {
+                        legal_name: 'Dutiva Canada Inc.',
+                        company_name: null,
+                        primary_contact: 'Martin Constantineau',
+                        province: 'Ontario',
+                        city: 'Ottawa',
+                      },
+                      error: null,
+                    }),
+                }),
+              }),
+            }
+          }
+          if (table === 'organization_members') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    limit: () => ({
+                      maybeSingle: () =>
+                        Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                    }),
+                  }),
+                }),
+              }),
+            }
+          }
+          return {
+            select: () => ({
+              eq: () => ({
+                order: () => Promise.resolve({ data: tables[table] ?? [], error: null }),
+              }),
+            }),
+          }
+        }),
+      },
+    }))
+    vi.resetModules()
+
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { HomeView: HomeViewFresh } = await import('./HomeView')
+
+    renderAppFresh(<HomeViewFresh />, { route: '/app/home' })
+
+    expect(await screen.findByText('Welcome back.')).toBeInTheDocument()
+    expect(screen.getByText('Dutiva Canada Inc.')).toBeInTheDocument()
+
+    /* Stat tiles deep-link to their modules. */
+    expect(screen.getByRole('link', { name: /1 Employees/ })).toHaveAttribute(
+      'href',
+      '/app/employees',
+    )
+    expect(screen.getByRole('link', { name: /1 Open cases/ })).toHaveAttribute('href', '/app/cases')
+
+    /* Due soon: the 2020 case is overdue, the 2099 task is not. */
+    expect(screen.getByText('Due soon')).toBeInTheDocument()
+    expect(screen.getByText('Overdue')).toBeInTheDocument()
+    expect(screen.getByText('Accommodation — ergonomic assessment')).toBeInTheDocument()
+    expect(screen.getByText('File ROE')).toBeInTheDocument()
+    expect(screen.getByText('Task')).toBeInTheDocument()
+
+    /* Policy attention row. */
+    expect(screen.getByText(/policy needs attention/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Open policies/ })).toHaveAttribute(
+      'href',
+      '/app/policies',
+    )
+
+    /* No welcome state, no Northgate fixtures. */
+    expect(screen.queryByText('Your workspace is ready.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Good to see you, Riley.')).not.toBeInTheDocument()
+  })
+})

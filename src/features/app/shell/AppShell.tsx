@@ -7,13 +7,14 @@ import { SearchOverlay } from '@/features/app/search/SearchOverlay'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { DocStudioOverlay } from '@/features/app/docstudio/DocStudioOverlay'
 import { ToastHost } from '@/features/app/toasts/ToastHost'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { Sidebar } from './Sidebar'
 import { cx } from './cx'
 import { Topbar } from './Topbar'
 import { MobileNav, MobileTopbar } from './MobileNav'
 import { ModuleContextBanner } from './ModuleContextBanner'
 import { WorkspaceContextBanner } from './WorkspaceContextBanner'
-import { viewLabelFor } from './navConfig'
+import { moduleLabelFor, viewLabelFor } from './navConfig'
 
 /**
  * Workspace shell — App v2 app frame. The prototype's Desktop/Tablet/Mobile
@@ -98,7 +99,12 @@ export function AppShell() {
     isMobile && drawerOpen,
   )
 
-  const title = x(viewLabelFor(pathname))
+  /* viewLabelFor titles the employee-profile route with the fixture person's
+     name — in production mode that's demo data, so title by module instead. */
+  const { mode: workspaceMode } = useWorkspaceMode()
+  const title = x(
+    workspaceMode === 'production' ? moduleLabelFor(pathname) : viewLabelFor(pathname),
+  )
 
   return (
     <div className="surface-app flex h-screen flex-col overflow-hidden bg-bg font-sans text-text">
