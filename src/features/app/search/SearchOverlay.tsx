@@ -84,9 +84,9 @@ function SearchDialog() {
           })
           break
         case 'document':
-          /* TODO(phase-c): the Templates view / Document Studio opens the
-             template from `location.state.docKey`. */
-          navigate('/app/templates', {
+          /* Navigate to the HR Library tab; TemplatesView reads location.state.docKey
+             on mount and opens the overlay immediately (prototype openDocFromLibrary). */
+          navigate('/app/documents/hr-library', {
             state: { docKey: nav.docKey } satisfies TemplatesSearchNavState,
           })
           break

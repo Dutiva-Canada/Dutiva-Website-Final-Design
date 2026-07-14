@@ -7,7 +7,6 @@ import {
   ChartNoAxesColumn,
   DollarSign,
   FileStack,
-  FileText,
   Folder,
   House,
   ListChecks,
@@ -86,12 +85,16 @@ export const NAV_GROUPS: NavGroup[] = [
         label: M.shell_nav_cases,
         badge: { value: CASES_BADGE, tone: 'neutral' },
       },
-      { key: 'templates', to: '/app/templates', icon: FileText, label: M.shell_nav_documents },
-      /* Merged Document Studio + Repository — Studio is a tab inside
-         DocumentsLayout rather than its own top-level nav entry. Default
-         isNavActive prefix-matching covers every /app/documents/* subroute
-         (studio, templates/:tid, generate/:templateId, :docId). */
-      { key: 'documents', to: '/app/documents', icon: FileStack, label: M.shell_nav_library },
+      /* Unified HR Library — HR Library, Document Library, and Document Studio
+         are all tabs inside DocumentsLayout. Landing on hr-library (first tab)
+         is the default; isActive covers every /app/documents/* subroute. */
+      {
+        key: 'documents',
+        to: '/app/documents/hr-library',
+        icon: FileStack,
+        label: M.shell_nav_library,
+        isActive: (pathname) => pathname.startsWith('/app/documents'),
+      },
       { key: 'knowledge', to: '/app/knowledge', icon: Book, label: M.shell_nav_knowledge },
     ],
   },
@@ -193,6 +196,7 @@ export function viewLabelFor(pathname: string): Bi {
     if (emp) return bi(emp.name, emp.name)
   }
   if (segment === 'documents') {
+    if (pathname.startsWith('/app/documents/hr-library')) return M.shell_nav_library
     return isDoclibStudioPath(pathname) ? DL.doclib_nav_studio : DL.doclib_nav_documents
   }
   return VIEW_LABELS[segment] ?? M.shell_v_home

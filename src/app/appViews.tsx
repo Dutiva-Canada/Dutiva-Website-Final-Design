@@ -79,7 +79,8 @@ export const appViewRoutes: RouteObject[] = [
   { path: 'compliance', element: <ComplianceView /> },
   /* Policies handles both modes itself (real persistence in production). */
   { path: 'policies', element: <PoliciesView /> },
-  { path: 'templates', element: gated(<TemplatesView />) },
+  /* /app/templates is now the HR Library tab inside DocumentsLayout */
+  { path: 'templates', element: <Navigate to="/app/documents/hr-library" replace /> },
   /* Tasks handles both modes itself (real persistence in production). */
   { path: 'tasks', element: <TasksView /> },
   /* Calendar handles both modes itself (real due dates in production). */
@@ -96,6 +97,8 @@ export const appViewRoutes: RouteObject[] = [
     element: <DocumentsLayout />,
     children: [
       { index: true, element: gated(<RepositoryScreen />) },
+      /* HR Library tab — the legacy template gallery, now nested here */
+      { path: 'hr-library', element: gated(<TemplatesView />) },
       { path: 'studio', element: <StudioScreen /> },
       { path: 'templates/:tid', element: <TemplateDetailScreen /> },
       { path: 'generate/:templateId', element: <GenerateScreen /> },
