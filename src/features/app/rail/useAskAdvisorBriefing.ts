@@ -106,7 +106,7 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
                   {
                     label: M.advisor_action_draft_refresh,
                     primary: true,
-                    onClick: go('/app/templates', { docKey: 'Remote Work Policy' }),
+                    onClick: go('/app/templates', { docKey: 'T10' }),
                   },
                 ],
               },

@@ -7,11 +7,18 @@ import { complianceItems } from './compliance'
 import { documentTemplates, documentTemplatesByKey } from './documents'
 import { compChanges, employeeDetails, employees, orgStructure, supportSignals } from './employees'
 import { tasks } from './tasks'
+import { templateByTid } from '@/features/app/documents/data'
+import { customTemplateByTid } from '@/features/app/documents/customTemplates'
 
 const employeeIds = new Set(employees.map((e) => e.id))
 const caseIds = new Set(cases.map((c) => c.id))
 const chatIds = new Set(chats.map((c) => c.id))
-const docKeys = new Set(documentTemplates.map((d) => d.key))
+const legacyDocKeys = new Set(documentTemplates.map((d) => d.key))
+/* A doc reference is either a legacy title-string key (documentTemplates)
+   or a doclib tid (T01-T16 generated, T17+ hand-authored in
+   customTemplates.ts) — the same dual resolution DocStudioProvider and
+   resolveDocTitle use at runtime. */
+const docKeys = new Set([...legacyDocKeys, ...templateByTid.keys(), ...customTemplateByTid.keys()])
 const followupKeys = new Set(Object.keys(followupReplies))
 
 describe('fixture ids', () => {
@@ -19,7 +26,7 @@ describe('fixture ids', () => {
     expect(employeeIds.size).toBe(employees.length)
     expect(caseIds.size).toBe(cases.length)
     expect(chatIds.size).toBe(chats.length)
-    expect(docKeys.size).toBe(documentTemplates.length)
+    expect(legacyDocKeys.size).toBe(documentTemplates.length)
 
     const messageIds = chats.flatMap((c) => c.messages.map((m) => m.id))
     expect(new Set(messageIds).size).toBe(messageIds.length)

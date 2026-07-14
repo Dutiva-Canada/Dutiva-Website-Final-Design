@@ -2,7 +2,8 @@ import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { ChevronRight, FileText, Info, Lock, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
-import { documentTemplatesByKey, leaveStatusLabels, leaveStatusTones } from '@/data'
+import { leaveStatusLabels, leaveStatusTones } from '@/data'
+import { resolveDocTitle } from '@/features/app/docstudio/resolveDocTitle'
 import type {
   CaseFile,
   ComplianceItem,
@@ -50,7 +51,7 @@ const activateOnKey = (fn: () => void) => (e: ReactKeyboardEvent<HTMLDivElement>
   }
 }
 
-function GoldBanner({ text, extraClass = '' }: { text: Bi; extraClass?: string }) {
+function GoldBanner({ text, extraClass = '' }: Readonly<{ text: Bi; extraClass?: string }>) {
   const { x } = useI18n()
   return (
     <div
@@ -59,7 +60,7 @@ function GoldBanner({ text, extraClass = '' }: { text: Bi; extraClass?: string }
       <Lock
         size={14}
         strokeWidth={1.8}
-        className="mt-[1px] shrink-0 text-gold-fg"
+        className="mt-px shrink-0 text-gold-fg"
         aria-hidden="true"
       />
       <span className="text-[12.5px] leading-[1.55] font-semibold text-gold-fg">{x(text)}</span>
@@ -67,7 +68,7 @@ function GoldBanner({ text, extraClass = '' }: { text: Bi; extraClass?: string }
   )
 }
 
-function EmptyState({ title, body }: { title: Bi; body: Bi }) {
+function EmptyState({ title, body }: Readonly<{ title: Bi; body: Bi }>) {
   const { x } = useI18n()
   return (
     <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[48px] text-center">
@@ -84,14 +85,14 @@ export function EmployeeOverviewTab({
   wbSignalCount,
   openCaseCount,
   onOpenAdvisorChat,
-}: {
+}: Readonly<{
   emp: Employee
   det: EmployeeDetail
   recordRows: Array<{ k: string; v: string }>
   wbSignalCount: number
   openCaseCount: number
   onOpenAdvisorChat: (chatId: string) => void
-}) {
+}>) {
   const { x } = useI18n()
   const risk = emp.risk
   const riskChatId = risk?.chatId ?? null
@@ -101,12 +102,12 @@ export function EmployeeOverviewTab({
         {x(emp.insight)}
       </div>
       <div className="rounded-[12px] border border-border bg-surface px-[18px] py-[8px]">
-        {recordRows.map((rr, i) => (
-          <div key={i} className="flex gap-[12px] border-b border-b-inset py-[10px]">
+        {recordRows.map((rr) => (
+          <div key={rr.k} className="flex gap-[12px] border-b border-b-inset py-[10px]">
             <span className="flex-[0_0_180px] text-[12.5px] font-semibold text-text-muted">
               {rr.k}
             </span>
-            <span className="text-[13px] leading-[1.5] text-text-2">{rr.v}</span>
+            <span className="text-[13px] leading-normal text-text-2">{rr.v}</span>
           </div>
         ))}
       </div>
@@ -155,10 +156,10 @@ export function EmployeeOverviewTab({
 export function EmployeeTimelineTab({
   timeline,
   eventAction,
-}: {
+}: Readonly<{
   timeline: TimelineEvent[]
   eventAction: (ev: TimelineEvent) => (() => void) | null
-}) {
+}>) {
   const { x } = useI18n()
   return (
     <>
@@ -174,13 +175,13 @@ export function EmployeeTimelineTab({
       </div>
       {timeline.length > 0 ? (
         <div className="rounded-[12px] border border-border bg-surface px-[18px] py-[8px]">
-          {timeline.map((ev, i) => {
+          {timeline.map((ev) => {
             const meta = TIMELINE_META[ev.kind]
             const tone: ChipTone = ev.tone ?? meta.tone
             const action = eventAction(ev)
             return (
               <div
-                key={i}
+                key={`${ev.date}-${ev.kind}`}
                 {...(action
                   ? {
                       role: 'button',
@@ -199,7 +200,7 @@ export function EmployeeTimelineTab({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-[8px]">
                     <span className={sourceChipClass(tone)}>{x(meta.source)}</span>
-                    <span className="text-[13.5px] leading-[1.5] text-text">{x(ev.text)}</span>
+                    <span className="text-[13.5px] leading-normal text-text">{x(ev.text)}</span>
                   </div>
                   <div className="mt-[3px] text-[12px] text-text-muted">{ev.date}</div>
                 </div>
@@ -225,15 +226,15 @@ export function EmployeeTimelineTab({
 export function EmployeeDocumentsTab({
   docs,
   onOpenDoc,
-}: {
+}: Readonly<{
   docs: string[]
   onOpenDoc: (docKey: string) => void
-}) {
+}>) {
   const { x } = useI18n()
   return (
     <div className="flex flex-col gap-[10px]">
       {docs.map((docKey) => {
-        const template = documentTemplatesByKey[docKey]
+        const title = resolveDocTitle(docKey)
         return (
           <button
             key={docKey}
@@ -249,9 +250,7 @@ export function EmployeeDocumentsTab({
                 aria-hidden="true"
               />
             </div>
-            <span className="text-[13.5px] font-semibold text-text">
-              {template ? x(template.title) : docKey}
-            </span>
+            <span className="text-[13.5px] font-semibold text-text">{x(title)}</span>
           </button>
         )
       })}
@@ -259,16 +258,16 @@ export function EmployeeDocumentsTab({
   )
 }
 
-export function EmployeeLeaveTab({ leave }: { leave: LeaveRecord[] }) {
+export function EmployeeLeaveTab({ leave }: Readonly<{ leave: LeaveRecord[] }>) {
   const { x } = useI18n()
   return (
     <>
       <GoldBanner text={M.employees_leave_banner} extraClass="mb-[14px]" />
       {leave.length > 0 ? (
         <div className="rounded-[12px] border border-border bg-surface px-[18px] py-[8px]">
-          {leave.map((lr, i) => (
+          {leave.map((lr) => (
             <div
-              key={i}
+              key={`${lr.type.en}-${lr.period.en}`}
               className="flex flex-wrap items-center gap-[12px] border-b border-b-inset py-[13px]"
             >
               <div className="min-w-[180px] flex-1">
@@ -294,11 +293,11 @@ export function EmployeeCompensationTab({
   det,
   marketDelta,
   marketDeltaLabel,
-}: {
+}: Readonly<{
   det: EmployeeDetail
   marketDelta: number
   marketDeltaLabel: string
-}) {
+}>) {
   const { x } = useI18n()
   return (
     <div className="flex flex-col gap-[14px]">
@@ -329,7 +328,7 @@ export function EmployeeCompensationTab({
         <Info
           size={16}
           strokeWidth={1.7}
-          className="mt-[1px] shrink-0 text-accent"
+          className="mt-px shrink-0 text-accent"
           aria-hidden="true"
         />
         <span className="text-[13px] leading-[1.55] text-text-2">
@@ -340,7 +339,7 @@ export function EmployeeCompensationTab({
   )
 }
 
-export function EmployeeWellbeingTab({ wbSignals }: { wbSignals: SupportSignal[] }) {
+export function EmployeeWellbeingTab({ wbSignals }: Readonly<{ wbSignals: SupportSignal[] }>) {
   const { x } = useI18n()
   return (
     <>
@@ -367,7 +366,7 @@ export function EmployeeWellbeingTab({ wbSignals }: { wbSignals: SupportSignal[]
                 <span className="text-[11px] font-bold tracking-[0.03em] text-gold-dot uppercase">
                   {x(M.employees_wb_action)}
                 </span>
-                <span className="text-[12.5px] leading-[1.5] text-text-2">{x(sg.action)}</span>
+                <span className="text-[12.5px] leading-normal text-text-2">{x(sg.action)}</span>
               </div>
             </div>
           ))}
@@ -382,10 +381,10 @@ export function EmployeeWellbeingTab({ wbSignals }: { wbSignals: SupportSignal[]
 export function EmployeeComplianceTab({
   items,
   onResolve,
-}: {
+}: Readonly<{
   items: ComplianceItem[]
   onResolve: (item: ComplianceItem) => void
-}) {
+}>) {
   const { x } = useI18n()
   return (
     <div className="flex flex-col gap-[12px]">
@@ -415,10 +414,10 @@ export function EmployeeComplianceTab({
 export function EmployeeCasesTab({
   empCases,
   onOpenCase,
-}: {
+}: Readonly<{
   empCases: CaseFile[]
   onOpenCase: (caseId: string) => void
-}) {
+}>) {
   const { x } = useI18n()
   return (
     <div className="flex flex-col gap-[10px]">

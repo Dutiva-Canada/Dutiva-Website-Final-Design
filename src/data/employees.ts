@@ -304,13 +304,13 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
         date: 'Jul 5, 2026',
         kind: 'doc',
         text: bi('Termination Letter generated', 'Lettre de cessation d’emploi générée'),
-        docKey: 'Termination Letter',
+        docKey: 'T03',
       },
       {
         date: 'Jul 5, 2026',
         kind: 'doc',
         text: bi('Full & Final Release generated', 'Quittance complète et finale générée'),
-        docKey: 'Full & Final Release',
+        docKey: 'T17',
       },
       {
         date: 'Jul 5, 2026',
@@ -360,7 +360,7 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
         text: bi('Hired as Operations Manager', 'Embauché comme directeur des opérations'),
       },
     ],
-    docs: ['Termination Letter', 'Full & Final Release', 'Offboarding Checklist'],
+    docs: ['T03', 'T17', 'T18'],
     cases: ['case1'],
     leave: [
       {
@@ -390,7 +390,7 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
           'Performance Improvement Plan generated',
           'Plan d’amélioration du rendement généré',
         ),
-        docKey: 'Performance Improvement Plan',
+        docKey: 'T16',
       },
       {
         date: 'Jun 2026',
@@ -424,7 +424,7 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
         text: bi('Hired as Warehouse Associate', 'Embauché comme préposé d’entrepôt'),
       },
     ],
-    docs: ['Performance Improvement Plan', 'Written Warning'],
+    docs: ['T16', 'T06'],
     cases: ['case2'],
     leave: [
       {
@@ -451,7 +451,7 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
         date: 'Jul 2026',
         kind: 'doc',
         text: bi('Accommodation Documentation generated', 'Documentation d’accommodement générée'),
-        docKey: 'Accommodation Documentation',
+        docKey: 'T19',
       },
       {
         date: 'Jul 2026',
@@ -470,7 +470,7 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
           'Medical Information Request Letter sent',
           'Lettre de demande de renseignements médicaux envoyée',
         ),
-        docKey: 'Medical Information Request Letter',
+        docKey: 'T20',
       },
       {
         date: 'Jan 2024',
@@ -478,7 +478,7 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
         text: bi('Hired as Software Engineer', 'Embauchée comme ingénieure logicielle'),
       },
     ],
-    docs: ['Accommodation Documentation', 'Medical Information Request Letter'],
+    docs: ['T19', 'T20'],
     cases: ['case3'],
     leave: [
       {
