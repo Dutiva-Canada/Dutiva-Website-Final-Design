@@ -340,15 +340,13 @@ let cache: Promise<DoclibData> | null = null
 
 /** Load once per session; Supabase failures fall back to fixtures loudly (console). */
 export function loadDoclibData(): Promise<DoclibData> {
-  if (!cache) {
-    cache =
-      SUPA_URL && SUPA_KEY
-        ? fetchFromSupabase().catch((error: unknown) => {
-            console.error('doclib: Supabase read failed, serving bundled fixtures', error)
-            return FIXTURES
-          })
-        : Promise.resolve(FIXTURES)
-  }
+  cache ??=
+    SUPA_URL && SUPA_KEY
+      ? fetchFromSupabase().catch((error: unknown) => {
+          console.error('doclib: Supabase read failed, serving bundled fixtures', error)
+          return FIXTURES
+        })
+      : Promise.resolve(FIXTURES)
   return cache
 }
 

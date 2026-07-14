@@ -1,7 +1,7 @@
 import { Check, FileText } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
-import { pickL } from '@/i18n/core'
+import { keyOfL, pickL } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
 import { resolveDocTitle } from '@/features/app/docstudio/resolveDocTitle'
 import type {
@@ -87,7 +87,7 @@ export function CaseOverviewTab({
   onOpenChat,
   onOpenDoc,
   onOpenFlag,
-}: {
+}: Readonly<{
   data: CaseOverviewData
   approval: CaseApprovalState
   taskDone: Record<string, boolean>
@@ -96,7 +96,7 @@ export function CaseOverviewTab({
   onOpenChat: (chatId: string) => void
   onOpenDoc: (key: string) => void
   onOpenFlag: (item: ComplianceItem) => void
-}) {
+}>) {
   const { x, lang } = useI18n()
   const { caze, risk, rec, recTone, timeline, people, linkedTasks, docs, flags } = data
   return (
@@ -126,12 +126,12 @@ export function CaseOverviewTab({
             <span className={statusChipClass(risk.tone)}>{x(risk.levelLabel)}</span>
           </div>
           <div className="flex flex-col gap-[8px]">
-            {risk.factors.map((f, i) => (
-              <div key={i} className="flex gap-[9px]">
+            {risk.factors.map((f) => (
+              <div key={f.en} className="flex gap-[9px]">
                 <div
                   className={`mt-[7px] h-[6px] w-[6px] shrink-0 rounded-full ${barToneClass(risk.tone)}`}
                 />
-                <span className="text-[13px] leading-[1.5] text-text-2">{x(f)}</span>
+                <span className="text-[13px] leading-normal text-text-2">{x(f)}</span>
               </div>
             ))}
           </div>
@@ -143,8 +143,8 @@ export function CaseOverviewTab({
             {x(M.cases_workflow)}
           </div>
           <div className="flex flex-col gap-[11px]">
-            {caze.steps.map((st, i) => (
-              <div key={i} className="flex items-center gap-[10px]">
+            {caze.steps.map((st) => (
+              <div key={st.label.en} className="flex items-center gap-[10px]">
                 <div
                   className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ${
                     st.done ? 'bg-ok-fg' : 'border-[1.5px] border-border bg-surface'
@@ -168,13 +168,13 @@ export function CaseOverviewTab({
             <div className="pt-[12px] pb-[4px] text-[12px] font-bold tracking-[0.04em] text-text-muted uppercase">
               {x(M.cases_timeline)}
             </div>
-            {timeline.map((ev, i) => (
-              <div key={i} className="flex gap-[12px] border-t border-inset py-[11px]">
+            {timeline.map((ev) => (
+              <div key={`${ev.date}-${ev.kind}`} className="flex gap-[12px] border-t border-inset py-[11px]">
                 <div
                   className={`mt-[4px] h-[9px] w-[9px] shrink-0 rounded-full ${timelineDotClass(ev.kind, ev.tone)}`}
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[13px] leading-[1.5] text-text">{x(ev.text)}</div>
+                  <div className="text-[13px] leading-normal text-text">{x(ev.text)}</div>
                   <div className="mt-[2px] text-[11.5px] text-text-muted">{ev.date}</div>
                 </div>
               </div>
@@ -190,8 +190,8 @@ export function CaseOverviewTab({
             {x(M.cases_people_involved)}
           </div>
           <div className="flex flex-col gap-[10px]">
-            {people.map((p, i) => (
-              <div key={i} className="flex items-center gap-[9px]">
+            {people.map((p) => (
+              <div key={p.initials} className="flex items-center gap-[9px]">
                 <div className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[10.5px] font-bold text-accent">
                   {p.initials}
                 </div>
@@ -214,7 +214,7 @@ export function CaseOverviewTab({
         {/* Approvals */}
         <div className={`${cardClass} px-[16px] py-[14px]`}>
           <div className="mb-[8px] text-[12px] font-bold text-text-2">{x(M.cases_approvals)}</div>
-          <div className="text-[12.5px] leading-[1.5] text-text-3">
+          <div className="text-[12.5px] leading-normal text-text-3">
             {pickL(approval.status, lang)}
           </div>
           {approval.canRequest && (
@@ -249,7 +249,7 @@ export function CaseOverviewTab({
                       type="button"
                       aria-label={x(M.cases_toggle_task_aria)}
                       onClick={() => onToggleTask(t)}
-                      className={`relative flex h-[17px] w-[17px] shrink-0 cursor-pointer items-center justify-center rounded-[5px] after:absolute after:-inset-[14px] after:content-[''] ${
+                      className={`relative flex h-[17px] w-[17px] shrink-0 cursor-pointer items-center justify-center rounded-[5px] after:absolute after:inset-[-14px] after:content-[''] ${
                         done ? 'border-none bg-ok-fg' : 'border-[1.5px] border-border bg-surface'
                       }`}
                     >
@@ -332,19 +332,19 @@ export function CaseOverviewTab({
   )
 }
 
-export function CaseRiskTab({ axes }: { axes: CaseRiskAxis[] }) {
+export function CaseRiskTab({ axes }: Readonly<{ axes: CaseRiskAxis[] }>) {
   const { x } = useI18n()
   return (
     <>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[12px]">
-        {axes.map((ra, i) => (
-          <div key={i} className={`${cardClass} px-[17px] py-[15px]`}>
+        {axes.map((ra) => (
+          <div key={ra.axis.en} className={`${cardClass} px-[17px] py-[15px]`}>
             <div className="mb-[8px] flex items-center justify-between gap-[8px]">
               <span className="text-[12.5px] font-bold text-text">{x(ra.axis)}</span>
               <span className={statusChipClass(riskLevelTone(ra.level))}>{x(ra.levelLabel)}</span>
             </div>
             <div className="text-[13px] leading-[1.55] text-text-2">{x(ra.reason)}</div>
-            <div className="mt-[8px] border-t border-inset pt-[8px] text-[12.5px] leading-[1.5] text-text-3">
+            <div className="mt-[8px] border-t border-inset pt-[8px] text-[12.5px] leading-normal text-text-3">
               <span className="font-bold text-text-muted">{x(M.cases_mitigation)} · </span>
               {x(ra.mitigation)}
             </div>
@@ -360,11 +360,11 @@ export function CaseLegalTab({
   approval,
   legalRows,
   onRequestApproval,
-}: {
+}: Readonly<{
   approval: CaseApprovalState
   legalRows: CaseLegalRow[]
   onRequestApproval: () => void
-}) {
+}>) {
   const { x, lang } = useI18n()
   return (
     <div className="flex max-w-[640px] flex-col gap-[14px]">
@@ -388,7 +388,7 @@ export function CaseLegalTab({
       <div className={`${cardClass} px-[18px] py-[8px]`}>
         {legalRows.map((row, i) => (
           <div
-            key={i}
+            key={row.label.en}
             className={`flex gap-[12px] border-t py-[11px] ${
               i === 0 ? 'border-transparent' : 'border-inset'
             }`}
@@ -405,17 +405,17 @@ export function CaseLegalTab({
   )
 }
 
-export function CaseActivityTab({ activity }: { activity: CaseActivityEntry[] }) {
+export function CaseActivityTab({ activity }: Readonly<{ activity: CaseActivityEntry[] }>) {
   const { lang } = useI18n()
   return (
     <div className={`${cardClass} max-w-[640px] px-[18px] py-[8px]`}>
-      {activity.map((a, i) => (
-        <div key={i} className="flex gap-[12px] border-t border-inset py-[13px]">
+      {activity.map((a) => (
+        <div key={`${a.actor}-${keyOfL(a.time)}`} className="flex gap-[12px] border-t border-inset py-[13px]">
           <div
             className={`mt-[5px] h-[8px] w-[8px] shrink-0 rounded-full ${activityDotClass(a.tone)}`}
           />
           <div className="min-w-0 flex-1">
-            <div className="text-[13px] leading-[1.5] text-text">{pickL(a.text, lang)}</div>
+            <div className="text-[13px] leading-normal text-text">{pickL(a.text, lang)}</div>
             <div className="mt-[2px] text-[11.5px] text-text-muted">
               {a.actor} · {pickL(a.time, lang)}
             </div>
@@ -431,12 +431,12 @@ export function CaseNotesTab({
   notes,
   onDraftChange,
   onAddNote,
-}: {
+}: Readonly<{
   noteDraft: string
   notes: LocalNote[]
   onDraftChange: (draft: string) => void
   onAddNote: () => void
-}) {
+}>) {
   const { x, lang } = useI18n()
   return (
     <div className="max-w-[640px]">
@@ -452,7 +452,7 @@ export function CaseNotesTab({
           }}
           placeholder={x(M.cases_note_placeholder)}
           rows={1}
-          className="max-h-[120px] flex-1 resize-none border-none bg-transparent py-[7px] font-sans text-[13.5px] leading-[1.5] text-text outline-none"
+          className="max-h-[120px] flex-1 resize-none border-none bg-transparent py-[7px] font-sans text-[13.5px] leading-normal text-text outline-none"
         />
         <button
           type="button"
@@ -464,9 +464,9 @@ export function CaseNotesTab({
       </div>
       {notes.length > 0 && (
         <div className="flex flex-col gap-[10px]">
-          {notes.map((n, i) => (
+          {notes.map((n) => (
             <div
-              key={i}
+              key={`${n.author}-${keyOfL(n.time)}`}
               className="rounded-[11px] border border-border bg-surface px-[16px] py-[13px]"
             >
               <div className="text-[13.5px] leading-[1.55] text-text-2">{pickL(n.text, lang)}</div>
