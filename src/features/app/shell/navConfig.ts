@@ -6,7 +6,6 @@ import {
   Calendar,
   ChartNoAxesColumn,
   DollarSign,
-  FilePlus2,
   FileStack,
   FileText,
   Folder,
@@ -88,6 +87,11 @@ export const NAV_GROUPS: NavGroup[] = [
         badge: { value: CASES_BADGE, tone: 'neutral' },
       },
       { key: 'templates', to: '/app/templates', icon: FileText, label: M.shell_nav_documents },
+      /* Merged Document Studio + Repository — Studio is a tab inside
+         DocumentsLayout rather than its own top-level nav entry. Default
+         isNavActive prefix-matching covers every /app/documents/* subroute
+         (studio, templates/:tid, generate/:templateId, :docId). */
+      { key: 'documents', to: '/app/documents', icon: FileStack, label: M.shell_nav_library },
       { key: 'knowledge', to: '/app/knowledge', icon: Book, label: M.shell_nav_knowledge },
     ],
   },
@@ -125,35 +129,6 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    /* HR Documents Library (Document Studio + Repository). Studio owns the
-       studio/templates/generate subpaths; the repository item owns the rest
-       of /app/documents (incl. /app/documents/:docId). */
-    heading: DL.doclib_nav_sectionLibrary,
-    items: [
-      {
-        key: 'doclib-studio',
-        to: '/app/documents/studio',
-        icon: FilePlus2,
-        label: DL.doclib_nav_studio,
-        isActive: (pathname) =>
-          ['/app/documents/studio', '/app/documents/templates', '/app/documents/generate'].some(
-            (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-          ),
-      },
-      {
-        key: 'doclib-repository',
-        to: '/app/documents',
-        icon: FileStack,
-        label: DL.doclib_nav_documents,
-        isActive: (pathname) =>
-          isNavActive('/app/documents', pathname) &&
-          !['/app/documents/studio', '/app/documents/templates', '/app/documents/generate'].some(
-            (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-          ),
-      },
-    ],
-  },
-  {
     heading: M.shell_sec_insights,
     items: [
       { key: 'reports', to: '/app/reports', icon: ChartNoAxesColumn, label: M.shell_nav_analytics },
@@ -164,6 +139,16 @@ export const NAV_GROUPS: NavGroup[] = [
 /** Active when the route is the item or one of its children (/app/cases/:id …). */
 export function isNavActive(to: string, pathname: string): boolean {
   return pathname === to || pathname.startsWith(`${to}/`)
+}
+
+/* Studio's subroutes (catalogue → generate flow), as opposed to the
+   Repository (index + :docId). Single source of truth for both the topbar
+   title below and the Repository/Studio tab strip (DocumentsLayout.tsx). */
+const DOCLIB_STUDIO_SUBPATHS = ['studio', 'templates', 'generate']
+
+export function isDoclibStudioPath(pathname: string): boolean {
+  const parts = pathname.replace(/^\/app\/?/, '').split('/')
+  return parts[0] === 'documents' && DOCLIB_STUDIO_SUBPATHS.includes(parts[1] ?? '')
 }
 
 /* Topbar / mobile-topbar route titles (prototype `viewLabels`). */
@@ -194,7 +179,7 @@ const VIEW_LABELS: Record<string, Bi> = {
  */
 export function moduleLabelFor(pathname: string): Bi {
   const segment = pathname.replace(/^\/app\/?/, '').split('/')[0] ?? ''
-  if (segment === 'documents') return DL.doclib_nav_documents
+  if (segment === 'documents') return M.shell_nav_library
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }
 
@@ -208,10 +193,7 @@ export function viewLabelFor(pathname: string): Bi {
     if (emp) return bi(emp.name, emp.name)
   }
   if (segment === 'documents') {
-    const sub = parts[1] ?? ''
-    return sub === 'studio' || sub === 'templates' || sub === 'generate'
-      ? DL.doclib_nav_studio
-      : DL.doclib_nav_documents
+    return isDoclibStudioPath(pathname) ? DL.doclib_nav_studio : DL.doclib_nav_documents
   }
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }
