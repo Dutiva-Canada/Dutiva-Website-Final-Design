@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -108,7 +108,7 @@ export function EmployeeProfileProductionView() {
     }
   }
 
-  const onAddNote = async (e: FormEvent) => {
+  const onAddNote = async (e: SubmitEvent) => {
     e.preventDefault()
     if (!employee || !draft.trim() || saving) return
     setSaving(true)

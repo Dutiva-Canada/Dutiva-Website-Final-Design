@@ -68,19 +68,12 @@ function CasesDemoView() {
             const doneSteps = c.steps.filter((s) => s.done).length
             const pct = Math.round((doneSteps / c.steps.length) * 100)
             return (
-              <div
+              <button
                 key={c.id}
-                role="button"
-                tabIndex={0}
+                type="button"
                 aria-label={`${x(M.cases_open_case_aria)} ${pickL(c.title, lang)}`}
                 onClick={() => openCase(c.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    openCase(c.id)
-                  }
-                }}
-                className="flex cursor-pointer flex-col gap-[12px] rounded-[12px] border border-border bg-surface px-[18px] py-[16px] hover:border-(--accent-soft-border)"
+                className="flex w-full cursor-pointer flex-col gap-[12px] rounded-[12px] border border-border bg-surface px-[18px] py-[16px] text-left font-sans hover:border-(--accent-soft-border)"
               >
                 <div className="flex flex-wrap items-center justify-between gap-[12px]">
                   <div className="min-w-0">
@@ -109,7 +102,7 @@ function CasesDemoView() {
                     />
                   </div>
                 </div>
-              </div>
+              </button>
             )
           })}
         </div>

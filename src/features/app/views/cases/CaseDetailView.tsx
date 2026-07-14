@@ -86,7 +86,45 @@ const initialsOf = (name: string): string =>
     .join('')
     .slice(0, 2)
 
-function CaseDetail({ caze }: { caze: WorkspaceCase }) {
+/** Build the composed activity feed for a case (extracted to reduce component complexity). */
+function buildActivity(
+  caze: WorkspaceCase,
+  risk: { levelLabel: Bi; tone: string },
+  timeline: { text: Bi; date: string; tone?: string }[],
+  approvalRequested: boolean,
+): CaseActivityEntry[] {
+  const openedText: Bi = {
+    en: `Case opened and risk assessed as ${risk.levelLabel.en.toLowerCase()} severity`,
+    fr: `Dossier ouvert et risque évalué comme gravité ${risk.levelLabel.fr.toLowerCase()}`,
+  }
+  const activity: CaseActivityEntry[] = [
+    { actor: 'Advisor', text: openedText, time: caze.opened, tone: risk.tone as CaseActivityEntry['tone'] },
+  ]
+  caze.steps
+    .filter((st) => st.done)
+    .forEach((st, i) =>
+      activity.push({
+        actor: i === 0 ? 'Riley Summers' : 'Advisor',
+        text: st.label,
+        time: caze.opened,
+        tone: 'success',
+      }),
+    )
+  timeline
+    .slice(0, 2)
+    .forEach((t) => activity.push({ actor: 'System', text: t.text, time: t.date, tone: t.tone as CaseActivityEntry['tone'] }))
+  if (approvalRequested) {
+    activity.unshift({
+      actor: 'Riley Summers',
+      text: M.cases_activity_requested,
+      time: M.cases_just_now,
+      tone: 'info',
+    })
+  }
+  return activity
+}
+
+function CaseDetail({ caze }: Readonly<{ caze: WorkspaceCase }>) {
   const { x, lang } = useI18n()
   const navigate = useNavigate()
   const { openRail, closeRail } = useRail()
@@ -132,16 +170,17 @@ function CaseDetail({ caze }: { caze: WorkspaceCase }) {
     caze.type === 'Termination'
       ? M.cases_approval_target_counsel
       : M.cases_approval_target_people_ops
+  const approvalByType: Record<string, Bi> = {
+    Termination: M.cases_approval_termination,
+    Onboarding: M.cases_approval_onboarding,
+  }
+  const defaultApproval: Bi = approvalByType[caze.type] ?? M.cases_approval_default
   const approvalStatus: Bi = approvalRequested
     ? {
         en: M.cases_approval_requested_prefix.en + approvalTarget.en,
         fr: M.cases_approval_requested_prefix.fr + approvalTarget.fr,
       }
-    : caze.type === 'Termination'
-      ? M.cases_approval_termination
-      : caze.type === 'Onboarding'
-        ? M.cases_approval_onboarding
-        : M.cases_approval_default
+    : defaultApproval
   const canRequestApproval =
     !approvalRequested && caze.type !== 'Onboarding' && caze.type !== 'Termination'
   const requestApproval = () => {
@@ -177,36 +216,7 @@ function CaseDetail({ caze }: { caze: WorkspaceCase }) {
   }
 
   /* ── Activity feed (prototype-composed) ─────────────────────────────────── */
-  const openedText: Bi = {
-    /* Prototype: 'Case opened and risk assessed as ' + level.toLowerCase() + ' severity'
-       / 'Dossier ouvert et risque évalué comme gravité ' + level.toLowerCase(). */
-    en: `Case opened and risk assessed as ${risk.levelLabel.en.toLowerCase()} severity`,
-    fr: `Dossier ouvert et risque évalué comme gravité ${risk.levelLabel.fr.toLowerCase()}`,
-  }
-  const activity: CaseActivityEntry[] = [
-    { actor: 'Advisor', text: openedText, time: caze.opened, tone: risk.tone },
-  ]
-  caze.steps
-    .filter((st) => st.done)
-    .forEach((st, i) =>
-      activity.push({
-        actor: i === 0 ? 'Riley Summers' : 'Advisor',
-        text: st.label,
-        time: caze.opened,
-        tone: 'success',
-      }),
-    )
-  timeline
-    .slice(0, 2)
-    .forEach((t) => activity.push({ actor: 'System', text: t.text, time: t.date, tone: t.tone }))
-  if (approvalRequested) {
-    activity.unshift({
-      actor: 'Riley Summers',
-      text: M.cases_activity_requested,
-      time: M.cases_just_now,
-      tone: 'info',
-    })
-  }
+  const activity = buildActivity(caze, risk, timeline, approvalRequested)
 
   /* ── Advisor rail affordances ───────────────────────────────────────────── */
   const openChat = (chatId: string) =>

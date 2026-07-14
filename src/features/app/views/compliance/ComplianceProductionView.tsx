@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { Plus, Shield, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { complianceMessages as M } from '@/i18n/messages/compliance'
@@ -81,7 +81,7 @@ export function ComplianceProductionView() {
     return <ProductionEmptyState title={x(M.compliance_prod_empty_title)} />
   }
 
-  const onSubmit = async (e: FormEvent) => {
+  const onSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     if (!form.title.trim() || saving) return
     setSaving(true)
@@ -123,17 +123,14 @@ export function ComplianceProductionView() {
   }
 
   const openCount = rows?.filter((r) => !r.resolved).length ?? 0
+  const countLabel = `${openCount} ${x(openCount === 1 ? M.compliance_prod_count_open_one : M.compliance_prod_count_open)}`
 
   return (
     <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
       <div className="mx-auto max-w-[820px]">
         <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
           <div className="text-[13px] text-text-muted">
-            {rows === null
-              ? x(M.compliance_prod_loading)
-              : `${openCount} ${x(
-                  openCount === 1 ? M.compliance_prod_count_open_one : M.compliance_prod_count_open,
-                )}`}
+            {rows === null ? x(M.compliance_prod_loading) : countLabel}
           </div>
           {!formOpen && (
             <button

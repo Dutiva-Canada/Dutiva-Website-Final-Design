@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Trash2, Users } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -77,7 +77,7 @@ export function EmployeesProductionView() {
     return <ProductionEmptyState title={x(M.employees_prod_empty_title)} />
   }
 
-  const onSubmit = async (e: FormEvent) => {
+  const onSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     if (!form.name.trim() || saving) return
     setSaving(true)
@@ -105,15 +105,14 @@ export function EmployeesProductionView() {
   }
 
   const count = rows?.length ?? 0
+  const countLabel = `${count} ${x(count === 1 ? M.employees_prod_count_one : M.employees_prod_count_many)}`
 
   return (
     <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
       <div className="mx-auto max-w-[900px]">
         <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
           <div className="text-[13px] text-text-muted">
-            {rows === null
-              ? x(M.employees_prod_loading)
-              : `${count} ${x(count === 1 ? M.employees_prod_count_one : M.employees_prod_count_many)}`}
+            {rows === null ? x(M.employees_prod_loading) : countLabel}
           </div>
           {!formOpen && (
             <button
