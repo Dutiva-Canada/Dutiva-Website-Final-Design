@@ -2,6 +2,7 @@
    module: the lazy() wrappers here don't participate in fast refresh. */
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
+import { Navigate } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
 import { ModeGate } from '@/features/app/workspaceMode/ModeGate'
 
