@@ -36,12 +36,7 @@ describe('StudioScreen', () => {
     renderStudio()
     await screen.findByText('Offer of employment letter')
 
-    /* This placeholder is a static generated i18n string (doclib_studio_searchPh)
-       with the template count baked in at handoff time, not derived from
-       data.templates.length — it still reads "16" even though the grid now
-       has 20 (16 generated + 4 hand-authored in customTemplates.ts). Left
-       as-is rather than hand-editing the generated message file. */
-    fireEvent.change(screen.getByPlaceholderText('Search 16 templates…'), {
+    fireEvent.change(screen.getByPlaceholderText('Search 20 templates…'), {
       target: { value: 'offer' },
     })
 
