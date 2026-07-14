@@ -1,18 +1,73 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import type { ReactNode } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Sparkle, TriangleAlert } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
+import { authMessages as AM } from '@/i18n/messages/auth'
+import { supabase } from '@/lib/supabaseClient'
+import { useAuth } from '@/features/app/auth/authContext'
+import { AuthSignInForm } from '@/features/app/auth/AuthSignInForm'
+import { isAllowedSignInEmail } from '@/features/app/auth/allowedEmail'
 import { LangToggle, ThemeToggle } from './ShellControls'
 
+/** Where an unauthorized visit to /app/* wanted to end up (see RequireAdminSession). */
+interface EntryLocationState {
+  from?: { pathname: string }
+}
+
 /**
- * App entry stage (/app/welcome) — the minimal sign-in landing from
- * `App v2.dc.html` (`isLanding` branch): top bar with leaf logo + wordmark,
- * EN/FR pill, theme toggle and navy "Start free"; centered hero with gold
- * badge; Advisor conversation preview in a browser-chrome frame.
- * Every CTA enters the workspace at /app/home.
+ * CTA that either enters the workspace directly (no Supabase configured —
+ * local dev/tests, where RequireAdminSession is a no-op) or jumps to the
+ * sign-in panel below (real deployment — the workspace is gated).
+ */
+function EntryCta({
+  gated,
+  className,
+  children,
+}: {
+  gated: boolean
+  className: string
+  children: ReactNode
+}) {
+  if (gated) {
+    return (
+      <a href="#signin" className={className}>
+        {children}
+      </a>
+    )
+  }
+  return (
+    <Link to="/app/home" className={className}>
+      {children}
+    </Link>
+  )
+}
+
+/**
+ * App entry stage (/app/welcome) — sign-in landing from `App v2.dc.html`
+ * (`isLanding` branch), now doubling as the actual gate: with Supabase
+ * configured, every CTA here leads to the magic-link form instead of
+ * straight into /app/home (see RequireAdminSession — the workspace is
+ * invite-only for one account, not a public demo anymore). Without
+ * Supabase configured, CTAs still enter directly, matching every other
+ * feature's "degrade to signed-out" posture in local dev/tests.
  */
 export function EntryStage() {
   const { x } = useI18n()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { status, session, signOut } = useAuth()
+
+  const gated = !!supabase
+  const email = session?.user.email
+  const authorized = status === 'signed-in' && !!email && isAllowedSignInEmail(email)
+
+  useEffect(() => {
+    if (!authorized) return
+    const from = (location.state as EntryLocationState | null)?.from
+    navigate(from?.pathname ?? '/app/home', { replace: true })
+  }, [authorized, location.state, navigate])
 
   return (
     <div className="surface-app min-h-screen bg-bg font-sans text-text">
@@ -40,18 +95,18 @@ export function EntryStage() {
             className="flex h-[34px] w-[34px] shrink-0 cursor-pointer items-center justify-center rounded-[8px] border-none bg-inset text-text-2"
             iconSize={17}
           />
-          <Link
-            to="/app/home"
+          <EntryCta
+            gated={gated}
             className="hidden whitespace-nowrap text-[14.5px] font-semibold text-text min-[560px]:block"
           >
             {x(M.shell_signin)}
-          </Link>
-          <Link
-            to="/app/home"
+          </EntryCta>
+          <EntryCta
+            gated={gated}
             className="shrink-0 whitespace-nowrap rounded-[8px] bg-navy px-[18px] py-[10px] text-[14.5px] font-semibold text-white"
           >
             {x(M.shell_start_free)}
-          </Link>
+          </EntryCta>
         </div>
       </header>
 
@@ -69,19 +124,55 @@ export function EntryStage() {
             {x(M.shell_hero_sub)}
           </p>
           <div className="mb-[48px] flex flex-wrap justify-center gap-[12px] min-[560px]:mb-[64px]">
-            <Link
-              to="/app/home"
+            <EntryCta
+              gated={gated}
               className="rounded-[9px] bg-navy px-[26px] py-[14px] text-[15px] font-semibold text-white"
             >
               {x(M.shell_cta_primary)}
-            </Link>
-            <Link
-              to="/app/home"
+            </EntryCta>
+            <EntryCta
+              gated={gated}
               className="rounded-[9px] border border-border bg-surface px-[26px] py-[14px] text-[15px] font-semibold text-text"
             >
               {x(M.shell_cta_secondary)}
-            </Link>
+            </EntryCta>
           </div>
+
+          {/* ── Sign-in panel — real gate, only when Supabase is configured
+              and the visitor isn't already an authorized session (which
+              would have redirected away via the effect above). ────────── */}
+          {gated && !authorized && (
+            <div
+              id="signin"
+              className="mx-auto mb-[64px] max-w-[420px] scroll-mt-[100px] rounded-[16px] border border-border bg-surface p-[28px] text-left shadow-[0_24px_60px_-20px_rgba(27,36,48,0.25)]"
+            >
+              {status === 'signed-in' && email ? (
+                <div className="flex flex-col gap-[12px]">
+                  <p className="m-0 text-[13.5px] text-text-2">{email}</p>
+                  <p className="m-0 text-[13px] text-text-muted">{x(AM.auth_not_authorized)}</p>
+                  <button
+                    type="button"
+                    onClick={() => void signOut()}
+                    className="cursor-pointer self-start rounded-[8px] border border-border bg-transparent px-[14px] py-[8px] text-[13px] font-semibold text-text-2"
+                  >
+                    {x(AM.auth_sign_out)}
+                  </button>
+                </div>
+              ) : status === 'sent-link' ? (
+                <p className="m-0 text-[14px] text-text-2">{x(AM.auth_link_sent)}</p>
+              ) : (
+                <>
+                  <h2 className="m-0 mb-[6px] font-display text-[18px] font-semibold text-text">
+                    {x(AM.auth_sign_in)}
+                  </h2>
+                  <p className="m-0 mb-[16px] text-[13px] text-text-muted">
+                    {x(AM.auth_entry_description)}
+                  </p>
+                  <AuthSignInForm idPrefix="welcome" />
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ── Advisor conversation preview (browser-chrome frame) ──────── */}
