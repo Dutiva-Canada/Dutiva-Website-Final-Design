@@ -16,7 +16,8 @@ import { SuggestionChips } from '@/features/app/advisor/SuggestionChips'
 import { ToneCard } from '@/features/app/advisor/ToneCard'
 import { TypingDots } from '@/features/app/advisor/TypingDots'
 import type { ChatMessage } from '@/features/app/advisor/types'
-import { documentTemplatesByKey, followupReplies } from '@/data'
+import { followupReplies } from '@/data'
+import { resolveDocTitle } from '@/features/app/docstudio/resolveDocTitle'
 import { estimatorFollowup } from './advisorFlows'
 import type { MessageExtras, QuickFormState, SuggestChipSpec } from './advisorFlows'
 import { PROVINCE_CHIPS, scenarioFollowupLabels } from './advisorScenarios'
@@ -74,7 +75,7 @@ const BANNER_TONE: Record<ScenarioBannerTone, { card: string; text: string; icon
 }
 
 function docTitle(templateKey: string): LText {
-  return documentTemplatesByKey[templateKey]?.title ?? templateKey
+  return resolveDocTitle(templateKey)
 }
 
 export function ChatPane({

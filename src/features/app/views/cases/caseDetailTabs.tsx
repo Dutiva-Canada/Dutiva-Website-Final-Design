@@ -3,7 +3,7 @@ import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
 import { pickL } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
-import { documentTemplatesByKey } from '@/data'
+import { resolveDocTitle } from '@/features/app/docstudio/resolveDocTitle'
 import type {
   CaseRisk,
   CaseRiskAxis,
@@ -76,7 +76,7 @@ export interface CaseOverviewData {
   flags: ComplianceItem[]
 }
 
-const docTitle = (key: string): LText => documentTemplatesByKey[key]?.title ?? key
+const docTitle = (key: string): LText => resolveDocTitle(key)
 
 export function CaseOverviewTab({
   data,

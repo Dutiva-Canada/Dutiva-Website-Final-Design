@@ -4,6 +4,9 @@ import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { docMetaDefaults, documentTemplatesByKey } from '@/data'
 import type { DocMeta } from '@/data'
+import { templateByTid, templateCategories } from '@/features/app/documents/data'
+import type { DocTemplate, PreviewBlock } from '@/features/app/documents/data'
+import { customTemplateByTid } from '@/features/app/documents/customTemplates'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { docstudioMessages as M } from '@/i18n/messages/docstudio'
 import { DocStudioContext } from './docStudioContext'
@@ -50,8 +53,56 @@ interface ResolvedTemplate {
   sections: Bi[]
 }
 
-/** Prototype `docBodies[title]` + `docMetaFor(title)` + `isHighRiskDoc(title)`. */
+function categoryLabel(categoryId: string): Bi {
+  return templateCategories.find((c) => c.id === categoryId)?.name ?? bi(categoryId, categoryId)
+}
+
+/** Flattens preview blocks into flat prose sections — the overlay isn't
+ * jurisdiction/org-aware, so gates (`when`) aren't evaluated here; every
+ * block with body text is shown. Clause blocks keep their heading as a
+ * lead-in line. */
+function sectionsFromPreview(blocks: PreviewBlock[]): Bi[] {
+  return blocks
+    .filter((b): b is PreviewBlock & { text: Bi } => b.text !== undefined)
+    .map((b) =>
+      b.type === 'clause' && b.heading
+        ? bi(`${b.heading.en}\n\n${b.text.en}`, `${b.heading.fr}\n\n${b.text.fr}`)
+        : b.text,
+    )
+}
+
+/** Best-effort mapping from a doclib DocTemplate into the overlay's flat
+ * display shape — lossy (drops questions/clause-gates/versioning) by
+ * design, since the overlay has no jurisdiction/org-profile context. */
+function docTemplateToOverlayShape(template: DocTemplate): ResolvedTemplate {
+  return {
+    title: template.name,
+    category: categoryLabel(template.category),
+    highRisk: template.risk === 'high',
+    meta: {
+      ...docMetaDefaults,
+      jur: template.jurisdictions.length
+        ? bi(template.jurisdictions.join(' / '), template.jurisdictions.join(' / '))
+        : docMetaDefaults.jur,
+      governing: template.statutory[0] ?? docMetaDefaults.governing,
+      legalReview: template.requiresLawyerReview
+        ? bi('Required before sending', 'Requise avant l’envoi')
+        : docMetaDefaults.legalReview,
+    },
+    sections: sectionsFromPreview(template.preview),
+  }
+}
+
+/** Prototype `docBodies[title]` + `docMetaFor(title)` + `isHighRiskDoc(title)`.
+ * Tries the doclib template set first (by tid) — the richer, actively
+ * maintained model — then falls back to the legacy flat fixture (by
+ * title-string key), then the generic placeholder. Tids ('T01') and
+ * legacy keys ('Termination Letter') never collide, so no caller needs
+ * to say which kind of key it's passing. */
 function resolveTemplate(templateKey: string, fromLibrary: boolean): ResolvedTemplate {
+  const doclibTemplate = templateByTid.get(templateKey) ?? customTemplateByTid.get(templateKey)
+  if (doclibTemplate) return docTemplateToOverlayShape(doclibTemplate)
+
   const template = documentTemplatesByKey[templateKey]
   if (template) {
     return {

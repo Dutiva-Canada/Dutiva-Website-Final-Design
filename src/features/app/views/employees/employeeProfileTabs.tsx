@@ -2,7 +2,8 @@ import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { ChevronRight, FileText, Info, Lock, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
-import { documentTemplatesByKey, leaveStatusLabels, leaveStatusTones } from '@/data'
+import { leaveStatusLabels, leaveStatusTones } from '@/data'
+import { resolveDocTitle } from '@/features/app/docstudio/resolveDocTitle'
 import type {
   CaseFile,
   ComplianceItem,
@@ -233,7 +234,7 @@ export function EmployeeDocumentsTab({
   return (
     <div className="flex flex-col gap-[10px]">
       {docs.map((docKey) => {
-        const template = documentTemplatesByKey[docKey]
+        const title = resolveDocTitle(docKey)
         return (
           <button
             key={docKey}
@@ -249,9 +250,7 @@ export function EmployeeDocumentsTab({
                 aria-hidden="true"
               />
             </div>
-            <span className="text-[13.5px] font-semibold text-text">
-              {template ? x(template.title) : docKey}
-            </span>
+            <span className="text-[13.5px] font-semibold text-text">{x(title)}</span>
           </button>
         )
       })}

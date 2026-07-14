@@ -110,7 +110,7 @@ export const homePriorities: HomePriority[] = [
       'Les obligations en SST et en dépenses ont changé à mesure que vous ajoutiez des provinces. Une politique en retard est le plus grand frein à votre score de conformité.',
     ),
     actionLabel: bi('Draft refresh', 'Rédiger une mise à jour'),
-    action: { kind: 'doc', templateKey: 'Remote Work Policy' },
+    action: { kind: 'doc', templateKey: 'T10' },
     ask: bi(
       'What should the refreshed Remote Work Policy cover for our provinces?',
       'Que doit couvrir la politique de télétravail mise à jour pour nos provinces?',

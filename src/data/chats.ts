@@ -120,7 +120,7 @@ export const chats: ChatThread[] = [
             ),
           },
         ],
-        docs: ['Termination Letter', 'Full & Final Release', 'Offboarding Checklist'],
+        docs: ['T03', 'T17', 'T18'],
         followups: [
           'Estimate severance range',
           'Compare to PIP alternative',
@@ -195,7 +195,7 @@ export const chats: ChatThread[] = [
             ],
           },
         ],
-        docs: ['Offer Letter', 'Employment Agreement'],
+        docs: ['T01', 'T02'],
         followups: ['Set probation terms', 'Draft rejection letter for other candidates'],
       },
     ],
@@ -245,7 +245,7 @@ export const chats: ChatThread[] = [
             citations: [],
           },
         ],
-        docs: ['Remote Work Policy', 'Expense Reimbursement Policy'],
+        docs: ['T10', 'Expense Reimbursement Policy'],
         followups: ['Compare to current in-office policy', 'Add security & equipment clause'],
       },
     ],
@@ -306,7 +306,7 @@ export const chats: ChatThread[] = [
             ],
           },
         ],
-        docs: ['Performance Improvement Plan', 'Accommodation Documentation'],
+        docs: ['T16', 'T19'],
         followups: ['Draft accommodation inquiry first', 'Show attendance policy template'],
       },
     ],
@@ -345,7 +345,7 @@ export const chats: ChatThread[] = [
             'Les employeurs peuvent demander une documentation médicale des limitations fonctionnelles, pas le diagnostic.',
           ),
         ],
-        docs: ['Accommodation Documentation', 'Medical Information Request Letter'],
+        docs: ['T19', 'T20'],
         followups: ['Draft medical info request', 'Log accommodation in compliance tracker'],
       },
     ],
@@ -440,7 +440,7 @@ export const lightFlows: Record<string, LightFlow> = {
         citations: [{ label: bi('BC Employment Standards Act', 'BC Employment Standards Act') }],
       },
     ],
-    docs: ['Offer Letter', 'Employment Agreement'],
+    docs: ['T01', 'T02'],
     followups: ['Set probation terms', 'Draft rejection letter for other candidates'],
   },
   onboarding: {
@@ -512,7 +512,7 @@ export const lightFlows: Record<string, LightFlow> = {
         ],
       },
     ],
-    docs: ['Performance Improvement Plan', 'Accommodation Documentation'],
+    docs: ['T16', 'T19'],
     followups: ['Draft accommodation inquiry first', 'Show attendance policy template'],
   },
   accommodation: {
@@ -530,7 +530,7 @@ export const lightFlows: Record<string, LightFlow> = {
         'Les employeurs peuvent demander une documentation médicale des limitations fonctionnelles, pas le diagnostic.',
       ),
     ],
-    docs: ['Accommodation Documentation', 'Medical Information Request Letter'],
+    docs: ['T19', 'T20'],
     followups: ['Draft medical info request', 'Log accommodation in compliance tracker'],
   },
   policy: {
@@ -559,7 +559,7 @@ export const lightFlows: Record<string, LightFlow> = {
         citations: [],
       },
     ],
-    docs: ['Remote Work Policy', 'Expense Reimbursement Policy'],
+    docs: ['T10', 'Expense Reimbursement Policy'],
     followups: ['Compare to current in-office policy', 'Add security & equipment clause'],
   },
 }
@@ -649,7 +649,7 @@ export const followupReplies: Record<string, FollowupReply> = {
       'This is the safer path. Here’s a neutral inquiry that asks about functional limitations without requesting a diagnosis.',
       'C’est la voie la plus sûre. Voici une demande neutre qui porte sur les limitations fonctionnelles sans exiger de diagnostic.',
     ),
-    docs: ['Medical Information Request Letter'],
+    docs: ['T20'],
   },
   'Draft medical info request': {
     label: bi('Draft medical info request', 'Rédiger une demande de renseignements médicaux'),
@@ -657,7 +657,7 @@ export const followupReplies: Record<string, FollowupReply> = {
       'Here’s a request limited to functional limitations, ready to send to the treating provider.',
       'Voici une demande limitée aux limitations fonctionnelles, prête à envoyer au professionnel traitant.',
     ),
-    docs: ['Medical Information Request Letter'],
+    docs: ['T20'],
   },
   'Log accommodation in compliance tracker': {
     label: bi(
@@ -776,7 +776,7 @@ export const followupReplies: Record<string, FollowupReply> = {
       'Here are documents I can generate, pre-filled with this person’s file details. Pick one and I’ll open it in Document Studio.',
       'Voici des documents que je peux générer, préremplis avec les détails du dossier de cette personne. Choisissez-en un et je l’ouvrirai dans le Studio de documents.',
     ),
-    docs: ['Policy Template', 'Written Warning'],
+    docs: ['Policy Template', 'T06'],
   },
   'Draft a document': {
     label: bi('Draft a document', 'Rédiger un document'),

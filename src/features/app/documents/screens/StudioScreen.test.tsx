@@ -13,7 +13,7 @@ const renderStudio = () =>
   )
 
 describe('StudioScreen', () => {
-  it('renders all 16 templates grouped by category', async () => {
+  it('renders all 20 templates grouped by category', async () => {
     renderStudio()
 
     /* Data loads async from fixtures — wait for the first card. */
@@ -21,8 +21,12 @@ describe('StudioScreen', () => {
     /* Spot-check across categories: hiring / agreements / termination. */
     expect(screen.getByText('Confidentiality agreement')).toBeInTheDocument()
     expect(screen.getByText('Group termination notice')).toBeInTheDocument()
-    expect(screen.getAllByRole('article')).toHaveLength(16)
-    expect(screen.getByText('16 templates')).toBeInTheDocument()
+    /* customTemplates.ts additions (T17-T20) — ported from the legacy
+       docstudio-only fixture, see that file's header comment. */
+    expect(screen.getByText('Full & final release')).toBeInTheDocument()
+    expect(screen.getByText('Accommodation documentation')).toBeInTheDocument()
+    expect(screen.getAllByRole('article')).toHaveLength(20)
+    expect(screen.getByText('20 templates')).toBeInTheDocument()
     /* Category group headings in handoff order. */
     expect(screen.getByRole('heading', { name: 'Hiring & onboarding' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Termination & offboarding' })).toBeInTheDocument()
@@ -32,6 +36,11 @@ describe('StudioScreen', () => {
     renderStudio()
     await screen.findByText('Offer of employment letter')
 
+    /* This placeholder is a static generated i18n string (doclib_studio_searchPh)
+       with the template count baked in at handoff time, not derived from
+       data.templates.length — it still reads "16" even though the grid now
+       has 20 (16 generated + 4 hand-authored in customTemplates.ts). Left
+       as-is rather than hand-editing the generated message file. */
     fireEvent.change(screen.getByPlaceholderText('Search 16 templates…'), {
       target: { value: 'offer' },
     })

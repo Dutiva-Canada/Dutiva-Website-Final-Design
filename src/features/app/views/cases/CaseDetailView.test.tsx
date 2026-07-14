@@ -26,7 +26,9 @@ describe('CaseDetailView', () => {
     expect(
       screen.getByText('Review termination notice exposure — Jordan Mensah'),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Termination Letter' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Termination letter (without cause)' }),
+    ).toBeInTheDocument()
     expect(
       screen.getByText('Jordan Mensah — notice exposure; no termination clause on file'),
     ).toBeInTheDocument()

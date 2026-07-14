@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { Bi } from '@/i18n/core'
 import { docCases, docEmployees, docTemplates, sampleDocuments, templateCategories } from './data'
 import type { DocCase, DocEmployee, DocTemplate, GeneratedDoc, TemplateCategory } from './data'
+import { customTemplates } from './customTemplates'
 
 /**
  * Read layer for the HR Documents Library. When Supabase env vars are present
@@ -29,7 +30,10 @@ export interface DoclibData {
 }
 
 const FIXTURES: DoclibData = {
-  templates: docTemplates,
+  /* customTemplates are hand-authored (see that file's header) — spliced
+     in here rather than into data/templates/index.ts (generated, would
+     be clobbered on a future regen). */
+  templates: [...docTemplates, ...customTemplates],
   categories: templateCategories,
   documents: sampleDocuments,
   employees: docEmployees,
