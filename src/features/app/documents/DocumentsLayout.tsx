@@ -2,51 +2,47 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 import { UserRound } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { doclibMessages as DL } from '@/i18n/messages/doclib'
+import { shellMessages as M } from '@/i18n/messages/shell'
+import { isDoclibStudioPath } from '@/features/app/shell/navConfig'
 import { DoclibProvider } from './DoclibProvider'
 import { useDoclib } from './doclibContext'
 import { workspaceRoles } from './data'
 import type { WorkspaceRole } from './data'
 
-/* Studio owns these subpaths (its multi-step catalogue → generate flow);
-   the Repository tab owns the rest of /app/documents (index + :docId). Kept
-   in sync with the merged nav item in navConfig.ts (isNavActive on
-   '/app/documents' covers both — this just tells the two tabs apart). */
-const STUDIO_PREFIXES = [
-  '/app/documents/studio',
-  '/app/documents/templates',
-  '/app/documents/generate',
-]
-
-function isStudioPath(pathname: string): boolean {
-  return STUDIO_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
-}
-
+/**
+ * Repository/Studio switcher. These are two distinct routes, not panels of
+ * one page, so this is a nav landmark with `aria-current` rather than
+ * WAI-ARIA tab semantics (role="tab" implies roving-tabindex arrow-key
+ * navigation and an associated tabpanel, neither of which applies here).
+ */
 function DocumentsTabs() {
   const { x } = useI18n()
   const { pathname } = useLocation()
-  const studio = isStudioPath(pathname)
-  const tabClass = (active: boolean) =>
+  const studio = isDoclibStudioPath(pathname)
+  const linkClass = (active: boolean) =>
     `shrink-0 rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
       active ? 'border-navy text-text' : 'border-transparent text-text-muted'
     }`
   return (
-    <div
-      role="tablist"
-      aria-label={x(DL.doclib_nav_library)}
+    <nav
+      aria-label={x(M.shell_nav_library)}
       className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
     >
-      <Link to="/app/documents" role="tab" aria-selected={!studio} className={tabClass(!studio)}>
+      <Link
+        to="/app/documents"
+        aria-current={studio ? undefined : 'page'}
+        className={linkClass(!studio)}
+      >
         {x(DL.doclib_nav_documents)}
       </Link>
       <Link
         to="/app/documents/studio"
-        role="tab"
-        aria-selected={studio}
-        className={tabClass(studio)}
+        aria-current={studio ? 'page' : undefined}
+        className={linkClass(studio)}
       >
         {x(DL.doclib_nav_studio)}
       </Link>
-    </div>
+    </nav>
   )
 }
 

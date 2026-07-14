@@ -91,7 +91,7 @@ export const NAV_GROUPS: NavGroup[] = [
          DocumentsLayout rather than its own top-level nav entry. Default
          isNavActive prefix-matching covers every /app/documents/* subroute
          (studio, templates/:tid, generate/:templateId, :docId). */
-      { key: 'documents', to: '/app/documents', icon: FileStack, label: DL.doclib_nav_library },
+      { key: 'documents', to: '/app/documents', icon: FileStack, label: M.shell_nav_library },
       { key: 'knowledge', to: '/app/knowledge', icon: Book, label: M.shell_nav_knowledge },
     ],
   },
@@ -141,6 +141,16 @@ export function isNavActive(to: string, pathname: string): boolean {
   return pathname === to || pathname.startsWith(`${to}/`)
 }
 
+/* Studio's subroutes (catalogue → generate flow), as opposed to the
+   Repository (index + :docId). Single source of truth for both the topbar
+   title below and the Repository/Studio tab strip (DocumentsLayout.tsx). */
+const DOCLIB_STUDIO_SUBPATHS = ['studio', 'templates', 'generate']
+
+export function isDoclibStudioPath(pathname: string): boolean {
+  const parts = pathname.replace(/^\/app\/?/, '').split('/')
+  return parts[0] === 'documents' && DOCLIB_STUDIO_SUBPATHS.includes(parts[1] ?? '')
+}
+
 /* Topbar / mobile-topbar route titles (prototype `viewLabels`). */
 const VIEW_LABELS: Record<string, Bi> = {
   home: M.shell_v_home,
@@ -169,7 +179,7 @@ const VIEW_LABELS: Record<string, Bi> = {
  */
 export function moduleLabelFor(pathname: string): Bi {
   const segment = pathname.replace(/^\/app\/?/, '').split('/')[0] ?? ''
-  if (segment === 'documents') return DL.doclib_nav_library
+  if (segment === 'documents') return M.shell_nav_library
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }
 
@@ -183,10 +193,7 @@ export function viewLabelFor(pathname: string): Bi {
     if (emp) return bi(emp.name, emp.name)
   }
   if (segment === 'documents') {
-    const sub = parts[1] ?? ''
-    return sub === 'studio' || sub === 'templates' || sub === 'generate'
-      ? DL.doclib_nav_studio
-      : DL.doclib_nav_documents
+    return isDoclibStudioPath(pathname) ? DL.doclib_nav_studio : DL.doclib_nav_documents
   }
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }

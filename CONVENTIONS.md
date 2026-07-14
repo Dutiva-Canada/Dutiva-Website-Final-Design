@@ -39,19 +39,20 @@ src/
 
 ## Routes
 
-| Path | Renders |
-| --- | --- |
-| `/` | Marketing landing page |
-| `/about · /faq · /blog` | Marketing subpages (dutiva.ca content migration) |
-| `/guides/template-usage · /known-limitations` | Marketing subpages |
-| `/legal` → `/legal/:slug` | Policy index → one of 26 policy documents |
-| `/app/welcome` | App entry stage (sign-in preview) |
-| `/app` → `/app/home` | Workspace shell redirect |
-| `/app/home · advisor · workflows · cases · employees · compliance · policies · templates · tasks · calendar · reports · knowledge · communications · compensation · wellbeing · settings` | The 16 views |
-| `/app/memory` | Advisor Memory manager |
-| `/app/memory/people/:personId · cases/:caseId · conversations/:threadId` | Memory person / case / chat-recall surfaces |
-| `/app/cases/:caseId` | Case detail |
-| `/app/employees/:employeeId` | Employee profile |
+| Path                                                                                                                                                                                      | Renders                                                                                                                                                                |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                                                                                                                                                                                       | Marketing landing page                                                                                                                                                 |
+| `/about · /faq · /blog`                                                                                                                                                                   | Marketing subpages (dutiva.ca content migration)                                                                                                                       |
+| `/guides/template-usage · /known-limitations`                                                                                                                                             | Marketing subpages                                                                                                                                                     |
+| `/legal` → `/legal/:slug`                                                                                                                                                                 | Policy index → one of 26 policy documents                                                                                                                              |
+| `/app/welcome`                                                                                                                                                                            | App entry stage (sign-in preview)                                                                                                                                      |
+| `/app` → `/app/home`                                                                                                                                                                      | Workspace shell redirect                                                                                                                                               |
+| `/app/home · advisor · workflows · cases · employees · compliance · policies · templates · tasks · calendar · reports · knowledge · communications · compensation · wellbeing · settings` | The 16 views                                                                                                                                                           |
+| `/app/memory`                                                                                                                                                                             | Advisor Memory manager                                                                                                                                                 |
+| `/app/memory/people/:personId · cases/:caseId · conversations/:threadId`                                                                                                                  | Memory person / case / chat-recall surfaces                                                                                                                            |
+| `/app/cases/:caseId`                                                                                                                                                                      | Case detail                                                                                                                                                            |
+| `/app/employees/:employeeId`                                                                                                                                                              | Employee profile                                                                                                                                                       |
+| `/app/documents` → `studio · templates/:tid · generate/:templateId · :docId`                                                                                                              | Document Library — Repository (index, `:docId`) and Studio (`studio` and its `templates/generate` sub-flow) share one sidebar entry, switched via an in-page tab strip |
 
 Navigation between entities (e.g. an Advisor tone-card action "Open case") uses
 these routes — never view-state flags.
@@ -81,7 +82,7 @@ these routes — never view-state flags.
 
 - Every user-facing string ships EN + FR. UI-chrome strings live in per-feature
   modules under `src/i18n/messages/<feature>.ts` using `defineMessages({ key:
-  { en, fr } })`; keys are prefixed by feature (`home_`, `advisor_`, `landing_`,
+{ en, fr } })`; keys are prefixed by feature (`home_`, `advisor_`, `landing_`,
   `shell_` …). Register new modules in `src/i18n/messages/index.ts` (single
   spread — coordinate, don't duplicate keys).
 - Entity/sample data carries bilingual fields typed as `Bi` (`{ en, fr }`) from
