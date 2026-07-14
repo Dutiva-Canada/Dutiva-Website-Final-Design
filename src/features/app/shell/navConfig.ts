@@ -6,7 +6,6 @@ import {
   Calendar,
   ChartNoAxesColumn,
   DollarSign,
-  FilePlus2,
   FileStack,
   FileText,
   Folder,
@@ -88,6 +87,11 @@ export const NAV_GROUPS: NavGroup[] = [
         badge: { value: CASES_BADGE, tone: 'neutral' },
       },
       { key: 'templates', to: '/app/templates', icon: FileText, label: M.shell_nav_documents },
+      /* Merged Document Studio + Repository — Studio is a tab inside
+         DocumentsLayout rather than its own top-level nav entry. Default
+         isNavActive prefix-matching covers every /app/documents/* subroute
+         (studio, templates/:tid, generate/:templateId, :docId). */
+      { key: 'documents', to: '/app/documents', icon: FileStack, label: DL.doclib_nav_library },
       { key: 'knowledge', to: '/app/knowledge', icon: Book, label: M.shell_nav_knowledge },
     ],
   },
@@ -122,35 +126,6 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       { key: 'tasks', to: '/app/tasks', icon: ListChecks, label: M.shell_nav_tasks },
       { key: 'calendar', to: '/app/calendar', icon: Calendar, label: M.shell_nav_calendar },
-    ],
-  },
-  {
-    /* HR Documents Library (Document Studio + Repository). Studio owns the
-       studio/templates/generate subpaths; the repository item owns the rest
-       of /app/documents (incl. /app/documents/:docId). */
-    heading: DL.doclib_nav_sectionLibrary,
-    items: [
-      {
-        key: 'doclib-studio',
-        to: '/app/documents/studio',
-        icon: FilePlus2,
-        label: DL.doclib_nav_studio,
-        isActive: (pathname) =>
-          ['/app/documents/studio', '/app/documents/templates', '/app/documents/generate'].some(
-            (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-          ),
-      },
-      {
-        key: 'doclib-repository',
-        to: '/app/documents',
-        icon: FileStack,
-        label: DL.doclib_nav_documents,
-        isActive: (pathname) =>
-          isNavActive('/app/documents', pathname) &&
-          !['/app/documents/studio', '/app/documents/templates', '/app/documents/generate'].some(
-            (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-          ),
-      },
     ],
   },
   {
@@ -194,7 +169,7 @@ const VIEW_LABELS: Record<string, Bi> = {
  */
 export function moduleLabelFor(pathname: string): Bi {
   const segment = pathname.replace(/^\/app\/?/, '').split('/')[0] ?? ''
-  if (segment === 'documents') return DL.doclib_nav_documents
+  if (segment === 'documents') return DL.doclib_nav_library
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }
 

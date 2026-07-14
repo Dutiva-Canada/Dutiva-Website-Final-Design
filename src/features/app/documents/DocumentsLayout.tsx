@@ -1,10 +1,54 @@
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { UserRound } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { doclibMessages as DL } from '@/i18n/messages/doclib'
 import { DoclibProvider } from './DoclibProvider'
 import { useDoclib } from './doclibContext'
 import { workspaceRoles } from './data'
 import type { WorkspaceRole } from './data'
+
+/* Studio owns these subpaths (its multi-step catalogue → generate flow);
+   the Repository tab owns the rest of /app/documents (index + :docId). Kept
+   in sync with the merged nav item in navConfig.ts (isNavActive on
+   '/app/documents' covers both — this just tells the two tabs apart). */
+const STUDIO_PREFIXES = [
+  '/app/documents/studio',
+  '/app/documents/templates',
+  '/app/documents/generate',
+]
+
+function isStudioPath(pathname: string): boolean {
+  return STUDIO_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+}
+
+function DocumentsTabs() {
+  const { x } = useI18n()
+  const { pathname } = useLocation()
+  const studio = isStudioPath(pathname)
+  const tabClass = (active: boolean) =>
+    `shrink-0 rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
+      active ? 'border-navy text-text' : 'border-transparent text-text-muted'
+    }`
+  return (
+    <div
+      role="tablist"
+      aria-label={x(DL.doclib_nav_library)}
+      className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
+    >
+      <Link to="/app/documents" role="tab" aria-selected={!studio} className={tabClass(!studio)}>
+        {x(DL.doclib_nav_documents)}
+      </Link>
+      <Link
+        to="/app/documents/studio"
+        role="tab"
+        aria-selected={studio}
+        className={tabClass(studio)}
+      >
+        {x(DL.doclib_nav_studio)}
+      </Link>
+    </div>
+  )
+}
 
 /**
  * Shared frame for every /app/documents route: mounts the feature provider
@@ -45,6 +89,7 @@ export function DocumentsLayout() {
           screens' equivalent. min-h-0 lets it shrink so overflow can engage. */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[1240px]">
+          <DocumentsTabs />
           <ViewingAsBar />
           <Outlet />
         </div>

@@ -26,6 +26,9 @@ export const doclibMessages = defineMessages({
   doclib_nav_cases: { en: 'Case files', fr: 'Dossiers' },
   doclib_nav_studio: { en: 'Document Studio', fr: 'Studio de documents' },
   doclib_nav_documents: { en: 'Documents', fr: 'Documents' },
+  /* Merged sidebar entry for the /app/documents group (Repository + Studio
+     tabs) — see navConfig.ts NAV_GROUPS "Records". */
+  doclib_nav_library: { en: 'Document Library', fr: 'Bibliothèque de documents' },
   doclib_nav_compliance: { en: 'Compliance', fr: 'Conformité' },
   doclib_nav_knowledge: { en: 'Knowledge base', fr: 'Base de connaissances' },
   doclib_nav_settings: { en: 'Settings', fr: 'Réglages' },
