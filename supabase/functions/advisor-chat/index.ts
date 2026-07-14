@@ -62,12 +62,15 @@ Deno.serve(async (req: Request) => {
   const user = userData?.user
   if (userError || !user) return json({ error: 'Invalid user token' }, 401)
 
-  /* Internal team feature — same restriction enforced at the RLS layer for
-     direct guidance_sources/law_updates reads (see supabase/migrations/
-     0003_restrict_guidance_law_updates_to_dutiva_domain.sql). This function
-     uses a service-role client that bypasses RLS, so it needs its own check. */
-  if (!user.email || !user.email.toLowerCase().endsWith('@dutiva.ca')) {
-    return json({ error: 'Access is limited to dutiva.ca accounts.' }, 403)
+  /* Invite-only, single account — same restriction enforced at the RLS
+     layer for direct guidance_sources/law_updates reads (see
+     supabase/migrations/0011_restrict_guidance_law_updates_to_single_admin.sql
+     and src/features/app/auth/allowedEmail.ts, the source of truth this
+     mirrors). This function uses a service-role client that bypasses RLS,
+     so it needs its own check regardless. */
+  const ALLOWED_EMAIL = 'martin.constantineau@dutiva.ca'
+  if (!user.email || user.email.trim().toLowerCase() !== ALLOWED_EMAIL) {
+    return json({ error: 'Access to this workspace is invite-only.' }, 403)
   }
 
   let body: Record<string, unknown> = {}

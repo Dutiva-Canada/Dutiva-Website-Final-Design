@@ -95,7 +95,7 @@ describe('AuthProvider', () => {
     expect(await screen.findByTestId('status')).toHaveTextContent('signed-out')
   })
 
-  it('rejects a non-dutiva.ca email without ever calling signInWithOtp', async () => {
+  it('rejects a non-allowed email without ever calling signInWithOtp', async () => {
     const signInWithOtp = vi.fn().mockResolvedValue({ error: null })
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
@@ -133,11 +133,53 @@ describe('AuthProvider', () => {
       </LangProvider>,
     )
     await user.click(screen.getByRole('button', { name: 'send' }))
-    expect(await screen.findByTestId('error')).toHaveTextContent('dutiva.ca')
+    expect(await screen.findByTestId('error')).toHaveTextContent('invite-only')
     expect(signInWithOtp).not.toHaveBeenCalled()
   })
 
-  it('allows a @dutiva.ca email through to signInWithOtp', async () => {
+  it('rejects a different @dutiva.ca email that is not the allowed account', async () => {
+    const signInWithOtp = vi.fn().mockResolvedValue({ error: null })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () => Promise.resolve({ data: { session: null } }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+          signInWithOtp,
+        },
+      },
+    }))
+    vi.resetModules()
+    const { AuthProvider } = await import('./AuthProvider')
+    const { useAuth } = await import('./authContext')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+
+    function Probe() {
+      const { signInWithEmail } = useAuth()
+      const [error, setError] = useState<string>()
+      return (
+        <div>
+          <button onClick={() => void signInWithEmail('riley@dutiva.ca').then(setError)}>
+            send
+          </button>
+          {error && <span data-testid="error">{error}</span>}
+        </div>
+      )
+    }
+
+    const user = userEvent.setup()
+    render(
+      <LangProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </LangProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: 'send' }))
+    expect(await screen.findByTestId('error')).toHaveTextContent('invite-only')
+    expect(signInWithOtp).not.toHaveBeenCalled()
+  })
+
+  it('allows the allowed account through to signInWithOtp, case-insensitively', async () => {
     const signInWithOtp = vi.fn().mockResolvedValue({ error: null })
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
@@ -158,7 +200,9 @@ describe('AuthProvider', () => {
       return (
         <div>
           <span data-testid="status">{status}</span>
-          <button onClick={() => void signInWithEmail('riley@dutiva.ca')}>send</button>
+          <button onClick={() => void signInWithEmail('Martin.Constantineau@Dutiva.ca')}>
+            send
+          </button>
         </div>
       )
     }
@@ -173,7 +217,7 @@ describe('AuthProvider', () => {
     )
     await user.click(screen.getByRole('button', { name: 'send' }))
     expect(signInWithOtp).toHaveBeenCalledWith(
-      expect.objectContaining({ email: 'riley@dutiva.ca' }),
+      expect.objectContaining({ email: 'Martin.Constantineau@Dutiva.ca' }),
     )
     expect(await screen.findByTestId('status')).toHaveTextContent('sent-link')
   })

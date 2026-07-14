@@ -6,6 +6,7 @@ import { authMessages as M } from '@/i18n/messages/auth'
 import { supabase } from '@/lib/supabaseClient'
 import { AuthContext } from './authContext'
 import type { AuthStatus } from './authContext'
+import { isAllowedSignInEmail } from './allowedEmail'
 
 /**
  * Tracks the Supabase auth session (magic-link only) and exposes it via
@@ -39,11 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithEmail = useCallback(
     async (email: string) => {
       if (!supabase) return 'Real legal sources are not configured in this environment.'
-      /* This is a team-only feature. The real boundary is enforced server-side
-         (RLS on guidance_sources/law_updates, an explicit check in the
-         advisor-chat edge function) — this check is just to avoid sending a
-         magic-link email that can't do anything useful, and to fail fast. */
-      if (!email.toLowerCase().endsWith('@dutiva.ca')) {
+      /* The whole workspace is invite-only, not just this feature. The real
+         boundary is enforced server-side (RLS on guidance_sources/
+         law_updates, an explicit check in the advisor-chat edge function,
+         and the route guard that keeps /app unreachable without a matching
+         session) — this check is just to avoid sending a magic-link email
+         that can't do anything useful, and to fail fast. */
+      if (!isAllowedSignInEmail(email)) {
         return x(M.auth_domain_restricted)
       }
       const { error } = await supabase.auth.signInWithOtp({

@@ -40,8 +40,8 @@ export const authMessages = defineMessages({
     fr: 'Consultez votre courriel pour le lien de connexion.',
   },
   auth_domain_restricted: {
-    en: 'Sign-in is limited to @dutiva.ca team accounts.',
-    fr: 'La connexion est réservée aux comptes de l’équipe @dutiva.ca.',
+    en: 'Sign-in for this workspace is currently invite-only.',
+    fr: 'La connexion à cet espace de travail est actuellement sur invitation seulement.',
   },
   auth_menu_title: {
     en: 'Account',
@@ -50,5 +50,13 @@ export const authMessages = defineMessages({
   auth_menu_description: {
     en: 'Sign in to unlock real AI Advisor replies and live legal sources.',
     fr: 'Connectez-vous pour activer les réponses réelles de l’Advisor IA et les sources juridiques en direct.',
+  },
+  auth_entry_description: {
+    en: 'This workspace is invite-only. Enter your email and we’ll send a sign-in link.',
+    fr: 'Cet espace de travail est sur invitation seulement. Entrez votre courriel et nous vous enverrons un lien de connexion.',
+  },
+  auth_not_authorized: {
+    en: 'This workspace isn’t available on that account.',
+    fr: 'Cet espace de travail n’est pas accessible avec ce compte.',
   },
 })

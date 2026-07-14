@@ -26,6 +26,11 @@ const EntryStage = lazy(() =>
 const AppShell = lazy(() =>
   import('@/features/app/shell/AppShell').then((m) => ({ default: m.AppShell })),
 )
+const RequireAdminSession = lazy(() =>
+  import('@/features/app/auth/RequireAdminSession').then((m) => ({
+    default: m.RequireAdminSession,
+  })),
+)
 
 /** Marketing routes share the same empty-fallback Suspense wrapper. */
 function marketing(element: ReactNode) {
@@ -38,8 +43,10 @@ function marketing(element: ReactNode) {
  *   /about /faq /blog      marketing subpages (dutiva.ca content migration)
  *   /guides/template-usage /known-limitations
  *   /legal                 policy index; /legal/:slug policy documents
- *   /app/welcome           app entry stage (sign-in preview)
+ *   /app/welcome           app entry stage — sign-in gate (invite-only)
  *   /app                   workspace shell → redirects to /app/home
+ *                          (gated: RequireAdminSession bounces anyone who
+ *                          isn't the one allowed account back to /app/welcome)
  *   /app/<view>            the 16 workspace views
  *   /app/cases/:caseId     case detail
  *   /app/employees/:employeeId  employee profile
@@ -56,9 +63,11 @@ export const router = createBrowserRouter([
   {
     path: '/app/welcome',
     element: (
-      <Suspense fallback={null}>
-        <EntryStage />
-      </Suspense>
+      <AppProviders>
+        <Suspense fallback={null}>
+          <EntryStage />
+        </Suspense>
+      </AppProviders>
     ),
   },
   {
@@ -66,7 +75,9 @@ export const router = createBrowserRouter([
     element: (
       <AppProviders>
         <Suspense fallback={null}>
-          <AppShell />
+          <RequireAdminSession>
+            <AppShell />
+          </RequireAdminSession>
         </Suspense>
       </AppProviders>
     ),
