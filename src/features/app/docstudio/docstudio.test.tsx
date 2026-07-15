@@ -77,6 +77,17 @@ describe('Document Studio', () => {
       screen.getByText(/does not provide legal advice\. For high-risk employment decisions/),
     ).toBeInTheDocument()
 
+    const details = screen.getByRole('button', { name: 'Document details' })
+    expect(details).toHaveAttribute('aria-controls', 'docstudio-details')
+    fireEvent.click(details)
+    expect(details).toHaveAttribute('aria-expanded', 'true')
+    expect(document.getElementById('docstudio-details')).toBeInTheDocument()
+
+    const sendForSignature = screen.getByRole('button', { name: 'Send for e-signature' })
+    sendForSignature.focus()
+    fireEvent.keyDown(sendForSignature, { key: 'Tab' })
+    expect(screen.getByRole('button', { name: 'Edit draft' })).toHaveFocus()
+
     /* Escape closes the overlay. */
     act(() => {
       fireEvent.keyDown(window, { key: 'Escape' })

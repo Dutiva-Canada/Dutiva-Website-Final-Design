@@ -13,6 +13,7 @@ describe('TemplatesView', () => {
   it('renders one gallery tile per fixture template with title and category', () => {
     renderApp(<TemplatesView />, { route: '/app/documents/hr-library', path: '/app/documents/hr-library' })
 
+    expect(screen.getByRole('heading', { level: 1, name: 'Document templates' })).toBeInTheDocument()
     expect(screen.getAllByRole('button')).toHaveLength(documentTemplates.length)
     expect(screen.getByText('Termination Letter')).toBeInTheDocument()
     expect(screen.getByText('Policy Template')).toBeInTheDocument()

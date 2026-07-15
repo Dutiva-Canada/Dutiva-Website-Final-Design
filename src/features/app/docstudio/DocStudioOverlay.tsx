@@ -1,4 +1,5 @@
 ﻿import { useEffect, useRef } from 'react'
+import type { KeyboardEvent } from 'react'
 import { Check, ChevronDown, PenTool, Sparkle, TriangleAlert, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
@@ -32,6 +33,7 @@ export function DocStudioOverlay() {
   } = useDocStudio()
   const { x, lang } = useI18n()
   const dialogRef = useRef<HTMLDivElement>(null)
+  const gateRef = useRef<HTMLDivElement>(null)
 
   const { open } = studio
   const gateOpen = studio.gate !== null
@@ -40,6 +42,27 @@ export function DocStudioOverlay() {
   useEffect(() => {
     if (open) dialogRef.current?.focus()
   }, [open])
+
+  useEffect(() => {
+    if (gateOpen) gateRef.current?.focus()
+  }, [gateOpen])
+
+  const trapFocus = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Tab') return
+    const focusable = event.currentTarget.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (!first || !last) return
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
 
   /* Prototype keydown handling: Escape cancels the gate first, then closes.
      Registered on the shared stack so overlays opened on top (e.g. search)
@@ -95,6 +118,7 @@ export function DocStudioOverlay() {
         role="dialog"
         aria-modal="true"
         aria-label={x(M.docstudio_dialog_aria)}
+        onKeyDown={trapFocus}
         tabIndex={-1}
         className="fixed inset-y-0 right-0 z-[310] flex w-[min(560px,100%)] animate-[slideInRight_0.22s_ease] flex-col bg-surface font-sans shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
       >
@@ -153,6 +177,7 @@ export function DocStudioOverlay() {
             <span className="flex-1" />
             <button
               onClick={toggleMeta}
+              aria-controls="docstudio-details"
               aria-expanded={studio.metaOpen}
               className="flex cursor-pointer items-center gap-[5px] px-[2px] py-1 font-sans text-[12px] font-semibold text-accent"
             >
@@ -161,7 +186,10 @@ export function DocStudioOverlay() {
             </button>
           </div>
           {studio.metaOpen && (
-            <div className="mt-[10px] max-h-[280px] overflow-y-auto rounded-[10px] border border-border-soft bg-surface-2 px-4 py-[6px]">
+            <div
+              id="docstudio-details"
+              className="mt-[10px] max-h-[280px] overflow-y-auto rounded-[10px] border border-border-soft bg-surface-2 px-4 py-[6px]"
+            >
               {metaRows.map((row) => (
                 <div key={row.key} className="flex gap-3 border-b border-inset py-2">
                   <span className="flex-[0_0_150px] text-[12px] font-semibold text-text-muted">
@@ -260,8 +288,10 @@ export function DocStudioOverlay() {
 
           {gateOpen && (
             <div
+              ref={gateRef}
               role="alertdialog"
               aria-label={x(M.docstudio_gate_title)}
+              tabIndex={-1}
               className="rounded-[10px] border border-gold-border bg-gold-bg px-4 py-[14px]"
             >
               <div className="flex items-start gap-2">
@@ -326,7 +356,10 @@ export function DocStudioOverlay() {
                 </button>
               </div>
               {studio.signatureSent ? (
-                <div className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-[13px] py-[10px] text-[12.5px] font-semibold text-ok-fg">
+                <div
+                  role="status"
+                  className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-[13px] py-[10px] text-[12.5px] font-semibold text-ok-fg"
+                >
                   <Check size={15} strokeWidth={2} className="shrink-0" aria-hidden="true" />
                   <span>{x(M.docstudio_esign_pending)}</span>
                 </div>
