@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/brand/icon-app.svg" />
@@ -30,10 +30,12 @@
         try {
           storage = window.localStorage
         } catch {
-          return
+          storage = undefined
         }
         var theme = storage && storage.getItem('dutiva-theme')
-        if (theme !== 'light' && theme !== 'dark') theme = 'dark'
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
         document.documentElement.dataset.theme = theme
         var lang = storage && storage.getItem('dutiva-lang')
         if (lang !== 'en' && lang !== 'fr') lang = 'en'
