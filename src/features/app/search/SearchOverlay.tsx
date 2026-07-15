@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock, Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -77,16 +76,14 @@ function SearchDialog() {
           navigate(`/app/cases/${nav.caseId}`)
           break
         case 'chat':
-          /* TODO(phase-c): the Advisor view selects the thread from
-             `location.state.chatId` once thread selection lands. */
           navigate('/app/advisor', {
             state: { chatId: nav.chatId } satisfies AdvisorSearchNavState,
           })
           break
         case 'document':
-          /* TODO(phase-c): the Templates view / Document Studio opens the
-             template from `location.state.docKey`. */
-          navigate('/app/templates', {
+          /* Navigate to the HR Library tab; TemplatesView reads location.state.docKey
+             on mount and opens the overlay immediately (prototype openDocFromLibrary). */
+          navigate('/app/documents/hr-library', {
             state: { docKey: nav.docKey } satisfies TemplatesSearchNavState,
           })
           break
@@ -131,19 +128,19 @@ function SearchDialog() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [results, activeIdx, openEntry])
 
-  const stopClickPropagation = (e: MouseEvent<HTMLDivElement>) => e.stopPropagation()
-
   return (
-    <div
-      onClick={closeSearch}
-      className="fixed inset-0 z-[350] flex items-start justify-center bg-[rgba(20,25,32,0.4)] pt-[12vh]"
-    >
-      <div
-        role="dialog"
+    <>
+      <button
+        type="button"
+        onClick={closeSearch}
+        aria-label={x(M.search_dialog_label)}
+        className="fixed inset-0 z-350 cursor-default border-none bg-[rgba(20,25,32,0.4)]"
+      />
+      <dialog
+        open
         aria-modal="true"
         aria-label={x(M.search_dialog_label)}
-        onClick={stopClickPropagation}
-        className="flex max-h-[66vh] w-[min(560px,92vw)] animate-[fadeInUp_.15s_ease] flex-col overflow-hidden rounded-[14px] bg-surface font-sans shadow-[0_30px_70px_rgba(0,0,0,0.3)]"
+        className="fixed top-[12vh] right-0 left-0 z-350 m-auto flex max-h-[66vh] w-[min(560px,92vw)] animate-[fadeInUp_.15s_ease] flex-col overflow-hidden rounded-[14px] bg-surface font-sans shadow-[0_30px_70px_rgba(0,0,0,0.3)]"
       >
         <div className="flex items-center gap-[12px] border-b border-border-soft px-[18px] py-[16px]">
           <Search
@@ -232,7 +229,7 @@ function SearchDialog() {
                   {x(r.title)}
                 </span>
                 {r.sub && (
-                  <span className="mt-[1px] block overflow-hidden text-[11.5px] text-ellipsis whitespace-nowrap text-text-muted">
+                  <span className="mt-px block overflow-hidden text-[11.5px] text-ellipsis whitespace-nowrap text-text-muted">
                     {x(r.sub)}
                   </span>
                 )}
@@ -257,7 +254,7 @@ function SearchDialog() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </dialog>
+    </>
   )
 }

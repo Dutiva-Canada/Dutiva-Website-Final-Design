@@ -198,7 +198,7 @@ export function TemplateDetailScreen() {
         {/* ── Main column ─────────────────────────────────────────────── */}
         <div className="min-w-0">
           <div className="mb-[10px] flex flex-wrap items-center gap-[10px]">
-            <span className="rounded-[6px] border border-(--gold-border) bg-(--gold-bg) px-2 py-[2px] font-display text-[12px] font-bold tracking-[0.06em] text-(--gold-fg)">
+            <span className="rounded-[6px] border border-gold-border bg-gold-bg px-2 py-[2px] font-display text-[12px] font-bold tracking-[0.06em] text-gold-fg">
               {template.tid}
             </span>
             <DocChip tone={risk.tone}>
@@ -309,7 +309,7 @@ export function TemplateDetailScreen() {
                     <Scale
                       size={14}
                       strokeWidth={1.8}
-                      className="mt-[2px] shrink-0 text-(--gold-fg)"
+                      className="mt-[2px] shrink-0 text-gold-fg"
                       aria-hidden="true"
                     />
                     {x(item)}

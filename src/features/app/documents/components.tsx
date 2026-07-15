@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useI18n } from '@/i18n/context'
 import { chipToneClasses, statusChipBaseClass } from '@/components/chips'
 import { mergeSegments } from './engine'
+import type { MergeSegment } from './engine'
 import type { DocChipTone, Jurisdiction, PreviewBlock } from './data'
 
 /**
@@ -76,6 +77,18 @@ export function SegButton({
 }
 
 /** Wizard 3-dot step control: numbered circles, done/active states, jump-back. */
+const STEP_CIRCLE_CLASS = {
+  active: 'bg-(--navy) text-white',
+  done: 'bg-ok-bg text-ok-fg',
+  todo: 'bg-inset text-text-faint',
+} as const
+
+function stepState(index: number, step: number): keyof typeof STEP_CIRCLE_CLASS {
+  if (index < step) return 'done'
+  if (index === step) return 'active'
+  return 'todo'
+}
+
 export function StepDots({
   step,
   labels,
@@ -88,13 +101,8 @@ export function StepDots({
   return (
     <div className="flex items-center gap-[6px]">
       {labels.map((label, index) => {
-        const state = index < step ? 'done' : index === step ? 'active' : 'todo'
-        const circle =
-          state === 'active'
-            ? 'bg-(--navy) text-white'
-            : state === 'done'
-              ? 'bg-ok-bg text-ok-fg'
-              : 'bg-inset text-text-faint'
+        const state = stepState(index, step)
+        const circle = STEP_CIRCLE_CLASS[state]
         return (
           <div key={label} className="flex items-center gap-[6px]">
             {index > 0 && <div className="h-px w-[18px] bg-border" aria-hidden="true" />}
@@ -125,6 +133,16 @@ export function StepDots({
 
 /* ── Rendered document "paper" ───────────────────────────────────────────── */
 
+function MergeSegmentSpan({ segment }: { readonly segment: MergeSegment }) {
+  if (segment.kind === 'text') return <span>{segment.text}</span>
+
+  const className =
+    segment.kind === 'filled'
+      ? 'rounded-[3px] bg-accent-soft px-[3px] font-medium text-text'
+      : 'rounded-[3px] bg-warn-bg px-[3px] text-warn-fg'
+  return <span className={className}>{segment.text}</span>
+}
+
 function MergeText({
   text,
   values,
@@ -134,21 +152,26 @@ function MergeText({
 }) {
   return (
     <>
-      {mergeSegments(text, values).map((segment, index) =>
-        segment.kind === 'text' ? (
-          <span key={index}>{segment.text}</span>
-        ) : segment.kind === 'filled' ? (
-          <span key={index} className="rounded-[3px] bg-accent-soft px-[3px] font-medium text-text">
-            {segment.text}
-          </span>
-        ) : (
-          <span key={index} className="rounded-[3px] bg-warn-bg px-[3px] text-warn-fg">
-            {segment.text}
-          </span>
-        ),
-      )}
+      {mergeSegments(text, values).map((segment) => (
+        <MergeSegmentSpan key={segment.id} segment={segment} />
+      ))}
     </>
   )
+}
+
+function blockText(block: PreviewBlock, lang: 'en' | 'fr'): string {
+  if (!block.text) return ''
+  return block.text[lang]
+}
+
+function blockKey(block: PreviewBlock): string {
+  const content =
+    block.n ??
+    block.heading?.en ??
+    block.text?.en ??
+    block.roles?.map((role) => role.en).join('-') ??
+    ''
+  return `${block.type}-${content}`
 }
 
 /**
@@ -171,13 +194,14 @@ export function DocPaper({
     <div
       className={`rounded-[12px] border border-border bg-surface p-[clamp(18px,2.5vw,28px)] font-serif text-[12.5px] leading-[1.7] text-text shadow-sm ${className ?? ''}`}
     >
-      {blocks.map((block, index) => {
-        const text = block.text ? (lang === 'fr' ? block.text.fr : block.text.en) : ''
+      {blocks.map((block) => {
+        const text = blockText(block, lang)
+        const key = blockKey(block)
         switch (block.type) {
           case 'title':
             return (
               <div
-                key={index}
+                key={key}
                 className="mb-1 text-center font-display text-[15px] font-bold tracking-[-0.01em]"
               >
                 <MergeText text={text} values={values} />
@@ -185,13 +209,13 @@ export function DocPaper({
             )
           case 'meta':
             return (
-              <div key={index} className="mb-4 text-center text-[11px] text-text-faint">
+              <div key={key} className="mb-4 text-center text-[11px] text-text-faint">
                 <MergeText text={text} values={values} />
               </div>
             )
           case 'clause':
             return (
-              <div key={index} className="mt-3">
+              <div key={key} className="mt-3">
                 {block.heading && (
                   <div className="text-[12px] font-bold">
                     {block.n !== undefined ? `${block.n}. ` : ''}
@@ -205,17 +229,17 @@ export function DocPaper({
             )
           case 'ack':
             return (
-              <p key={index} className="mt-4 italic">
+              <p key={key} className="mt-4 italic">
                 <MergeText text={text} values={values} />
               </p>
             )
           case 'note':
             return (
               <div
-                key={index}
+                key={key}
                 className={`mt-4 rounded-[8px] border px-3 py-2 text-[11.5px] ${
                   block.tone === 'risk'
-                    ? 'border-(--risk-border) bg-risk-bg text-risk-fg'
+                    ? 'border-risk-border bg-risk-bg text-risk-fg'
                     : 'border-(--accent-soft-border) bg-accent-soft text-text-muted'
                 }`}
               >
@@ -225,11 +249,11 @@ export function DocPaper({
           case 'sig':
             return (
               <div
-                key={index}
+                key={key}
                 className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-8"
               >
-                {(block.roles ?? []).map((role, roleIndex) => (
-                  <div key={roleIndex}>
+                {(block.roles ?? []).map((role) => (
+                  <div key={role.en}>
                     <div className="border-b border-text/60 pb-6" aria-hidden="true" />
                     <div className="mt-1 text-[11px] text-text-muted">{x(role)}</div>
                   </div>
@@ -238,7 +262,7 @@ export function DocPaper({
             )
           default:
             return (
-              <p key={index} className="mt-3">
+              <p key={key} className="mt-3">
                 <MergeText text={text} values={values} />
               </p>
             )

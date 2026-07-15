@@ -90,13 +90,15 @@ export function buildHomeMetrics(): HomeMetric[] {
 export function buildDailyBrief(): Bi {
   const highCount = homePriorities.filter((p) => p.severity === 'High').length
   const total = homePriorities.length
-  const en =
-    highCount > 0
-      ? `${highCount}${highCount === 1 ? ' item needs' : ' items need'} action today, and ${total} signals are on my radar. Compliance is holding at 82 — the biggest lever is the overdue Remote Work Policy.`
-      : `${total} signals are on my radar today. Nothing is high-risk right now — compliance is holding at 82.`
-  const fr =
-    highCount > 0
-      ? `${highCount}${highCount === 1 ? ' élément requiert' : ' éléments requièrent'} une action aujourd’hui, et ${total} signaux sont sur mon radar. La conformité se maintient à 82 — le plus grand levier est la politique de télétravail en retard.`
-      : `${total} signaux sont sur mon radar aujourd’hui. Rien n’est à risque élevé pour l’instant — la conformité se maintient à 82.`
+  if (highCount === 0) {
+    return bi(
+      `${total} signals are on my radar today. Nothing is high-risk right now — compliance is holding at 82.`,
+      `${total} signaux sont sur mon radar aujourd’hui. Rien n’est à risque élevé pour l’instant — la conformité se maintient à 82.`,
+    )
+  }
+  const enItem = highCount === 1 ? ' item needs' : ' items need'
+  const frItem = highCount === 1 ? ' élément requiert' : ' éléments requièrent'
+  const en = `${highCount}${enItem} action today, and ${total} signals are on my radar. Compliance is holding at 82 — the biggest lever is the overdue Remote Work Policy.`
+  const fr = `${highCount}${frItem} une action aujourd’hui, et ${total} signaux sont sur mon radar. La conformité se maintient à 82 — le plus grand levier est la politique de télétravail en retard.`
   return bi(en, fr)
 }

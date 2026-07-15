@@ -7,7 +7,10 @@ import type { Theme } from './themeContext'
 const THEME_KEY = 'dutiva-theme'
 
 function readTheme(): Theme {
-  return readPref(THEME_KEY, 'dark') === 'light' ? 'light' : 'dark'
+  const storedTheme = readPref(THEME_KEY, '')
+  if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme
+
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 /**

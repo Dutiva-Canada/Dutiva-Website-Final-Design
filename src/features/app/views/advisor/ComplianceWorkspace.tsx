@@ -140,7 +140,7 @@ export function ComplianceWorkspace({
   const aside = (
     <>
       {/* Sticky header */}
-      <div className="sticky top-0 z-[2] border-b border-border-soft bg-surface-2 px-[18px] pt-[15px] pb-[13px]">
+      <div className="sticky top-0 z-2 border-b border-border-soft bg-surface-2 px-[18px] pt-[15px] pb-[13px]">
         <div className="flex items-center gap-[8px]">
           <ShieldCheck size={16} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
           <div className="font-display text-[14px] font-semibold text-text">{x(M.advws_title)}</div>
@@ -185,7 +185,7 @@ export function ComplianceWorkspace({
       {mobileOpen && (
         <aside
           aria-label={x(M.advws_title)}
-          className="fixed inset-0 z-[80] overflow-y-auto bg-surface-2 xl:hidden"
+          className="fixed inset-0 z-80 overflow-y-auto bg-surface-2 xl:hidden"
         >
           {aside}
         </aside>

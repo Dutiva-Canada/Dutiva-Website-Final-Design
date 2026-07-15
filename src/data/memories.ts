@@ -125,7 +125,7 @@ export const memoryThreads: MemoryThread[] = [
 
 /* ------------------------------------------------------------ seed facts */
 
-const M = (
+type MemoryFactSeed = [
   id: string,
   scope: MemoryFact['scope'],
   entityId: string,
@@ -137,7 +137,24 @@ const M = (
   learned: Bi,
   confirmed: Bi | null,
   visibility: MemoryFact['visibility'],
-  sensitive = false,
+  sensitive?: boolean,
+]
+
+const M = (
+  ...[
+    id,
+    scope,
+    entityId,
+    category,
+    statement,
+    confidence,
+    sourceType,
+    sourceDetail,
+    learned,
+    confirmed,
+    visibility,
+    sensitive = false,
+  ]: MemoryFactSeed
 ): MemoryFact => ({
   id,
   scope,

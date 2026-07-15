@@ -77,9 +77,9 @@ function DocChip({
   label,
   action,
 }: {
-  icon: LucideIcon
-  label: string
-  action: string
+  readonly icon: LucideIcon
+  readonly label: string
+  readonly action: string
 }) {
   return (
     <span className="flex items-center gap-2 rounded-[10px] border border-border bg-bg-elevated py-[7px] pr-2 pl-[9px] text-[0.8125rem]">

@@ -53,30 +53,38 @@ export function isFixtureCaseType(type: string): type is CaseType {
    case-specific dot ramps stay here — their fallbacks differ from the chip. */
 
 /** Progress-bar / risk-factor dot fill (prototype: risk-dot | gold-dot | ok-fg). */
+const BAR_TONE_CLASS: Record<Tone, string> = {
+  risk: 'bg-risk-dot',
+  warning: 'bg-gold-dot',
+  success: 'bg-ok-fg',
+  info: 'bg-ok-fg',
+  suggestion: 'bg-ok-fg',
+}
 export function barToneClass(tone: Tone): string {
-  return tone === 'risk' ? 'bg-risk-dot' : tone === 'warning' ? 'bg-gold-dot' : 'bg-ok-fg'
+  return BAR_TONE_CLASS[tone] ?? 'bg-ok-fg'
 }
 
 /** Activity-feed dot fill (prototype: risk-dot | gold-dot | ok-fg | accent). */
+const ACTIVITY_DOT_CLASS: Record<Tone, string> = {
+  risk: 'bg-risk-dot',
+  warning: 'bg-gold-dot',
+  success: 'bg-ok-fg',
+  info: 'bg-accent',
+  suggestion: 'bg-accent',
+}
 export function activityDotClass(tone: Tone | undefined): string {
-  return tone === 'risk'
-    ? 'bg-risk-dot'
-    : tone === 'warning'
-      ? 'bg-gold-dot'
-      : tone === 'success'
-        ? 'bg-ok-fg'
-        : 'bg-accent'
+  return (tone && ACTIVITY_DOT_CLASS[tone]) ?? 'bg-accent'
 }
 
 /** Risk-axis chip tone (prototype `caseRiskAxes` chipStyle mapping). */
+const RISK_LEVEL_TONE: Record<RiskLevel, Tone> = {
+  High: 'risk',
+  Medium: 'warning',
+  Pending: 'info',
+  Low: 'success',
+}
 export function riskLevelTone(level: RiskLevel): Tone {
-  return level === 'High'
-    ? 'risk'
-    : level === 'Medium'
-      ? 'warning'
-      : level === 'Pending'
-        ? 'info'
-        : 'success'
+  return RISK_LEVEL_TONE[level]
 }
 
 /* -------------------------------------------- unified timeline dot colours */
@@ -97,17 +105,17 @@ const TIMELINE_KIND_TONE: Record<string, TimelineTone> = {
 }
 
 /** Prototype `composeTimeline` dot fill (risk | gold | ok | text-faint | accent). */
+const TIMELINE_DOT_CLASS: Record<TimelineTone, string> = {
+  risk: 'bg-risk-dot',
+  warning: 'bg-gold-dot',
+  success: 'bg-ok-fg',
+  neutral: 'bg-text-faint',
+  info: 'bg-accent',
+  suggestion: 'bg-accent',
+}
 export function timelineDotClass(kind: string, tone: Tone | undefined): string {
   const resolved: TimelineTone = tone ?? TIMELINE_KIND_TONE[kind] ?? 'info'
-  return resolved === 'risk'
-    ? 'bg-risk-dot'
-    : resolved === 'warning'
-      ? 'bg-gold-dot'
-      : resolved === 'success'
-        ? 'bg-ok-fg'
-        : resolved === 'neutral'
-          ? 'bg-text-faint'
-          : 'bg-accent'
+  return TIMELINE_DOT_CLASS[resolved]
 }
 
 /* ---------------------------------------- pending (not-yet-assessed) state */

@@ -37,7 +37,7 @@ export function useProductionNavBadges(): ProductionNavBadges {
         if (cancelled) return
         const next: ProductionNavBadges = {}
         if (cases > 0) next.cases = { value: String(cases), tone: 'neutral' }
-        if (tasks > 0) next.tasks = { value: String(tasks), tone: 'neutral' }
+        if (tasks > 0) next.planning = { value: String(tasks), tone: 'neutral' }
         if (findings > 0) next.compliance = { value: String(findings), tone: 'warn' }
         setBadges(next)
       } catch {

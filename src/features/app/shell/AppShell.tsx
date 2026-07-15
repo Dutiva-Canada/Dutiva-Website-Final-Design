@@ -1,7 +1,8 @@
-import { Suspense, useEffect, useLayoutEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { shellMessages } from '@/i18n/messages/shell'
+import { readPref, writePref } from '@/lib/prefs'
 import { useEscapeToClose } from '@/lib/escapeStack'
 import { SearchOverlay } from '@/features/app/search/SearchOverlay'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
@@ -17,14 +18,15 @@ import { WorkspaceContextBanner } from './WorkspaceContextBanner'
 import { moduleLabelFor, viewLabelFor } from './navConfig'
 
 /**
- * Workspace shell — App v2 app frame. The prototype's Desktop/Tablet/Mobile
- * switcher is a prototype affordance; the same layouts come from breakpoints:
+ * Workspace shell — App v2 app frame.
  *
- * - desktop ≥1024px — hover-expanding sidebar rail over a 64px spacer + topbar
- * - tablet 768–1023px — static collapsed rail + topbar
- * - mobile <768px — hamburger topbar, slide-in drawer + scrim, bottom tab nav
+ * - desktop ≥1024px — expanded or compact sidebar, user toggled, persisted.
+ * - tablet 768–1023px — compact sidebar.
+ * - mobile <768px — hamburger topbar, slide-in drawer + scrim, bottom tab nav.
  */
 type LayoutMode = 'desktop' | 'tablet' | 'mobile'
+
+const SIDEBAR_EXPANDED_KEY = 'dutiva.sidebar.expanded.v1'
 
 function currentLayoutMode(): LayoutMode {
   if (typeof window === 'undefined') return 'desktop'
@@ -33,11 +35,14 @@ function currentLayoutMode(): LayoutMode {
   return 'mobile'
 }
 
-/**
- * Keeps the mobile drawer mounted for the duration of its close transition
- * (`entered` drives the slide/fade; `mounted` gates whether it's in the DOM
- * at all) instead of snapping in/out with the raw `open` boolean.
- */
+function readExpandedPref(): boolean {
+  return readPref(SIDEBAR_EXPANDED_KEY, 'true') === 'true'
+}
+
+function writeExpandedPref(value: boolean): void {
+  writePref(SIDEBAR_EXPANDED_KEY, String(value))
+}
+
 function useDrawerTransition(open: boolean, duration = 220) {
   const [mounted, setMounted] = useState(open)
   const [entered, setEntered] = useState(open)
@@ -52,16 +57,10 @@ function useDrawerTransition(open: boolean, duration = 220) {
     return () => window.clearTimeout(timer)
   }, [open, duration])
 
-  /* Once the drawer mounts with its closed (off-screen/transparent)
-     classes, force a synchronous layout flush before flipping to
-     "entered" — otherwise React/the browser can coalesce both style
-     states into a single paint and skip the transition. Reading
-     `offsetHeight` (rather than requestAnimationFrame) works even when
-     the tab is backgrounded, where rAF callbacks are throttled. */
   useLayoutEffect(() => {
     if (mounted && open) {
-      void document.body.offsetHeight
-      setEntered(true)
+      const reflow = document.body.offsetHeight
+      if (reflow >= 0) setEntered(true)
     }
   }, [mounted, open])
 
@@ -87,11 +86,20 @@ export function AppShell() {
   const layout = useLayoutMode()
   const { pathname } = useLocation()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [sidebarExpanded, setSidebarExpanded] = useState(readExpandedPref)
+  const drawerTriggerRef = useRef<HTMLButtonElement>(null)
 
-  /* The prototype closes the drawer on every navigation (`go()`). */
   useEffect(() => {
     setDrawerOpen(false)
   }, [pathname])
+
+  const previousDrawerOpen = useRef(drawerOpen)
+  useEffect(() => {
+    if (previousDrawerOpen.current && !drawerOpen) {
+      drawerTriggerRef.current?.focus()
+    }
+    previousDrawerOpen.current = drawerOpen
+  }, [drawerOpen])
 
   const isMobile = layout === 'mobile'
   useEscapeToClose(isMobile && drawerOpen, () => setDrawerOpen(false))
@@ -99,39 +107,62 @@ export function AppShell() {
     isMobile && drawerOpen,
   )
 
-  /* viewLabelFor titles the employee-profile route with the fixture person's
-     name — in production mode that's demo data, so title by module instead. */
   const { mode: workspaceMode } = useWorkspaceMode()
   const title = x(
     workspaceMode === 'production' ? moduleLabelFor(pathname) : viewLabelFor(pathname),
   )
 
+  const toggleSidebarExpanded = useCallback(() => {
+    setSidebarExpanded((prev) => {
+      const next = !prev
+      writeExpandedPref(next)
+      return next
+    })
+  }, [])
+
+  let sidebarMode: 'drawer' | 'compact' | 'expanded' = 'compact'
+  if (isMobile) sidebarMode = 'drawer'
+  else if (layout !== 'tablet' && sidebarExpanded) sidebarMode = 'expanded'
+
   return (
     <div className="surface-app flex h-screen flex-col overflow-hidden bg-bg font-sans text-text">
-      {isMobile && <MobileTopbar title={title} onOpenDrawer={() => setDrawerOpen(true)} />}
+      {isMobile && (
+        <MobileTopbar
+          title={title}
+          onOpenDrawer={() => setDrawerOpen(true)}
+          triggerRef={drawerTriggerRef}
+        />
+      )}
 
       <div className="relative flex min-h-0 flex-1">
-        {/* Desktop hover rail floats over a fixed 64px spacer. */}
-        {layout === 'desktop' && <div className="w-[64px] shrink-0" />}
-        {layout === 'desktop' && <Sidebar mode="hover" />}
-        {layout === 'tablet' && <Sidebar mode="rail" />}
+        {!isMobile && (
+          <Sidebar
+            mode={sidebarMode}
+            onToggleExpanded={layout === 'desktop' ? toggleSidebarExpanded : undefined}
+          />
+        )}
         {isMobile && drawerMounted && (
           <>
             <div
               onClick={() => setDrawerOpen(false)}
               className={cx(
-                'fixed inset-0 z-[60] bg-[rgba(20,25,32,0.4)] transition-opacity duration-[220ms] ease-[cubic-bezier(0.4,0,0.2,1)]',
+                'fixed inset-0 z-60 bg-[rgba(20,25,32,0.4)] transition-opacity duration-220 ease-in-out',
                 drawerEntered ? 'opacity-100' : 'opacity-0',
               )}
               aria-hidden="true"
             />
-            <div role="dialog" aria-modal="true" aria-label={x(shellMessages.shell_primary_nav)}>
+            <dialog
+              open
+              aria-modal="true"
+              aria-label={x(shellMessages.shell_primary_nav)}
+              className="m-0 h-full w-full max-w-full border-none bg-transparent p-0"
+            >
               <Sidebar
                 mode="drawer"
                 onCloseDrawer={() => setDrawerOpen(false)}
                 drawerEntered={drawerEntered}
               />
-            </div>
+            </dialog>
           </>
         )}
 
@@ -140,8 +171,6 @@ export function AppShell() {
           <WorkspaceContextBanner />
           <ModuleContextBanner />
           <div className="relative flex min-h-0 flex-1 flex-col">
-            {/* Boundary for the lazy view chunks — keeps the shell chrome up
-                while a view loads. */}
             <Suspense fallback={null}>
               <Outlet />
             </Suspense>
@@ -151,7 +180,6 @@ export function AppShell() {
 
       {isMobile && <MobileNav drawerOpen={drawerOpen} onOpenDrawer={() => setDrawerOpen(true)} />}
 
-      {/* Overlay hosts — inside the .surface-app token scope. */}
       <SearchOverlay />
       <AdvisorRail />
       <DocStudioOverlay />

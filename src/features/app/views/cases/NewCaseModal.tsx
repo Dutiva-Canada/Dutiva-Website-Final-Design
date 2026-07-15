@@ -27,7 +27,7 @@ export interface NewCaseModalProps {
 const fieldClass =
   'w-full box-border rounded-[9px] border border-border bg-surface-2 px-[12px] py-[10px] font-sans text-[13.5px] text-text'
 
-export function NewCaseModal({ onClose, onCreate }: NewCaseModalProps) {
+export function NewCaseModal({ onClose, onCreate }: Readonly<NewCaseModalProps>) {
   const { x } = useI18n()
   const [type, setType] = useState('Termination')
   const [empId, setEmpId] = useState('')
@@ -68,13 +68,12 @@ export function NewCaseModal({ onClose, onCreate }: NewCaseModalProps) {
       <div
         onClick={onClose}
         aria-hidden="true"
-        className="fixed inset-0 z-[300] bg-[rgba(20,25,32,0.35)]"
+        className="fixed inset-0 z-300 bg-[rgba(20,25,32,0.35)]"
       />
-      <div
-        role="dialog"
-        aria-modal="true"
+      <dialog
+        open
         aria-label={x(M.cases_nc_heading)}
-        className="fixed top-1/2 left-1/2 z-[310] max-h-[calc(100vh-48px)] w-[min(480px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[16px] border border-border bg-surface px-[24px] py-[22px] font-sans shadow-[0_12px_40px_rgba(0,0,0,0.38)]"
+        className="fixed top-1/2 left-1/2 z-310 max-h-[calc(100vh-48px)] w-[min(480px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[16px] border border-border bg-surface px-[24px] py-[22px] font-sans shadow-[0_12px_40px_rgba(0,0,0,0.38)]"
       >
         <div className="mb-[4px] flex items-center justify-between gap-[12px]">
           <div className="font-display text-[18px] font-semibold text-text">
@@ -89,7 +88,7 @@ export function NewCaseModal({ onClose, onCreate }: NewCaseModalProps) {
             <X size={14} strokeWidth={2} className="text-text-3" aria-hidden="true" />
           </button>
         </div>
-        <div className="mb-[18px] text-[12.5px] leading-[1.5] text-text-muted">
+        <div className="mb-[18px] text-[12.5px] leading-normal text-text-muted">
           {x(M.cases_nc_sub)}
         </div>
 
@@ -175,8 +174,8 @@ export function NewCaseModal({ onClose, onCreate }: NewCaseModalProps) {
         </div>
 
         {isSensitive && (
-          <div className="mt-[16px] flex items-start gap-[8px] rounded-[9px] border border-gold-border bg-gold-bg px-[13px] py-[10px] text-[12px] leading-[1.5] font-semibold text-gold-fg">
-            <Lock size={14} strokeWidth={1.8} className="mt-[1px] shrink-0" aria-hidden="true" />
+          <div className="mt-[16px] flex items-start gap-[8px] rounded-[9px] border border-gold-border bg-gold-bg px-[13px] py-[10px] text-[12px] leading-normal font-semibold text-gold-fg">
+            <Lock size={14} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
             <span>{x(M.cases_nc_sensitive)}</span>
           </div>
         )}
@@ -199,7 +198,7 @@ export function NewCaseModal({ onClose, onCreate }: NewCaseModalProps) {
             {x(M.cases_nc_create)}
           </button>
         </div>
-      </div>
+      </dialog>
     </>
   )
 }

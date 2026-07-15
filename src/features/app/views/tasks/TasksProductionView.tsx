@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { Check, ListChecks, Plus, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { tasksMessages as M } from '@/i18n/messages/tasks'
@@ -73,7 +73,7 @@ export function TasksProductionView() {
     return <ProductionEmptyState title={x(M.tasks_prod_empty_title)} />
   }
 
-  const onSubmit = async (e: FormEvent) => {
+  const onSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     if (!form.title.trim() || saving) return
     setSaving(true)
@@ -249,7 +249,7 @@ export function TasksProductionView() {
                   onClick={() => void onToggle(task)}
                   aria-label={x(M.tasks_toggle_aria)}
                   aria-pressed={task.done}
-                  className={`relative flex h-[19px] w-[19px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] after:absolute after:-inset-[13px] after:content-[''] ${
+                  className={`relative flex h-[19px] w-[19px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] after:absolute after:inset-[-13px] after:content-[''] ${
                     task.done ? 'border-none bg-ok-fg' : 'border-[1.5px] border-border bg-surface'
                   }`}
                 >

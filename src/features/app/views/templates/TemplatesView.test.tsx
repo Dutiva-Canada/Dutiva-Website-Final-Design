@@ -11,8 +11,9 @@ import { TemplatesView } from './TemplatesView'
 
 describe('TemplatesView', () => {
   it('renders one gallery tile per fixture template with title and category', () => {
-    renderApp(<TemplatesView />, { route: '/app/templates', path: '/app/templates' })
+    renderApp(<TemplatesView />, { route: '/app/documents/hr-library', path: '/app/documents/hr-library' })
 
+    expect(screen.getByRole('heading', { level: 1, name: 'Document templates' })).toBeInTheDocument()
     expect(screen.getAllByRole('button')).toHaveLength(documentTemplates.length)
     expect(screen.getByText('Termination Letter')).toBeInTheDocument()
     expect(screen.getByText('Policy Template')).toBeInTheDocument()
@@ -26,7 +27,7 @@ describe('TemplatesView', () => {
         <TemplatesView />
         <DocStudioOverlay />
       </>,
-      { route: '/app/templates', path: '/app/templates' },
+      { route: '/app/documents/hr-library', path: '/app/documents/hr-library' },
     )
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
@@ -44,12 +45,12 @@ describe('TemplatesView', () => {
       <ThemeProvider>
         <LangProvider>
           <MemoryRouter
-            initialEntries={[{ pathname: '/app/templates', state: { docKey: 'Offer Letter' } }]}
+            initialEntries={[{ pathname: '/app/documents/hr-library', state: { docKey: 'Offer Letter' } }]}
           >
             <AppProviders>
               <Routes>
                 <Route
-                  path="/app/templates"
+                  path="/app/documents/hr-library"
                   element={
                     <>
                       <TemplatesView />

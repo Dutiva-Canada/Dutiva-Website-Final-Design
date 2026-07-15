@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-CA" data-theme="dark">
+<html lang="en-CA" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/brand/icon-app.svg" />
@@ -13,9 +13,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap"
-      rel="stylesheet"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
     <title>Dutiva — HR compliance for Canadian employers</title>
     <script>
       // Apply persisted theme + the route's language before first paint to
@@ -31,7 +39,9 @@
           /* private mode — defaults below */
         }
         var theme = storage && storage.getItem('dutiva-theme')
-        if (theme !== 'light' && theme !== 'dark') theme = 'dark'
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
         document.documentElement.dataset.theme = theme
         var path = window.location.pathname
         var lang = 'en-CA'

@@ -185,7 +185,7 @@ export function SettingsView() {
                     {x(M.settings_workspace_mode_production)}
                   </button>
                 </div>
-                <p className="mt-[8px] text-[11.5px] leading-[1.5] text-text-faint">
+                <p className="mt-[8px] text-[11.5px] leading-normal text-text-faint">
                   {x(M.settings_workspace_mode_note)}
                 </p>
               </div>

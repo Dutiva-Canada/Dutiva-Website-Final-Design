@@ -96,7 +96,7 @@ export function CommunicationsView() {
                 primary: true,
                 onClick: () => {
                   closeRail()
-                  navigate('/app/templates')
+                  navigate('/app/documents/hr-library')
                 },
               },
             ],

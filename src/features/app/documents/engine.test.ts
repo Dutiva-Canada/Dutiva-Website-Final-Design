@@ -26,9 +26,9 @@ describe('conditional clauses (template × jurisdiction × headcount × union)',
     const on25 = resolveBlocks(t, { ...base, jurisdiction: 'ON', headcount: 25 })
     const on24 = resolveBlocks(t, { ...base, jurisdiction: 'ON', headcount: 24 })
     const qc100 = resolveBlocks(t, { ...base, jurisdiction: 'QC', headcount: 100 })
-    expect(on25.length).toBe(t.preview.length)
-    expect(on24.length).toBe(t.preview.length - 1)
-    expect(qc100.length).toBe(t.preview.length - 1)
+    expect(on25).toHaveLength(t.preview.length)
+    expect(on24).toHaveLength(t.preview.length - 1)
+    expect(qc100).toHaveLength(t.preview.length - 1)
     const gated = t.preview.find((b) => b.when)
     expect(gated?.when).toEqual({ juris: 'ON', min_headcount: 25 })
   })
@@ -40,7 +40,7 @@ describe('conditional clauses (template × jurisdiction × headcount × union)',
       const ctx = { jurisdiction: 'ON' as const, headcount: 38 }
       const union = resolveBlocks(t, { ...ctx, unionized: true })
       const nonUnion = resolveBlocks(t, { ...ctx, unionized: false })
-      expect(union.length).toBe(nonUnion.length + 1)
+      expect(union).toHaveLength(nonUnion.length + 1)
     },
   )
 
@@ -99,11 +99,11 @@ describe('merge fields', () => {
       candidate_name: 'Gabriel Dubois',
     })
     expect(segs).toEqual([
-      { kind: 'text', text: 'Dear ' },
-      { kind: 'filled', text: 'Gabriel Dubois' },
-      { kind: 'text', text: ', start ' },
-      { kind: 'unfilled', text: 'start date' },
-      { kind: 'text', text: '.' },
+      { id: 'text-0', kind: 'text', text: 'Dear ' },
+      { id: 'token-5', kind: 'filled', text: 'Gabriel Dubois' },
+      { id: 'text-23', kind: 'text', text: ', start ' },
+      { id: 'token-31', kind: 'unfilled', text: 'start date' },
+      { id: 'text-45', kind: 'text', text: '.' },
     ])
   })
 

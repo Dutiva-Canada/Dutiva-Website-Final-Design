@@ -44,12 +44,12 @@ const metricLabelKeys = {
 
 export interface AdvisorHomeProps {
   /** Free-form send from the home composer (routes a response mode). */
-  onSend: (text: string) => void
+  readonly onSend: (text: string) => void
   /** Suggestion-grid chip click — starts that demo response-mode scenario. */
-  onScenario: (scenarioId: ScenarioId) => void
-  onPriorityAction: (action: HomeAction) => void
+  readonly onScenario: (scenarioId: ScenarioId) => void
+  readonly onPriorityAction: (action: HomeAction) => void
   /** Metric tile deep link (route segment under /app). */
-  onMetricClick: (view: HomeMetric['view']) => void
+  readonly onMetricClick: (view: HomeMetric['view']) => void
 }
 
 export function AdvisorHome({
@@ -103,12 +103,12 @@ export function AdvisorHome({
 
         {/* Metric tiles */}
         <div className="mb-[26px] grid grid-cols-[repeat(auto-fit,minmax(128px,1fr))] gap-[10px] text-left">
-          {metrics.map((metric, i) => (
+          {metrics.map((metric) => (
             <button
-              key={i}
+              key={metric.view}
               type="button"
               onClick={() => onMetricClick(metric.view)}
-              className="cursor-pointer rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-[1px] hover:border-(--accent-soft-border)"
+              className="cursor-pointer rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border)"
             >
               <div
                 className={`font-display text-[26px] leading-none font-semibold ${metricValueClass[metric.tone]}`}
@@ -134,7 +134,7 @@ export function AdvisorHome({
             <Sparkle size={15} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <div className="mb-[3px] text-[11px] font-bold tracking-[0.05em] text-gold-dot uppercase">
+            <div className="mb-[3px] text-[11px] font-bold tracking-wider text-gold-dot uppercase">
               {x(M.advisorview_daily_brief)}
             </div>
             <div className="text-[13.5px] leading-[1.55] text-text-2">{pick(brief, lang)}</div>
@@ -180,7 +180,7 @@ export function AdvisorHome({
                         type="button"
                         aria-expanded={whyOpen[p.id] === true}
                         onClick={() =>
-                          setWhyOpen((prev) => ({ ...prev, [p.id]: !(prev[p.id] === true) }))
+                          setWhyOpen((prev) => ({ ...prev, [p.id]: prev[p.id] !== true }))
                         }
                         className="flex cursor-pointer items-center gap-[4px] border-none bg-transparent px-[4px] py-[6px] font-sans text-[12px] font-semibold text-text-muted"
                       >

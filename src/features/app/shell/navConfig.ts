@@ -2,15 +2,12 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   Book,
-  Brain,
-  Calendar,
+  CalendarCheck,
   ChartNoAxesColumn,
   DollarSign,
   FileStack,
-  FileText,
   Folder,
   House,
-  ListChecks,
   MessageCircle,
   Send,
   ShieldCheck,
@@ -20,8 +17,6 @@ import {
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
-import { doclibMessages as DL } from '@/i18n/messages/doclib'
-import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { cases, employeeDetails, employees } from '@/data'
 
 /**
@@ -72,7 +67,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: M.shell_nav_workflows,
         badge: { value: WORKFLOWS_BADGE, tone: 'gold' },
       },
-      { key: 'memory', to: '/app/memory', icon: Brain, label: MEM.memory_nav_memory },
+      /* Memory is now a sub-tab inside Settings */
     ],
   },
   {
@@ -86,12 +81,16 @@ export const NAV_GROUPS: NavGroup[] = [
         label: M.shell_nav_cases,
         badge: { value: CASES_BADGE, tone: 'neutral' },
       },
-      { key: 'templates', to: '/app/templates', icon: FileText, label: M.shell_nav_documents },
-      /* Merged Document Studio + Repository — Studio is a tab inside
-         DocumentsLayout rather than its own top-level nav entry. Default
-         isNavActive prefix-matching covers every /app/documents/* subroute
-         (studio, templates/:tid, generate/:templateId, :docId). */
-      { key: 'documents', to: '/app/documents', icon: FileStack, label: M.shell_nav_library },
+      /* Unified HR Library — HR Library, Document Library, and Document Studio
+         are all tabs inside DocumentsLayout. Landing on hr-library (first tab)
+         is the default; isActive covers every /app/documents/* subroute. */
+      {
+        key: 'documents',
+        to: '/app/documents/hr-library',
+        icon: FileStack,
+        label: M.shell_nav_library,
+        isActive: (pathname) => pathname.startsWith('/app/documents'),
+      },
       { key: 'knowledge', to: '/app/knowledge', icon: Book, label: M.shell_nav_knowledge },
     ],
   },
@@ -103,7 +102,7 @@ export const NAV_GROUPS: NavGroup[] = [
         to: '/app/compliance',
         icon: ShieldCheck,
         label: M.shell_nav_compliance,
-        badge: { value: COMPLIANCE_BADGE, tone: 'risk' },
+        badge: { value: COMPLIANCE_BADGE, tone: 'warn' },
       },
       {
         key: 'compensation',
@@ -124,8 +123,14 @@ export const NAV_GROUPS: NavGroup[] = [
         label: M.shell_nav_wellbeing,
         badge: { value: WELLBEING_BADGE, tone: 'warn' },
       },
-      { key: 'tasks', to: '/app/tasks', icon: ListChecks, label: M.shell_nav_tasks },
-      { key: 'calendar', to: '/app/calendar', icon: Calendar, label: M.shell_nav_calendar },
+      /* Tasks and Calendar are now sub-tabs inside Planning */
+      {
+        key: 'planning',
+        to: '/app/planning/tasks',
+        icon: CalendarCheck,
+        label: M.shell_nav_planning,
+        isActive: (pathname) => pathname.startsWith('/app/planning'),
+      },
     ],
   },
   {
@@ -144,25 +149,22 @@ export function isNavActive(to: string, pathname: string): boolean {
 /* Studio's subroutes (catalogue → generate flow), as opposed to the
    Repository (index + :docId). Single source of truth for both the topbar
    title below and the Repository/Studio tab strip (DocumentsLayout.tsx). */
-const DOCLIB_STUDIO_SUBPATHS = ['studio', 'templates', 'generate']
+const DOCLIB_STUDIO_SUBPATHS = new Set(['studio', 'templates', 'generate'])
 
 export function isDoclibStudioPath(pathname: string): boolean {
   const parts = pathname.replace(/^\/app\/?/, '').split('/')
-  return parts[0] === 'documents' && DOCLIB_STUDIO_SUBPATHS.includes(parts[1] ?? '')
+  return parts[0] === 'documents' && DOCLIB_STUDIO_SUBPATHS.has(parts[1] ?? '')
 }
 
 /* Topbar / mobile-topbar route titles (prototype `viewLabels`). */
 const VIEW_LABELS: Record<string, Bi> = {
   home: M.shell_v_home,
   advisor: M.shell_v_advisor,
-  memory: MEM.memory_title,
   workflows: M.shell_v_workflows,
   cases: M.shell_v_cases,
   employees: M.shell_v_employees,
   compliance: M.shell_v_compliance,
   policies: M.shell_v_policies,
-  tasks: M.shell_v_tasks,
-  calendar: M.shell_v_calendar,
   reports: M.shell_v_reports,
   templates: M.shell_v_templates,
   knowledge: M.shell_v_knowledge,
@@ -170,6 +172,7 @@ const VIEW_LABELS: Record<string, Bi> = {
   compensation: M.shell_v_compensation,
   wellbeing: M.shell_v_wellbeing,
   communications: M.shell_v_communications,
+  planning: M.shell_nav_planning,
 }
 
 /**
@@ -180,6 +183,7 @@ const VIEW_LABELS: Record<string, Bi> = {
 export function moduleLabelFor(pathname: string): Bi {
   const segment = pathname.replace(/^\/app\/?/, '').split('/')[0] ?? ''
   if (segment === 'documents') return M.shell_nav_library
+  if (segment === 'planning') return M.shell_nav_planning
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }
 
@@ -193,7 +197,14 @@ export function viewLabelFor(pathname: string): Bi {
     if (emp) return bi(emp.name, emp.name)
   }
   if (segment === 'documents') {
-    return isDoclibStudioPath(pathname) ? DL.doclib_nav_studio : DL.doclib_nav_documents
+    if (pathname.startsWith('/app/documents/hr-library')) return M.shell_hr_studio_templates
+    return isDoclibStudioPath(pathname) ? M.shell_hr_studio_studio : M.shell_hr_studio_library
+  }
+  if (segment === 'planning') {
+    return pathname.startsWith('/app/planning/calendar') ? M.shell_nav_calendar : M.shell_nav_tasks
+  }
+  if (segment === 'settings' && pathname.startsWith('/app/settings/memory')) {
+    return M.shell_v_settings
   }
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }

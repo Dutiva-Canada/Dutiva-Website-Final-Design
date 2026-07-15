@@ -119,7 +119,7 @@ export function Footer() {
           </a>
         </div>
 
-        <div className="grid flex-[3] basis-[480px] grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-8">
+        <div className="grid flex-3 basis-[480px] grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-8">
           <div>
             <FooterHeading>{lt('landing_foot_product')}</FooterHeading>
             {renderLinks(PRODUCT_LINKS)}

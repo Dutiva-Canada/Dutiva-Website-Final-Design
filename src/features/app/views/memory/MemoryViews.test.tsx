@@ -15,8 +15,8 @@ describe('Advisor Memory surfaces', () => {
   describe('PersonMemoryView', () => {
     const renderPerson = () =>
       renderApp(<PersonMemoryView />, {
-        route: '/app/memory/people/e1',
-        path: '/app/memory/people/:personId',
+        route: '/app/settings/memory/people/e1',
+        path: '/app/settings/memory/people/:personId',
       })
 
     it('renders the profile header, category groups, and governed rows', () => {
@@ -72,8 +72,8 @@ describe('Advisor Memory surfaces', () => {
   describe('CaseMemoryView', () => {
     it('renders the resume banner, case memory, timeline, and what-I-know rail', () => {
       renderApp(<CaseMemoryView />, {
-        route: '/app/memory/cases/case1',
-        path: '/app/memory/cases/:caseId',
+        route: '/app/settings/memory/cases/case1',
+        path: '/app/settings/memory/cases/:caseId',
       })
 
       expect(screen.getByText('Picking up where you left off')).toBeInTheDocument()
@@ -94,8 +94,8 @@ describe('Advisor Memory surfaces', () => {
   describe('ChatRecallView', () => {
     it('renders the resumed pill, sourced highlights, and the recall accordion', () => {
       renderApp(<ChatRecallView />, {
-        route: '/app/memory/conversations/c1',
-        path: '/app/memory/conversations/:threadId',
+        route: '/app/settings/memory/conversations/c1',
+        path: '/app/settings/memory/conversations/:threadId',
       })
 
       expect(screen.getByText(/Resumed from Jul 5/)).toBeInTheDocument()
@@ -111,7 +111,7 @@ describe('Advisor Memory surfaces', () => {
   })
 
   describe('MemoryManagerView', () => {
-    const renderManager = () => renderApp(<MemoryManagerView />, { route: '/app/memory' })
+    const renderManager = () => renderApp(<MemoryManagerView />, { route: '/app/settings/memory' })
 
     it('shows the review banner and live tab counts', () => {
       renderManager()

@@ -86,10 +86,10 @@ export function OrgChart() {
             <Sparkle size={14} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
           </div>
           <div>
-            <div className="mb-[2px] text-[11px] font-bold tracking-[0.05em] text-gold-dot uppercase">
+            <div className="mb-[2px] text-[11px] font-bold tracking-wider text-gold-dot uppercase">
               {x(M.employees_org_watch_eyebrow)}
             </div>
-            <div className="text-[13px] leading-[1.5] text-text-2">{x(advisorNote)}</div>
+            <div className="text-[13px] leading-normal text-text-2">{x(advisorNote)}</div>
           </div>
         </div>
       )}

@@ -1,5 +1,4 @@
 ﻿import { useState } from 'react'
-import type { KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -51,14 +50,6 @@ function TasksDemoView() {
     navigate('/app/advisor', { state: { chatId: task.chatId } satisfies AdvisorSearchNavState })
   }
 
-  /* Prototype `activateOnKey` — Enter / Space activate role="button" targets. */
-  const openChatOnKey = (task: Task) => (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      openChat(task)
-    }
-  }
-
   const openCount = tasks.filter((task) => !isDone(task)).length
 
   return (
@@ -71,12 +62,15 @@ function TasksDemoView() {
           {tasks.map((task) => {
             const done = isDone(task)
             const linked = linkedFor(task)
-            const statusTone: Tone = done ? 'success' : task.blocked ? 'warning' : 'info'
-            const statusLabel = done
-              ? M.tasks_status_done
-              : task.blocked
-                ? M.tasks_status_blocked
-                : M.tasks_status_open
+            let statusTone: Tone = 'info'
+            let statusLabel = M.tasks_status_open
+            if (done) {
+              statusTone = 'success'
+              statusLabel = M.tasks_status_done
+            } else if (task.blocked) {
+              statusTone = 'warning'
+              statusLabel = M.tasks_status_blocked
+            }
             return (
               <div
                 key={task.id}
@@ -87,7 +81,7 @@ function TasksDemoView() {
                   onClick={() => toggleTask(task)}
                   aria-label={x(M.tasks_toggle_aria)}
                   aria-pressed={done}
-                  className={`relative flex h-[19px] w-[19px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] after:absolute after:-inset-[13px] after:content-[''] ${
+                  className={`relative flex h-[19px] w-[19px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] after:absolute after:inset-[-13px] after:content-[''] ${
                     done ? 'border-none bg-ok-fg' : 'border-[1.5px] border-border bg-surface'
                   }`}
                 >
@@ -95,13 +89,11 @@ function TasksDemoView() {
                     <Check size={13} strokeWidth={3} className="text-white" aria-hidden="true" />
                   )}
                 </button>
-                <div
-                  role="button"
-                  tabIndex={0}
+                <button
+                  type="button"
                   onClick={() => openChat(task)}
-                  onKeyDown={openChatOnKey(task)}
                   aria-label={x(M.tasks_open_chat_aria).replace('{title}', x(task.title))}
-                  className="min-w-0 flex-1 cursor-pointer"
+                  className="min-w-0 flex-1 cursor-pointer border-none bg-transparent p-0 text-left font-sans"
                 >
                   {/* Deliberate deviation: the prototype's titleStyle says
                       var(--ink) — a border/frame tone that is near-invisible in
@@ -131,7 +123,7 @@ function TasksDemoView() {
                   {task.evidence && (
                     <div className="mt-[4px] text-[12px] text-ok-fg">{x(task.evidence)}</div>
                   )}
-                </div>
+                </button>
                 <div className="flex shrink-0 flex-col items-end gap-[6px]">
                   <span className={statusChipClass(statusTone)}>{x(statusLabel)}</span>
                   <span className={statusChipClass(taskPriorityTones[task.priority])}>

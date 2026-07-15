@@ -184,7 +184,7 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
             <Link
               key={stat.label.en}
               to={stat.to}
-              className="min-w-[140px] flex-1 rounded-[12px] border border-border bg-surface p-[16px] transition-[border-color,transform] duration-150 hover:-translate-y-[1px] hover:border-(--accent-soft-border)"
+              className="min-w-[140px] flex-1 rounded-[12px] border border-border bg-surface p-[16px] transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border)"
             >
               <div className="font-display text-[28px] font-bold text-text">{stat.value}</div>
               <div className="mt-[2px] text-[12.5px] text-text-muted">{x(stat.label)}</div>

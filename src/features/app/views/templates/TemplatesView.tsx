@@ -42,6 +42,7 @@ export function TemplatesView() {
   return (
     <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
       <section aria-label={x(M.templates_gallery_aria)} className="mx-auto max-w-[900px]">
+        <h1 className="sr-only">{x(M.templates_gallery_aria)}</h1>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-[14px]">
           {documentTemplates.map((doc) => (
             <button

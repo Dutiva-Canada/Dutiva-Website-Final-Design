@@ -1,7 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { UserRound } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { doclibMessages as DL } from '@/i18n/messages/doclib'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { isDoclibStudioPath } from '@/features/app/shell/navConfig'
 import { DoclibProvider } from './DoclibProvider'
@@ -10,15 +9,16 @@ import { workspaceRoles } from './data'
 import type { WorkspaceRole } from './data'
 
 /**
- * Repository/Studio switcher. These are two distinct routes, not panels of
- * one page, so this is a nav landmark with `aria-current` rather than
- * WAI-ARIA tab semantics (role="tab" implies roving-tabindex arrow-key
- * navigation and an associated tabpanel, neither of which applies here).
+ * Three-tab switcher: HR Library | Document Library | Document Studio.
+ * These are distinct routes, not panels of one page, so this is a nav
+ * landmark with `aria-current` rather than WAI-ARIA tab semantics.
  */
 function DocumentsTabs() {
   const { x } = useI18n()
   const { pathname } = useLocation()
+  const hrLibrary = pathname.startsWith('/app/documents/hr-library')
   const studio = isDoclibStudioPath(pathname)
+  const library = !hrLibrary && !studio
   const linkClass = (active: boolean) =>
     `shrink-0 rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
       active ? 'border-navy text-text' : 'border-transparent text-text-muted'
@@ -29,18 +29,25 @@ function DocumentsTabs() {
       className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
     >
       <Link
-        to="/app/documents"
-        aria-current={studio ? undefined : 'page'}
-        className={linkClass(!studio)}
+        to="/app/documents/hr-library"
+        aria-current={hrLibrary ? 'page' : undefined}
+        className={linkClass(hrLibrary)}
       >
-        {x(DL.doclib_nav_documents)}
+        {x(M.shell_hr_studio_templates)}
+      </Link>
+      <Link
+        to="/app/documents"
+        aria-current={library ? 'page' : undefined}
+        className={linkClass(library)}
+      >
+        {x(M.shell_hr_studio_library)}
       </Link>
       <Link
         to="/app/documents/studio"
         aria-current={studio ? 'page' : undefined}
         className={linkClass(studio)}
       >
-        {x(DL.doclib_nav_studio)}
+        {x(M.shell_hr_studio_studio)}
       </Link>
     </nav>
   )

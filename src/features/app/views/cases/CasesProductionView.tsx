@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { FolderOpen, Plus, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -98,7 +98,7 @@ export function CasesProductionView() {
   const employeeName = (id: string | null): string | null =>
     id === null ? null : (employees.find((e) => e.id === id)?.name ?? null)
 
-  const onSubmit = async (e: FormEvent) => {
+  const onSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     if (!form.title.trim() || saving) return
     setSaving(true)
@@ -136,15 +136,14 @@ export function CasesProductionView() {
   }
 
   const count = rows?.length ?? 0
+  const countLabel = `${count} ${x(count === 1 ? M.cases_prod_count_one : M.cases_prod_count_many)}`
 
   return (
     <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
       <div className="mx-auto max-w-[820px]">
         <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
           <div className="text-[13px] text-text-muted">
-            {rows === null
-              ? x(M.cases_prod_loading)
-              : `${count} ${x(count === 1 ? M.cases_prod_count_one : M.cases_prod_count_many)}`}
+            {rows === null ? x(M.cases_prod_loading) : countLabel}
           </div>
           {!formOpen && (
             <button

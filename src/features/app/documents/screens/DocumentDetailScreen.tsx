@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { KeyboardEvent } from 'react'
+import type { Dispatch, KeyboardEvent, SetStateAction } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Lock, TriangleAlert } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -22,7 +22,18 @@ import {
   riskLevelInfo,
   signatureStatusInfo,
 } from '../data'
-import type { AuditEventType, RecipientType, SignatureStatus, StatusInfo } from '../data'
+import type {
+  AuditEventType,
+  DocTemplate,
+  GeneratedDoc,
+  OrgProfile,
+  PreviewBlock,
+  RecipientType,
+  ReviewStatus,
+  SignatureStatus,
+  StatusInfo,
+  WorkspaceRole,
+} from '../data'
 
 /**
  * Document detail — port of the prototype's DOCUMENT DETAIL view
@@ -199,6 +210,137 @@ function DetailSkeleton() {
   )
 }
 
+function onTabKeyDown(
+  event: KeyboardEvent<HTMLButtonElement>,
+  tab: TabKey,
+  setTab: Dispatch<SetStateAction<TabKey>>,
+) {
+  if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return
+  event.preventDefault()
+  const index = TABS.findIndex(([key]) => key === tab)
+  const step = event.key === 'ArrowRight' ? 1 : TABS.length - 1
+  const next = TABS[(index + step) % TABS.length]
+  if (!next) return
+  setTab(next[0])
+  document.getElementById(`docd-tab-${next[0]}`)?.focus()
+}
+
+type Translator = ReturnType<typeof useI18n>['t']
+
+function DocumentActions({
+  actions,
+  t,
+  showToast,
+}: {
+  readonly actions: DocAction[]
+  readonly t: Translator
+  readonly showToast: ReturnType<typeof useToasts>['showToast']
+}) {
+  if (actions.length === 0) return null
+  return (
+    <div className="flex shrink-0 flex-wrap gap-[8px]">
+      {actions.map((action) => {
+        const cfg = ACTION_CFG[action]
+        return (
+          <ActBtn key={action} variant={cfg.variant} onClick={() => showToast(cfg.toast, cfg.tone)}>
+            {t(cfg.label)}
+          </ActBtn>
+        )
+      })}
+    </div>
+  )
+}
+
+function AccessBanner({ role, t }: { readonly role: WorkspaceRole; readonly t: Translator }) {
+  if (role === 'viewer') {
+    return (
+      <div className="mb-[16px] flex items-center gap-[10px] rounded-[11px] border border-border bg-inset px-[14px] py-[11px] text-text-muted">
+        <Lock size={16} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
+        <div className="text-[12.5px]">
+          <b className="text-text">{t('doclib_docd_readOnly')}</b> · {t('doclib_docd_readOnlySub')}
+        </div>
+      </div>
+    )
+  }
+  if (role === 'external') {
+    return (
+      <div className="mb-[16px] flex items-center gap-[10px] rounded-[11px] bg-accent-soft px-[14px] py-[11px] text-accent">
+        <Lock size={16} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
+        <div className="text-[12.5px] font-medium">
+          {t('doclib_docd_permDenied')} · {t('doclib_docd_readOnlySub')}
+        </div>
+      </div>
+    )
+  }
+  return null
+}
+
+function ReviewBanner({
+  reviewStatus,
+  tone,
+  t,
+}: {
+  readonly reviewStatus: ReviewStatus
+  readonly tone: StatusInfo['tone']
+  readonly t: Translator
+}) {
+  if (reviewStatus !== 'lawyer_review_recommended' && reviewStatus !== 'hr_review_required')
+    return null
+  const message =
+    reviewStatus === 'lawyer_review_recommended' ? 'doclib_gen_lawyerWarn' : 'doclib_gen_hrWarn'
+  const toneClass = tone === 'risk' ? 'bg-risk-bg text-risk-fg' : 'bg-warn-bg text-warn-fg'
+  return (
+    <div
+      className={`mb-[16px] flex items-start gap-[11px] rounded-[11px] px-[14px] py-[12px] font-medium ${toneClass}`}
+    >
+      <TriangleAlert size={17} strokeWidth={2} className="mt-px shrink-0" aria-hidden="true" />
+      <div className="text-[13px] leading-normal">{t(message)}</div>
+    </div>
+  )
+}
+
+function previewData(
+  doc: GeneratedDoc,
+  template: DocTemplate | undefined,
+  org: OrgProfile,
+  lang: Lang,
+): { blocks: PreviewBlock[]; values: Record<string, string>; tokens: string[] } {
+  const blocks = template
+    ? resolveBlocks(template, {
+        jurisdiction: doc.jurisdiction,
+        headcount: org.headcount,
+        unionized: org.unionized,
+      })
+    : []
+  return {
+    blocks,
+    values: {
+      ...computedTokens(doc.jurisdiction, lang, fmtDate(doc.updatedAt, lang)),
+      ...doc.answers,
+    },
+    tokens: template ? templateTokens(template) : Object.keys(doc.answers),
+  }
+}
+
+function DocumentPreview({
+  active,
+  template,
+  blocks,
+  values,
+}: {
+  readonly active: boolean
+  readonly template: DocTemplate | undefined
+  readonly blocks: PreviewBlock[]
+  readonly values: Record<string, string>
+}) {
+  if (!active || !template) return null
+  return (
+    <div className="max-h-[70vh] overflow-y-auto rounded-[14px]">
+      <DocPaper blocks={blocks} values={values} />
+    </div>
+  )
+}
+
 export function DocumentDetailScreen() {
   const { t, x, lang } = useI18n()
   const { data, role, org } = useDoclib()
@@ -219,24 +361,10 @@ export function DocumentDetailScreen() {
   const juris = jurisdictionInfo.find((j) => j.code === doc.jurisdiction)
 
   const actions = docActionsFor(doc, role)
-  const reviewFlag =
-    doc.reviewStatus === 'lawyer_review_recommended' || doc.reviewStatus === 'hr_review_required'
 
   /* Preview: conditional clauses resolved against the live org profile; merge
      values = computed tokens under the wizard answers. */
-  const blocks = template
-    ? resolveBlocks(template, {
-        jurisdiction: doc.jurisdiction,
-        headcount: org.headcount,
-        unionized: org.unionized,
-      })
-    : []
-  const values = {
-    ...computedTokens(doc.jurisdiction, lang, fmtDate(doc.updatedAt, lang)),
-    ...doc.answers,
-  }
-
-  const tokens = template ? templateTokens(template) : Object.keys(doc.answers)
+  const { blocks, values, tokens } = previewData(doc, template, org, lang)
   const versions = [...doc.versions].sort((a, b) => b.n - a.n)
   const recipients = [...doc.recipients].sort((a, b) => a.order - b.order)
   const audit = [...doc.audit].reverse()
@@ -296,17 +424,6 @@ export function DocumentDetailScreen() {
     },
   ]
 
-  const onTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return
-    event.preventDefault()
-    const index = TABS.findIndex(([key]) => key === tab)
-    const step = event.key === 'ArrowRight' ? 1 : TABS.length - 1
-    const next = TABS[(index + step) % TABS.length]
-    if (!next) return
-    setTab(next[0])
-    document.getElementById(`docd-tab-${next[0]}`)?.focus()
-  }
-
   return (
     <div className="mx-auto max-w-[1200px] px-[28px] pt-[4px] pb-[64px] max-[640px]:px-[16px] max-[640px]:pb-[44px]">
       <Link
@@ -340,72 +457,20 @@ export function DocumentDetailScreen() {
             <JurisdictionPill code={doc.jurisdiction} />
           </div>
         </div>
-        {actions.length > 0 && (
-          <div className="flex shrink-0 flex-wrap gap-[8px]">
-            {actions.map((action) => {
-              const cfg = ACTION_CFG[action]
-              return (
-                <ActBtn
-                  key={action}
-                  variant={cfg.variant}
-                  onClick={() => showToast(cfg.toast, cfg.tone)}
-                >
-                  {t(cfg.label)}
-                </ActBtn>
-              )
-            })}
-          </div>
-        )}
+        <DocumentActions actions={actions} t={t} showToast={showToast} />
       </div>
 
       {/* ── Role banners (viewer / external get no actions) ── */}
-      {role === 'viewer' && (
-        <div className="mb-[16px] flex items-center gap-[10px] rounded-[11px] border border-border bg-inset px-[14px] py-[11px] text-text-muted">
-          <Lock size={16} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
-          <div className="text-[12.5px]">
-            <b className="text-text">{t('doclib_docd_readOnly')}</b> ·{' '}
-            {t('doclib_docd_readOnlySub')}
-          </div>
-        </div>
-      )}
-      {role === 'external' && (
-        <div className="mb-[16px] flex items-center gap-[10px] rounded-[11px] bg-accent-soft px-[14px] py-[11px] text-accent">
-          <Lock size={16} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
-          <div className="text-[12.5px] font-medium">
-            {t('doclib_docd_permDenied')} · {t('doclib_docd_readOnlySub')}
-          </div>
-        </div>
-      )}
+      <AccessBanner role={role} t={t} />
 
       {/* ── Review-posture flag ── */}
-      {reviewFlag && (
-        <div
-          className={`mb-[16px] flex items-start gap-[11px] rounded-[11px] px-[14px] py-[12px] font-medium ${
-            reviewInfo.tone === 'risk' ? 'bg-risk-bg text-risk-fg' : 'bg-warn-bg text-warn-fg'
-          }`}
-        >
-          <TriangleAlert
-            size={17}
-            strokeWidth={2}
-            className="mt-[1px] shrink-0"
-            aria-hidden="true"
-          />
-          <div className="text-[13px] leading-[1.5]">
-            {t(
-              doc.reviewStatus === 'lawyer_review_recommended'
-                ? 'doclib_gen_lawyerWarn'
-                : 'doclib_gen_hrWarn',
-            )}
-          </div>
-        </div>
-      )}
+      <ReviewBanner reviewStatus={doc.reviewStatus} tone={reviewInfo.tone} t={t} />
 
       <div className="flex items-start gap-[26px] max-[1023px]:flex-col">
         {/* ── Left: tabs ── */}
         <div className="min-w-0 flex-1 max-[1023px]:w-full">
           <div
             role="tablist"
-            onKeyDown={onTabKeyDown}
             className="mb-[18px] flex gap-[4px] overflow-x-auto border-b border-border"
           >
             {TABS.map(([key, msgKey]) => (
@@ -418,9 +483,10 @@ export function DocumentDetailScreen() {
                 aria-controls="docd-panel"
                 tabIndex={tab === key ? 0 : -1}
                 onClick={() => setTab(key)}
+                onKeyDown={(event) => onTabKeyDown(event, tab, setTab)}
                 className={`-mb-px cursor-pointer border-b-2 px-[12px] py-[10px] text-[13px] font-semibold whitespace-nowrap transition-colors ${
                   tab === key
-                    ? 'border-(--gold-dot) text-text'
+                    ? 'border-gold-dot text-text'
                     : 'border-transparent text-text-muted hover:text-text'
                 }`}
               >
@@ -430,180 +496,176 @@ export function DocumentDetailScreen() {
           </div>
 
           <div role="tabpanel" id="docd-panel" aria-labelledby={`docd-tab-${tab}`}>
-            {tab === 'preview' && template && (
-              <div className="max-h-[70vh] overflow-y-auto rounded-[14px]">
-                <DocPaper blocks={blocks} values={values} />
-              </div>
-            )}
+            <DocumentPreview
+              active={tab === 'preview'}
+              template={template}
+              blocks={blocks}
+              values={values}
+            />
 
-            {tab === 'fields' && (
-              <div className="overflow-hidden rounded-[14px] border border-border bg-surface">
-                {tokens.map((token) => {
-                  const question = template?.questions.find((q) => q.id === token)
-                  const answer = doc.answers[token]
-                  const filled = answer !== undefined && answer.trim() !== ''
-                  return (
-                    <div
-                      key={token}
-                      className="grid grid-cols-[200px_1fr] gap-[14px] border-b border-inset px-[16px] py-[11px] last:border-b-0 max-[640px]:grid-cols-1 max-[640px]:gap-[4px]"
-                    >
-                      <div className="text-[12.5px] font-semibold text-text-muted">
-                        {question ? x(question.label) : token.replace(/_/g, ' ')}
-                      </div>
-                      {filled ? (
-                        <div className="text-[13px] text-text">{answer}</div>
-                      ) : (
-                        <div>
-                          <DocChip tone="warn">{t('doclib_docd_notFilled')}</DocChip>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            {tab === 'versions' && (
-              <div className="flex flex-col gap-[10px]">
-                {versions.map((version) => (
+            <div
+              hidden={tab !== 'fields'}
+              className="overflow-hidden rounded-[14px] border border-border bg-surface"
+            >
+              {tokens.map((token) => {
+                const question = template?.questions.find((q) => q.id === token)
+                const answer = doc.answers[token]
+                const filled = answer !== undefined && answer.trim() !== ''
+                return (
                   <div
-                    key={version.n}
-                    className="flex items-start gap-[13px] rounded-[12px] border border-border bg-surface px-[16px] py-[13px]"
+                    key={token}
+                    className="grid grid-cols-[200px_1fr] gap-[14px] border-b border-inset px-[16px] py-[11px] last:border-b-0 max-[640px]:grid-cols-1 max-[640px]:gap-[4px]"
                   >
-                    <span
-                      className="min-w-[30px] shrink-0 font-display text-[13px] font-bold text-(--navy)"
-                      aria-label={`${t('doclib_docd_version')} ${version.n}`}
-                    >
-                      v{version.n}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-[3px] flex flex-wrap items-center gap-[8px]">
-                        <span className="text-[13px] font-semibold text-text">
-                          {x(version.changeSummary)}
-                        </span>
-                        {version.n === doc.currentVersion && (
-                          <DocChip tone="ok">{t('doclib_docd_current')}</DocChip>
-                        )}
-                      </div>
-                      <div className="text-[11.5px] text-text-faint">
-                        {fmtDate(version.createdAt, lang)} · {t('doclib_docd_by')}{' '}
-                        {version.createdBy}
-                      </div>
+                    <div className="text-[12.5px] font-semibold text-text-muted">
+                      {question ? x(question.label) : token.replaceAll('_', ' ')}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {tab === 'recipients' && (
-              <div>
-                {signature && (
-                  <div className="mb-[14px] rounded-[13px] border border-border bg-surface px-[17px] py-[15px]">
-                    <div className="mb-[6px] font-display text-[11px] font-bold tracking-[0.06em] text-text-muted uppercase">
-                      {t('doclib_docd_provider')}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-[8px] text-[13px] text-text">
-                      <span className="font-semibold">{signature.provider}</span>
-                      <span className="inline-flex items-center rounded-[6px] border border-border bg-inset px-[7px] py-px text-[11px] font-semibold text-text-muted">
-                        {t('doclib_docd_envelope')} {signature.envelopeId}
-                      </span>
-                      <DocChip tone={signatureStatusInfo[signature.status].tone}>
-                        {x(signatureStatusInfo[signature.status].label)}
-                      </DocChip>
-                    </div>
-                    {(signature.sentAt || signature.viewedAt || signature.signedAt) && (
-                      <div className="mt-[7px] text-[11.5px] text-text-muted">
-                        {[
-                          signature.sentAt &&
-                            `${x(signatureStatusInfo.sent.label)} ${fmtDate(signature.sentAt, lang)}`,
-                          signature.viewedAt &&
-                            `${x(signatureStatusInfo.viewed.label)} ${fmtDate(signature.viewedAt, lang)}`,
-                          signature.signedAt &&
-                            `${x(signatureStatusInfo.signed.label)} ${fmtDate(signature.signedAt, lang)}`,
-                        ]
-                          .filter(Boolean)
-                          .join(' · ')}
+                    {filled ? (
+                      <div className="text-[13px] text-text">{answer}</div>
+                    ) : (
+                      <div>
+                        <DocChip tone="warn">{t('doclib_docd_notFilled')}</DocChip>
                       </div>
                     )}
-                    <div className="mt-[9px] text-[11.5px] text-text-faint">
-                      {t('doclib_docd_providerAgnostic')}
+                  </div>
+                )
+              })}
+            </div>
+
+            <div hidden={tab !== 'versions'} className="flex flex-col gap-[10px]">
+              {versions.map((version) => (
+                <div
+                  key={version.n}
+                  className="flex items-start gap-[13px] rounded-[12px] border border-border bg-surface px-[16px] py-[13px]"
+                >
+                  <span
+                    className="min-w-[30px] shrink-0 font-display text-[13px] font-bold text-navy"
+                    aria-label={`${t('doclib_docd_version')} ${version.n}`}
+                  >
+                    v{version.n}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-[3px] flex flex-wrap items-center gap-[8px]">
+                      <span className="text-[13px] font-semibold text-text">
+                        {x(version.changeSummary)}
+                      </span>
+                      {version.n === doc.currentVersion && (
+                        <DocChip tone="ok">{t('doclib_docd_current')}</DocChip>
+                      )}
+                    </div>
+                    <div className="text-[11.5px] text-text-faint">
+                      {fmtDate(version.createdAt, lang)} · {t('doclib_docd_by')} {version.createdBy}
                     </div>
                   </div>
-                )}
+                </div>
+              ))}
+            </div>
 
-                {recipients.length === 0 ? (
-                  <div className="rounded-[13px] border border-dashed border-border px-[16px] py-[34px] text-center text-[13px] text-text-muted">
-                    {t('doclib_docd_noRecipients')}
+            <div hidden={tab !== 'recipients'}>
+              {signature && (
+                <div className="mb-[14px] rounded-[13px] border border-border bg-surface px-[17px] py-[15px]">
+                  <div className="mb-[6px] font-display text-[11px] font-bold tracking-[0.06em] text-text-muted uppercase">
+                    {t('doclib_docd_provider')}
                   </div>
-                ) : (
-                  recipients.map((recipient) => {
-                    const info = signatureInfo(recipient.status)
-                    return (
-                      <div
-                        key={`${recipient.order}-${recipient.email}`}
-                        className="mb-[8px] flex items-center gap-[12px] rounded-[12px] border border-border bg-surface px-[16px] py-[12px]"
-                      >
-                        <span
-                          aria-label={`${t('doclib_docd_order')} ${recipient.order}`}
-                          className="grid h-[28px] w-[28px] shrink-0 place-items-center rounded-full bg-inset text-[11px] font-bold text-text-muted"
-                        >
-                          {recipient.order}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[13px] font-semibold text-text">
-                            {recipient.name}
-                          </div>
-                          <div className="text-[11.5px] text-text-faint">
-                            {x(RECIPIENT_TYPE[recipient.type])} · {recipient.email}
-                          </div>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          {info ? (
-                            <DocChip tone={info.tone}>{x(info.label)}</DocChip>
-                          ) : (
-                            <DocChip tone="neutral">{recipient.status}</DocChip>
-                          )}
-                          <div className="mt-[3px] text-[11px] text-text-faint">
-                            {recipient.signedAt ? fmtDate(recipient.signedAt, lang) : '—'}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })
-                )}
-              </div>
-            )}
+                  <div className="flex flex-wrap items-center gap-[8px] text-[13px] text-text">
+                    <span className="font-semibold">{signature.provider}</span>
+                    <span className="inline-flex items-center rounded-[6px] border border-border bg-inset px-[7px] py-px text-[11px] font-semibold text-text-muted">
+                      {t('doclib_docd_envelope')} {signature.envelopeId}
+                    </span>
+                    <DocChip tone={signatureStatusInfo[signature.status].tone}>
+                      {x(signatureStatusInfo[signature.status].label)}
+                    </DocChip>
+                  </div>
+                  {(signature.sentAt || signature.viewedAt || signature.signedAt) && (
+                    <div className="mt-[7px] text-[11.5px] text-text-muted">
+                      {[
+                        signature.sentAt &&
+                          `${x(signatureStatusInfo.sent.label)} ${fmtDate(signature.sentAt, lang)}`,
+                        signature.viewedAt &&
+                          `${x(signatureStatusInfo.viewed.label)} ${fmtDate(signature.viewedAt, lang)}`,
+                        signature.signedAt &&
+                          `${x(signatureStatusInfo.signed.label)} ${fmtDate(signature.signedAt, lang)}`,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </div>
+                  )}
+                  <div className="mt-[9px] text-[11.5px] text-text-faint">
+                    {t('doclib_docd_providerAgnostic')}
+                  </div>
+                </div>
+              )}
 
-            {tab === 'audit' && (
-              <div className="rounded-[14px] border border-border bg-surface px-[18px] py-[6px]">
-                {audit.map((event, index) => {
-                  const label = AUDIT_LABEL[event.event]
+              {recipients.length === 0 ? (
+                <div className="rounded-[13px] border border-dashed border-border px-[16px] py-[34px] text-center text-[13px] text-text-muted">
+                  {t('doclib_docd_noRecipients')}
+                </div>
+              ) : (
+                recipients.map((recipient) => {
+                  const info = signatureInfo(recipient.status)
                   return (
                     <div
-                      key={`${event.at}-${index}`}
-                      className="flex items-start gap-[13px] border-b border-inset py-[12px] last:border-b-0"
+                      key={`${recipient.order}-${recipient.email}`}
+                      className="mb-[8px] flex items-center gap-[12px] rounded-[12px] border border-border bg-surface px-[16px] py-[12px]"
                     >
                       <span
-                        className={`mt-[5px] h-[9px] w-[9px] shrink-0 rounded-full ${auditDotClass(event.event)}`}
-                        aria-hidden="true"
-                      />
+                        aria-label={`${t('doclib_docd_order')} ${recipient.order}`}
+                        className="grid h-[28px] w-[28px] shrink-0 place-items-center rounded-full bg-inset text-[11px] font-bold text-text-muted"
+                      >
+                        {recipient.order}
+                      </span>
                       <div className="min-w-0 flex-1">
-                        <div className="text-[13px] font-semibold text-text">
-                          {label ? x(label) : event.event.replace(/_/g, ' ')}
+                        <div className="text-[13px] font-semibold text-text">{recipient.name}</div>
+                        <div className="text-[11.5px] text-text-faint">
+                          {x(RECIPIENT_TYPE[recipient.type])} · {recipient.email}
                         </div>
-                        {event.meta && (
-                          <div className="mt-px text-[12px] text-text-muted">{event.meta}</div>
-                        )}
                       </div>
                       <div className="shrink-0 text-right">
-                        <div className="text-[12px] text-text-muted">{event.actor}</div>
-                        <div className="text-[11px] text-text-faint">{event.at}</div>
+                        {info ? (
+                          <DocChip tone={info.tone}>{x(info.label)}</DocChip>
+                        ) : (
+                          <DocChip tone="neutral">{recipient.status}</DocChip>
+                        )}
+                        <div className="mt-[3px] text-[11px] text-text-faint">
+                          {recipient.signedAt ? fmtDate(recipient.signedAt, lang) : '—'}
+                        </div>
                       </div>
                     </div>
                   )
-                })}
-              </div>
-            )}
+                })
+              )}
+            </div>
+
+            <div
+              hidden={tab !== 'audit'}
+              className="rounded-[14px] border border-border bg-surface px-[18px] py-[6px]"
+            >
+              {audit.map((event, index) => {
+                const label = AUDIT_LABEL[event.event]
+                return (
+                  <div
+                    key={`${event.at}-${index}`}
+                    className="flex items-start gap-[13px] border-b border-inset py-[12px] last:border-b-0"
+                  >
+                    <span
+                      className={`mt-[5px] h-[9px] w-[9px] shrink-0 rounded-full ${auditDotClass(event.event)}`}
+                      aria-hidden="true"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[13px] font-semibold text-text">
+                        {label ? x(label) : event.event.replaceAll('_', ' ')}
+                      </div>
+                      {event.meta && (
+                        <div className="mt-px text-[12px] text-text-muted">{event.meta}</div>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="text-[12px] text-text-muted">{event.actor}</div>
+                      <div className="text-[11px] text-text-faint">{event.at}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
 

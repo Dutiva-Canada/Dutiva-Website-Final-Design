@@ -67,7 +67,7 @@ const SAMPLE_NOTIFICATIONS: NotificationItem[] = [
  * (opens the contextual rail), EN/FR pill, theme toggle, global search
  * trigger, notifications popover.
  */
-export function Topbar({ title }: { title: string }) {
+export function Topbar({ title }: { readonly title: string }) {
   const { x } = useI18n()
   const { openSearch } = useSearch()
   const askAdvisor = useAskAdvisorBriefing()
@@ -130,13 +130,13 @@ export function Topbar({ title }: { title: string }) {
             <>
               <div
                 onClick={() => setNotifOpen(false)}
-                className="fixed inset-0 z-[190]"
+                className="fixed inset-0 z-190"
                 aria-hidden="true"
               />
-              <div
-                role="dialog"
+              <dialog
+                open
                 aria-label={x(M.shell_notifications)}
-                className="absolute top-[38px] right-0 z-[200] w-[340px] animate-[fadeInUp_.15s_ease] overflow-hidden rounded-[12px] border border-border bg-surface shadow-[0_16px_40px_rgba(27,36,48,0.18)]"
+                className="absolute top-[38px] right-0 z-200 m-0 w-[340px] animate-[fadeInUp_.15s_ease] overflow-hidden rounded-[12px] border border-border bg-surface shadow-[0_16px_40px_rgba(27,36,48,0.18)]"
               >
                 <div className="flex items-center justify-between border-b border-border-soft px-[14px] py-[12px]">
                   <span className="text-[13.5px] font-bold">{x(M.shell_notifications)}</span>
@@ -175,7 +175,7 @@ export function Topbar({ title }: { title: string }) {
                     </div>
                   ))}
                 </div>
-              </div>
+              </dialog>
             </>
           )}
         </div>

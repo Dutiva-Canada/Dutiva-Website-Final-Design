@@ -116,7 +116,7 @@ export function ChatRecallView() {
   const { facts } = useMemoryStore()
 
   const thread = memoryThreads.find((t) => t.id === threadId)
-  if (!thread) return <Navigate to="/app/memory" replace />
+  if (!thread) return <Navigate to="/app/settings/memory" replace />
 
   const employee = employees.find((e) => e.id === thread.personId)
   const byId = (id: string) => facts.find((f) => f.id === id)
@@ -141,11 +141,11 @@ export function ChatRecallView() {
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto flex max-w-[760px] flex-col gap-[20px] px-[24px] pt-[24px] pb-[16px]">
-            {RECALL_TURNS.map((turn, i) => {
+            {RECALL_TURNS.map((turn) => {
               if (turn.kind === 'system') {
                 return (
                   <div
-                    key={i}
+                    key={turn.text?.en ?? turn.recallIds?.join('-')}
                     className="flex items-center gap-[10px] self-center rounded-[100px] border border-support-border bg-support-bg px-[14px] py-[6px]"
                   >
                     <History
@@ -159,7 +159,7 @@ export function ChatRecallView() {
                     </span>
                     <button
                       type="button"
-                      onClick={() => navigate(`/app/memory/cases/${thread.caseId}`)}
+                      onClick={() => navigate(`/app/settings/memory/cases/${thread.caseId}`)}
                       className="cursor-pointer border-none bg-transparent p-0 font-sans text-[12px] font-bold text-support-fg"
                     >
                       {x(M.memory_chat_view)}
@@ -170,7 +170,7 @@ export function ChatRecallView() {
               if (turn.kind === 'user') {
                 return (
                   <div
-                    key={i}
+                    key={turn.text?.en ?? turn.recallIds?.join('-')}
                     className="max-w-[74%] self-end rounded-[14px] rounded-br-[3px] bg-navy px-[16px] py-[11px] text-[14.5px] leading-[1.55] text-white"
                   >
                     {turn.text !== undefined && pick(turn.text, lang)}
@@ -181,7 +181,7 @@ export function ChatRecallView() {
                 .map(byId)
                 .filter((f): f is MemoryFact => f !== undefined)
               return (
-                <div key={i} className="flex items-start gap-[12px]">
+                <div key={turn.text?.en ?? turn.recallIds?.join('-')} className="flex items-start gap-[12px]">
                   <div className="mt-[2px] flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[8px] bg-navy">
                     <Sparkle size={14} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
                   </div>
@@ -193,12 +193,12 @@ export function ChatRecallView() {
                       </div>
                     )}
                     <div className="max-w-[640px] rounded-[14px] rounded-tl-[3px] border border-border-soft bg-surface px-[16px] py-[13px] text-[14.5px] leading-[1.75] text-text">
-                      {(turn.segments ?? []).map((segment, si) => {
+                      {(turn.segments ?? []).map((segment) => {
                         const fact = segment.memId !== undefined ? byId(segment.memId) : undefined
-                        if (!fact) return <span key={si}>{pick(segment.text, lang)}</span>
+                        if (!fact) return <span key={segment.memId ?? segment.text.en}>{pick(segment.text, lang)}</span>
                         return (
                           <span
-                            key={si}
+                            key={segment.memId ?? segment.text.en}
                             title={recallTitle(fact)}
                             className="cursor-help rounded-[3px] border-b-[1.5px] border-gold-dot bg-gold-bg px-[3px] py-px font-semibold text-gold-fg"
                           >
@@ -257,7 +257,7 @@ export function ChatRecallView() {
                               </div>
                               <button
                                 type="button"
-                                onClick={() => navigate(`/app/memory/people/${thread.personId}`)}
+                                onClick={() => navigate(`/app/settings/memory/people/${thread.personId}`)}
                                 className="shrink-0 cursor-pointer rounded-[7px] border border-border bg-surface px-[9px] py-[4px] font-sans text-[11.5px] font-semibold text-text-muted"
                               >
                                 {x(M.memory_action_correct)}
@@ -299,7 +299,7 @@ export function ChatRecallView() {
             </div>
           </div>
           <div className="px-[15px] py-[13px]">
-            <div className="mb-[9px] text-[10.5px] font-bold tracking-[0.05em] text-gold-fg uppercase">
+            <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
               {employee?.name ?? thread.personId}
             </div>
             {knowPerson.map((fact) => (
@@ -307,7 +307,7 @@ export function ChatRecallView() {
             ))}
           </div>
           <div className="border-t border-inset px-[15px] py-[13px]">
-            <div className="mb-[9px] text-[10.5px] font-bold tracking-[0.05em] text-gold-fg uppercase">
+            <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
               {x(M.memory_know_this_conversation)}
             </div>
             {knowThread.map((fact) => (

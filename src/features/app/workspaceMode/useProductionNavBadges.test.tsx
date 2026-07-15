@@ -21,7 +21,7 @@ describe('useProductionNavBadges (via Sidebar)', () => {
     /* Fixture counts: 3 open cases, compliance '3', workflows '3'. Expanded
        links take their accessible name from content, so the badge count is
        part of the name (label-in-name) — match on the label prefix. */
-    const casesLink = within(nav).getByRole('link', { name: /Case Files/ })
+    const casesLink = within(nav).getByRole('link', { name: /Cases/ })
     expect(casesLink).toHaveTextContent('3')
   })
 
@@ -116,8 +116,8 @@ describe('useProductionNavBadges (via Sidebar)', () => {
     renderAppFresh(<SidebarFresh mode="drawer" />, { route: '/app/home' })
 
     const nav = await screen.findByRole('navigation', { name: 'Primary navigation' })
-    const casesLink = within(nav).getByRole('link', { name: /Case Files/ })
-    const tasksLink = within(nav).getByRole('link', { name: /Tasks/ })
+    const casesLink = within(nav).getByRole('link', { name: /Cases/ })
+    const tasksLink = within(nav).getByRole('link', { name: /Workforce Planning/ })
     const complianceLink = within(nav).getByRole('link', { name: /Compliance/ })
 
     /* Live counts land asynchronously. */

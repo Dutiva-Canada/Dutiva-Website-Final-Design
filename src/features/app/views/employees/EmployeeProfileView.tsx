@@ -152,7 +152,7 @@ function EmployeeProfileDemoView() {
     }
     if (ev.caseId !== undefined) {
       const caseId = ev.caseId
-      return () => navigate(`/app/cases/${caseId}`)
+      return () => void navigate(`/app/cases/${caseId}`)
     }
     return null
   }
@@ -303,8 +303,8 @@ function EmployeeProfileDemoView() {
         )}
 
         {/* Audit footnote */}
-        <div className="mt-[22px] flex items-start gap-[7px] text-[11px] leading-[1.5] text-text-faint">
-          <Shield size={12} strokeWidth={1.8} className="mt-[1px] shrink-0" aria-hidden="true" />
+        <div className="mt-[22px] flex items-start gap-[7px] text-[11px] leading-normal text-text-faint">
+          <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
           <span>{x(M.employees_audit_foot)}</span>
         </div>
       </div>

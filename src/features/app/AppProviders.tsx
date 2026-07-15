@@ -18,7 +18,7 @@ import { WorkspaceModeProvider } from './workspaceMode/WorkspaceModeProvider'
  * WorkspaceModeProvider reads that session to resolve the demo/production
  * toggle, so it must stay inside AuthProvider.
  */
-export function AppProviders({ children }: { children: ReactNode }) {
+export function AppProviders({ children }: { readonly children: ReactNode }) {
   return (
     <AuthProvider>
       <WorkspaceModeProvider>

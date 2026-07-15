@@ -1,0 +1,60 @@
+import { X } from 'lucide-react'
+import { useI18n } from '@/i18n/context'
+import { shellMessages as M } from '@/i18n/messages/shell'
+import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceModeContext'
+import { SidebarTooltip } from './SidebarTooltip'
+import { cx } from './cx'
+
+interface SidebarHeaderProps {
+  readonly expanded: boolean
+  readonly inDrawer: boolean
+  readonly identity: WorkspaceIdentity
+  readonly onCloseDrawer?: () => void
+}
+
+export function SidebarHeader({ expanded, inDrawer, identity, onCloseDrawer }: SidebarHeaderProps) {
+  const { x } = useI18n()
+
+  return (
+    <div
+      className={cx(
+        'flex shrink-0 items-center gap-[9px] pt-[12px] pb-[10px]',
+        expanded ? 'px-[14px]' : 'justify-center px-[8px]',
+      )}
+    >
+      <SidebarTooltip label={identity.companyName} show={!expanded}>
+        <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] bg-navy text-[14px] font-bold text-[#F2D9A8]">
+          {identity.companyName.charAt(0)}
+        </div>
+      </SidebarTooltip>
+      {!expanded && <span className="sr-only">{identity.companyName}</span>}
+      <div
+        aria-hidden={!expanded}
+        className={cx(
+          'min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
+          expanded
+            ? 'max-w-[180px] translate-x-0 opacity-100 delay-75'
+            : 'max-w-0 -translate-x-1 opacity-0',
+        )}
+      >
+        <div
+          className="truncate text-[14px] leading-[1.2] font-bold text-text"
+          title={identity.companyName}
+        >
+          {identity.companyName}
+        </div>
+        <div className="truncate text-[11px] text-text-muted">{x(M.shell_hr_workspace)}</div>
+      </div>
+      {inDrawer && (
+        <button
+          type="button"
+          onClick={onCloseDrawer}
+          aria-label={x(M.shell_close_menu)}
+          className="ml-auto cursor-pointer border-none bg-transparent p-[4px]"
+        >
+          <X size={18} strokeWidth={1.8} className="text-text-3" />
+        </button>
+      )}
+    </div>
+  )
+}

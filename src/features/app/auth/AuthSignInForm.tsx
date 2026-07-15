@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { useI18n } from '@/i18n/context'
 import { authMessages as M } from '@/i18n/messages/auth'
 import { useAuth } from './authContext'
@@ -9,14 +9,14 @@ import { useAuth } from './authContext'
  * No "why sign in" copy — embedders own that context (see
  * GuidanceSourcesPanel, AuthMenuButton). No prototype counterpart.
  */
-export function AuthSignInForm({ idPrefix = 'auth' }: { idPrefix?: string }) {
+export function AuthSignInForm({ idPrefix = 'auth' }: Readonly<{ idPrefix?: string }>) {
   const { x } = useI18n()
   const { signInWithEmail } = useAuth()
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | undefined>()
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: SubmitEvent) => {
     e.preventDefault()
     setSending(true)
     setError(undefined)

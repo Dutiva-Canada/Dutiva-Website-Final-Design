@@ -4,6 +4,7 @@ import type { LText } from '@/i18n/core'
 import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import type { AdvisorTurnSpec } from '@/features/app/advisor/types'
 import { cases } from '@/data'
+import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { useRail } from './railContext'
 
 /**
@@ -34,12 +35,18 @@ interface Briefing {
 export function useAskAdvisorBriefing(): (viewKey: string) => void {
   const { openRail, closeRail } = useRail()
   const navigate = useNavigate()
+  const { openDocFromLibrary } = useDocStudio()
 
   return useCallback(
     (viewKey: string) => {
       const go = (to: string, state?: unknown) => () => {
         closeRail()
         navigate(to, state === undefined ? undefined : { state })
+      }
+      /** Open a document overlay directly — no page navigation needed. */
+      const openDoc = (docKey: string) => () => {
+        closeRail()
+        openDocFromLibrary(docKey)
       }
 
       const byView: Record<string, Briefing> = {
@@ -100,13 +107,35 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
                 tone: 'warning',
                 title: M.advisor_brief_policies_card_title,
                 body: M.advisor_brief_policies_card_body,
-                /* The prototype opens the Remote Work Policy draft directly in
-                   Document Studio — the templates view honours { docKey }. */
+                /* Open the Remote Work Policy draft directly in the overlay —
+                   no page navigation needed now that the resolver handles tids. */
                 actions: [
                   {
                     label: M.advisor_action_draft_refresh,
                     primary: true,
-                    onClick: go('/app/templates', { docKey: 'T10' }),
+                    onClick: openDoc('T10'),
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        /* /app/planning is the unified Planning view (Tasks + Calendar sub-tabs).
+           The briefing reuses the tasks content — planning lands on tasks by default. */
+        planning: {
+          title: M.advisor_brief_title_tasks,
+          spec: {
+            text: M.advisor_brief_tasks_text,
+            cards: [
+              {
+                tone: 'suggestion',
+                title: M.advisor_brief_tasks_card_title,
+                body: M.advisor_brief_tasks_card_body,
+                actions: [
+                  {
+                    label: M.advisor_action_open_case,
+                    primary: true,
+                    onClick: go(caseRouteForChat('c1')),
                   },
                 ],
               },
@@ -145,6 +174,12 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
           title: M.advisor_brief_title_templates,
           spec: { text: M.advisor_brief_templates_text },
         },
+        /* All three tabs of the unified HR Library (/app/documents/*) share
+           the same document-focused briefing content. */
+        documents: {
+          title: M.advisor_brief_title_templates,
+          spec: { text: M.advisor_brief_templates_text },
+        },
         knowledge: {
           title: M.advisor_brief_title_knowledge,
           spec: { text: M.advisor_brief_knowledge_text },
@@ -161,6 +196,6 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
       }
       openRail(content.title, content.spec)
     },
-    [openRail, closeRail, navigate],
+    [openRail, closeRail, navigate, openDocFromLibrary],
   )
 }

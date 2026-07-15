@@ -40,7 +40,7 @@ export function MemoryLayout() {
       items: [
         {
           key: 'manager',
-          to: '/app/memory',
+          to: '/app/settings/memory',
           icon: Brain,
           label: M.memory_nav_manager,
           sub: M.memory_nav_manager_sub,
@@ -52,7 +52,7 @@ export function MemoryLayout() {
       label: M.memory_nav_people,
       items: memoryPeople.map((p) => ({
         key: `person-${p.id}`,
-        to: `/app/memory/people/${p.id}`,
+        to: `/app/settings/memory/people/${p.id}`,
         icon: UserRound,
         label: personName(p.id),
         sub: p.navSub,
@@ -62,7 +62,7 @@ export function MemoryLayout() {
       label: M.memory_nav_cases,
       items: memoryCases.map((c) => ({
         key: `case-${c.id}`,
-        to: `/app/memory/cases/${c.id}`,
+        to: `/app/settings/memory/cases/${c.id}`,
         icon: Briefcase,
         label: c.navLabel,
         sub: c.navSub,
@@ -73,7 +73,7 @@ export function MemoryLayout() {
       label: M.memory_nav_conversations,
       items: memoryThreads.map((t) => ({
         key: `thread-${t.id}`,
-        to: `/app/memory/conversations/${t.id}`,
+        to: `/app/settings/memory/conversations/${t.id}`,
         icon: MessageCircle,
         label: t.navLabel,
         sub: t.navSub,
@@ -101,7 +101,7 @@ export function MemoryLayout() {
             </div>
             {group.items.map((item) => {
               const active =
-                item.to === '/app/memory' ? pathname === item.to : pathname.startsWith(item.to)
+                item.to === '/app/settings/memory' ? pathname === item.to : pathname.startsWith(item.to)
               const Icon = item.icon
               return (
                 <button

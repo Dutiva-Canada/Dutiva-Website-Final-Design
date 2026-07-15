@@ -51,15 +51,13 @@ export type SearchNav =
   | { kind: 'document'; docKey: string }
   | { kind: 'view'; view: 'communications' | 'tasks' | 'compliance' | 'policies' | 'knowledge' }
 
-/** Router `location.state` for chat results (prototype `selectChat(c.id)`).
- *  TODO(phase-c): the Advisor view reads this to select the thread. */
+/** Router `location.state` for chat results (prototype `selectChat(c.id)`). */
 export interface AdvisorSearchNavState {
   chatId: string
 }
 
 /** Router `location.state` for document results (prototype
- *  `openDocFromLibrary(title, category)`).
- *  TODO(phase-c): the Templates view / Document Studio reads this to open the doc. */
+ *  `openDocFromLibrary(title, category)`). */
 export interface TemplatesSearchNavState {
   docKey: string
 }

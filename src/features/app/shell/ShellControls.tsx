@@ -43,7 +43,13 @@ export function LangToggle() {
  * Theme toggle — shows the sun while dark and the moon while light, matching
  * the prototype (`themeIsDark` → sun, `themeIsLight` → moon).
  */
-export function ThemeToggle({ className, iconSize }: { className: string; iconSize: number }) {
+export function ThemeToggle({
+  className,
+  iconSize,
+}: {
+  readonly className: string
+  readonly iconSize: number
+}) {
   const { theme, toggleTheme } = useTheme()
   const { t } = useI18n()
   return (

@@ -1,9 +1,8 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 
-const JSON_DIR =
-  'C:\\Users\\Marti\\AppData\\Local\\Temp\\claude\\C--Users-Marti-OneDrive-Desktop-Dutiva--Redesign-\\e1b6f6bc-5c7c-4641-9ed0-26d5bd73c8ea\\scratchpad\\doclib-json'
-const REPO = 'C:\\Users\\Marti\\OneDrive\\Desktop\\Dutiva (Redesign)'
+const JSON_DIR = String.raw`C:\Users\Marti\AppData\Local\Temp\claude\C--Users-Marti-OneDrive-Desktop-Dutiva--Redesign-\e1b6f6bc-5c7c-4641-9ed0-26d5bd73c8ea\scratchpad\doclib-json`
+const REPO = String.raw`C:\Users\Marti\OneDrive\Desktop\Dutiva (Redesign)`
 const DATA_DIR = join(REPO, 'src', 'features', 'app', 'documents', 'data')
 const load = (n) => JSON.parse(readFileSync(join(JSON_DIR, `${n}.json`), 'utf8'))
 
@@ -192,6 +191,21 @@ const outTemplates = templates.map((t) => {
 const empIds = new Set(employees.map((e) => e.id))
 const caseIds = new Set(cases.map((c) => c.id))
 const tplTids = new Set(templates.map((t) => t.tid))
+const documentSignature = (signature, ctx) => {
+  if (!signature?.provider) return {}
+  return {
+    signature: {
+      provider: signature.provider,
+      envelopeId: signature.envelope_id,
+      status: inSet(signature.status, SIG, `${ctx}.sig`),
+      ...(signature.sent_at ? { sentAt: signature.sent_at } : {}),
+      ...(signature.viewed_at ? { viewedAt: signature.viewed_at } : {}),
+      ...(signature.signed_at ? { signedAt: signature.signed_at } : {}),
+      ...(signature.declined_at ? { declinedAt: signature.declined_at } : {}),
+      ...(signature.expires_at ? { expiresAt: signature.expires_at } : {}),
+    },
+  }
+}
 const outDocuments = documents.map((d) => {
   const ctx = d.id
   if (!tplTids.has(d.template_tid)) fail(`unknown template ${d.template_tid} at ${ctx}`)
@@ -234,20 +248,7 @@ const outDocuments = documents.map((d) => {
     })),
     /* A null-provider signature is the prototype's "nothing sent yet"
        placeholder — signatureStatus already says not_sent, so omit it. */
-    ...(d.signature && d.signature.provider
-      ? {
-          signature: {
-            provider: d.signature.provider,
-            envelopeId: d.signature.envelope_id,
-            status: inSet(d.signature.status, SIG, `${ctx}.sig`),
-            ...(d.signature.sent_at ? { sentAt: d.signature.sent_at } : {}),
-            ...(d.signature.viewed_at ? { viewedAt: d.signature.viewed_at } : {}),
-            ...(d.signature.signed_at ? { signedAt: d.signature.signed_at } : {}),
-            ...(d.signature.declined_at ? { declinedAt: d.signature.declined_at } : {}),
-            ...(d.signature.expires_at ? { expiresAt: d.signature.expires_at } : {}),
-          },
-        }
-      : {}),
+    ...documentSignature(d.signature, ctx),
     audit: (d.audit ?? []).map((a) => ({
       event: inSet(a.event, AUDIT, `${ctx}.audit`),
       actor: a.actor,
@@ -346,23 +347,25 @@ const emit = (rel, body) => {
   writeFileSync(join(DATA_DIR, rel), HEADER + body)
   console.log('wrote', rel)
 }
+const templateFileName = (template) =>
+  `${template.tid.toLowerCase()}-${template.key.replaceAll('_', '-')}`
+const templateSymbol = (template) => `tpl${template.tid}`
 
 for (const t of outTemplates) {
-  const file = `templates/${t.tid.toLowerCase()}-${t.key.replace(/_/g, '-')}.ts`
-  const constName = 'tpl' + t.tid
+  const file = `templates/${templateFileName(t)}.ts`
+  const constName = templateSymbol(t)
   emit(
     file,
     `import type { DocTemplate } from '../types'\n\nexport const ${constName}: DocTemplate = ${JSON.stringify(t, null, 2)}\n`,
   )
 }
+const templateImports = outTemplates
+  .map((t) => `import { ${templateSymbol(t)} } from './${templateFileName(t)}'`)
+  .join('\n')
+const templateSymbols = outTemplates.map(templateSymbol).join(', ')
 emit(
   'templates/index.ts',
-  outTemplates
-    .map(
-      (t) => `import { tpl${t.tid} } from './${t.tid.toLowerCase()}-${t.key.replace(/_/g, '-')}'`,
-    )
-    .join('\n') +
-    `\nimport type { DocTemplate } from '../types'\n\nexport const docTemplates: DocTemplate[] = [${outTemplates.map((t) => `tpl${t.tid}`).join(', ')}]\n\nexport const templateByTid = new Map(docTemplates.map((t) => [t.tid, t]))\nexport const templateById = new Map(docTemplates.map((t) => [t.id, t]))\n`,
+  `${templateImports}\nimport type { DocTemplate } from '../types'\n\nexport const docTemplates: DocTemplate[] = [${templateSymbols}]\n\nexport const templateByTid = new Map(docTemplates.map((t) => [t.tid, t]))\nexport const templateById = new Map(docTemplates.map((t) => [t.id, t]))\n`,
 )
 emit(
   'documents.ts',
@@ -405,7 +408,7 @@ writeFileSync(
 console.log('wrote src/i18n/messages/doclib.ts', enKeys.length, 'keys')
 
 /* ---------- seed SQL ---------- */
-const q = (v) => (v === null || v === undefined ? 'null' : `'${String(v).replace(/'/g, "''")}'`)
+const q = (v) => (v === null || v === undefined ? 'null' : `'${String(v).replaceAll("'", "''")}'`)
 const qj = (v) => `${q(JSON.stringify(v))}::jsonb`
 const qa = (arr) => `array[${arr.map((x) => q(x)).join(',')}]::text[]`
 const rows = []
@@ -427,8 +430,6 @@ for (const c of outCategories)
 for (const t of outTemplates) {
   rows.push(
     `insert into doclib.document_templates (id, category_id, template_key, tid, kind, core, subject, name_en, name_fr, desc_en, desc_fr, jurisdictions_supported, risk_level, review_status, requires_lawyer_review, est_minutes, usage_count, effective_date, updated_at) values (${q(t.id)}, ${q(t.category)}, ${q(t.key)}, ${q(t.tid)}, ${q(t.kind)}, ${t.core}, ${q(t.subject)}, ${q(t.name.en)}, ${q(t.name.fr)}, ${q(t.desc.en)}, ${q(t.desc.fr)}, ${qa(t.jurisdictions)}, ${q(t.risk)}, ${q(t.review)}, ${t.requiresLawyerReview}, ${t.estMinutes}, ${t.usageCount}, ${q(t.effectiveDate)}, ${q(t.updatedAt)});`,
-  )
-  rows.push(
     `insert into doclib.document_template_versions (id, template_id, version_number, question_flow_json, clause_library_json, statutory_references_json, jurisdiction_notes_json, includes_json, body_content, effective_date, created_by) values (${q(t.id + '_v' + t.versionNumber)}, ${q(t.id)}, ${t.versionNumber}, ${qj(t.questions)}, ${qj(t.preview)}, ${qj(t.statutory)}, ${qj(t.jurisdictionNotes)}, ${qj(t.includes)}, ${t.bodyHtmlEn ? q(t.bodyHtmlEn) : 'null'}, ${q(t.effectiveDate)}, 'handoff-seed');`,
   )
 }
@@ -463,15 +464,19 @@ writeFileSync(
 console.log('wrote supabase/migrations/0002_doclib_seed.sql', rows.length, 'rows')
 
 /* ---------- DATA_MODEL.md ---------- */
-const ent = dataModel.entities
-  .map(
-    (e) =>
-      `### \`${e.table}\` (${e.group}${e.rls ? ', RLS' : ''})\n\n${e.desc_en}\n\n- **Fields:** ${e.fields.map((f) => `\`${f}\``).join(', ')}\n- **Relations:** ${e.relations.join('; ')}\n- **Surfaces in UI:** ${e.ui_en}\n`,
-  )
+const entitySection = (entity) => {
+  const fields = entity.fields.map((field) => `\`${field}\``).join(', ')
+  const rls = entity.rls ? ', RLS' : ''
+  return `### \`${entity.table}\` (${entity.group}${rls})\n\n${entity.desc_en}\n\n- **Fields:** ${fields}\n- **Relations:** ${entity.relations.join('; ')}\n- **Surfaces in UI:** ${entity.ui_en}\n`
+}
+const ent = dataModel.entities.map(entitySection).join('\n')
+const flow = dataModel.flow
+  .map((item, index) => `${index + 1}. ${item.step_en ?? item.en ?? JSON.stringify(item)}`)
   .join('\n')
+const auditEvents = dataModel.audit_events.join('`, `')
 writeFileSync(
   join(REPO, 'docs', 'DATA_MODEL.md'),
-  `# HR Documents Library — data model\n\nTranscribed from the handoff's "Data Model & Handoff" screen (the authoritative\nstarting spec). The prototype shipped this as an in-app dev view; per the handoff\nREADME it is deliberately NOT a product route — it lives here as engineering\ndocumentation instead. The live demo schema is \`doclib\` in the Dutiva Supabase\nproject (see \`supabase/migrations/\`); ids are semantic text slugs for the demo\nseed (production would use uuids).\n\n**Stack:** ${dataModel.stack}\n\n## Entities\n\n${ent}\n## End-to-end flow\n\n${dataModel.flow.map((f, i) => `${i + 1}. ${f.step_en ?? f.en ?? JSON.stringify(f)}`).join('\n')}\n\n## Audit event catalogue\n\n\`${dataModel.audit_events.join('`, `')}\`\n\n\`document_audit_events\` is append-only: no UPDATE/DELETE is granted on it, even\nto service roles.\n`,
+  `# HR Documents Library — data model\n\nTranscribed from the handoff's "Data Model & Handoff" screen (the authoritative\nstarting spec). The prototype shipped this as an in-app dev view; per the handoff\nREADME it is deliberately NOT a product route — it lives here as engineering\ndocumentation instead. The live demo schema is \`doclib\` in the Dutiva Supabase\nproject (see \`supabase/migrations/\`); ids are semantic text slugs for the demo\nseed (production would use uuids).\n\n**Stack:** ${dataModel.stack}\n\n## Entities\n\n${ent}\n## End-to-end flow\n\n${flow}\n\n## Audit event catalogue\n\n\`${auditEvents}\`\n\n\`document_audit_events\` is append-only: no UPDATE/DELETE is granted on it, even\nto service roles.\n`,
 )
 console.log('wrote docs/DATA_MODEL.md')
 console.log(

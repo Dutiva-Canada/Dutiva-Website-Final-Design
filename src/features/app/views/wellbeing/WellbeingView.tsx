@@ -41,7 +41,7 @@ export function WellbeingView() {
           <Shield
             size={14}
             strokeWidth={1.8}
-            className="mt-[1px] shrink-0 text-gold-fg"
+            className="mt-px shrink-0 text-gold-fg"
             aria-hidden="true"
           />
           <span className="text-[12.5px] leading-[1.55] font-semibold text-gold-fg">
@@ -93,7 +93,7 @@ export function WellbeingView() {
                 <span className="text-[11px] font-bold tracking-[0.03em] text-gold-dot uppercase">
                   {x(M.wellbeing_recommended)}
                 </span>
-                <span className="text-[12.5px] leading-[1.5] text-text-2">{x(signal.action)}</span>
+                <span className="text-[12.5px] leading-normal text-text-2">{x(signal.action)}</span>
               </div>
               <div className="mt-[10px] flex flex-wrap gap-[8px]">
                 {signal.employeeId !== null && (
@@ -122,8 +122,8 @@ export function WellbeingView() {
         </div>
 
         {/* Audit-log note. */}
-        <div className="mt-[14px] flex items-start gap-[7px] text-[11px] leading-[1.5] text-text-faint">
-          <Shield size={12} strokeWidth={1.8} className="mt-[1px] shrink-0" aria-hidden="true" />
+        <div className="mt-[14px] flex items-start gap-[7px] text-[11px] leading-normal text-text-faint">
+          <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
           <span>{x(M.wellbeing_audit_note)}</span>
         </div>
       </div>

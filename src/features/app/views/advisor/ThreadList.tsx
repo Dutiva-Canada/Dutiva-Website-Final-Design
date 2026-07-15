@@ -26,10 +26,10 @@ export interface ThreadGroup {
 }
 
 export interface ThreadListProps {
-  groups: ThreadGroup[]
-  activeChatId: string | null
-  onSelect: (chatId: string) => void
-  onNewConversation: () => void
+  readonly groups: ThreadGroup[]
+  readonly activeChatId: string | null
+  readonly onSelect: (chatId: string) => void
+  readonly onNewConversation: () => void
 }
 
 export function ThreadList({ groups, activeChatId, onSelect, onNewConversation }: ThreadListProps) {
@@ -48,8 +48,8 @@ export function ThreadList({ groups, activeChatId, onSelect, onNewConversation }
         <span>{x(M.advisorview_new_conversation)}</span>
       </button>
 
-      {groups.map((group, gi) => (
-        <div key={gi}>
+      {groups.map((group) => (
+        <div key={group.label.en}>
           <div className="px-[10px] pt-[14px] pb-[6px] text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
             {x(group.label)}
           </div>
@@ -57,7 +57,7 @@ export function ThreadList({ groups, activeChatId, onSelect, onNewConversation }
             const active = chat.id === activeChatId
             return (
               <button
-                key={`${gi}-${chat.id}`}
+                key={chat.id}
                 type="button"
                 onClick={() => onSelect(chat.id)}
                 aria-current={active ? 'true' : undefined}

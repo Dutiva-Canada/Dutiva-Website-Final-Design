@@ -1,4 +1,5 @@
 ﻿import { useEffect, useRef } from 'react'
+import type { KeyboardEvent } from 'react'
 import { Check, ChevronDown, PenTool, Sparkle, TriangleAlert, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
@@ -31,7 +32,8 @@ export function DocStudioOverlay() {
     toggleMeta,
   } = useDocStudio()
   const { x, lang } = useI18n()
-  const dialogRef = useRef<HTMLDivElement>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const gateRef = useRef<HTMLDivElement>(null)
 
   const { open } = studio
   const gateOpen = studio.gate !== null
@@ -40,6 +42,27 @@ export function DocStudioOverlay() {
   useEffect(() => {
     if (open) dialogRef.current?.focus()
   }, [open])
+
+  useEffect(() => {
+    if (gateOpen) gateRef.current?.focus()
+  }, [gateOpen])
+
+  const trapFocus = (event: KeyboardEvent<HTMLDialogElement>) => {
+    if (event.key !== 'Tab') return
+    const focusable = event.currentTarget.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (!first || !last) return
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
 
   /* Prototype keydown handling: Escape cancels the gate first, then closes.
      Registered on the shared stack so overlays opened on top (e.g. search)
@@ -85,18 +108,20 @@ export function DocStudioOverlay() {
 
   return (
     <>
-      <div
+      <button
+        type="button"
         onClick={closeDocStudio}
-        aria-hidden="true"
-        className="fixed inset-0 z-[300] bg-[rgba(20,25,32,0.35)]"
+        aria-label={x(M.docstudio_close_aria)}
+        className="fixed inset-0 z-300 cursor-default border-none bg-[rgba(20,25,32,0.35)]"
       />
-      <div
+      <dialog
         ref={dialogRef}
-        role="dialog"
+        open
         aria-modal="true"
         aria-label={x(M.docstudio_dialog_aria)}
+        onKeyDown={trapFocus}
         tabIndex={-1}
-        className="fixed inset-y-0 right-0 z-[310] flex w-[min(560px,100%)] animate-[slideInRight_0.22s_ease] flex-col bg-surface font-sans shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
+        className="fixed inset-y-0 right-0 z-310 m-0 flex w-[min(560px,100%)] animate-[slideInRight_0.22s_ease] flex-col bg-surface font-sans shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
       >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-border-soft px-[22px] py-[18px]">
@@ -153,6 +178,7 @@ export function DocStudioOverlay() {
             <span className="flex-1" />
             <button
               onClick={toggleMeta}
+              aria-controls="docstudio-details"
               aria-expanded={studio.metaOpen}
               className="flex cursor-pointer items-center gap-[5px] px-[2px] py-1 font-sans text-[12px] font-semibold text-accent"
             >
@@ -161,7 +187,10 @@ export function DocStudioOverlay() {
             </button>
           </div>
           {studio.metaOpen && (
-            <div className="mt-[10px] max-h-[280px] overflow-y-auto rounded-[10px] border border-border-soft bg-surface-2 px-4 py-[6px]">
+            <div
+              id="docstudio-details"
+              className="mt-[10px] max-h-[280px] overflow-y-auto rounded-[10px] border border-border-soft bg-surface-2 px-4 py-[6px]"
+            >
               {metaRows.map((row) => (
                 <div key={row.key} className="flex gap-3 border-b border-inset py-2">
                   <span className="flex-[0_0_150px] text-[12px] font-semibold text-text-muted">
@@ -171,7 +200,7 @@ export function DocStudioOverlay() {
                 </div>
               ))}
               <div className="flex flex-col gap-2 pt-[10px] pb-3">
-                <div className="rounded-lg border border-[var(--accent-soft-border)] bg-accent-soft px-3 py-[9px] text-[12px] leading-normal text-text-2">
+                <div className="rounded-lg border border-(--accent-soft-border) bg-accent-soft px-3 py-[9px] text-[12px] leading-normal text-text-2">
                   <span className="font-bold text-accent">{x(M.docstudio_assumptions)} · </span>
                   {x(meta.assumptions)}
                 </div>
@@ -189,11 +218,7 @@ export function DocStudioOverlay() {
         <div className="flex-1 overflow-y-auto px-[22px] py-5">
           <div className="flex flex-col gap-[18px] rounded-[10px] border border-border-soft bg-surface-2 px-[28px] py-[26px]">
             {studio.generating && (
-              <div
-                className="flex flex-col gap-3"
-                role="status"
-                aria-label={x(M.docstudio_generating_aria)}
-              >
+              <output className="flex flex-col gap-3" aria-label={x(M.docstudio_generating_aria)}>
                 <div className="text-[12px] font-semibold text-text-muted">
                   {x(M.docstudio_generating)}
                 </div>
@@ -202,12 +227,12 @@ export function DocStudioOverlay() {
                 <div className="h-3 w-[92%] rounded-md bg-inset" />
                 <div className="h-3 w-[78%] rounded-md bg-inset" />
                 <div className="h-3 w-[55%] rounded-md bg-inset" />
-              </div>
+              </output>
             )}
             {showSections &&
-              studio.sections.map((section, idx) => (
+              studio.sections.map((section) => (
                 <div
-                  key={idx}
+                  key={pickL(section, 'en')}
                   className="font-display text-[14.5px] leading-[1.75] whitespace-pre-wrap text-text"
                 >
                   {pickL(section, lang)}
@@ -216,11 +241,11 @@ export function DocStudioOverlay() {
             {showEditors &&
               studio.sections.map((section, idx) => (
                 <textarea
-                  key={idx}
+                  key={pickL(section, 'en')}
                   value={pickL(section, lang)}
                   onChange={(e) => updateSection(idx, e.target.value)}
                   aria-label={`${x(M.docstudio_section_edit_aria)} ${idx + 1}`}
-                  className="min-h-[90px] w-full resize-y rounded-lg border border-[var(--accent-soft-border)] p-[10px] font-sans text-[14px] leading-[1.65] text-text"
+                  className="min-h-[90px] w-full resize-y rounded-lg border border-(--accent-soft-border) p-[10px] font-sans text-[14px] leading-[1.65] text-text"
                 />
               ))}
           </div>
@@ -236,19 +261,19 @@ export function DocStudioOverlay() {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => applyRevision('formal')}
-                  className="cursor-pointer rounded-full border border-[var(--accent-soft-border)] bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
+                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
                 >
                   {x(M.docstudio_revise_formal)}
                 </button>
                 <button
                   onClick={() => applyRevision('shorten')}
-                  className="cursor-pointer rounded-full border border-[var(--accent-soft-border)] bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
+                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
                 >
                   {x(M.docstudio_revise_shorten)}
                 </button>
                 <button
                   onClick={() => applyRevision('compassionate')}
-                  className="cursor-pointer rounded-full border border-[var(--accent-soft-border)] bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
+                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
                 >
                   {x(M.docstudio_revise_compassionate)}
                 </button>
@@ -260,15 +285,17 @@ export function DocStudioOverlay() {
 
           {gateOpen && (
             <div
+              ref={gateRef}
               role="alertdialog"
               aria-label={x(M.docstudio_gate_title)}
+              tabIndex={-1}
               className="rounded-[10px] border border-gold-border bg-gold-bg px-4 py-[14px]"
             >
               <div className="flex items-start gap-2">
                 <TriangleAlert
                   size={15}
                   strokeWidth={1.8}
-                  className="mt-[1px] shrink-0 text-gold-fg"
+                  className="mt-px shrink-0 text-gold-fg"
                   aria-hidden="true"
                 />
                 <div>
@@ -326,10 +353,10 @@ export function DocStudioOverlay() {
                 </button>
               </div>
               {studio.signatureSent ? (
-                <div className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-[13px] py-[10px] text-[12.5px] font-semibold text-ok-fg">
+                <output className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-[13px] py-[10px] text-[12.5px] font-semibold text-ok-fg">
                   <Check size={15} strokeWidth={2} className="shrink-0" aria-hidden="true" />
                   <span>{x(M.docstudio_esign_pending)}</span>
-                </div>
+                </output>
               ) : (
                 <button
                   onClick={sendForSignature}
@@ -342,7 +369,7 @@ export function DocStudioOverlay() {
             </>
           )}
         </div>
-      </div>
+      </dialog>
     </>
   )
 }
