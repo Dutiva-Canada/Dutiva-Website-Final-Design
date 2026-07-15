@@ -1,9 +1,11 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en-CA" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/brand/icon-app.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#080a0f" />
     <meta
       name="description"
       content="Dutiva — AI-assisted, jurisdiction-aware HR compliance for Canadian employers. Bilingual EN/FR."
@@ -16,19 +18,29 @@
     />
     <title>Dutiva — HR compliance for Canadian employers</title>
     <script>
-      // Apply persisted theme + language before first paint to avoid a flash.
+      // Apply persisted theme + the route's language before first paint to
+      // avoid a flash. Public URLs are language-scoped (/fr… → fr-CA,
+      // everything else → en-CA); only the /app surface follows the
+      // persisted preference. Prerendered pages ship the same value baked
+      // into <html lang>, so this recomputes — never contradicts — it.
       ;(function () {
-        var storage
+        var storage = null
         try {
           storage = window.localStorage
         } catch {
-          return
+          /* private mode — defaults below */
         }
         var theme = storage && storage.getItem('dutiva-theme')
         if (theme !== 'light' && theme !== 'dark') theme = 'dark'
         document.documentElement.dataset.theme = theme
-        var lang = storage && storage.getItem('dutiva-lang')
-        if (lang !== 'en' && lang !== 'fr') lang = 'en'
+        var path = window.location.pathname
+        var lang = 'en-CA'
+        if (path === '/fr' || path.indexOf('/fr/') === 0) {
+          lang = 'fr-CA'
+        } else if (path.indexOf('/app') === 0) {
+          var stored = storage && storage.getItem('dutiva-lang')
+          if (stored === 'fr') lang = 'fr-CA'
+        }
         document.documentElement.lang = lang
       })()
     </script>

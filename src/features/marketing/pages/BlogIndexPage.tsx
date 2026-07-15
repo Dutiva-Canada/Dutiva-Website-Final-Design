@@ -1,5 +1,6 @@
 import { useI18n } from '@/i18n/context'
 import type { MessageKey } from '@/i18n/messages'
+import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero } from './MarketingPage'
 
 const POSTS: { metaKey: MessageKey; titleKey: MessageKey; excerptKey: MessageKey }[] = [
@@ -16,6 +17,7 @@ export function BlogIndexPage() {
   const { t } = useI18n()
   return (
     <MarketingPageShell>
+      <Seo route="blog" pageType="CollectionPage" />
       <PageHero eyebrow={t('blog_eyebrow')} title={t('blog_h1')} intro={t('blog_intro')} />
 
       <section className="mx-auto max-w-[1200px] px-6 py-8">

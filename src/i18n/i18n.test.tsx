@@ -45,7 +45,7 @@ describe('LangProvider', () => {
     expect(screen.getByTestId('L')).toHaveTextContent('Bonjour')
     expect(screen.getByTestId('x')).toHaveTextContent('Dossier')
     expect(localStorage.getItem('dutiva-lang')).toBe('fr')
-    expect(document.documentElement.getAttribute('lang')).toBe('fr')
+    expect(document.documentElement.getAttribute('lang')).toBe('fr-CA')
   })
 
   it('reads the persisted language on mount', () => {

@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useI18n } from '@/i18n/context'
 import type { MessageKey } from '@/i18n/messages'
+import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
 const SECTIONS: { titleKey: MessageKey; icon: LucideIcon; itemKeys: MessageKey[] }[] = [
@@ -34,6 +35,7 @@ export function KnownLimitationsPage() {
   const { t } = useI18n()
   return (
     <MarketingPageShell>
+      <Seo route="knownLimitations" />
       <PageHero eyebrow={t('limits_eyebrow')} title={t('limits_h1')} intro={t('limits_intro')} />
 
       {SECTIONS.map((section) => (

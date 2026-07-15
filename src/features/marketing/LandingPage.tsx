@@ -1,3 +1,6 @@
+import { useI18n } from '@/i18n/context'
+import { Seo } from '@/seo/Seo'
+import { webApplicationNode } from '@/seo/jsonld'
 import './landing.css'
 import { Header } from './sections/Header'
 import { Hero } from './sections/Hero'
@@ -20,8 +23,10 @@ import { Footer } from './sections/Footer'
  * why Dutiva → coverage → pricing → guides → beta signup → footer.
  */
 export function LandingPage() {
+  const { lang } = useI18n()
   return (
     <div className="surface-marketing dutiva-surface min-h-screen text-text">
+      <Seo route="home" extraNodes={[webApplicationNode(lang)]} />
       <Header />
       <main>
         <Hero />

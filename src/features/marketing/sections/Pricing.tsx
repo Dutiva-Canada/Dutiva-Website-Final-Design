@@ -1,5 +1,6 @@
 import { Check, ChevronRight } from 'lucide-react'
 import { SectionIntro } from '../SectionIntro'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 
@@ -48,6 +49,7 @@ const PLANS: Plan[] = [
 
 export function Pricing() {
   const { lt } = useLanding()
+  const { p } = usePublicPath()
   return (
     <section id="pricing" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 py-16">
       <SectionIntro
@@ -114,7 +116,7 @@ export function Pricing() {
           {lt('landing_price_foot2')}
         </span>
         <a
-          href="/pricing"
+          href={p('pricing')}
           className="ml-auto inline-flex items-center gap-1 font-semibold text-gold-strong transition-opacity hover:opacity-80"
         >
           {lt('landing_price_compare')}

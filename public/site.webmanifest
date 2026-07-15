@@ -1,0 +1,24 @@
+{
+  "name": "Dutiva — HR compliance for Canadian employers",
+  "short_name": "Dutiva",
+  "description": "AI-assisted HR compliance software for Canadian employers — practical, jurisdiction-specific guidance and workplace documentation. Dutiva does not provide legal advice.",
+  "start_url": "/",
+  "scope": "/",
+  "lang": "en-CA",
+  "display": "standalone",
+  "background_color": "#080a0f",
+  "theme_color": "#080a0f",
+  "icons": [
+    {
+      "src": "/brand/icon-app.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/dutiva-leaf.png",
+      "sizes": "1275x1275",
+      "type": "image/png"
+    }
+  ]
+}

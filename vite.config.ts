@@ -15,9 +15,20 @@ export default defineConfig({
       output: {
         /* Splits third-party deps (react, react-router-dom, lucide-react, …)
            into their own chunk so app code changes don't invalidate vendor
-           caching, and to keep the main entry chunk under the 500kB warning. */
+           caching, and to keep the main entry chunk under the 500kB warning.
+           supabase-js gets its own group: only the app surface and /pricing
+           import it (lazily), so prerendered marketing pages never download
+           or preload it. */
         codeSplitting: {
-          groups: [{ name: 'vendor', test: /node_modules[\\/]/ }],
+          groups: [
+            /* @supabase is excluded from vendor so default chunking keeps it
+               with its only importers (the lazy app surface and /pricing) —
+               prerendered marketing pages never download or preload it. A
+               dedicated `supabase` group would instead attract the shared
+               vite/preload-helper module and get pulled back into the eager
+               entry graph. */
+            { name: 'vendor', test: /node_modules[\\/](?!@supabase[\\/])/ },
+          ],
         },
       },
     },

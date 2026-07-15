@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { screen, within } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { renderApp } from '@/test/renderApp'
+import { renderApp, renderAppAsync } from '@/test/renderApp'
 import { PolicyPage } from './PolicyPage'
 
 describe('PolicyPage', () => {
   it('renders the Terms of Service document in English', async () => {
-    renderApp(<PolicyPage />, { route: '/legal/terms', path: '/legal/:slug' })
+    await renderAppAsync(<PolicyPage />, { route: '/legal/terms', path: '/legal/:slug' })
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Terms of Service' }),
     ).toBeInTheDocument()
@@ -29,18 +29,28 @@ describe('PolicyPage', () => {
 
   it('re-localizes to French via the header language toggle', async () => {
     const user = userEvent.setup()
-    renderApp(<PolicyPage />, { route: '/legal/terms', path: '/legal/:slug' })
+    await renderAppAsync(<PolicyPage />, { route: '/legal/terms', path: '/legal/:slug' })
     await screen.findByRole('heading', { level: 1, name: 'Terms of Service' })
     const [langToggle] = screen.getAllByRole('button', { name: /Toggle language/ })
     expect(langToggle).toBeDefined()
-    await user.click(langToggle as HTMLElement)
+    // The switch suspends on the FR edition import; the act scope must be
+    // awaited for React to retry the suspended tree (see renderAppAsync).
+    await act(async () => {
+      await user.click(langToggle as HTMLElement)
+    })
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Conditions d’utilisation' }),
     ).toBeInTheDocument()
+    // The FR back-link points at the localized hub URL.
+    expect(
+      within(screen.getByRole('main')).getByRole('link', {
+        name: 'Tous les documents juridiques et de conformité',
+      }),
+    ).toHaveAttribute('href', '/fr/juridique')
   })
 
   it('renders a formerly FR-only document in English now that its EN edition shipped', async () => {
-    renderApp(<PolicyPage />, { route: '/legal/disclaimer', path: '/legal/:slug' })
+    await renderAppAsync(<PolicyPage />, { route: '/legal/disclaimer', path: '/legal/:slug' })
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Legal Disclaimer' }),
     ).toBeInTheDocument()
@@ -51,6 +61,18 @@ describe('PolicyPage', () => {
       ),
     ).toBeNull()
     expect(screen.getByRole('article')).not.toHaveAttribute('lang')
+  })
+
+  it('resolves the localized French slug', async () => {
+    await renderAppAsync(<PolicyPage />, {
+      route: '/fr/juridique/politique-de-confidentialite',
+      path: '/fr/juridique/:slug',
+    })
+    // renderApp's LangProvider defaults to EN; the FR slug still resolves the
+    // document (cross-locale fallback), rendering its EN edition.
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Privacy Policy' }),
+    ).toBeInTheDocument()
   })
 
   it('redirects away from an unknown slug without rendering the shell', () => {

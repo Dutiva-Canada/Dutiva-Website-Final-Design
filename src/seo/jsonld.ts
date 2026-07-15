@@ -1,0 +1,164 @@
+import type { Lang } from '@/i18n/core'
+import { ORG, ORG_DESCRIPTION, SITE_ORIGIN, absoluteUrl } from './site'
+
+/**
+ * JSON-LD (schema.org) builders. Every node lives in one `@graph` per page
+ * and reuses stable `@id`s anchored on the canonical origin, so all pages
+ * describe the same Dutiva entity instead of minting disconnected ones.
+ *
+ * Rules (docs/SEO_GEO_IMPLEMENTATION.md): only verified, visible facts.
+ * No ratings, reviews, awards, addresses, founding dates, or social
+ * profiles — none of those are published site facts today.
+ */
+
+export type JsonLdNode = Record<string, unknown>
+
+export const ORG_ID = `${SITE_ORIGIN}/#organization`
+export const WEBSITE_ID = `${SITE_ORIGIN}/#website`
+export const SOFTWARE_ID = `${SITE_ORIGIN}/#software`
+
+const LOCALE_TAG: Record<Lang, string> = { en: 'en-CA', fr: 'fr-CA' }
+
+export function organizationNode(lang: Lang): JsonLdNode {
+  return {
+    '@type': 'Organization',
+    '@id': ORG_ID,
+    name: ORG.name,
+    legalName: ORG.legalName,
+    url: `${SITE_ORIGIN}/`,
+    description: ORG_DESCRIPTION[lang],
+    email: ORG.supportEmail,
+    logo: {
+      '@type': 'ImageObject',
+      url: absoluteUrl(ORG.logoPath),
+      width: ORG.logoWidth,
+      height: ORG.logoHeight,
+    },
+    areaServed: { '@type': 'Country', name: 'Canada' },
+    knowsLanguage: ['en-CA', 'fr-CA'],
+  }
+}
+
+export function webSiteNode(lang: Lang): JsonLdNode {
+  return {
+    '@type': 'WebSite',
+    '@id': WEBSITE_ID,
+    name: ORG.name,
+    url: `${SITE_ORIGIN}/`,
+    description: ORG_DESCRIPTION[lang],
+    inLanguage: ['en-CA', 'fr-CA'],
+    publisher: { '@id': ORG_ID },
+  }
+}
+
+export interface OfferInput {
+  name: string
+  /** Monthly price in CAD, as visibly rendered on the pricing page. */
+  priceCad: number
+}
+
+/**
+ * The Dutiva product as a schema.org WebApplication. `offers` should be
+ * passed only from the pricing page, mirroring its visible plan cards.
+ */
+export function webApplicationNode(lang: Lang, offers?: OfferInput[]): JsonLdNode {
+  const node: JsonLdNode = {
+    '@type': ['SoftwareApplication', 'WebApplication'],
+    '@id': SOFTWARE_ID,
+    name: ORG.name,
+    url: `${SITE_ORIGIN}/`,
+    description: ORG_DESCRIPTION[lang],
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    inLanguage: ['en-CA', 'fr-CA'],
+    countriesSupported: 'CA',
+    publisher: { '@id': ORG_ID },
+  }
+  if (offers && offers.length > 0) {
+    node.offers = offers.map((offer) => ({
+      '@type': 'Offer',
+      name: offer.name,
+      price: offer.priceCad.toFixed(2),
+      priceCurrency: 'CAD',
+      url: absoluteUrl(lang === 'fr' ? '/fr/tarifs' : '/pricing'),
+    }))
+  }
+  return node
+}
+
+export type WebPageType = 'WebPage' | 'AboutPage' | 'CollectionPage' | 'FAQPage'
+
+export interface WebPageInput {
+  lang: Lang
+  /** Canonical pathname of the page. */
+  path: string
+  title: string
+  description: string
+  type?: WebPageType
+  /** Real content dates only (ISO 8601). Never the build date. */
+  datePublished?: string
+  dateModified?: string
+  hasBreadcrumb?: boolean
+}
+
+export function webPageNode(input: WebPageInput): JsonLdNode {
+  const url = absoluteUrl(input.path)
+  const node: JsonLdNode = {
+    '@type': input.type ?? 'WebPage',
+    '@id': `${url}#webpage`,
+    url,
+    name: input.title,
+    description: input.description,
+    inLanguage: LOCALE_TAG[input.lang],
+    isPartOf: { '@id': WEBSITE_ID },
+    about: { '@id': ORG_ID },
+  }
+  if (input.datePublished) node.datePublished = input.datePublished
+  if (input.dateModified) node.dateModified = input.dateModified
+  if (input.hasBreadcrumb) node.breadcrumb = { '@id': `${url}#breadcrumb` }
+  return node
+}
+
+export interface BreadcrumbItem {
+  name: string
+  /** Canonical pathname; the final item may omit it (current page). */
+  path?: string
+}
+
+export function breadcrumbNode(pagePath: string, items: BreadcrumbItem[]): JsonLdNode {
+  return {
+    '@type': 'BreadcrumbList',
+    '@id': `${absoluteUrl(pagePath)}#breadcrumb`,
+    itemListElement: items.map((item, i) => {
+      const li: JsonLdNode = { '@type': 'ListItem', position: i + 1, name: item.name }
+      if (item.path) li.item = absoluteUrl(item.path)
+      return li
+    }),
+  }
+}
+
+export interface FaqEntry {
+  question: string
+  answer: string
+}
+
+/** FAQPage main entity — pass ONLY questions/answers visibly rendered on the
+    page, from the same message catalogue the page renders. */
+export function faqPageEntities(entries: FaqEntry[]): JsonLdNode[] {
+  return entries.map((entry) => ({
+    '@type': 'Question',
+    name: entry.question,
+    acceptedAnswer: { '@type': 'Answer', text: entry.answer },
+  }))
+}
+
+/** Wraps graph nodes into a single serializable JSON-LD document. */
+export function jsonLdDocument(nodes: JsonLdNode[]): Record<string, unknown> {
+  return { '@context': 'https://schema.org', '@graph': nodes }
+}
+
+/** JSON-LD serialized for a <script> tag ("<" escaped so content cannot
+    close the tag or open a new one). */
+export function serializeJsonLd(document: Record<string, unknown>): string {
+  return JSON.stringify(document).replace(/</g, '\\u003c')
+}

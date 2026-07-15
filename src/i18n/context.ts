@@ -11,6 +11,13 @@ export interface LangContextValue {
   L: (en: string, fr: string) => string
   /** Resolve a bilingual data field ({ en, fr }). */
   x: (value: Bi) => string
+  /**
+   * On public pages (URL-scoped language, see ForcedLangProvider) the same
+   * page's pathname in the other language — the language toggle renders it
+   * as a real link so the EN/FR pair reference each other crawlably.
+   * Undefined in the app surface, where language is a client preference.
+   */
+  alternateHref?: string
 }
 
 export const LangContext = createContext<LangContextValue | null>(null)

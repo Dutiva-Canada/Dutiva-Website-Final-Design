@@ -2,7 +2,9 @@ import { CircleCheck, FileWarning, FileX, ScrollText, UserPlus } from 'lucide-re
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { MessageKey } from '@/i18n/messages'
-import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
+import { Seo } from '@/seo/Seo'
+import { usePublicPath } from '@/seo/usePublicPath'
+import { Breadcrumbs, MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
 const STEPS: { titleKey: MessageKey; bodyKey: MessageKey }[] = [
   { titleKey: 'tmplGuide_st1t', bodyKey: 'tmplGuide_st1p' },
@@ -22,8 +24,17 @@ const PRACTICES: MessageKey[] = ['tmplGuide_bp1', 'tmplGuide_bp2', 'tmplGuide_bp
 /** /guides/template-usage — how template generation works (tmplGuide_* strings). */
 export function TemplateUsagePage() {
   const { t } = useI18n()
+  const { p, home } = usePublicPath()
+  /* Shared by the visible trail and the BreadcrumbList JSON-LD. */
+  const trail = [
+    { name: 'Dutiva', path: home() },
+    { name: 'Guides', path: p('guides') },
+    { name: t('tmplGuide_h1') },
+  ]
   return (
     <MarketingPageShell>
+      <Seo route="templateUsage" breadcrumb={trail} />
+      <Breadcrumbs items={trail} />
       <PageHero
         eyebrow={t('tmplGuide_eyebrow')}
         title={t('tmplGuide_h1')}

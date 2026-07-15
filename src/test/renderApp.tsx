@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import type { RenderResult } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -40,4 +40,21 @@ export function renderApp(
       </LangProvider>
     </ThemeProvider>,
   )
+}
+
+/**
+ * renderApp for components that suspend on `use()` promises (e.g.
+ * PolicyPage's lazily imported document editions). React only retries
+ * suspended trees when the surrounding `act` scope is awaited, so the
+ * render itself must happen inside an async act.
+ */
+export async function renderAppAsync(
+  ui: ReactElement,
+  options: RenderAppOptions = {},
+): Promise<RenderResult> {
+  let result: RenderResult
+  await act(async () => {
+    result = renderApp(ui, options)
+  })
+  return result!
 }

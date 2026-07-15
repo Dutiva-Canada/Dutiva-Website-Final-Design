@@ -1,21 +1,25 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ChevronRight, Globe, LogIn, Menu, Moon, Sun, X } from 'lucide-react'
+import { HTML_LANG, writeLang } from '@/i18n/lang'
+import type { Lang } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { LeafTile, Wordmark } from '../Brand'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 
-/* Leading '/' so the section anchors also resolve from the marketing
-   subpages (/about, /legal/…); on the landing page itself the path part is
-   a no-op and the browser jumps straight to the anchor. */
-const NAV_ITEMS: { href: string; key: LandingMessageKey }[] = [
-  { href: '/#how', key: 'landing_nav_how' },
-  { href: '/#workflows', key: 'landing_nav_workflows' },
-  { href: '/#product', key: 'landing_nav_docs' },
-  { href: '/#coverage', key: 'landing_nav_coverage' },
-  { href: '/#pricing', key: 'landing_nav_pricing' },
-  { href: '/#guides', key: 'landing_nav_guides' },
+/* Landing-section anchors, resolved against the locale homepage ('/'
+   or '/fr') so they work from the subpages in either language; on the
+   landing page itself the path part is a no-op and the browser jumps
+   straight to the anchor. */
+const NAV_ITEMS: { hash: string; key: LandingMessageKey }[] = [
+  { hash: 'how', key: 'landing_nav_how' },
+  { hash: 'workflows', key: 'landing_nav_workflows' },
+  { hash: 'product', key: 'landing_nav_docs' },
+  { hash: 'coverage', key: 'landing_nav_coverage' },
+  { hash: 'pricing', key: 'landing_nav_pricing' },
+  { hash: 'guides', key: 'landing_nav_guides' },
 ]
 
 /* Compact desktop control pill (lang / theme) — prototype `.hdr-ctrl`. */
@@ -26,13 +30,45 @@ const CTRL =
 const PILL =
   'inline-flex h-[46px] min-w-[46px] cursor-pointer items-center justify-center gap-[7px] rounded-2xl border border-border-strong bg-bg-elevated px-4 font-sans text-[0.9375rem] font-semibold text-text transition-[border-color,background-color,transform] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(255,255,255,0.05)] active:translate-y-px motion-reduce:transition-none'
 
+/**
+ * Language toggle. On the public surface (URL-scoped language) it renders a
+ * real link to the same page's URL in the other language — a crawlable,
+ * visible EN↔FR cross-reference — and persists the choice for the app
+ * surface. Falls back to an in-place toggle when no alternate URL exists.
+ */
+function LangToggle({ className, iconSize }: { className: string; iconSize: number }) {
+  const { L, lang, setLang, alternateHref } = useLanding()
+  const other: Lang = lang === 'en' ? 'fr' : 'en'
+  const label = lang === 'en' ? 'FR' : 'EN'
+  const aria = `${label} · ${L('Toggle language', 'Changer de langue')}`
+  if (alternateHref) {
+    return (
+      <Link
+        to={alternateHref}
+        className={className}
+        aria-label={aria}
+        hrefLang={HTML_LANG[other]}
+        onClick={() => writeLang(other)}
+      >
+        <Globe size={iconSize} />
+        {label}
+      </Link>
+    )
+  }
+  return (
+    <button type="button" className={className} aria-label={aria} onClick={() => setLang(other)}>
+      <Globe size={iconSize} />
+      {label}
+    </button>
+  )
+}
+
 export function Header() {
-  const { lt, t, L, lang, setLang } = useLanding()
+  const { lt, t, L } = useLanding()
+  const { home } = usePublicPath()
   const { theme, toggleTheme } = useTheme()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const langLabel = lang === 'en' ? 'FR' : 'EN'
-  const toggleLang = () => setLang(lang === 'en' ? 'fr' : 'en')
   const ThemeIcon = theme === 'dark' ? Sun : Moon
   const closeMenu = () => setMenuOpen(false)
 
@@ -40,7 +76,7 @@ export function Header() {
     <>
       <header className="sticky top-0 z-30 border-b border-border bg-(--topbar-bg) backdrop-blur-[18px]">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-3">
-          <a href="/#top" className="flex items-center gap-2.5">
+          <a href={home('top')} className="flex items-center gap-2.5">
             <LeafTile size={46} radius={13} leafHeight={32} shadow />
             <span className="leading-none">
               <span className="block">
@@ -55,8 +91,8 @@ export function Header() {
           <nav className="hidden items-center gap-0.5 min-[901px]:flex">
             {NAV_ITEMS.map((item) => (
               <a
-                key={item.href}
-                href={item.href}
+                key={item.hash}
+                href={home(item.hash)}
                 className="rounded-full px-3.5 py-2 text-sm font-semibold text-text-2 transition-opacity hover:opacity-80"
               >
                 {lt(item.key)}
@@ -65,15 +101,7 @@ export function Header() {
           </nav>
 
           <div className="hidden items-center gap-2 min-[901px]:flex">
-            <button
-              type="button"
-              className={CTRL}
-              aria-label={`${langLabel} · ${L('Toggle language', 'Changer de langue')}`}
-              onClick={toggleLang}
-            >
-              <Globe size={15} />
-              {langLabel}
-            </button>
+            <LangToggle className={CTRL} iconSize={15} />
             <button
               type="button"
               className={CTRL}
@@ -103,15 +131,7 @@ export function Header() {
 
           {/* Mobile: FR · theme · hamburger */}
           <div className="flex items-center gap-2.5 min-[901px]:hidden">
-            <button
-              type="button"
-              className={PILL}
-              aria-label={`${langLabel} · ${L('Toggle language', 'Changer de langue')}`}
-              onClick={toggleLang}
-            >
-              <Globe size={17} />
-              {langLabel}
-            </button>
+            <LangToggle className={PILL} iconSize={17} />
             <button
               type="button"
               className={PILL}
@@ -164,8 +184,8 @@ export function Header() {
         <nav className="flex flex-col">
           {NAV_ITEMS.map((item) => (
             <a
-              key={item.href}
-              href={item.href}
+              key={item.hash}
+              href={home(item.hash)}
               onClick={closeMenu}
               className="flex items-center justify-between rounded-xl border-b border-border px-3 py-[15px] text-[1.0625rem] font-semibold text-text hover:bg-[rgba(127,127,127,0.06)]"
             >

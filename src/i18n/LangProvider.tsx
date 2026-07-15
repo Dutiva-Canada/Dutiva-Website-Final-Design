@@ -1,38 +1,30 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { readPref, writePref } from '@/lib/prefs'
 import { LangContext } from './context'
 import type { LangContextValue } from './context'
-import { pick } from './core'
 import type { Lang } from './core'
-import { messages } from './messages'
+import { HTML_LANG, buildLangContextValue, readLang, writeLang } from './lang'
 
-const LANG_KEY = 'dutiva-lang'
-
-function readLang(): Lang {
-  return readPref(LANG_KEY, 'en') === 'fr' ? 'fr' : 'en'
-}
-
+/**
+ * Preference-scoped language provider for the app surface (/app…): language
+ * follows the persisted `dutiva-lang` preference and toggles in place.
+ * Public marketing routes instead use ForcedLangProvider, where the URL is
+ * the source of truth (/fr… → French).
+ */
 export function LangProvider({ children }: { readonly children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(readLang)
 
   useEffect(() => {
-    document.documentElement.setAttribute('lang', lang)
+    document.documentElement.setAttribute('lang', HTML_LANG[lang])
   }, [lang])
 
   const updateLang = useCallback((next: Lang) => {
-    writePref(LANG_KEY, next)
+    writeLang(next)
     setLang(next)
   }, [])
 
   const value = useMemo<LangContextValue>(
-    () => ({
-      lang,
-      setLang: updateLang,
-      t: (key) => pick(messages[key], lang),
-      L: (en, fr) => (lang === 'fr' ? fr : en),
-      x: (v) => pick(v, lang),
-    }),
+    () => buildLangContextValue(lang, updateLang),
     [lang, updateLang],
   )
 

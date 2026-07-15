@@ -86,6 +86,27 @@ export async function loadPolicyEdition(
   return fallback ? { edition: await fallback(), lang: other } : undefined
 }
 
+const editionCache = new Map<string, Promise<ResolvedPolicyEdition | undefined>>()
+
+/**
+ * Stable per-(slug, lang) promise for React's `use()`: PolicyPage suspends on
+ * it, so prerendering (react-dom/static waits for suspended trees) emits the
+ * full document text, and on the client the same promise instance keeps
+ * re-renders from re-triggering the import.
+ */
+export function policyEditionResource(
+  doc: PolicyDoc,
+  lang: Lang,
+): Promise<ResolvedPolicyEdition | undefined> {
+  const key = `${doc.slug}:${lang}`
+  let promise = editionCache.get(key)
+  if (!promise) {
+    promise = loadPolicyEdition(doc, lang)
+    editionCache.set(key, promise)
+  }
+  return promise
+}
+
 /**
  * Consecutive `li` blocks grouped into one list so the page can render a
  * semantic `<ul>`; `p` blocks stay standalone paragraphs.
