@@ -16,12 +16,21 @@ import { isNavActive } from './navConfig'
  * star) · Tasks · More.
  */
 
-export function MobileTopbar({ title, onOpenDrawer }: { title: string; onOpenDrawer: () => void }) {
+export function MobileTopbar({
+  title,
+  onOpenDrawer,
+  triggerRef,
+}: {
+  title: string
+  onOpenDrawer: () => void
+  triggerRef?: React.RefObject<HTMLButtonElement | null>
+}) {
   const { x } = useI18n()
   const { openSearch } = useSearch()
   return (
     <header className="flex h-[56px] shrink-0 items-center justify-between border-b border-border bg-surface px-[14px]">
       <button
+        ref={triggerRef}
         type="button"
         onClick={onOpenDrawer}
         aria-label={x(M.shell_open_menu)}

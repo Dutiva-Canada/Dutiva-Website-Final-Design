@@ -62,21 +62,58 @@ export const shellMessages = defineMessages({
   shell_powered_by: { en: 'Powered by', fr: 'Propulsé par' },
   shell_sign_out: { en: 'Sign out', fr: 'Se déconnecter' }, // [FR self-authored]
 
+  /* Create menu */
+  shell_create: { en: 'Create', fr: 'Créer' }, // [FR self-authored]
+  shell_create_conversation: { en: 'Conversation', fr: 'Conversation' },
+  shell_create_workflow: { en: 'Workflow', fr: 'Processus' },
+  shell_create_case: { en: 'Case', fr: 'Dossier' },
+  shell_create_document: { en: 'Document', fr: 'Document' },
+  shell_create_employee: { en: 'Employee record', fr: 'Dossier d’employé' }, // [FR self-authored]
+  shell_create_communication: { en: 'Communication', fr: 'Communication' },
+  shell_create_unavailable: { en: 'Unavailable', fr: 'Indisponible' }, // [FR self-authored]
+  shell_create_unavailable_desc: {
+    en: 'This creation flow is not yet available.',
+    fr: 'Ce flux de création n’est pas encore disponible.',
+  }, // [FR self-authored]
+
+  /* Sidebar toggle / tooltips */
+  shell_collapse_sidebar: { en: 'Collapse sidebar', fr: 'Réduire la barre latérale' }, // [FR self-authored]
+  shell_expand_sidebar: { en: 'Expand sidebar', fr: 'Développer la barre latérale' }, // [FR self-authored]
+  shell_user_profile_aria: { en: 'Current user profile', fr: 'Profil de l’utilisateur actuel' }, // [FR self-authored]
+
+  /* Badge accessible descriptions — {count} is replaced at runtime */
+  shell_badge_workflows_aria: {
+    en: '{count} active workflows',
+    fr: '{count} processus actifs',
+  }, // [FR self-authored]
+  shell_badge_cases_aria: {
+    en: '{count} open cases requiring review',
+    fr: '{count} dossiers ouverts nécessitant un examen',
+  }, // [FR self-authored]
+  shell_badge_compliance_aria: {
+    en: '{count} unresolved compliance issues',
+    fr: '{count} problèmes de conformité non résolus',
+  }, // [FR self-authored]
+  shell_badge_wellbeing_aria: {
+    en: '{count} wellbeing follow-up',
+    fr: '{count} suivi de bien-être',
+  }, // [FR self-authored]
+
   /* Nav labels (buildI18n nav_*) */
   shell_nav_home: { en: 'Home', fr: 'Accueil' },
   shell_nav_advisor_home: { en: 'AI Advisor', fr: 'Conseiller IA' },
   shell_nav_workflows: { en: 'Workflows', fr: 'Processus' },
   shell_nav_people: { en: 'People', fr: 'Personnel' },
-  shell_nav_cases: { en: 'Case Files', fr: 'Dossiers' },
+  shell_nav_cases: { en: 'Cases', fr: 'Dossiers' },
   /* Unified HR Studio nav entry (Templates | Library | Studio tabs inside
      DocumentsLayout). Hand-authored on purpose: doclib.ts is wholesale-
      regenerated and has no slot for these app-owned labels. */
-  shell_nav_library: { en: 'HR Studio', fr: 'Studio RH' }, // [FR self-authored]
+  shell_nav_library: { en: 'Documents', fr: 'Documents' }, // [FR self-authored]
   /* Three sub-tab labels within the HR Studio section. */
   shell_hr_studio_templates: { en: 'Templates', fr: 'Gabarits' }, // [FR self-authored]
   shell_hr_studio_library: { en: 'Library', fr: 'Bibliothèque' }, // [FR self-authored]
   shell_hr_studio_studio: { en: 'Studio', fr: 'Studio' },
-  shell_nav_knowledge: { en: 'Knowledge Base', fr: 'Base de connaissances' },
+  shell_nav_knowledge: { en: 'Knowledge', fr: 'Connaissances' },
   shell_nav_compliance: { en: 'Compliance', fr: 'Conformité' },
   shell_nav_compensation: { en: 'Compensation', fr: 'Rémunération' },
   shell_nav_communications: { en: 'Communications', fr: 'Communications' },
@@ -84,7 +121,7 @@ export const shellMessages = defineMessages({
   shell_nav_tasks: { en: 'Tasks', fr: 'Tâches' },
   shell_nav_calendar: { en: 'Calendar', fr: 'Calendrier' },
   /* Planning section (Tasks + Calendar merged into one nav entry) */
-  shell_nav_planning: { en: 'Planning', fr: 'Planification' }, // [FR self-authored]
+  shell_nav_planning: { en: 'Workforce Planning', fr: 'Planification des effectifs' }, // [FR self-authored]
   /* Settings section tab labels (General + Memory) */
   shell_settings_general: { en: 'General', fr: 'Général' }, // [FR self-authored]
   shell_nav_analytics: { en: 'Analytics', fr: 'Analytique' },
@@ -100,7 +137,7 @@ export const shellMessages = defineMessages({
   shell_v_home: { en: 'Home', fr: 'Accueil' },
   shell_v_advisor: { en: 'Advisor', fr: 'Conseiller' },
   shell_v_workflows: { en: 'Workflows', fr: 'Processus' },
-  shell_v_cases: { en: 'Case Files', fr: 'Dossiers' },
+  shell_v_cases: { en: 'Cases', fr: 'Dossiers' },
   shell_v_employees: { en: 'Employees', fr: 'Employés' },
   shell_v_compliance: { en: 'Compliance', fr: 'Conformité' },
   shell_v_policies: { en: 'Policies', fr: 'Politiques' },
@@ -108,7 +145,7 @@ export const shellMessages = defineMessages({
   shell_v_calendar: { en: 'Calendar', fr: 'Calendrier' },
   shell_v_reports: { en: 'Reports', fr: 'Rapports' },
   shell_v_templates: { en: 'Document Studio', fr: 'Studio de documents' },
-  shell_v_knowledge: { en: 'Knowledge Base', fr: 'Base de connaissances' },
+  shell_v_knowledge: { en: 'Knowledge', fr: 'Connaissances' },
   shell_v_settings: { en: 'Settings', fr: 'Paramètres' },
   shell_v_compensation: { en: 'Compensation', fr: 'Rémunération' },
   shell_v_wellbeing: { en: 'Wellbeing', fr: 'Bien-être' },

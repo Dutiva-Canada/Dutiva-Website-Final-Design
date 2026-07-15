@@ -102,7 +102,7 @@ export const NAV_GROUPS: NavGroup[] = [
         to: '/app/compliance',
         icon: ShieldCheck,
         label: M.shell_nav_compliance,
-        badge: { value: COMPLIANCE_BADGE, tone: 'risk' },
+        badge: { value: COMPLIANCE_BADGE, tone: 'warn' },
       },
       {
         key: 'compensation',
