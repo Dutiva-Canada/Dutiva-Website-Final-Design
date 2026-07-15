@@ -19,7 +19,6 @@ import {
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
-import { doclibMessages as DL } from '@/i18n/messages/doclib'
 import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { cases, employeeDetails, employees } from '@/data'
 
@@ -147,11 +146,11 @@ export function isNavActive(to: string, pathname: string): boolean {
 /* Studio's subroutes (catalogue → generate flow), as opposed to the
    Repository (index + :docId). Single source of truth for both the topbar
    title below and the Repository/Studio tab strip (DocumentsLayout.tsx). */
-const DOCLIB_STUDIO_SUBPATHS = ['studio', 'templates', 'generate']
+const DOCLIB_STUDIO_SUBPATHS = new Set(['studio', 'templates', 'generate'])
 
 export function isDoclibStudioPath(pathname: string): boolean {
   const parts = pathname.replace(/^\/app\/?/, '').split('/')
-  return parts[0] === 'documents' && DOCLIB_STUDIO_SUBPATHS.includes(parts[1] ?? '')
+  return parts[0] === 'documents' && DOCLIB_STUDIO_SUBPATHS.has(parts[1] ?? '')
 }
 
 /* Topbar / mobile-topbar route titles (prototype `viewLabels`). */
@@ -196,8 +195,8 @@ export function viewLabelFor(pathname: string): Bi {
     if (emp) return bi(emp.name, emp.name)
   }
   if (segment === 'documents') {
-    if (pathname.startsWith('/app/documents/hr-library')) return M.shell_nav_library
-    return isDoclibStudioPath(pathname) ? DL.doclib_nav_studio : DL.doclib_nav_documents
+    if (pathname.startsWith('/app/documents/hr-library')) return M.shell_hr_studio_templates
+    return isDoclibStudioPath(pathname) ? M.shell_hr_studio_studio : M.shell_hr_studio_library
   }
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }

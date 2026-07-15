@@ -68,11 +68,14 @@ export const shellMessages = defineMessages({
   shell_nav_workflows: { en: 'Workflows', fr: 'Processus' },
   shell_nav_people: { en: 'People', fr: 'Personnel' },
   shell_nav_cases: { en: 'Case Files', fr: 'Dossiers' },
-  /* Unified HR Library nav entry (merges HR Library + Document Library +
-     Document Studio as tabs inside DocumentsLayout). Also used as the topbar
-     title for the hr-library sub-path. Hand-authored on purpose: doclib.ts is
-     wholesale-regenerated and has no slot for this label. */
-  shell_nav_library: { en: 'HR Library', fr: 'Bibliothèque RH' }, // [FR self-authored]
+  /* Unified HR Studio nav entry (Templates | Library | Studio tabs inside
+     DocumentsLayout). Hand-authored on purpose: doclib.ts is wholesale-
+     regenerated and has no slot for these app-owned labels. */
+  shell_nav_library: { en: 'HR Studio', fr: 'Studio RH' }, // [FR self-authored]
+  /* Three sub-tab labels within the HR Studio section. */
+  shell_hr_studio_templates: { en: 'Templates', fr: 'Gabarits' }, // [FR self-authored]
+  shell_hr_studio_library: { en: 'Library', fr: 'Bibliothèque' }, // [FR self-authored]
+  shell_hr_studio_studio: { en: 'Studio', fr: 'Studio' },
   shell_nav_knowledge: { en: 'Knowledge Base', fr: 'Base de connaissances' },
   shell_nav_compliance: { en: 'Compliance', fr: 'Conformité' },
   shell_nav_compensation: { en: 'Compensation', fr: 'Rémunération' },

@@ -1,7 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { UserRound } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { doclibMessages as DL } from '@/i18n/messages/doclib'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { isDoclibStudioPath } from '@/features/app/shell/navConfig'
 import { DoclibProvider } from './DoclibProvider'
@@ -34,21 +33,21 @@ function DocumentsTabs() {
         aria-current={hrLibrary ? 'page' : undefined}
         className={linkClass(hrLibrary)}
       >
-        {x(M.shell_nav_library)}
+        {x(M.shell_hr_studio_templates)}
       </Link>
       <Link
         to="/app/documents"
         aria-current={library ? 'page' : undefined}
         className={linkClass(library)}
       >
-        {x(DL.doclib_nav_documents)}
+        {x(M.shell_hr_studio_library)}
       </Link>
       <Link
         to="/app/documents/studio"
         aria-current={studio ? 'page' : undefined}
         className={linkClass(studio)}
       >
-        {x(DL.doclib_nav_studio)}
+        {x(M.shell_hr_studio_studio)}
       </Link>
     </nav>
   )
