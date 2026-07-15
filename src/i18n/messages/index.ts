@@ -1,6 +1,9 @@
 import { common } from './common'
 import { shellMessages } from './shell'
 import { landing } from './landing'
+import { pricingMessages } from './pricing'
+import { templatesPreviewMessages } from './templatesPreview'
+import { guidesIndexMessages } from './guidesIndex'
 import { advisorCore } from './advisorCore'
 import { searchMessages } from './search'
 import { docstudioMessages } from './docstudio'
@@ -43,6 +46,9 @@ export const messages = {
   ...common,
   ...shellMessages,
   ...landing,
+  ...pricingMessages,
+  ...templatesPreviewMessages,
+  ...guidesIndexMessages,
   ...advisorCore,
   ...searchMessages,
   ...docstudioMessages,

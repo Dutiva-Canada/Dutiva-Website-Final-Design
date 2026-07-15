@@ -14,6 +14,8 @@ npm run dev        # start the dev server
 ```
 
 - `/` — marketing landing page
+- `/pricing` — plan comparison + Stripe checkout
+- `/templates` — template catalogue preview
 - `/app/welcome` — app entry stage
 - `/app/home` — the workspace
 
