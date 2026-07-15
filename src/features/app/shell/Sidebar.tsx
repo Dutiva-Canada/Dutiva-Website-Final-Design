@@ -58,12 +58,16 @@ function NavLinkItem({
       )}
     >
       <Icon size={16} strokeWidth={1.7} className="shrink-0" />
-      {expanded && (
-        <>
-          <span className={item.badge ? 'flex-1 text-left' : undefined}>{x(item.label)}</span>
-          {item.badge && <span className={BADGE_CLASSES[item.badge.tone]}>{item.badge.value}</span>}
-        </>
-      )}
+      <span
+        aria-hidden={!expanded}
+        className={cx(
+          'flex min-w-0 items-center gap-[8px] overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
+          expanded ? 'max-w-[190px] flex-1 translate-x-0 opacity-100 delay-75' : 'max-w-0 -translate-x-1 opacity-0',
+        )}
+      >
+        <span className={item.badge ? 'flex-1 text-left' : undefined}>{x(item.label)}</span>
+        {item.badge && <span className={BADGE_CLASSES[item.badge.tone]}>{item.badge.value}</span>}
+      </span>
     </Link>
   )
 }
@@ -132,7 +136,13 @@ export function Sidebar({
   const sidePad = expanded ? 'px-[10px]' : 'px-[8px]'
 
   const sectionHeading = (label: string) => (
-    <div className="px-[10px] pt-[16px] pb-[6px] text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+    <div
+      aria-hidden={!expanded}
+      className={cx(
+        'overflow-hidden whitespace-nowrap text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase transition-[max-height,opacity,padding] duration-150 ease-in-out motion-reduce:transition-none',
+        expanded ? 'max-h-[40px] px-[10px] pt-[16px] pb-[6px] opacity-100 delay-75' : 'max-h-0 px-[10px] py-0 opacity-0',
+      )}
+    >
       {label}
     </div>
   )
@@ -156,14 +166,16 @@ export function Sidebar({
             N
           </div>
         </div>
-        {expanded && (
-          <div className="min-w-0">
-            <div className="truncate text-[14px] leading-[1.2] font-bold text-text">
-              {identity.companyName}
-            </div>
-            <div className="truncate text-[11px] text-text-muted">{x(M.shell_hr_workspace)}</div>
-          </div>
-        )}
+        <div
+          aria-hidden={!expanded}
+          className={cx(
+            'min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
+            expanded ? 'max-w-[180px] translate-x-0 opacity-100 delay-75' : 'max-w-0 -translate-x-1 opacity-0',
+          )}
+        >
+          <div className="truncate text-[14px] leading-[1.2] font-bold text-text">{identity.companyName}</div>
+          <div className="truncate text-[11px] text-text-muted">{x(M.shell_hr_workspace)}</div>
+        </div>
         {mode === 'drawer' && (
           <button
             type="button"
@@ -191,7 +203,15 @@ export function Sidebar({
           )}
         >
           <Plus size={15} strokeWidth={2} className="shrink-0" />
-          {expanded && <span>{x(M.shell_new_conversation)}</span>}
+          <span
+            aria-hidden={!expanded}
+            className={cx(
+              'overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
+              expanded ? 'max-w-[160px] translate-x-0 opacity-100 delay-75' : 'max-w-0 -translate-x-1 opacity-0',
+            )}
+          >
+            {x(M.shell_new_conversation)}
+          </span>
         </Link>
         <button
           type="button"
@@ -203,14 +223,16 @@ export function Sidebar({
           )}
         >
           <Search size={15} strokeWidth={1.8} className="shrink-0" />
-          {expanded && (
-            <>
-              <span className="flex-1 text-left">{x(M.shell_search)}</span>
-              <span className="rounded-[4px] border border-border px-[5px] py-px text-[11px] text-text-faint">
-                ⌘K
-              </span>
-            </>
-          )}
+          <span
+            aria-hidden={!expanded}
+            className={cx(
+              'flex min-w-0 items-center gap-[8px] overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
+              expanded ? 'max-w-[170px] flex-1 translate-x-0 opacity-100 delay-75' : 'max-w-0 -translate-x-1 opacity-0',
+            )}
+          >
+            <span className="flex-1 text-left">{x(M.shell_search)}</span>
+            <span className="rounded-[4px] border border-border px-[5px] py-px text-[11px] text-text-faint">⌘K</span>
+          </span>
         </button>
       </div>
 
@@ -335,11 +357,15 @@ export function Sidebar({
               style={{ filter: 'var(--logo-glow)' }}
             />
           </div>
-          {expanded && (
-            <span className="text-[11px] tracking-[0.01em] text-text-faint">
-              {x(M.shell_powered_by)} <span className="font-bold text-text-muted">Dutiva</span>
-            </span>
-          )}
+          <span
+            aria-hidden={!expanded}
+            className={cx(
+              'overflow-hidden whitespace-nowrap text-[11px] tracking-[0.01em] text-text-faint transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
+              expanded ? 'max-w-[150px] translate-x-0 opacity-100 delay-75' : 'max-w-0 -translate-x-1 opacity-0',
+            )}
+          >
+            {x(M.shell_powered_by)} <span className="font-bold text-text-muted">Dutiva</span>
+          </span>
         </div>
       </div>
 
