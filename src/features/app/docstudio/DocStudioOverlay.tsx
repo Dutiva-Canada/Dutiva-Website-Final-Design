@@ -111,7 +111,7 @@ export function DocStudioOverlay() {
       <div
         onClick={closeDocStudio}
         aria-hidden="true"
-        className="fixed inset-0 z-[300] bg-[rgba(20,25,32,0.35)]"
+        className="fixed inset-0 z-300 bg-[rgba(20,25,32,0.35)]"
       />
       <div
         ref={dialogRef}
@@ -120,7 +120,7 @@ export function DocStudioOverlay() {
         aria-label={x(M.docstudio_dialog_aria)}
         onKeyDown={trapFocus}
         tabIndex={-1}
-        className="fixed inset-y-0 right-0 z-[310] flex w-[min(560px,100%)] animate-[slideInRight_0.22s_ease] flex-col bg-surface font-sans shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
+        className="fixed inset-y-0 right-0 z-310 flex w-[min(560px,100%)] animate-[slideInRight_0.22s_ease] flex-col bg-surface font-sans shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
       >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-border-soft px-[22px] py-[18px]">
@@ -199,7 +199,7 @@ export function DocStudioOverlay() {
                 </div>
               ))}
               <div className="flex flex-col gap-2 pt-[10px] pb-3">
-                <div className="rounded-lg border border-[var(--accent-soft-border)] bg-accent-soft px-3 py-[9px] text-[12px] leading-normal text-text-2">
+                <div className="rounded-lg border border-(--accent-soft-border) bg-accent-soft px-3 py-[9px] text-[12px] leading-normal text-text-2">
                   <span className="font-bold text-accent">{x(M.docstudio_assumptions)} · </span>
                   {x(meta.assumptions)}
                 </div>
@@ -248,7 +248,7 @@ export function DocStudioOverlay() {
                   value={pickL(section, lang)}
                   onChange={(e) => updateSection(idx, e.target.value)}
                   aria-label={`${x(M.docstudio_section_edit_aria)} ${idx + 1}`}
-                  className="min-h-[90px] w-full resize-y rounded-lg border border-[var(--accent-soft-border)] p-[10px] font-sans text-[14px] leading-[1.65] text-text"
+                  className="min-h-[90px] w-full resize-y rounded-lg border border-(--accent-soft-border) p-[10px] font-sans text-[14px] leading-[1.65] text-text"
                 />
               ))}
           </div>
@@ -264,19 +264,19 @@ export function DocStudioOverlay() {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => applyRevision('formal')}
-                  className="cursor-pointer rounded-full border border-[var(--accent-soft-border)] bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
+                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
                 >
                   {x(M.docstudio_revise_formal)}
                 </button>
                 <button
                   onClick={() => applyRevision('shorten')}
-                  className="cursor-pointer rounded-full border border-[var(--accent-soft-border)] bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
+                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
                 >
                   {x(M.docstudio_revise_shorten)}
                 </button>
                 <button
                   onClick={() => applyRevision('compassionate')}
-                  className="cursor-pointer rounded-full border border-[var(--accent-soft-border)] bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
+                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
                 >
                   {x(M.docstudio_revise_compassionate)}
                 </button>
@@ -298,7 +298,7 @@ export function DocStudioOverlay() {
                 <TriangleAlert
                   size={15}
                   strokeWidth={1.8}
-                  className="mt-[1px] shrink-0 text-gold-fg"
+                  className="mt-px shrink-0 text-gold-fg"
                   aria-hidden="true"
                 />
                 <div>

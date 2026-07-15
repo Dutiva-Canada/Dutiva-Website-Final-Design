@@ -60,8 +60,10 @@ function useDrawerTransition(open: boolean, duration = 220) {
      the tab is backgrounded, where rAF callbacks are throttled. */
   useLayoutEffect(() => {
     if (mounted && open) {
-      void document.body.offsetHeight
-      setEntered(true)
+      // Force a synchronous layout read so React/the browser doesn't coalesce
+      // the mount and entered styles into a single paint.
+      const reflow = document.body.offsetHeight
+      if (reflow >= 0) setEntered(true)
     }
   }, [mounted, open])
 
@@ -120,18 +122,18 @@ export function AppShell() {
             <div
               onClick={() => setDrawerOpen(false)}
               className={cx(
-                'fixed inset-0 z-[60] bg-[rgba(20,25,32,0.4)] transition-opacity duration-[220ms] ease-[cubic-bezier(0.4,0,0.2,1)]',
+                'fixed inset-0 z-60 bg-[rgba(20,25,32,0.4)] transition-opacity duration-220 ease-in-out',
                 drawerEntered ? 'opacity-100' : 'opacity-0',
               )}
               aria-hidden="true"
             />
-            <div role="dialog" aria-modal="true" aria-label={x(shellMessages.shell_primary_nav)}>
+            <dialog open aria-modal="true" aria-label={x(shellMessages.shell_primary_nav)} className="m-0 h-full w-full max-w-full border-none bg-transparent p-0">
               <Sidebar
                 mode="drawer"
                 onCloseDrawer={() => setDrawerOpen(false)}
                 drawerEntered={drawerEntered}
               />
-            </div>
+            </dialog>
           </>
         )}
 

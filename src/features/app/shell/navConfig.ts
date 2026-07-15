@@ -2,14 +2,12 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   Book,
-  Brain,
-  Calendar,
+  CalendarCheck,
   ChartNoAxesColumn,
   DollarSign,
   FileStack,
   Folder,
   House,
-  ListChecks,
   MessageCircle,
   Send,
   ShieldCheck,
@@ -19,7 +17,6 @@ import {
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
-import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { cases, employeeDetails, employees } from '@/data'
 
 /**
@@ -70,7 +67,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: M.shell_nav_workflows,
         badge: { value: WORKFLOWS_BADGE, tone: 'gold' },
       },
-      { key: 'memory', to: '/app/memory', icon: Brain, label: MEM.memory_nav_memory },
+      /* Memory is now a sub-tab inside Settings */
     ],
   },
   {
@@ -126,8 +123,14 @@ export const NAV_GROUPS: NavGroup[] = [
         label: M.shell_nav_wellbeing,
         badge: { value: WELLBEING_BADGE, tone: 'warn' },
       },
-      { key: 'tasks', to: '/app/tasks', icon: ListChecks, label: M.shell_nav_tasks },
-      { key: 'calendar', to: '/app/calendar', icon: Calendar, label: M.shell_nav_calendar },
+      /* Tasks and Calendar are now sub-tabs inside Planning */
+      {
+        key: 'planning',
+        to: '/app/planning/tasks',
+        icon: CalendarCheck,
+        label: M.shell_nav_planning,
+        isActive: (pathname) => pathname.startsWith('/app/planning'),
+      },
     ],
   },
   {
@@ -157,14 +160,11 @@ export function isDoclibStudioPath(pathname: string): boolean {
 const VIEW_LABELS: Record<string, Bi> = {
   home: M.shell_v_home,
   advisor: M.shell_v_advisor,
-  memory: MEM.memory_title,
   workflows: M.shell_v_workflows,
   cases: M.shell_v_cases,
   employees: M.shell_v_employees,
   compliance: M.shell_v_compliance,
   policies: M.shell_v_policies,
-  tasks: M.shell_v_tasks,
-  calendar: M.shell_v_calendar,
   reports: M.shell_v_reports,
   templates: M.shell_v_templates,
   knowledge: M.shell_v_knowledge,
@@ -172,6 +172,7 @@ const VIEW_LABELS: Record<string, Bi> = {
   compensation: M.shell_v_compensation,
   wellbeing: M.shell_v_wellbeing,
   communications: M.shell_v_communications,
+  planning: M.shell_nav_planning,
 }
 
 /**
@@ -182,6 +183,7 @@ const VIEW_LABELS: Record<string, Bi> = {
 export function moduleLabelFor(pathname: string): Bi {
   const segment = pathname.replace(/^\/app\/?/, '').split('/')[0] ?? ''
   if (segment === 'documents') return M.shell_nav_library
+  if (segment === 'planning') return M.shell_nav_planning
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }
 
@@ -197,6 +199,12 @@ export function viewLabelFor(pathname: string): Bi {
   if (segment === 'documents') {
     if (pathname.startsWith('/app/documents/hr-library')) return M.shell_hr_studio_templates
     return isDoclibStudioPath(pathname) ? M.shell_hr_studio_studio : M.shell_hr_studio_library
+  }
+  if (segment === 'planning') {
+    return pathname.startsWith('/app/planning/calendar') ? M.shell_nav_calendar : M.shell_nav_tasks
+  }
+  if (segment === 'settings' && pathname.startsWith('/app/settings/memory')) {
+    return M.shell_v_settings
   }
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }

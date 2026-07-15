@@ -120,6 +120,28 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
             ],
           },
         },
+        /* /app/planning is the unified Planning view (Tasks + Calendar sub-tabs).
+           The briefing reuses the tasks content — planning lands on tasks by default. */
+        planning: {
+          title: M.advisor_brief_title_tasks,
+          spec: {
+            text: M.advisor_brief_tasks_text,
+            cards: [
+              {
+                tone: 'suggestion',
+                title: M.advisor_brief_tasks_card_title,
+                body: M.advisor_brief_tasks_card_body,
+                actions: [
+                  {
+                    label: M.advisor_action_open_case,
+                    primary: true,
+                    onClick: go(caseRouteForChat('c1')),
+                  },
+                ],
+              },
+            ],
+          },
+        },
         tasks: {
           title: M.advisor_brief_title_tasks,
           spec: {

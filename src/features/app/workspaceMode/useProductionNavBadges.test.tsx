@@ -117,7 +117,7 @@ describe('useProductionNavBadges (via Sidebar)', () => {
 
     const nav = await screen.findByRole('navigation', { name: 'Primary navigation' })
     const casesLink = within(nav).getByRole('link', { name: /Case Files/ })
-    const tasksLink = within(nav).getByRole('link', { name: /Tasks/ })
+    const tasksLink = within(nav).getByRole('link', { name: /Planning/ })
     const complianceLink = within(nav).getByRole('link', { name: /Compliance/ })
 
     /* Live counts land asynchronously. */

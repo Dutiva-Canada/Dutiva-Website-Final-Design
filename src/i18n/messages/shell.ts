@@ -83,6 +83,10 @@ export const shellMessages = defineMessages({
   shell_nav_wellbeing: { en: 'Wellbeing', fr: 'Bien-être' },
   shell_nav_tasks: { en: 'Tasks', fr: 'Tâches' },
   shell_nav_calendar: { en: 'Calendar', fr: 'Calendrier' },
+  /* Planning section (Tasks + Calendar merged into one nav entry) */
+  shell_nav_planning: { en: 'Planning', fr: 'Planification' }, // [FR self-authored]
+  /* Settings section tab labels (General + Memory) */
+  shell_settings_general: { en: 'General', fr: 'Général' }, // [FR self-authored]
   shell_nav_analytics: { en: 'Analytics', fr: 'Analytique' },
   shell_nav_policies: { en: 'Policies', fr: 'Politiques' },
   shell_nav_settings: { en: 'Settings', fr: 'Paramètres' },

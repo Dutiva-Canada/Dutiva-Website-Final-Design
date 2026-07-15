@@ -116,7 +116,7 @@ export function ChatRecallView() {
   const { facts } = useMemoryStore()
 
   const thread = memoryThreads.find((t) => t.id === threadId)
-  if (!thread) return <Navigate to="/app/memory" replace />
+  if (!thread) return <Navigate to="/app/settings/memory" replace />
 
   const employee = employees.find((e) => e.id === thread.personId)
   const byId = (id: string) => facts.find((f) => f.id === id)
@@ -159,7 +159,7 @@ export function ChatRecallView() {
                     </span>
                     <button
                       type="button"
-                      onClick={() => navigate(`/app/memory/cases/${thread.caseId}`)}
+                      onClick={() => navigate(`/app/settings/memory/cases/${thread.caseId}`)}
                       className="cursor-pointer border-none bg-transparent p-0 font-sans text-[12px] font-bold text-support-fg"
                     >
                       {x(M.memory_chat_view)}
@@ -257,7 +257,7 @@ export function ChatRecallView() {
                               </div>
                               <button
                                 type="button"
-                                onClick={() => navigate(`/app/memory/people/${thread.personId}`)}
+                                onClick={() => navigate(`/app/settings/memory/people/${thread.personId}`)}
                                 className="shrink-0 cursor-pointer rounded-[7px] border border-border bg-surface px-[9px] py-[4px] font-sans text-[11.5px] font-semibold text-text-muted"
                               >
                                 {x(M.memory_action_correct)}
@@ -299,7 +299,7 @@ export function ChatRecallView() {
             </div>
           </div>
           <div className="px-[15px] py-[13px]">
-            <div className="mb-[9px] text-[10.5px] font-bold tracking-[0.05em] text-gold-fg uppercase">
+            <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
               {employee?.name ?? thread.personId}
             </div>
             {knowPerson.map((fact) => (
@@ -307,7 +307,7 @@ export function ChatRecallView() {
             ))}
           </div>
           <div className="border-t border-inset px-[15px] py-[13px]">
-            <div className="mb-[9px] text-[10.5px] font-bold tracking-[0.05em] text-gold-fg uppercase">
+            <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
               {x(M.memory_know_this_conversation)}
             </div>
             {knowThread.map((fact) => (

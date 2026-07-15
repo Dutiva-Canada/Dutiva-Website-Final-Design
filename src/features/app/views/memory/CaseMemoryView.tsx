@@ -36,7 +36,7 @@ export function CaseMemoryView() {
 
   const memoryCase = memoryCases.find((c) => c.id === caseId)
   const content = caseId !== undefined ? memoryCaseContent[caseId] : undefined
-  if (!memoryCase || !content) return <Navigate to="/app/memory" replace />
+  if (!memoryCase || !content) return <Navigate to="/app/settings/memory" replace />
 
   const person = memoryPeople.find((p) => p.id === memoryCase.personId)
   const employee = employees.find((e) => e.id === memoryCase.personId)
@@ -94,7 +94,7 @@ export function CaseMemoryView() {
                 type="button"
                 onClick={() =>
                   person?.threadId != null
-                    ? navigate(`/app/memory/conversations/${person.threadId}`)
+                    ? navigate(`/app/settings/memory/conversations/${person.threadId}`)
                     : navigate('/app/advisor')
                 }
                 className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[13px] py-[8px] font-sans text-[12.5px] font-bold text-white"
@@ -148,7 +148,7 @@ export function CaseMemoryView() {
 
             {/* Case facts */}
             <div className="flex items-center gap-[8px] px-[2px] pt-[2px] pb-[8px]">
-              <span className="text-[11px] font-bold tracking-[0.05em] text-gold-fg uppercase">
+              <span className="text-[11px] font-bold tracking-wider text-gold-fg uppercase">
                 {x(M.memory_case_facts)}
               </span>
               <span className="h-px flex-1 bg-border-soft" />
@@ -166,7 +166,7 @@ export function CaseMemoryView() {
 
             {/* Memory timeline */}
             <div className="flex items-center gap-[8px] px-[2px] pt-[2px] pb-[8px]">
-              <span className="text-[11px] font-bold tracking-[0.05em] text-gold-fg uppercase">
+              <span className="text-[11px] font-bold tracking-wider text-gold-fg uppercase">
                 {x(M.memory_case_timeline)}
               </span>
               <span className="h-px flex-1 bg-border-soft" />
@@ -211,7 +211,7 @@ export function CaseMemoryView() {
                           {pick(entry.date, lang)}
                         </span>
                         {entry.current === true && (
-                          <span className="rounded-[100px] bg-gold-bg px-[8px] py-px text-[9.5px] font-extrabold tracking-[0.05em] text-gold-fg uppercase">
+                          <span className="rounded-[100px] bg-gold-bg px-[8px] py-px text-[9.5px] font-extrabold tracking-wider text-gold-fg uppercase">
                             {x(M.memory_case_now)}
                           </span>
                         )}
@@ -244,7 +244,7 @@ export function CaseMemoryView() {
                 </div>
               </div>
               <div className="px-[15px] py-[13px]">
-                <div className="mb-[9px] text-[10.5px] font-bold tracking-[0.05em] text-gold-fg uppercase">
+                <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
                   {employee?.name ?? memoryCase.personId}
                 </div>
                 {knowPerson.map((fact) => (
@@ -253,7 +253,7 @@ export function CaseMemoryView() {
               </div>
               {knowCase.length > 0 && (
                 <div className="border-t border-inset px-[15px] py-[13px]">
-                  <div className="mb-[9px] text-[10.5px] font-bold tracking-[0.05em] text-gold-fg uppercase">
+                  <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
                     {x(M.memory_know_this_case)}
                   </div>
                   {knowCase.map((fact) => (
@@ -262,7 +262,7 @@ export function CaseMemoryView() {
                 </div>
               )}
               <div className="border-t border-inset px-[15px] py-[13px]">
-                <div className="mb-[9px] text-[10.5px] font-bold tracking-[0.05em] text-gold-fg uppercase">
+                <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
                   {x(M.memory_know_next_steps)}
                 </div>
                 {content.nextSteps.map((step) => (
@@ -291,7 +291,7 @@ export function CaseMemoryView() {
 
             <button
               type="button"
-              onClick={() => navigate('/app/memory')}
+              onClick={() => navigate('/app/settings/memory')}
               className="flex cursor-pointer items-center justify-center gap-[7px] rounded-[10px] border border-border bg-surface p-[11px] font-sans text-[13px] font-bold text-text-2"
             >
               <Brain size={16} strokeWidth={1.7} aria-hidden="true" />

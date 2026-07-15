@@ -34,7 +34,7 @@ export function PersonMemoryView() {
 
   const person = memoryPeople.find((p) => p.id === personId)
   const employee = employees.find((e) => e.id === personId)
-  if (!person || !employee) return <Navigate to="/app/memory" replace />
+  if (!person || !employee) return <Navigate to="/app/settings/memory" replace />
 
   const first = pick(person.firstName, lang)
   const meta = [employee.role, employee.dept, employee.province, employee.tenure]
@@ -74,7 +74,7 @@ export function PersonMemoryView() {
               type="button"
               onClick={() =>
                 person.threadId !== null
-                  ? navigate(`/app/memory/conversations/${person.threadId}`)
+                  ? navigate(`/app/settings/memory/conversations/${person.threadId}`)
                   : navigate('/app/advisor')
               }
               className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border-none bg-navy px-[14px] py-[9px] font-sans text-[13px] font-bold text-white"
@@ -87,7 +87,7 @@ export function PersonMemoryView() {
                 type="button"
                 onClick={() =>
                   person.memoryCaseId !== null
-                    ? navigate(`/app/memory/cases/${person.memoryCaseId}`)
+                    ? navigate(`/app/settings/memory/cases/${person.memoryCaseId}`)
                     : navigate(`/app/cases/${person.caseId}`)
                 }
                 className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border border-border bg-surface px-[14px] py-[9px] font-sans text-[13px] font-bold text-text-2"
@@ -130,7 +130,7 @@ export function PersonMemoryView() {
             {groups.map((group) => (
               <div key={group.category} className="mb-[8px]">
                 <div className="flex items-center gap-[8px] px-[2px] pb-[6px] pt-[2px]">
-                  <span className="text-[11px] font-bold tracking-[0.05em] text-gold-fg uppercase">
+                  <span className="text-[11px] font-bold tracking-wider text-gold-fg uppercase">
                     {pick(CATEGORY_LABELS[group.category], lang)}
                   </span>
                   <span className="h-px flex-1 bg-border-soft" />
@@ -219,7 +219,7 @@ export function PersonMemoryView() {
 
             <button
               type="button"
-              onClick={() => navigate('/app/memory')}
+              onClick={() => navigate('/app/settings/memory')}
               className="flex cursor-pointer items-center justify-center gap-[7px] rounded-[10px] border border-border bg-surface p-[11px] font-sans text-[13px] font-bold text-text-2"
             >
               <Brain size={16} strokeWidth={1.7} aria-hidden="true" />

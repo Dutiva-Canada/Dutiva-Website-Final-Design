@@ -34,12 +34,12 @@ function NavLinkItem({
   expanded,
   active,
   onNavigate,
-}: {
+}: Readonly<{
   item: NavItem
   expanded: boolean
   active: boolean
   onNavigate?: () => void
-}) {
+}>) {
   const { x } = useI18n()
   const Icon = item.icon
   return (
@@ -68,16 +68,31 @@ function NavLinkItem({
   )
 }
 
+function sidebarClasses(mode: SidebarMode, expanded: boolean, drawerEntered: boolean) {
+  return cx(
+    'flex h-full shrink-0 flex-col border-r border-border bg-inset',
+    expanded ? 'w-[256px]' : 'w-[64px]',
+    mode === 'hover' &&
+      'absolute top-0 bottom-0 left-0 transition-[width,box-shadow] duration-180 ease-in-out',
+    mode === 'hover' &&
+      (expanded ? 'z-40 shadow-[8px_0_28px_rgba(0,0,0,0.28)]' : 'z-5 shadow-none'),
+    mode === 'rail' && 'relative z-1',
+    mode === 'drawer' &&
+      'fixed top-0 bottom-0 left-0 z-70 shadow-[8px_0_30px_rgba(0,0,0,0.15)] transition-transform duration-220 ease-in-out',
+    mode === 'drawer' && (drawerEntered ? 'translate-x-0' : '-translate-x-full'),
+  )
+}
+
 export function Sidebar({
   mode,
   onCloseDrawer,
   drawerEntered = true,
-}: {
+}: Readonly<{
   mode: SidebarMode
   onCloseDrawer?: () => void
   /** For `mode="drawer"`: whether the slide-in transition has settled open. */
   drawerEntered?: boolean
-}) {
+}>) {
   const { x, L } = useI18n()
   const { openSearch } = useSearch()
   const navigate = useNavigate()
@@ -113,7 +128,7 @@ export function Sidebar({
 
   const [profileOpen, setProfileOpen] = useState(false)
 
-  const expanded = mode === 'drawer' ? true : mode === 'hover' ? hovered : false
+  const expanded = mode === 'drawer' || (mode === 'hover' && hovered)
   const sidePad = expanded ? 'px-[10px]' : 'px-[8px]'
 
   const sectionHeading = (label: string) => (
@@ -127,18 +142,7 @@ export function Sidebar({
       aria-label={x(M.shell_hr_workspace)}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={cx(
-        'flex h-full shrink-0 flex-col border-r border-border bg-inset',
-        expanded ? 'w-[256px]' : 'w-[64px]',
-        mode === 'hover' &&
-          'absolute top-0 bottom-0 left-0 transition-[width,box-shadow] duration-180 ease-in-out',
-        mode === 'hover' &&
-          (expanded ? 'z-40 shadow-[8px_0_28px_rgba(0,0,0,0.28)]' : 'z-5 shadow-none'),
-        mode === 'rail' && 'relative z-1',
-        mode === 'drawer' &&
-          'fixed top-0 bottom-0 left-0 z-70 shadow-[8px_0_30px_rgba(0,0,0,0.15)] transition-transform duration-220 ease-in-out',
-        mode === 'drawer' && (drawerEntered ? 'translate-x-0' : '-translate-x-full'),
-      )}
+      className={sidebarClasses(mode, expanded, drawerEntered)}
     >
       {/* Workspace header */}
       <div
@@ -248,7 +252,7 @@ export function Sidebar({
             label: M.shell_nav_settings,
           }}
           expanded={expanded}
-          active={isNavActive('/app/settings', pathname)}
+          active={pathname.startsWith('/app/settings')}
           onNavigate={onCloseDrawer}
         />
         <div className="relative">
