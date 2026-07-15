@@ -21,6 +21,10 @@ afterEach(() => {
   localStorage.removeItem('dutiva-lang')
 })
 
+/* Every tab section stays mounted inside the single tabpanel and is toggled
+   with the `hidden` attribute, so text queries must skip hidden sections. */
+const visible = (el: HTMLElement) => el.closest('[hidden]') === null
+
 describe('DocumentDetailScreen', () => {
   it('renders the doc_001 header: title, four status chips, tabs, and the Supabase metadata rail', async () => {
     renderDetail()
@@ -35,7 +39,7 @@ describe('DocumentDetailScreen', () => {
 
     /* Four header chips: status Signed, review Approved for use, signature
        Signed, risk Medium risk. */
-    expect(screen.getAllByText('Signed')).toHaveLength(2)
+    expect(screen.getAllByText('Signed').filter(visible)).toHaveLength(2)
     expect(screen.getByText('Approved for use')).toBeInTheDocument()
     expect(screen.getByText('Medium risk')).toBeInTheDocument()
 
@@ -61,10 +65,11 @@ describe('DocumentDetailScreen', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Audit trail' }))
     /* signature_completed → humanized/localized label + its actor (scoped to
-       the panel — the metadata rail also names Gabriel Dubois). */
+       the panel — the metadata rail also names Gabriel Dubois, and the hidden
+       fields/recipients sections do too). */
     const panel = within(screen.getByRole('tabpanel'))
     expect(panel.getByText('Signature completed')).toBeInTheDocument()
-    expect(panel.getByText('Gabriel Dubois')).toBeInTheDocument()
+    expect(panel.getAllByText('Gabriel Dubois').filter(visible)).toHaveLength(1)
     expect(panel.getByText('v2 — salary corrected')).toBeInTheDocument()
   })
 

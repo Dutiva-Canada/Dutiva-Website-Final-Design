@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { employees } from '@/data'
 import type { Employee } from '@/data'
@@ -43,7 +43,8 @@ describe('EmployeeDrawer', () => {
     const onClose = vi.fn()
     renderApp(<EmployeeDrawer employee={fixture('e1')} onClose={onClose} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    /* The scrim and the header X are both labelled Close — use the dialog's. */
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Close' }))
     expect(onClose).toHaveBeenCalledTimes(1)
 
     fireEvent.keyDown(window, { key: 'Escape' })
