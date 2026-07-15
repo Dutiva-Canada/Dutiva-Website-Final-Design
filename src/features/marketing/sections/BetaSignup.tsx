@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, CircleCheck, ShieldCheck } from 'lucide-react'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 
@@ -36,6 +37,7 @@ type Status = 'idle' | 'sending' | 'done'
 
 export function BetaSignup() {
   const { lt } = useLanding()
+  const { legalDoc } = usePublicPath()
   const [email, setEmail] = useState('')
   const [company, setCompany] = useState('')
   const [province, setProvince] = useState('')
@@ -183,7 +185,7 @@ export function BetaSignup() {
               <p className="m-0 text-xs leading-[1.55] text-text-3">
                 {lt('landing_cta_consent')}{' '}
                 <Link
-                  to="/legal/privacy"
+                  to={legalDoc('privacy')}
                   className="font-semibold text-text-2 transition-opacity hover:opacity-80"
                 >
                   {lt('landing_cta_privacy_link')}

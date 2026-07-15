@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { Fragment, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ChevronRight } from 'lucide-react'
+import { useI18n } from '@/i18n/context'
 import '../landing.css'
 import { Header } from '../sections/Header'
 import { Footer } from '../sections/Footer'
@@ -24,6 +25,41 @@ export function MarketingPageShell({ children }: { readonly children: ReactNode 
       <main>{children}</main>
       <Footer />
     </div>
+  )
+}
+
+export interface BreadcrumbTrailItem {
+  name: string
+  /** Locale-correct pathname; omit on the current page (last item). */
+  path?: string
+}
+
+/**
+ * Visible breadcrumb trail for nested public pages, mirrored as
+ * BreadcrumbList JSON-LD via <Seo breadcrumb={…}> with the same items.
+ */
+export function Breadcrumbs({ items }: { readonly items: BreadcrumbTrailItem[] }) {
+  const { L } = useI18n()
+  return (
+    <nav
+      aria-label={L('Breadcrumb', 'Fil d’Ariane')}
+      className="mx-auto flex max-w-[840px] flex-wrap items-center justify-center gap-1.5 px-6 pt-8 text-[0.8125rem] text-text-3"
+    >
+      {items.map((item, index) => (
+        <Fragment key={item.name}>
+          {index > 0 && <ChevronRight size={12} aria-hidden="true" className="flex-none" />}
+          {item.path ? (
+            <Link to={item.path} className="transition-opacity hover:opacity-80">
+              {item.name}
+            </Link>
+          ) : (
+            <span aria-current="page" className="text-text-2">
+              {item.name}
+            </span>
+          )}
+        </Fragment>
+      ))}
+    </nav>
   )
 }
 

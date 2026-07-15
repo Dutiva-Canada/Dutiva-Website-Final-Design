@@ -2,6 +2,7 @@ import { FileText } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { docTemplates, templateCategories } from '@/features/app/documents/data'
 import type { DocRiskLevel, Jurisdiction } from '@/features/app/documents/data'
+import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
 const RISK_CLASS: Record<DocRiskLevel, string> = {
@@ -33,6 +34,7 @@ export function TemplatesPage() {
 
   return (
     <MarketingPageShell>
+      <Seo route="templates" pageType="CollectionPage" />
       <PageHero
         eyebrow={t('tplPreview_eyebrow')}
         title={t('tplPreview_h1')}

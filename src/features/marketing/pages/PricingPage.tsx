@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabaseClient'
 import { PLANS, getPlanById } from '@/config/plans'
 import type { PlanDefinition } from '@/config/plans'
 import { Disclaimer } from '@/components/Disclaimer'
+import { Seo } from '@/seo/Seo'
+import { webApplicationNode } from '@/seo/jsonld'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 import type { ReactNode } from 'react'
 
@@ -94,7 +96,7 @@ function PriceCard({
  * sees a confirmation banner instead of a Stripe redirect.
  */
 export function PricingPage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { status } = useAuth()
   const { isAdmin, plan: currentPlan, stripeCustomerId, loading: planLoading } = usePlan()
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null)
@@ -163,8 +165,12 @@ export function PricingPage() {
     }
   }
 
+  /* Offer nodes mirror the plan cards rendered below (same PLANS catalogue,
+     same visible CAD prices) — schema pricing can never drift from the page. */
+  const offers = PLANS.map((plan) => ({ name: t(plan.nameKey), priceCad: plan.monthlyPrice }))
   return (
     <MarketingPageShell>
+      <Seo route="pricing" extraNodes={[webApplicationNode(lang, offers)]} />
       <PageHero eyebrow={t('pricing_eyebrow')} title={t('pricing_h1')} intro={t('pricing_intro')} />
 
       {isAdmin && !planLoading ? (

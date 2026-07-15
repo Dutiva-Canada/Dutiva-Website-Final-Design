@@ -2,6 +2,7 @@ import { HeartHandshake, Leaf, MapPin, Scale, ShieldCheck } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { MessageKey } from '@/i18n/messages'
+import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
 const VALUES: { icon: LucideIcon; titleKey: MessageKey; bodyKey: MessageKey }[] = [
@@ -16,6 +17,7 @@ export function AboutPage() {
   const { t } = useI18n()
   return (
     <MarketingPageShell>
+      <Seo route="about" pageType="AboutPage" />
       <PageHero eyebrow={t('about_eyebrow')} title={t('about_h1')} intro={t('about_intro')} />
 
       <PageSection title={t('about_s1')}>

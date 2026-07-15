@@ -39,6 +39,13 @@ src/
 
 ## Routes
 
+Public marketing routes are bilingual: English at the unprefixed path,
+French under `/fr` with localized slugs. Both trees are generated from the
+SEO route registry (`src/seo/routes.ts`) — **adding or renaming a public
+route starts there**, see `docs/SEO_GEO_IMPLEMENTATION.md`. Public pages are
+prerendered to static HTML at build time (`scripts/prerender.mjs`); `/app…`
+stays client-rendered and noindex.
+
 | Path                                                                                                                                                                                      | Renders                                                                                                                                                                |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/`                                                                                                                                                                                       | Marketing landing page                                                                                                                                                 |
@@ -47,6 +54,8 @@ src/
 | `/templates`                                                                                                                                                                              | Template catalogue preview — renders the real Document Studio fixture data                                                                                             |
 | `/guides · /guides/template-usage · /known-limitations`                                                                                                                                   | Marketing subpages                                                                                                                                                     |
 | `/legal` → `/legal/:slug`                                                                                                                                                                 | Policy index → one of 26 policy documents                                                                                                                              |
+| `/fr` · `/fr/a-propos` · `/fr/faq` · `/fr/blogue` · `/fr/tarifs` · `/fr/modeles` · `/fr/guides` · `/fr/guides/utilisation-des-modeles` · `/fr/limites-connues` · `/fr/juridique/:frSlug`  | The same public pages in French (localized slugs from `src/seo/routes.ts` + `legalHubData.ts` `frSlug`)                                                                |
+| `*`                                                                                                                                                                                       | Bilingual 404 page (noindex; static hosting serves `dist/404.html` with a real 404 status)                                                                             |
 | `/app/welcome`                                                                                                                                                                            | App entry stage (sign-in preview)                                                                                                                                      |
 | `/app` → `/app/home`                                                                                                                                                                      | Workspace shell redirect                                                                                                                                               |
 | `/app/home · advisor · workflows · cases · employees · compliance · policies · templates · tasks · calendar · reports · knowledge · communications · compensation · wellbeing · settings` | The 16 views                                                                                                                                                           |
@@ -95,7 +104,11 @@ these routes — never view-state flags.
 - French translations come **from the prototype** (its `buildI18n()`, `frDict()`
   and `L(en, fr)` calls) — never machine-translate ad hoc when the prototype has
   the string.
-- The language toggle persists to `dutiva-lang` and must update `<html lang>`.
+- The language toggle persists to `dutiva-lang` and must update `<html lang>`
+  (`en-CA` / `fr-CA`). On public pages the URL is the source of truth for
+  language (`ForcedLangProvider`; `/fr…` → French) and the toggle navigates
+  to the same page's URL in the other language; the app surface keeps the
+  in-place preference toggle (`LangProvider`).
 
 ## Data
 

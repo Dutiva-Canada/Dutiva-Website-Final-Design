@@ -1,70 +1,86 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
+import type { SeoRouteId } from '@/seo/routes'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { LeafTile, Wordmark } from '../Brand'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 
-interface FooterLink {
-  key: LandingMessageKey
-  href: string
-  /** In-app destinations render as router links. */
-  app?: boolean
-}
+/**
+ * Footer link targets, resolved per locale at render time (usePublicPath):
+ * `hash` → landing-section anchor on the locale homepage; `route` → an SEO
+ * registry page; `legal` → a policy document; `to` → an app path (not
+ * localized); `href` → external (mailto).
+ */
+type FooterLink = { key: LandingMessageKey } & (
+  { hash: string } | { route: SeoRouteId } | { legal: string } | { to: string } | { href: string }
+)
 
-/* Anchor targets carry a leading '/' so they resolve from the subpages
-   (/about, /legal/…) as well as from the landing page itself. */
 const PRODUCT_LINKS: FooterLink[] = [
-  { key: 'landing_fp_advisor', href: '/#top' },
-  { key: 'landing_fp_workflows', href: '/#workflows' },
-  { key: 'landing_fp_templates', href: '/#product' },
-  { key: 'landing_nav_pricing', href: '/#pricing' },
-  { key: 'landing_fp_beta', href: '/#start' },
+  { key: 'landing_fp_advisor', hash: 'top' },
+  { key: 'landing_fp_workflows', hash: 'workflows' },
+  { key: 'landing_fp_templates', hash: 'product' },
+  { key: 'landing_nav_pricing', hash: 'pricing' },
+  { key: 'landing_fp_beta', hash: 'start' },
 ]
 
 const RESOURCE_LINKS: FooterLink[] = [
-  { key: 'landing_nav_guides', href: '/#guides' },
-  { key: 'landing_fr_getstarted', href: '/#how' },
-  { key: 'landing_fr_faq', href: '/faq', app: true },
-  { key: 'landing_fr_tmplusage', href: '/guides/template-usage', app: true },
-  { key: 'landing_fr_limits', href: '/known-limitations', app: true },
-  { key: 'landing_fr_blog', href: '/blog', app: true },
+  { key: 'landing_nav_guides', hash: 'guides' },
+  { key: 'landing_fr_getstarted', hash: 'how' },
+  { key: 'landing_fr_faq', route: 'faq' },
+  { key: 'landing_fr_tmplusage', route: 'templateUsage' },
+  { key: 'landing_fr_limits', route: 'knownLimitations' },
+  { key: 'landing_fr_blog', route: 'blog' },
 ]
 
 const COMPANY_LINKS: FooterLink[] = [
-  { key: 'landing_fc_about', href: '/about', app: true },
+  { key: 'landing_fc_about', route: 'about' },
   { key: 'landing_fc_contact', href: 'mailto:support@dutiva.ca' },
-  { key: 'landing_fc_openapp', href: '/app/welcome', app: true },
-  { key: 'landing_signin', href: '/app/welcome', app: true },
+  { key: 'landing_fc_openapp', to: '/app/welcome' },
+  { key: 'landing_signin', to: '/app/welcome' },
 ]
 
 /* The five most-visited policies (content migration); the rest live behind
-   the "View all policies" link to /legal, which indexes all 26. */
+   the "View all policies" link to the legal hub, which indexes all 26. */
 const LEGAL_LINKS: FooterLink[] = [
-  { key: 'landing_fl_privacy', href: '/legal/privacy', app: true },
-  { key: 'landing_fl_terms', href: '/legal/terms', app: true },
-  { key: 'landing_fl_cookie', href: '/legal/cookies', app: true },
-  { key: 'landing_fl_disclaimer', href: '/legal/disclaimer', app: true },
-  { key: 'landing_fl_access', href: '/legal/accessibility', app: true },
+  { key: 'landing_fl_privacy', legal: 'privacy' },
+  { key: 'landing_fl_terms', legal: 'terms' },
+  { key: 'landing_fl_cookie', legal: 'cookies' },
+  { key: 'landing_fl_disclaimer', legal: 'disclaimer' },
+  { key: 'landing_fl_access', legal: 'accessibility' },
 ]
 
 const LINK_CLASS = 'text-sm text-text-2 transition-opacity hover:opacity-80'
 
 export function Footer() {
   const { lt, t } = useLanding()
+  const { p, legalDoc, home } = usePublicPath()
 
   const renderLinks = (links: FooterLink[]) => (
     <div className="grid gap-2.5">
-      {links.map((link) =>
-        link.app ? (
-          <Link key={link.key} to={link.href} className={LINK_CLASS}>
+      {links.map((link) => {
+        if ('href' in link) {
+          return (
+            <a key={link.key} href={link.href} className={LINK_CLASS}>
+              {lt(link.key)}
+            </a>
+          )
+        }
+        if ('hash' in link) {
+          return (
+            <a key={link.key} href={home(link.hash)} className={LINK_CLASS}>
+              {lt(link.key)}
+            </a>
+          )
+        }
+        const to =
+          'route' in link ? p(link.route) : 'legal' in link ? legalDoc(link.legal) : link.to
+        return (
+          <Link key={link.key} to={to} className={LINK_CLASS}>
             {lt(link.key)}
           </Link>
-        ) : (
-          <a key={link.key} href={link.href} className={LINK_CLASS}>
-            {lt(link.key)}
-          </a>
-        ),
-      )}
+        )
+      })}
     </div>
   )
 
@@ -120,7 +136,7 @@ export function Footer() {
             <FooterHeading>{lt('landing_foot_legal')}</FooterHeading>
             {renderLinks(LEGAL_LINKS)}
             <Link
-              to="/legal"
+              to={p('legal')}
               className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
             >
               {t('legalHub_viewAll')}

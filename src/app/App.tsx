@@ -1,14 +1,16 @@
 import { RouterProvider } from 'react-router-dom'
-import { LangProvider } from '@/i18n/LangProvider'
 import { ThemeProvider } from '@/lib/theme'
 import { router } from './router'
 
+/**
+ * Language providers live inside the route tree (URL-scoped on the public
+ * surface, preference-scoped on /app — see routes.tsx), so App only carries
+ * the theme.
+ */
 export function App() {
   return (
     <ThemeProvider>
-      <LangProvider>
-        <RouterProvider router={router} />
-      </LangProvider>
+      <RouterProvider router={router} />
     </ThemeProvider>
   )
 }

@@ -21,9 +21,11 @@ export function Modules() {
     <section className="mx-auto max-w-[1200px] px-6 pt-2 pb-10">
       <div className="rounded-[22px] border border-border bg-bg-elevated p-7">
         <span className="badge">{lt('landing_mod_badge')}</span>
-        <h3 className="mt-3.5 mb-4 max-w-[56ch] font-display text-[clamp(1.25rem,2vw,1.625rem)] leading-[1.35] font-semibold tracking-[-0.01em] text-text">
+        {/* h2 like the sibling landing sections (visual size unchanged) —
+            an h3 here skipped a heading level in the document outline. */}
+        <h2 className="mt-3.5 mb-4 max-w-[56ch] font-display text-[clamp(1.25rem,2vw,1.625rem)] leading-[1.35] font-semibold tracking-[-0.01em] text-text">
           {lt('landing_mod_title')}
-        </h3>
+        </h2>
         <div className="flex flex-wrap gap-2">
           {MODULES.map((mod) => (
             <IconChip key={mod.label} icon={mod.icon} label={lt(mod.label)} />

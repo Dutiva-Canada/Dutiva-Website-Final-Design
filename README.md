@@ -13,27 +13,30 @@ npm install
 npm run dev        # start the dev server
 ```
 
-- `/` — marketing landing page
-- `/pricing` — plan comparison + Stripe checkout
-- `/templates` — template catalogue preview
+- `/` — marketing landing page (`/fr` in French)
+- `/pricing` — plan comparison + Stripe checkout (`/fr/tarifs`)
+- `/templates` — template catalogue preview (`/fr/modeles`)
 - `/app/welcome` — app entry stage
 - `/app/home` — the workspace
 
-Both surfaces are fully bilingual (EN/FR toggle, persisted as `dutiva-lang`) and
-themed (light/dark, persisted as `dutiva-theme`).
+Both surfaces are fully bilingual and themed (light/dark, persisted as
+`dutiva-theme`). Public pages are language-scoped by URL (English unprefixed,
+French under `/fr`) and prerendered to static HTML at build time for SEO;
+the app surface follows the persisted `dutiva-lang` preference. See
+`docs/SEO_GEO_IMPLEMENTATION.md`.
 
 ## Scripts
 
-| Command             | What it does                     |
-| ------------------- | -------------------------------- |
-| `npm run dev`       | Vite dev server                  |
-| `npm run build`     | Typecheck + production build     |
-| `npm run preview`   | Serve the production build       |
-| `npm run typecheck` | `tsc -b` (strict)                |
-| `npm run lint`      | oxlint                           |
-| `npm run test`      | Vitest (jsdom + Testing Library) |
-| `npm run format`    | Prettier                         |
-| `npm run check`     | typecheck + lint + test          |
+| Command             | What it does                                               |
+| ------------------- | ---------------------------------------------------------- |
+| `npm run dev`       | Vite dev server                                            |
+| `npm run build`     | Typecheck + client/SSR builds + prerender + SEO validation |
+| `npm run preview`   | Serve the production build                                 |
+| `npm run typecheck` | `tsc -b` (strict)                                          |
+| `npm run lint`      | oxlint                                                     |
+| `npm run test`      | Vitest (jsdom + Testing Library)                           |
+| `npm run format`    | Prettier                                                   |
+| `npm run check`     | typecheck + lint + test                                    |
 
 ## Architecture
 

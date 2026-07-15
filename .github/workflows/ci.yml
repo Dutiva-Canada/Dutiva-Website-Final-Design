@@ -26,3 +26,9 @@ jobs:
 
       - name: Test with coverage
         run: npm run test:coverage
+
+      # Production build: client + SSR bundles, prerendering of every public
+      # page (EN + FR), and the dist-level SEO crawl validation
+      # (scripts/validate-seo.mjs) — fails on any metadata/sitemap/link drift.
+      - name: Build + SEO validation
+        run: npm run build

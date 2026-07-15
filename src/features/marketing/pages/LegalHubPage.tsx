@@ -1,15 +1,18 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { Seo } from '@/seo/Seo'
+import { legalDocPath } from '@/seo/routes'
 import { LEGAL_HUB_GROUPS } from '../legal/legalHubData'
 import type { LegalHubRow } from '../legal/legalHubData'
 import { MarketingPageShell, PageHero, PageSection } from './MarketingPage'
 
 /** /legal — index of the 26 policy documents, grouped per the prototype (legalHub_* strings). */
 export function LegalHubPage() {
-  const { t, L } = useI18n()
+  const { t, L, lang } = useI18n()
   return (
     <MarketingPageShell>
+      <Seo route="legal" pageType="CollectionPage" />
       <PageHero
         eyebrow={t('legalHub_eyebrow')}
         title={t('legalHub_h1')}
@@ -22,7 +25,7 @@ export function LegalHubPage() {
             {group.rows.map((row: LegalHubRow) => (
               <Link
                 key={row.slug}
-                to={`/legal/${row.slug}`}
+                to={legalDocPath(row, lang)}
                 className="premium-card-soft flex items-start justify-between gap-4 p-[20px_22px]"
               >
                 <div>

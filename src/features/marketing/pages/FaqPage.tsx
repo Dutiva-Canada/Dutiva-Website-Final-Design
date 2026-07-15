@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { MessageKey } from '@/i18n/messages'
+import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
 const GROUPS: { titleKey: MessageKey; items: { q: MessageKey; a: MessageKey }[] }[] = [
@@ -41,8 +42,14 @@ const GROUPS: { titleKey: MessageKey; items: { q: MessageKey; a: MessageKey }[] 
 /** /faq — four question groups of native no-JS <details> accordions (faq_* strings). */
 export function FaqPage() {
   const { t } = useI18n()
+  /* FAQPage JSON-LD is built from the exact GROUPS rendered below, so the
+     markup can never diverge from the visible questions and answers. */
+  const faqEntries = GROUPS.flatMap((group) =>
+    group.items.map((item) => ({ question: t(item.q), answer: t(item.a) })),
+  )
   return (
     <MarketingPageShell>
+      <Seo route="faq" faq={faqEntries} />
       <PageHero eyebrow={t('faq_eyebrow')} title={t('faq_h1')} intro={t('faq_intro')} />
 
       {GROUPS.map((group) => (

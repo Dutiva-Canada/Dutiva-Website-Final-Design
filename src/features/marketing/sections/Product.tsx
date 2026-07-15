@@ -1,6 +1,7 @@
 import { ChevronRight, FileText, MessageSquare, ShieldCheck, Sparkles, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { SectionIntro } from '../SectionIntro'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 import { IconChip } from './IconChip'
@@ -21,6 +22,7 @@ const FEATURES: Feature[] = [
 
 export function Product() {
   const { lt } = useLanding()
+  const { p } = usePublicPath()
   return (
     <section id="product" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 py-16">
       <SectionIntro
@@ -55,7 +57,7 @@ export function Product() {
           <IconChip icon={FileText} label={lt('landing_cat_discipline')} />
           <IconChip icon={FileText} label={lt('landing_cat_termination')} />
           <a
-            href="/templates"
+            href={p('templates')}
             className="ml-1.5 inline-flex items-center gap-1 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
           >
             {lt('landing_cat_browse')}

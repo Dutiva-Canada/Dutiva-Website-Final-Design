@@ -1,6 +1,7 @@
 import { BookOpen } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { MessageKey } from '@/i18n/messages'
+import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
 /** Reuses the landing page's Guides section copy (landing_g1_t … landing_g6_t/p). */
@@ -23,6 +24,7 @@ export function GuidesIndexPage() {
 
   return (
     <MarketingPageShell>
+      <Seo route="guides" pageType="CollectionPage" />
       <PageHero
         eyebrow={t('guidesIdx_eyebrow')}
         title={t('guidesIdx_h1')}
