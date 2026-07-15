@@ -52,7 +52,7 @@ function NavLinkItem({
       aria-label={expanded ? undefined : x(item.label)}
       aria-current={active ? 'page' : undefined}
       className={cx(
-        'my-[1px] flex w-full items-center gap-[10px] rounded-[7px] text-[13.5px]',
+        'my-px flex w-full items-center gap-[10px] rounded-[7px] text-[13.5px]',
         expanded ? 'px-[10px] py-[8px]' : 'justify-center p-[9px]',
         active ? 'bg-accent-soft font-semibold text-accent' : 'font-medium text-text-2',
       )}
@@ -131,12 +131,12 @@ export function Sidebar({
         'flex h-full shrink-0 flex-col border-r border-border bg-inset',
         expanded ? 'w-[256px]' : 'w-[64px]',
         mode === 'hover' &&
-          'absolute top-0 bottom-0 left-0 transition-[width,box-shadow] duration-[180ms] ease-[cubic-bezier(0.4,0,0.2,1)]',
+          'absolute top-0 bottom-0 left-0 transition-[width,box-shadow] duration-180 ease-in-out',
         mode === 'hover' &&
-          (expanded ? 'z-40 shadow-[8px_0_28px_rgba(0,0,0,0.28)]' : 'z-[5] shadow-none'),
-        mode === 'rail' && 'relative z-[1]',
+          (expanded ? 'z-40 shadow-[8px_0_28px_rgba(0,0,0,0.28)]' : 'z-5 shadow-none'),
+        mode === 'rail' && 'relative z-1',
         mode === 'drawer' &&
-          'fixed top-0 bottom-0 left-0 z-[70] shadow-[8px_0_30px_rgba(0,0,0,0.15)] transition-transform duration-[220ms] ease-[cubic-bezier(0.4,0,0.2,1)]',
+          'fixed top-0 bottom-0 left-0 z-70 shadow-[8px_0_30px_rgba(0,0,0,0.15)] transition-transform duration-220 ease-in-out',
         mode === 'drawer' && (drawerEntered ? 'translate-x-0' : '-translate-x-full'),
       )}
     >
@@ -202,7 +202,7 @@ export function Sidebar({
           {expanded && (
             <>
               <span className="flex-1 text-left">{x(M.shell_search)}</span>
-              <span className="rounded-[4px] border border-border px-[5px] py-[1px] text-[11px] text-text-faint">
+              <span className="rounded-[4px] border border-border px-[5px] py-px text-[11px] text-text-faint">
                 ⌘K
               </span>
             </>
@@ -284,7 +284,7 @@ export function Sidebar({
             <div
               role="menu"
               aria-label={L('Account menu', 'Menu du compte')}
-              className="absolute bottom-full left-0 z-[60] mb-[6px] w-[200px] overflow-hidden rounded-[11px] border border-border bg-surface shadow-[0_16px_36px_rgba(27,36,48,0.2)]"
+              className="absolute bottom-full left-0 z-60 mb-[6px] w-[200px] overflow-hidden rounded-[11px] border border-border bg-surface shadow-[0_16px_36px_rgba(27,36,48,0.2)]"
             >
               <div className="border-b border-border-soft px-[14px] py-[12px]">
                 <div className="text-[13px] font-bold text-text">{identity.user.name}</div>
@@ -343,7 +343,7 @@ export function Sidebar({
       {profileOpen && (
         <div
           onClick={() => setProfileOpen(false)}
-          className="fixed inset-0 z-[55]"
+          className="fixed inset-0 z-55"
           aria-hidden="true"
         />
       )}

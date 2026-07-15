@@ -136,7 +136,7 @@ function SearchDialog() {
   return (
     <div
       onClick={closeSearch}
-      className="fixed inset-0 z-[350] flex items-start justify-center bg-[rgba(20,25,32,0.4)] pt-[12vh]"
+      className="fixed inset-0 z-350 flex items-start justify-center bg-[rgba(20,25,32,0.4)] pt-[12vh]"
     >
       <div
         role="dialog"
@@ -232,7 +232,7 @@ function SearchDialog() {
                   {x(r.title)}
                 </span>
                 {r.sub && (
-                  <span className="mt-[1px] block overflow-hidden text-[11.5px] text-ellipsis whitespace-nowrap text-text-muted">
+                  <span className="mt-px block overflow-hidden text-[11.5px] text-ellipsis whitespace-nowrap text-text-muted">
                     {x(r.sub)}
                   </span>
                 )}
