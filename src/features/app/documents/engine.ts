@@ -50,6 +50,7 @@ export function resolveBlocks(template: DocTemplate, ctx: ClauseContext): Previe
 /* ── Merge fields ────────────────────────────────────────────────────────── */
 
 export interface MergeSegment {
+  id: string
   kind: 'text' | 'filled' | 'unfilled'
   text: string
 }
@@ -81,17 +82,19 @@ export function mergeSegments(text: string, answers: Record<string, string>): Me
   let last = 0
   for (const match of text.matchAll(TOKEN_RE)) {
     const index = match.index
-    if (index > last) segments.push({ kind: 'text', text: text.slice(last, index) })
+    if (index > last)
+      segments.push({ id: `text-${last}`, kind: 'text', text: text.slice(last, index) })
     const token = match[1] ?? ''
     const value = answers[token]
     if (value !== undefined && String(value).trim() !== '') {
-      segments.push({ kind: 'filled', text: String(value) })
+      segments.push({ id: `token-${index}`, kind: 'filled', text: String(value) })
     } else {
-      segments.push({ kind: 'unfilled', text: token.replace(/_/g, ' ') })
+      segments.push({ id: `token-${index}`, kind: 'unfilled', text: token.replaceAll('_', ' ') })
     }
     last = index + match[0].length
   }
-  if (last < text.length) segments.push({ kind: 'text', text: text.slice(last) })
+  if (last < text.length)
+    segments.push({ id: `text-${last}`, kind: 'text', text: text.slice(last) })
   return segments
 }
 
