@@ -43,7 +43,9 @@ src/
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/`                                                                                                                                                                                       | Marketing landing page                                                                                                                                                 |
 | `/about · /faq · /blog`                                                                                                                                                                   | Marketing subpages (dutiva.ca content migration)                                                                                                                       |
-| `/guides/template-usage · /known-limitations`                                                                                                                                             | Marketing subpages                                                                                                                                                     |
+| `/pricing`                                                                                                                                                                                | Plan comparison + Stripe checkout (wrapped in Auth+Plan providers only, not the full app `AppProviders`)                                                               |
+| `/templates`                                                                                                                                                                              | Template catalogue preview — renders the real Document Studio fixture data                                                                                             |
+| `/guides · /guides/template-usage · /known-limitations`                                                                                                                                   | Marketing subpages                                                                                                                                                     |
 | `/legal` → `/legal/:slug`                                                                                                                                                                 | Policy index → one of 26 policy documents                                                                                                                              |
 | `/app/welcome`                                                                                                                                                                            | App entry stage (sign-in preview)                                                                                                                                      |
 | `/app` → `/app/home`                                                                                                                                                                      | Workspace shell redirect                                                                                                                                               |
@@ -181,6 +183,37 @@ employee's open `hr_cases`, linking through to the case detail.
 (`useProductionNavBadges` + `countOpen*` head-count queries in each
 productionApi): real open counts for Cases/Tasks/Compliance, refreshed on
 every route change, shown only when a module has open work.
+
+## Billing (Stripe paywall — prep work)
+
+Ported from the production `dutiva-website` repo's Stripe integration, scoped to
+prep work only: `/pricing` and its checkout/portal flow are real and wired to
+Stripe, but **/app's access gate is unchanged** — it's still `RequireAdminSession`
+(one invite-only account), not plan-based. Wiring a paid area to plan access is
+follow-up work, not done here.
+
+- `src/config/plans.ts` — canonical plan catalogue (free/starter/growth/pro),
+  reusing the landing page Pricing section's `landing_*` i18n keys so the
+  teaser and the full page never drift out of copy sync.
+- `src/lib/billing/adminAccess.ts` — the paywall-bypass check (explicit
+  `ADMIN_EMAILS` list + `@dutiva.ca` domain), independent of
+  `features/app/auth/allowedEmail.ts` (which answers "may this account sign
+  into the workspace", a different question, even though today it's the same
+  person).
+- `src/features/app/billing/PlanProvider.tsx` (`usePlan()`) — resolves the
+  signed-in account's plan; an internal account always resolves to the top
+  plan with billing bypassed. Wraps `/pricing` directly in router.tsx
+  (Auth + Plan only — not the full `AppProviders` bundle).
+- `src/features/app/billing/PlanGate.tsx` — reusable gate for a future paid
+  view; not applied anywhere yet.
+- `supabase/functions/{create-checkout-session,create-portal-session,stripe-webhook}` —
+  real Stripe calls via raw `fetch` (no `stripe` npm dependency, matches
+  `advisor-chat`'s Deno.serve + bearer-JWT pattern). Write to `public.profiles`
+  (migration `0013_add_billing_profiles.sql`). All three respond
+  `503`/"not configured" until `STRIPE_SECRET_KEY` etc. are set as function
+  secrets — see `.env.example`. An admin/internal account short-circuits
+  checkout and portal with a `bypass: true` response instead of ever calling
+  Stripe.
 
 ## Icons & assets
 

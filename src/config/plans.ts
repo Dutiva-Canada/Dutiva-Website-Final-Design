@@ -1,0 +1,84 @@
+import type { MessageKey } from '@/i18n/messages'
+
+export type PlanId = 'free' | 'starter' | 'growth' | 'pro'
+
+export interface PlanDefinition {
+  id: PlanId
+  /** Monthly price in CAD; 0 for the free plan. */
+  monthlyPrice: number
+  nameKey: MessageKey
+  descKey: MessageKey
+  featureKeys: MessageKey[]
+  ctaKey: MessageKey
+  popular?: boolean
+  /**
+   * Env var name the `create-checkout-session` Supabase function reads the
+   * Stripe price id from (see supabase/functions/create-checkout-session).
+   * `null` for the free plan, which never goes through Stripe checkout.
+   */
+  stripePriceEnvVar: string | null
+}
+
+/**
+ * Canonical plan catalogue — same four tiers already shown on the landing
+ * page's Pricing section (src/features/marketing/sections/Pricing.tsx).
+ * Reuses that section's `landing_*` i18n keys so the standalone /pricing
+ * page and the landing teaser can never drift out of copy sync.
+ */
+export const PLANS: PlanDefinition[] = [
+  {
+    id: 'free',
+    monthlyPrice: 0,
+    nameKey: 'landing_free_name',
+    descKey: 'landing_free_desc',
+    featureKeys: ['landing_free_f1', 'landing_free_f2', 'landing_free_f3'],
+    ctaKey: 'landing_free_cta',
+    stripePriceEnvVar: null,
+  },
+  {
+    id: 'starter',
+    monthlyPrice: 24,
+    nameKey: 'landing_starter_name',
+    descKey: 'landing_starter_desc',
+    featureKeys: ['landing_starter_f1', 'landing_starter_f2', 'landing_starter_f3'],
+    ctaKey: 'landing_starter_cta',
+    stripePriceEnvVar: 'STRIPE_PRICE_STARTER_MONTHLY',
+  },
+  {
+    id: 'growth',
+    monthlyPrice: 49,
+    nameKey: 'landing_growth_name',
+    descKey: 'landing_growth_desc',
+    featureKeys: ['landing_growth_f1', 'landing_growth_f2', 'landing_growth_f3'],
+    ctaKey: 'landing_growth_cta',
+    popular: true,
+    stripePriceEnvVar: 'STRIPE_PRICE_GROWTH_MONTHLY',
+  },
+  {
+    id: 'pro',
+    monthlyPrice: 99,
+    nameKey: 'landing_pro_name',
+    descKey: 'landing_pro_desc',
+    featureKeys: ['landing_pro_f1', 'landing_pro_f2', 'landing_pro_f3'],
+    ctaKey: 'landing_pro_cta',
+    stripePriceEnvVar: 'STRIPE_PRICE_PRO_MONTHLY',
+  },
+]
+
+export function getPlanById(id?: string | null): PlanDefinition | undefined {
+  return PLANS.find((plan) => plan.id === id)
+}
+
+const PLAN_RANK: Record<PlanId, number> = { free: 0, starter: 1, growth: 2, pro: 3 }
+
+export function normalizePlanId(value?: string | null): PlanId {
+  const normalized = String(value ?? '').toLowerCase()
+  return normalized === 'starter' || normalized === 'growth' || normalized === 'pro'
+    ? normalized
+    : 'free'
+}
+
+/** True if `currentPlan` meets or exceeds `requiredPlan` in the plan hierarchy. */
+export function hasPlanAccess(currentPlan: PlanId, requiredPlan: PlanId): boolean {
+  return PLAN_RANK[currentPlan] >= PLAN_RANK[requiredPlan]
+}

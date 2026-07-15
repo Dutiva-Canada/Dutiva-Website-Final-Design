@@ -1,0 +1,30 @@
+import { describe, expect, it } from 'vitest'
+import { PLANS, getPlanById, hasPlanAccess, normalizePlanId } from './plans'
+
+describe('plans config', () => {
+  it('defines exactly the four landing-page tiers, in ascending price order', () => {
+    expect(PLANS.map((p) => p.id)).toEqual(['free', 'starter', 'growth', 'pro'])
+    expect(PLANS.map((p) => p.monthlyPrice)).toEqual([0, 24, 49, 99])
+  })
+
+  it('marks growth as the popular plan, matching the landing page', () => {
+    expect(PLANS.find((p) => p.popular)?.id).toBe('growth')
+  })
+
+  it('looks up a plan by id', () => {
+    expect(getPlanById('growth')?.monthlyPrice).toBe(49)
+    expect(getPlanById('nonexistent')).toBeUndefined()
+  })
+
+  it('normalizes unknown or missing plan ids to free', () => {
+    expect(normalizePlanId('growth')).toBe('growth')
+    expect(normalizePlanId('enterprise')).toBe('free')
+    expect(normalizePlanId(undefined)).toBe('free')
+  })
+
+  it('ranks plan access hierarchically', () => {
+    expect(hasPlanAccess('pro', 'starter')).toBe(true)
+    expect(hasPlanAccess('free', 'starter')).toBe(false)
+    expect(hasPlanAccess('growth', 'growth')).toBe(true)
+  })
+})

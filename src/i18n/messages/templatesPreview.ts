@@ -1,0 +1,43 @@
+import { defineMessages } from '../core'
+
+/**
+ * /templates — the marketing template-library preview linked from the
+ * landing page's Product section ("Browse all templates"). Chrome copy
+ * only; the catalogue itself renders the real product data
+ * (`src/features/app/documents/data`) so this page can never drift out of
+ * sync with what Document Studio actually ships.
+ */
+export const templatesPreviewMessages = defineMessages({
+  tplPreview_eyebrow: {
+    en: 'Document templates',
+    fr: 'Modèles de documents',
+  },
+  tplPreview_h1: {
+    en: 'Every Canadian HR document, ready to generate.',
+    fr: 'Chaque document RH canadien, prêt à générer.',
+  },
+  tplPreview_intro: {
+    en: 'A growing library of employer-side templates — offers, agreements, policies, discipline, and termination — each jurisdiction-aware for Ontario, Quebec, and Federal workplaces.',
+    fr: 'Une bibliothèque grandissante de modèles pour employeurs — offres, ententes, politiques, discipline et cessation — chacun adapté aux règles de l’Ontario, du Québec et du régime fédéral.',
+  },
+  tplPreview_count: {
+    en: 'templates',
+    fr: 'modèles',
+  },
+  tplPreview_jurisdictions: {
+    en: 'Jurisdictions',
+    fr: 'Juridictions',
+  },
+  tplPreview_cta_t: {
+    en: 'Generate your first document.',
+    fr: 'Générez votre premier document.',
+  },
+  tplPreview_cta_p: {
+    en: 'Sign in to open Document Studio and start from any template above.',
+    fr: 'Connectez-vous pour ouvrir le Studio de documents et démarrer à partir de n’importe quel modèle ci-dessus.',
+  },
+  tplPreview_cta_btn: {
+    en: 'Start free',
+    fr: 'Commencer',
+  },
+})
