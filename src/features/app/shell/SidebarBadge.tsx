@@ -25,9 +25,9 @@ function ariaTemplateForKey(key: string) {
 }
 
 interface SidebarBadgeProps {
-  itemKey: string
-  value: string
-  tone: NavBadgeTone
+  readonly itemKey: string
+  readonly value: string
+  readonly tone: NavBadgeTone
 }
 
 export function SidebarBadge({ itemKey, value, tone }: SidebarBadgeProps) {

@@ -53,7 +53,7 @@ function writeSectionPrefs(state: Record<SectionKey, boolean>): void {
 function activeGroupIndex(pathname: string): number | null {
   for (let i = 0; i < NAV_GROUPS.length; i += 1) {
     const group = NAV_GROUPS[i]
-    if (!group || !group.heading) continue
+    if (!group?.heading) continue
     for (const item of group.items) {
       if (item.isActive ? item.isActive(pathname) : isNavActive(item.to, pathname)) {
         return i
@@ -80,10 +80,10 @@ function sidebarClasses(mode: SidebarMode, drawerEntered: boolean) {
 }
 
 interface SidebarProps {
-  mode: SidebarMode
-  onCloseDrawer?: () => void
-  drawerEntered?: boolean
-  onToggleExpanded?: () => void
+  readonly mode: SidebarMode
+  readonly onCloseDrawer?: () => void
+  readonly drawerEntered?: boolean
+  readonly onToggleExpanded?: () => void
 }
 
 export function Sidebar({
@@ -129,7 +129,7 @@ export function Sidebar({
       ).filter((el) => !el.hasAttribute('disabled') && el.getAttribute('aria-disabled') !== 'true')
       if (focusables.length === 0) return
       const first = focusables[0]
-      const last = focusables[focusables.length - 1]
+      const last = focusables.at(-1)
       if (!first || !last) return
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault()

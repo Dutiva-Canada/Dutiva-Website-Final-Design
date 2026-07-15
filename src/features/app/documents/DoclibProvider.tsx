@@ -27,7 +27,7 @@ function initialRole(): WorkspaceRole {
 
 export function DoclibProvider({ children }: { readonly children: ReactNode }) {
   const [data, setData] = useState<DoclibData | null>(null)
-  const [role, setRoleState] = useState<WorkspaceRole>(initialRole)
+  const [role, setRole] = useState<WorkspaceRole>(initialRole)
   const [org, setOrg] = useState<OrgProfile>(defaultOrgProfile)
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export function DoclibProvider({ children }: { readonly children: ReactNode }) {
       data,
       role,
       setRole: (next: WorkspaceRole) => {
-        setRoleState(next)
+        setRole(next)
         try {
           sessionStorage.setItem(ROLE_KEY, next)
         } catch {

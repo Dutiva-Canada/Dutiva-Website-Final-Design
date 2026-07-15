@@ -46,8 +46,8 @@ function useCreateActions(): CreateAction[] {
 }
 
 interface SidebarCreateMenuProps {
-  expanded: boolean
-  onNavigate?: () => void
+  readonly expanded: boolean
+  readonly onNavigate?: () => void
 }
 
 export function SidebarCreateMenu({ expanded, onNavigate }: SidebarCreateMenuProps) {
@@ -85,14 +85,15 @@ export function SidebarCreateMenu({ expanded, onNavigate }: SidebarCreateMenuPro
         e.preventDefault()
         const current = document.activeElement
         const idx = items.indexOf(current as Element)
-        const nextIdx =
-          e.key === 'ArrowDown'
-            ? idx >= 0 && idx < items.length - 1
-              ? idx + 1
-              : 0
-            : idx > 0
-              ? idx - 1
-              : items.length - 1
+        const movesDown = e.key === 'ArrowDown'
+        let nextIdx = 0
+        if (movesDown) {
+          nextIdx = idx >= 0 && idx < items.length - 1 ? idx + 1 : 0
+        } else if (idx > 0) {
+          nextIdx = idx - 1
+        } else {
+          nextIdx = items.length - 1
+        }
         ;(items[nextIdx] as HTMLElement).focus()
       }
     }

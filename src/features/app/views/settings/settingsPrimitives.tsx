@@ -12,7 +12,13 @@ import type { ChipTone, ToggleSpec } from './settingsData'
  */
 
 /* Section eyebrow + content (markup: 13px/700 text-3 label, 10px below). */
-export function Section({ label, children }: { label: string; children: ReactNode }) {
+export function Section({
+  label,
+  children,
+}: {
+  readonly label: string
+  readonly children: ReactNode
+}) {
   return (
     <div>
       <div className="mb-[10px] text-[13px] font-bold text-text-3">{label}</div>
@@ -21,7 +27,13 @@ export function Section({ label, children }: { label: string; children: ReactNod
   )
 }
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
+export function Card({
+  children,
+  className = '',
+}: {
+  readonly children: ReactNode
+  readonly className?: string
+}) {
   return (
     <div className={`overflow-hidden rounded-[12px] border border-border bg-surface ${className}`}>
       {children}
@@ -29,7 +41,13 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
   )
 }
 
-export function StatusChip({ tone, children }: { tone: ChipTone; children: ReactNode }) {
+export function StatusChip({
+  tone,
+  children,
+}: {
+  readonly tone: ChipTone
+  readonly children: ReactNode
+}) {
   return <span className={statusChipClass(tone)}>{children}</span>
 }
 
@@ -39,9 +57,9 @@ export function ToggleSwitch({
   label,
   onToggle,
 }: {
-  on: boolean
-  label: string
-  onToggle: () => void
+  readonly on: boolean
+  readonly label: string
+  readonly onToggle: () => void
 }) {
   return (
     <button
@@ -68,9 +86,9 @@ export function ToggleRow({
   on,
   onToggle,
 }: {
-  spec: ToggleSpec
-  on: boolean
-  onToggle: () => void
+  readonly spec: ToggleSpec
+  readonly on: boolean
+  readonly onToggle: () => void
 }) {
   const { x } = useI18n()
   return (

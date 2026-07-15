@@ -17,7 +17,7 @@ import { isAllowedSignInEmail } from './allowedEmail'
  * every other Supabase-backed feature here degrades to its signed-out
  * state instead of failing hard.
  */
-export function RequireAdminSession({ children }: { children: ReactNode }) {
+export function RequireAdminSession({ children }: { readonly children: ReactNode }) {
   const location = useLocation()
   const { status, session } = useAuth()
 

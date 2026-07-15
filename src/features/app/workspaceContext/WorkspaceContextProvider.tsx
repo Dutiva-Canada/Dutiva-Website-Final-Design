@@ -3,24 +3,24 @@ import type { ReactNode } from 'react'
 import { WorkspaceContext } from './workspaceContextStore'
 import type { WorkspaceContextState } from './workspaceContextStore'
 
-export function WorkspaceContextProvider({ children }: { children: ReactNode }) {
-  const [context, setContextState] = useState<WorkspaceContextState | null>(null)
+export function WorkspaceContextProvider({ children }: { readonly children: ReactNode }) {
+  const [context, setContext] = useState<WorkspaceContextState | null>(null)
 
-  const setContext = useCallback((ctx: WorkspaceContextState | null) => {
-    setContextState(ctx)
+  const updateContext = useCallback((ctx: WorkspaceContextState | null) => {
+    setContext(ctx)
   }, [])
 
-  const clearContext = useCallback(() => setContextState(null), [])
+  const clearContext = useCallback(() => setContext(null), [])
 
   const removeContextMeta = useCallback((index: number) => {
-    setContextState((prev) =>
+    setContext((prev) =>
       prev ? { ...prev, meta: prev.meta.filter((_, i) => i !== index) } : prev,
     )
   }, [])
 
   const value = useMemo(
-    () => ({ context, setContext, clearContext, removeContextMeta }),
-    [context, setContext, clearContext, removeContextMeta],
+    () => ({ context, setContext: updateContext, clearContext, removeContextMeta }),
+    [context, updateContext, clearContext, removeContextMeta],
   )
 
   return <WorkspaceContext value={value}>{children}</WorkspaceContext>

@@ -8,9 +8,9 @@ import { SidebarTooltip } from './SidebarTooltip'
 import { cx } from './cx'
 
 interface SidebarFooterProps {
-  expanded: boolean
-  identity: WorkspaceIdentity
-  onNavigate?: () => void
+  readonly expanded: boolean
+  readonly identity: WorkspaceIdentity
+  readonly onNavigate?: () => void
 }
 
 export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterProps) {

@@ -17,10 +17,10 @@ export interface RiskFlagAction {
 }
 
 export interface RiskFlagCardProps {
-  tone: Tone
-  title: LText
-  body: LText
-  actions?: RiskFlagAction[]
+  readonly tone: Tone
+  readonly title: LText
+  readonly body: LText
+  readonly actions?: RiskFlagAction[]
 }
 
 export function RiskFlagCard({ tone, title, body, actions = [] }: RiskFlagCardProps) {
@@ -38,9 +38,9 @@ export function RiskFlagCard({ tone, title, body, actions = [] }: RiskFlagCardPr
       <div className="text-[13.5px] leading-[1.55] text-text-2">{pickL(body, lang)}</div>
       {actions.length > 0 && (
         <div className="flex gap-[8px]">
-          {actions.map((action, i) => (
+          {actions.map((action) => (
             <button
-              key={i}
+              key={pickL(action.label, 'en')}
               type="button"
               onClick={action.onClick}
               className={

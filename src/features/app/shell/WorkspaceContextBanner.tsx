@@ -35,7 +35,7 @@ export function WorkspaceContextBanner() {
         {context.initials}
       </div>
       <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-[8px]">
-        <span className="text-[11px] font-bold tracking-[.05em] text-gold-dot uppercase">
+        <span className="text-[11px] font-bold tracking-wider text-gold-dot uppercase">
           {x(M.shell_ctx_using)}
           {x(ENTITY_LABELS[context.entityType])}
         </span>

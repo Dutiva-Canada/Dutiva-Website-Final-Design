@@ -48,7 +48,7 @@ function ControlLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className="text-[9.5px] font-bold tracking-[0.1em] text-text-faint uppercase"
+      className="text-[9.5px] font-bold tracking-widest text-text-faint uppercase"
     >
       {children}
     </label>
@@ -92,7 +92,7 @@ function OrgProfileBar({
         <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[8px] bg-navy text-[#F2D9A8]">
           <Building2 size={15} strokeWidth={1.8} aria-hidden="true" />
         </span>
-        <div className="leading-[1.25]">
+        <div className="leading-tight">
           <div className="text-[12.5px] font-bold text-text">{t('doclib_profile_title')}</div>
           <div className="text-[11px] text-text-muted">{t('doclib_profile_sub')}</div>
         </div>
@@ -133,18 +133,15 @@ function OrgProfileBar({
             </option>
           ))}
         </select>
-        <div
-          role="group"
-          aria-label={t('doclib_profile_unionToggle')}
-          className="flex items-center gap-[2px] rounded-[10px] bg-inset p-[3px]"
-        >
+        <fieldset className="flex items-center gap-[2px] rounded-[10px] bg-inset p-[3px]">
+          <legend className="sr-only">{t('doclib_profile_unionToggle')}</legend>
           <SegButton active={!org.unionized} onClick={() => setOrg({ ...org, unionized: false })}>
             {t('doclib_profile_nonunion')}
           </SegButton>
           <SegButton active={org.unionized} onClick={() => setOrg({ ...org, unionized: true })}>
             {t('doclib_profile_union')}
           </SegButton>
-        </div>
+        </fieldset>
       </div>
     </section>
   )
@@ -319,7 +316,7 @@ export function StudioScreen() {
       {/* ── Library vs repository note ── */}
       <div className="mb-5 flex items-center gap-[10px] rounded-[11px] border border-gold-border bg-gold-bg px-[14px] py-[11px]">
         <Info size={16} strokeWidth={1.9} className="shrink-0 text-gold-fg" aria-hidden="true" />
-        <span className="text-[12.5px] leading-[1.5] text-text-2">
+        <span className="text-[12.5px] leading-normal text-text-2">
           {t('doclib_studio_libraryVsRepo')}
         </span>
       </div>

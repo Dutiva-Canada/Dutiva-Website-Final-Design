@@ -80,6 +80,18 @@ interface DocGroup {
 
 const docHref = (doc: GeneratedDoc): string => `/app/documents/${doc.id}`
 
+function matchesFilters(doc: GeneratedDoc, filters: RepoFilters, query: string, showArchived: boolean) {
+  if (doc.archived && !showArchived) return false
+  if (filters.status !== 'all' && doc.status !== filters.status) return false
+  if (filters.review !== 'all' && doc.reviewStatus !== filters.review) return false
+  if (filters.signature !== 'all' && doc.signatureStatus !== filters.signature) return false
+  if (filters.risk !== 'all' && doc.risk !== filters.risk) return false
+  if (filters.jurisdiction !== 'all' && doc.jurisdiction !== filters.jurisdiction) return false
+  if (filters.employee !== 'all' && doc.employeeId !== filters.employee) return false
+  if (!query) return true
+  return `${doc.title.en} ${doc.title.fr} ${doc.ref}`.toLowerCase().includes(query)
+}
+
 export function RepositoryScreen() {
   const { t, x, L } = useI18n()
   const { data, role } = useDoclib()
@@ -97,20 +109,7 @@ export function RepositoryScreen() {
   const categoryById = new Map(data.categories.map((category) => [category.id, category]))
 
   const q = query.trim().toLowerCase()
-  const visible = data.documents.filter((doc) => {
-    if (doc.archived && !showArchived) return false
-    if (filters.status !== 'all' && doc.status !== filters.status) return false
-    if (filters.review !== 'all' && doc.reviewStatus !== filters.review) return false
-    if (filters.signature !== 'all' && doc.signatureStatus !== filters.signature) return false
-    if (filters.risk !== 'all' && doc.risk !== filters.risk) return false
-    if (filters.jurisdiction !== 'all' && doc.jurisdiction !== filters.jurisdiction) return false
-    if (filters.employee !== 'all' && doc.employeeId !== filters.employee) return false
-    if (q !== '') {
-      const haystack = `${doc.title.en} ${doc.title.fr} ${doc.ref}`.toLowerCase()
-      if (!haystack.includes(q)) return false
-    }
-    return true
-  })
+  const visible = data.documents.filter((doc) => matchesFilters(doc, filters, q, showArchived))
 
   /** Stable-ordered groups (first-appearance order within the filtered list). */
   const groupOf = (doc: GeneratedDoc): { key: string; heading: string } => {
@@ -169,7 +168,7 @@ export function RepositoryScreen() {
           </p>
         </div>
         <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[10px] text-center shadow-sm">
-          <div className="font-display text-[22px] leading-tight font-bold text-(--navy)">
+          <div className="font-display text-[22px] leading-tight font-bold text-navy">
             {visible.length}
           </div>
           <div className="text-[11.5px] text-text-muted">{t('doclib_repo_count')}</div>
@@ -526,7 +525,7 @@ function EmptyRepo() {
       <p className="mt-1 text-[13px] text-text-muted">{t('doclib_repo_emptySub')}</p>
       <Link
         to="/app/documents/studio"
-        className="mt-4 inline-flex items-center gap-1.5 rounded-[9px] bg-(--navy) px-[14px] py-[8px] text-[12.5px] font-semibold text-white"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-[9px] bg-navy px-[14px] py-[8px] text-[12.5px] font-semibold text-white"
       >
         {t('doclib_repo_goStudio')}
       </Link>

@@ -120,13 +120,9 @@ export function AppShell() {
     })
   }, [])
 
-  const sidebarMode = isMobile
-    ? 'drawer'
-    : layout === 'tablet'
-      ? 'compact'
-      : sidebarExpanded
-        ? 'expanded'
-        : 'compact'
+  let sidebarMode: 'drawer' | 'compact' | 'expanded' = 'compact'
+  if (isMobile) sidebarMode = 'drawer'
+  else if (layout !== 'tablet' && sidebarExpanded) sidebarMode = 'expanded'
 
   return (
     <div className="surface-app flex h-screen flex-col overflow-hidden bg-bg font-sans text-text">

@@ -19,8 +19,8 @@ import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
  * (`openEmployeeDrawer(emp)`), so hosts own `employee` and `onClose`.
  */
 export interface EmployeeDrawerProps {
-  employee: Employee | null
-  onClose: () => void
+  readonly employee: Employee | null
+  readonly onClose: () => void
 }
 
 export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
@@ -38,16 +38,17 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
 
   return (
     <>
-      <div
+      <button
+        type="button"
         onClick={onClose}
-        aria-hidden="true"
-        className="fixed inset-0 z-[285] bg-[rgba(20,25,32,0.28)]"
+        aria-label={x(M.employees_drawer_close)}
+        className="fixed inset-0 z-285 cursor-default border-none bg-[rgba(20,25,32,0.28)]"
       />
-      <div
-        role="dialog"
+      <dialog
+        open
         aria-modal="true"
         aria-label={x(M.employees_drawer_aria)}
-        className="fixed top-0 right-0 bottom-0 z-[286] flex w-[min(400px,100%)] animate-[slideInRight_.2s_ease] flex-col bg-surface font-sans shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
+        className="fixed top-0 right-0 bottom-0 z-286 m-0 flex w-[min(400px,100%)] animate-[slideInRight_.2s_ease] flex-col bg-surface font-sans shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
       >
         <div className="border-b border-border-soft px-[22px] pt-[22px] pb-[18px]">
           <button
@@ -110,7 +111,7 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
             {x(M.employees_drawer_ask_about)} {employee.name}
           </button>
         </div>
-      </div>
+      </dialog>
     </>
   )
 }

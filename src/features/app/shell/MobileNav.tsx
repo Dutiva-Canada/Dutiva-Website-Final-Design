@@ -21,9 +21,9 @@ export function MobileTopbar({
   onOpenDrawer,
   triggerRef,
 }: {
-  title: string
-  onOpenDrawer: () => void
-  triggerRef?: React.RefObject<HTMLButtonElement | null>
+  readonly title: string
+  readonly onOpenDrawer: () => void
+  readonly triggerRef?: React.RefObject<HTMLButtonElement | null>
 }) {
   const { x } = useI18n()
   const { openSearch } = useSearch()
@@ -64,10 +64,10 @@ function MobileTab({
   label,
   active,
 }: {
-  to: string
-  icon: ReactNode
-  label: Bi
-  active: boolean
+  readonly to: string
+  readonly icon: ReactNode
+  readonly label: Bi
+  readonly active: boolean
 }) {
   const { x } = useI18n()
   return (
@@ -90,8 +90,8 @@ export function MobileNav({
   drawerOpen,
   onOpenDrawer,
 }: {
-  drawerOpen: boolean
-  onOpenDrawer: () => void
+  readonly drawerOpen: boolean
+  readonly onOpenDrawer: () => void
 }) {
   const { x } = useI18n()
   const { pathname } = useLocation()

@@ -6,10 +6,10 @@ import { SidebarBadge } from './SidebarBadge'
 import { SidebarTooltip } from './SidebarTooltip'
 
 interface SidebarNavItemProps {
-  item: NavItem
-  expanded: boolean
-  active: boolean
-  onClick?: () => void
+  readonly item: NavItem
+  readonly expanded: boolean
+  readonly active: boolean
+  readonly onClick?: () => void
 }
 
 export function SidebarNavItem({ item, expanded, active, onClick }: SidebarNavItemProps) {
@@ -43,7 +43,7 @@ export function SidebarNavItem({ item, expanded, active, onClick }: SidebarNavIt
           )}
         >
           <span className={item.badge ? 'flex-1 text-left' : undefined}>{label}</span>
-          {item.badge && item.badge.value && (
+          {item.badge?.value && (
             <SidebarBadge itemKey={item.key} value={item.badge.value} tone={item.badge.tone} />
           )}
         </span>

@@ -38,26 +38,74 @@ interface ChatMessage {
   content: string
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
-  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
+type SupabaseClient = ReturnType<typeof createClient>
 
+interface ServerConfig {
+  supabaseUrl: string
+  anonKey: string
+  serviceRoleKey: string
+}
+
+interface AuthenticatedRequest {
+  adminClient: SupabaseClient
+  user: { id: string; email?: string }
+}
+
+interface ChatRequest {
+  message: string
+  conversationId: string | null
+  organizationId: string | null
+}
+
+interface ModelProvider {
+  id: string
+  provider_key: string
+  base_url: string
+  secret_ref: string
+  status: string
+}
+
+interface ModelRoute {
+  model_name: string
+  config: { max_tokens?: number } | null
+}
+
+interface ActiveModelRoute {
+  route: ModelRoute
+  provider: ModelProvider
+}
+
+interface Conversation {
+  id: string
+  messages: ChatMessage[]
+}
+
+interface Completion {
+  choices?: { message?: { content?: string } }[]
+  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
+}
+
+function serverConfig(): ServerConfig | Response {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   if (!supabaseUrl || !anonKey || !serviceRoleKey) {
     return json({ error: 'Server configuration missing' }, 500)
   }
+  return { supabaseUrl, anonKey, serviceRoleKey }
+}
 
+async function authenticateRequest(
+  req: Request,
+  config: ServerConfig,
+): Promise<AuthenticatedRequest | Response> {
   const authHeader = req.headers.get('Authorization') ?? ''
   if (!authHeader.startsWith('Bearer ')) return json({ error: 'Missing bearer token' }, 401)
 
-  const userClient = createClient(supabaseUrl, anonKey, {
+  const userClient = createClient(config.supabaseUrl, config.anonKey, {
     global: { headers: { Authorization: authHeader } },
   })
-  const adminClient = createClient(supabaseUrl, serviceRoleKey)
   const token = authHeader.replace('Bearer ', '')
-
   const { data: userData, error: userError } = await userClient.auth.getUser(token)
   const user = userData?.user
   if (userError || !user) return json({ error: 'Invalid user token' }, 401)
@@ -73,6 +121,10 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'Access to this workspace is invite-only.' }, 403)
   }
 
+  return { user, adminClient: createClient(config.supabaseUrl, config.serviceRoleKey) }
+}
+
+async function readChatRequest(req: Request): Promise<ChatRequest | Response> {
   let body: Record<string, unknown> = {}
   try {
     body = await req.json()
@@ -81,9 +133,14 @@ Deno.serve(async (req: Request) => {
   }
   const message = typeof body.message === 'string' ? body.message.trim() : ''
   if (!message) return json({ error: 'message is required' }, 400)
-  const conversationId = typeof body.conversation_id === 'string' ? body.conversation_id : null
-  const organizationId = typeof body.organization_id === 'string' ? body.organization_id : null
+  return {
+    message,
+    conversationId: typeof body.conversation_id === 'string' ? body.conversation_id : null,
+    organizationId: typeof body.organization_id === 'string' ? body.organization_id : null,
+  }
+}
 
+async function activeModelRoute(adminClient: SupabaseClient): Promise<ActiveModelRoute | Response> {
   const { data: route, error: routeError } = await adminClient
     .from('ai_model_routes')
     .select(
@@ -95,45 +152,75 @@ Deno.serve(async (req: Request) => {
     .limit(1)
     .maybeSingle()
   if (routeError) return json({ error: routeError.message }, 500)
-  const provider = route?.provider as
-    | { id: string; provider_key: string; base_url: string; secret_ref: string; status: string }
-    | null
-    | undefined
+  const provider = route?.provider as ModelProvider | null | undefined
   if (!route || !provider || provider.status !== 'active') {
     return json({ error: 'No active model route configured for advisor_chat' }, 503)
   }
+  return { route, provider }
+}
 
-  const apiKey = Deno.env.get(provider.secret_ref)
-  if (!apiKey) return json({ error: `Missing secret ${provider.secret_ref}` }, 500)
-
-  let conversation: { id: string; messages: ChatMessage[] }
+async function loadConversation(
+  adminClient: SupabaseClient,
+  userId: string,
+  organizationId: string | null,
+  conversationId: string | null,
+): Promise<Conversation | Response> {
   if (conversationId) {
     const { data, error } = await adminClient
       .from('conversations')
       .select('id, messages')
       .eq('id', conversationId)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single()
     if (error || !data) return json({ error: 'Conversation not found' }, 404)
-    conversation = data as { id: string; messages: ChatMessage[] }
-  } else {
-    const { data, error } = await adminClient
-      .from('conversations')
-      .insert({ user_id: user.id, organization_id: organizationId, messages: [] })
-      .select('id, messages')
-      .single()
-    if (error) return json({ error: error.message }, 500)
-    conversation = data as { id: string; messages: ChatMessage[] }
+    return data as Conversation
   }
 
-  const history = Array.isArray(conversation.messages) ? conversation.messages : []
-  const userMessage: ChatMessage = { role: 'user', content: message }
+  const { data, error } = await adminClient
+    .from('conversations')
+    .insert({ user_id: userId, organization_id: organizationId, messages: [] })
+    .select('id, messages')
+    .single()
+  if (error) return json({ error: error.message }, 500)
+  return data as Conversation
+}
+
+async function recordUpstreamError(
+  adminClient: SupabaseClient,
+  request: ChatRequest,
+  userId: string,
+  provider: ModelProvider,
+  route: ModelRoute,
+  started: number,
+  error: unknown,
+): Promise<Response> {
+  const errorMessage = error instanceof Error ? error.message : String(error)
+  await adminClient.from('ai_telemetry_events').insert({
+    organization_id: request.organizationId,
+    user_id: userId,
+    provider: provider.provider_key,
+    model: route.model_name,
+    operation: 'chat',
+    status: 'error',
+    latency_ms: Date.now() - started,
+    metadata: { error: errorMessage },
+  })
+  return json({ error: 'The AI Advisor is temporarily unavailable. Try again shortly.' }, 502)
+}
+
+async function requestCompletion(
+  adminClient: SupabaseClient,
+  request: ChatRequest,
+  userId: string,
+  route: ModelRoute,
+  provider: ModelProvider,
+  history: ChatMessage[],
+  userMessage: ChatMessage,
+): Promise<{ completion: Completion; latencyMs: number } | Response> {
+  const apiKey = Deno.env.get(provider.secret_ref)
+  if (!apiKey) return json({ error: `Missing secret ${provider.secret_ref}` }, 500)
 
   const started = Date.now()
-  let completion: {
-    choices?: { message?: { content?: string } }[]
-    usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
-  }
   try {
     const upstream = await fetch(`${provider.base_url}/chat/completions`, {
       method: 'POST',
@@ -141,44 +228,44 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         model: route.model_name,
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history, userMessage],
-        max_tokens: (route.config as { max_tokens?: number } | null)?.max_tokens ?? 800,
+        max_tokens: route.config?.max_tokens ?? 800,
       }),
     })
     if (!upstream.ok) {
       const errText = await upstream.text()
       throw new Error(`Upstream ${upstream.status}: ${errText.slice(0, 500)}`)
     }
-    completion = await upstream.json()
+    return { completion: await upstream.json(), latencyMs: Date.now() - started }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    await adminClient.from('ai_telemetry_events').insert({
-      organization_id: organizationId,
-      user_id: user.id,
-      provider: provider.provider_key,
-      model: route.model_name,
-      operation: 'chat',
-      status: 'error',
-      latency_ms: Date.now() - started,
-      metadata: { error: errorMessage },
-    })
-    return json({ error: 'The AI Advisor is temporarily unavailable. Try again shortly.' }, 502)
+    return recordUpstreamError(adminClient, request, userId, provider, route, started, error)
   }
+}
 
-  const latencyMs = Date.now() - started
-  const reply = completion.choices?.[0]?.message?.content ?? ''
-  const usage = completion.usage ?? {}
-  const assistantMessage: ChatMessage = { role: 'assistant', content: reply }
-  const nextMessages = [...history, userMessage, assistantMessage]
-
-  const { error: updateError } = await adminClient
+async function saveConversation(
+  adminClient: SupabaseClient,
+  conversation: Conversation,
+  messages: ChatMessage[],
+): Promise<Response | null> {
+  const { error } = await adminClient
     .from('conversations')
-    .update({ messages: nextMessages, updated_at: new Date().toISOString() })
+    .update({ messages, updated_at: new Date().toISOString() })
     .eq('id', conversation.id)
-  if (updateError) return json({ error: updateError.message }, 500)
+  return error ? json({ error: error.message }, 500) : null
+}
 
+async function recordCompletion(
+  adminClient: SupabaseClient,
+  request: ChatRequest,
+  userId: string,
+  route: ModelRoute,
+  provider: ModelProvider,
+  completion: Completion,
+  latencyMs: number,
+) {
+  const usage = completion.usage ?? {}
   await adminClient.from('ai_telemetry_events').insert({
-    organization_id: organizationId,
-    user_id: user.id,
+    organization_id: request.organizationId,
+    user_id: userId,
     provider: provider.provider_key,
     model: route.model_name,
     operation: 'chat',
@@ -188,6 +275,58 @@ Deno.serve(async (req: Request) => {
     latency_ms: latencyMs,
     status: 'completed',
   })
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
+
+  const config = serverConfig()
+  if (config instanceof Response) return config
+  const authenticated = await authenticateRequest(req, config)
+  if (authenticated instanceof Response) return authenticated
+  const request = await readChatRequest(req)
+  if (request instanceof Response) return request
+  const activeRoute = await activeModelRoute(authenticated.adminClient)
+  if (activeRoute instanceof Response) return activeRoute
+  const conversation = await loadConversation(
+    authenticated.adminClient,
+    authenticated.user.id,
+    request.organizationId,
+    request.conversationId,
+  )
+  if (conversation instanceof Response) return conversation
+
+  const history = Array.isArray(conversation.messages) ? conversation.messages : []
+  const userMessage: ChatMessage = { role: 'user', content: request.message }
+  const completionResult = await requestCompletion(
+    authenticated.adminClient,
+    request,
+    authenticated.user.id,
+    activeRoute.route,
+    activeRoute.provider,
+    history,
+    userMessage,
+  )
+  if (completionResult instanceof Response) return completionResult
+
+  const reply = completionResult.completion.choices?.[0]?.message?.content ?? ''
+  const nextMessages = [...history, userMessage, { role: 'assistant' as const, content: reply }]
+  const updateResponse = await saveConversation(
+    authenticated.adminClient,
+    conversation,
+    nextMessages,
+  )
+  if (updateResponse) return updateResponse
+  await recordCompletion(
+    authenticated.adminClient,
+    request,
+    authenticated.user.id,
+    activeRoute.route,
+    activeRoute.provider,
+    completionResult.completion,
+    completionResult.latencyMs,
+  )
 
   return json({ data: { reply, conversation_id: conversation.id } })
 })

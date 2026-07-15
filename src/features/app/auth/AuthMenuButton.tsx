@@ -12,7 +12,7 @@ import { AuthSignInForm } from './AuthSignInForm'
  * replies and live legal sources; this button doesn't gate anything
  * itself. No prototype counterpart.
  */
-export function AuthMenuButton({ compact = false }: { compact?: boolean }) {
+export function AuthMenuButton({ compact = false }: { readonly compact?: boolean }) {
   const { x } = useI18n()
   const { status, signOut } = useAuth()
   const [open, setOpen] = useState(false)
@@ -39,13 +39,13 @@ export function AuthMenuButton({ compact = false }: { compact?: boolean }) {
         <>
           <div
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-[190]"
+            className="fixed inset-0 z-190"
             aria-hidden="true"
           />
-          <div
-            role="dialog"
+          <dialog
+            open
             aria-label={x(M.auth_menu_title)}
-            className="absolute top-[38px] right-0 z-[200] w-[300px] animate-[fadeInUp_.15s_ease] overflow-hidden rounded-[12px] border border-border bg-surface p-[16px] shadow-[0_16px_40px_rgba(27,36,48,0.18)]"
+            className="absolute top-[38px] right-0 z-200 m-0 w-[300px] animate-[fadeInUp_.15s_ease] overflow-hidden rounded-[12px] border border-border bg-surface p-[16px] shadow-[0_16px_40px_rgba(27,36,48,0.18)]"
           >
             <div className="mb-[10px] text-[13.5px] font-bold text-text">
               {x(M.auth_menu_title)}
@@ -81,7 +81,7 @@ export function AuthMenuButton({ compact = false }: { compact?: boolean }) {
                 </button>
               </div>
             )}
-          </div>
+          </dialog>
         </>
       )}
     </div>

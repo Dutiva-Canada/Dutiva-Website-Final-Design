@@ -82,6 +82,7 @@ export function mergeSegments(text: string, answers: Record<string, string>): Me
   let last = 0
   for (const match of text.matchAll(TOKEN_RE)) {
     const index = match.index
+    if (index === undefined) continue
     if (index > last)
       segments.push({ id: `text-${last}`, kind: 'text', text: text.slice(last, index) })
     const token = match[1] ?? ''
@@ -243,7 +244,7 @@ export function docActionsFor(doc: GeneratedDoc, role: WorkspaceRole): DocAction
     const rule = ACTION_RULES[action]
     if (!can(role, rule.capability)) return false
     if (rule.from && !rule.from.includes(status)) return false
-    if (rule.notFrom && rule.notFrom.includes(status)) return false
+    if (rule.notFrom?.includes(status)) return false
     return true
   })
 }

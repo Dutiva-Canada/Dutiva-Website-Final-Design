@@ -33,7 +33,7 @@ const MAX_SCORE = 100
 const trendPoints = scoreTrend
   .map((v, i) => i * (240 / (scoreTrend.length - 1)) + ',' + (60 - (v / MAX_SCORE) * 60))
   .join(' ')
-const latestScore = scoreTrend[scoreTrend.length - 1] ?? 0
+const latestScore = scoreTrend.at(-1) ?? 0
 
 export function ReportsView() {
   const { mode: workspaceMode } = useWorkspaceMode()

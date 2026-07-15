@@ -6,10 +6,10 @@ import { SidebarTooltip } from './SidebarTooltip'
 import { cx } from './cx'
 
 interface SidebarHeaderProps {
-  expanded: boolean
-  inDrawer: boolean
-  identity: WorkspaceIdentity
-  onCloseDrawer?: () => void
+  readonly expanded: boolean
+  readonly inDrawer: boolean
+  readonly identity: WorkspaceIdentity
+  readonly onCloseDrawer?: () => void
 }
 
 export function SidebarHeader({ expanded, inDrawer, identity, onCloseDrawer }: SidebarHeaderProps) {

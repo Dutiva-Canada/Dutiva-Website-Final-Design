@@ -4,8 +4,8 @@ import { shellMessages as M } from '@/i18n/messages/shell'
 import { cx } from './cx'
 
 interface SidebarCollapseButtonProps {
-  expanded: boolean
-  onToggle: () => void
+  readonly expanded: boolean
+  readonly onToggle: () => void
 }
 
 export function SidebarCollapseButton({ expanded, onToggle }: SidebarCollapseButtonProps) {

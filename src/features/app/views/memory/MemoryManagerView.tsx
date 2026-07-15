@@ -257,8 +257,8 @@ export function MemoryManagerView() {
                 {x(M.memory_mgr_audit_note)}
               </div>
               <div className="border-l-2 border-border-soft pl-[10px] text-[11px] leading-normal text-text-faint">
-                {audit.map((entry, i) => (
-                  <div key={i} className="mb-[5px]">
+                {audit.map((entry) => (
+                  <div key={`${entry.action}-${pickL(entry.statement, 'en')}`} className="mb-[5px]">
                     {x(M.memory_mgr_audit_today)} — Riley{' '}
                     {pick(auditActionLabel[entry.action]!, lang)} “{pickL(entry.statement, lang)}”.
                   </div>

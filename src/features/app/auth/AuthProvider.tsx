@@ -14,7 +14,7 @@ import { isAllowedSignInEmail } from './allowedEmail'
  * null and this stays permanently signed-out — features that read it
  * degrade to their signed-out state rather than erroring.
  */
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { readonly children: ReactNode }) {
   const { x } = useI18n()
   const [session, setSession] = useState<Session | null>(null)
   const [status, setStatus] = useState<AuthStatus>(supabase ? 'loading' : 'signed-out')

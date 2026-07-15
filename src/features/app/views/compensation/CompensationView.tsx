@@ -31,7 +31,7 @@ interface CompRow {
 const rows: CompRow[] = employees.map((employee) => {
   const det = employeeDetails[employee.id]
   const delta =
-    det && det.salary && det.market ? Math.round(((det.salary - det.market) / det.market) * 100) : 0
+    det?.salary && det.market ? Math.round(((det.salary - det.market) / det.market) * 100) : 0
   return {
     employee,
     salary: det ? det.salary : null,
@@ -92,7 +92,7 @@ export function CompensationView() {
           <Lock
             size={14}
             strokeWidth={1.8}
-            className="mt-[1px] shrink-0 text-gold-fg"
+            className="mt-px shrink-0 text-gold-fg"
             aria-hidden="true"
           />
           <span className="text-[12.5px] leading-[1.55] font-semibold text-gold-fg">
@@ -141,7 +141,7 @@ export function CompensationView() {
                   </div>
                   <span className={statusChipClass(change.tone)}>{x(change.status)}</span>
                 </div>
-                <div className="mt-[8px] text-[12.5px] leading-[1.5] text-text-3">
+                <div className="mt-[8px] text-[12.5px] leading-normal text-text-3">
                   {x(change.note)}
                 </div>
                 <button
@@ -173,8 +173,7 @@ export function CompensationView() {
           {rows.map((row) => (
             <div
               key={row.employee.id}
-              onClick={() => openCompensationTab(row.employee.id)}
-              className="flex cursor-pointer items-center gap-[12px] rounded-[11px] border border-border bg-surface px-[14px] py-[13px]"
+              className="flex items-center gap-[12px] rounded-[11px] border border-border bg-surface px-[14px] py-[13px]"
             >
               <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
                 {row.employee.initials}
@@ -232,8 +231,7 @@ export function CompensationView() {
           {rows.map((row) => (
             <div
               key={row.employee.id}
-              onClick={() => openCompensationTab(row.employee.id)}
-              className={`grid ${GRID_COLS} cursor-pointer items-center gap-[10px] border-t border-inset px-[16px] py-[12px] hover:bg-bg`}
+              className={`grid ${GRID_COLS} items-center gap-[10px] border-t border-inset px-[16px] py-[12px]`}
             >
               <div className="flex min-w-0 items-center gap-[10px]">
                 <div className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-bold text-accent">

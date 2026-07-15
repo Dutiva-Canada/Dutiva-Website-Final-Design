@@ -2,10 +2,10 @@ import type { ReactNode } from 'react'
 import { cx } from './cx'
 
 interface SidebarTooltipProps {
-  children: ReactNode
-  label: string
-  show: boolean
-  position?: 'right' | 'bottom'
+  readonly children: ReactNode
+  readonly label: string
+  readonly show: boolean
+  readonly position?: 'right' | 'bottom'
 }
 
 export function SidebarTooltip({ children, label, show, position = 'right' }: SidebarTooltipProps) {

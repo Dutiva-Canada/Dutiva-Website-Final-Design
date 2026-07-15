@@ -3,12 +3,12 @@ import { ChevronDown } from 'lucide-react'
 import { cx } from './cx'
 
 interface SidebarSectionProps {
-  id: string
-  heading: string
-  expanded: boolean
-  open: boolean
-  onToggle: () => void
-  children: ReactNode
+  readonly id: string
+  readonly heading: string
+  readonly expanded: boolean
+  readonly open: boolean
+  readonly onToggle: () => void
+  readonly children: ReactNode
 }
 
 export function SidebarSection({

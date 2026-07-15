@@ -47,6 +47,7 @@ import {
 } from './advisorScenarios'
 import type { AdvisorScenario, ScenarioId, ScenarioTurn } from './advisorScenarios'
 import { readNavNewChat, readNavStartFlow } from './advisorNav'
+import type { AdvisorStartFlowNavState } from './advisorNav'
 import { advisorSession } from './advisorSession'
 import type { SessionChat, ThreadResponseState } from './advisorSession'
 import type { FlowKeyOrFallback, MessageExtras, SuggestChipSpec } from './advisorFlows'
@@ -126,6 +127,77 @@ function readNavChatId(state: unknown): string | null {
     if (typeof value === 'string') return value
   }
   return null
+}
+
+function resolveStartFlowKey(
+  start: AdvisorStartFlowNavState,
+  authStatus: ReturnType<typeof useAuth>['status'],
+): FlowKeyOrFallback {
+  if (start.flowKey) return start.flowKey
+  if (authStatus === 'signed-in') return 'fallback'
+  return routeFlowKeyFromText(typeof start.prompt === 'string' ? start.prompt : start.prompt.en)
+}
+
+function resolveScenarioTurn(
+  scenario: AdvisorScenario | undefined,
+  state: ThreadResponseState | undefined,
+): ScenarioTurn | undefined {
+  if (!scenario) return undefined
+  if (scenario.resolved && state?.provinceResolved === true) return scenario.resolved
+  if (scenario.webOff && state?.webOn === false) return scenario.webOff
+  return scenario.turn
+}
+
+function resolveJurisdictionTone(turn: ScenarioTurn | undefined): JurisdictionPillTone {
+  if (!turn) return 'gold'
+  if (turn.response.route.responseMode === 'supportive') return 'support'
+  return turn.response.jurisdiction.status === 'unknown' ? 'warn' : 'gold'
+}
+
+function resolveWorkspaceState(
+  authStatus: ReturnType<typeof useAuth>['status'],
+  busy: boolean,
+  activeResponse: ThreadResponseState['response'] | undefined,
+  currentScenarioTurn: ScenarioTurn | undefined,
+): WorkspaceState {
+  if (authStatus !== 'signed-in') return { kind: 'locked' }
+  if (busy) return { kind: 'running' }
+  if (activeResponse !== null && activeResponse !== undefined) {
+    return {
+      kind: 'ready',
+      response: activeResponse,
+      provincePrompt: currentScenarioTurn?.provincePrompt === true,
+    }
+  }
+  return { kind: 'idle' }
+}
+
+function scenarioForResponseState(
+  state: ThreadResponseState | undefined,
+): AdvisorScenario | undefined {
+  return state?.scenarioId == null ? undefined : advisorScenarios[state.scenarioId]
+}
+
+function resolveInitialActiveChatId(locationState: unknown): string | null {
+  const navId = readNavChatId(locationState)
+  if (navId !== null && chats.some((chat) => chat.id === navId)) return navId
+
+  const resumed = advisorSession.activeChatId
+  if (resumed === null) return null
+  const canResume =
+    chats.some((chat) => chat.id === resumed) ||
+    advisorSession.chats.some((chat) => chat.id === resumed) ||
+    scenarioForThread(resumed) !== undefined
+  return canResume ? resumed : null
+}
+
+function scenarioExtras(turn: ScenarioTurn): MessageExtras {
+  const extras: MessageExtras = {}
+  if (turn.banner) extras.banner = turn.banner
+  if ((turn.docs?.length ?? 0) > 0 && turn.response.route.documentsAllowed) extras.docs = turn.docs
+  if ((turn.followups?.length ?? 0) > 0) extras.followups = turn.followups
+  if (turn.provincePrompt === true) extras.provincePrompt = true
+  return extras
 }
 
 export function AdvisorView() {
@@ -245,22 +317,11 @@ export function AdvisorView() {
 
   /* --------------------------------------------------------------- engine */
 
-  const [activeChatId, setActiveChatId] = useState<string | null>(() => {
-    const navId = readNavChatId(location.state)
-    if (navId !== null && chats.some((c) => c.id === navId)) return navId
-    /* No explicit navigation target — resume the thread that was open when
-       the view last unmounted (prototype app-level activeChatId). */
-    const resumed = advisorSession.activeChatId
-    if (
-      resumed !== null &&
-      (chats.some((c) => c.id === resumed) ||
-        advisorSession.chats.some((c) => c.id === resumed) ||
-        scenarioForThread(resumed) !== undefined)
-    ) {
-      return resumed
-    }
-    return null
-  })
+  /* No explicit navigation target — resume the thread that was open when
+     the view last unmounted (prototype app-level activeChatId). */
+  const [activeChatId, setActiveChatId] = useState<string | null>(() =>
+    resolveInitialActiveChatId(location.state),
+  )
   const updateActiveChatId = (id: string | null) => {
     advisorSession.activeChatId = id
     setActiveChatId(id)
@@ -307,15 +368,9 @@ export function AdvisorView() {
    */
   const pushScenarioTurn = (chatId: string, turn: ScenarioTurn) => {
     const turnId = pushAdvisor({ text: turn.reply })
-    const messageExtras: MessageExtras = {}
-    if (turn.banner) messageExtras.banner = turn.banner
     /* Obey the gates, always — document chips only render when the route
        allows documents (handoff rule 3). */
-    if ((turn.docs?.length ?? 0) > 0 && turn.response.route.documentsAllowed) {
-      messageExtras.docs = turn.docs
-    }
-    if ((turn.followups?.length ?? 0) > 0) messageExtras.followups = turn.followups
-    if (turn.provincePrompt === true) messageExtras.provincePrompt = true
+    const messageExtras = scenarioExtras(turn)
     if (Object.keys(messageExtras).length > 0) {
       updateExtras((prev) => ({ ...prev, [turnId]: messageExtras }))
     }
@@ -355,9 +410,8 @@ export function AdvisorView() {
     const chatId = activeChatId
     if (chatId === null) return
     const state = responseState[chatId]
-    if (state === undefined || state.scenarioId === null) return
-    const scenario = advisorScenarios[state.scenarioId]
-    if (!scenario.resolved || state.provinceResolved) return
+    const scenario = scenarioForResponseState(state)
+    if (!state || !scenario?.resolved || state.provinceResolved) return
     pushUser('', [province])
     patchResponseState(chatId, { provinceResolved: true })
     pushScenarioTurn(chatId, scenario.resolved)
@@ -368,9 +422,8 @@ export function AdvisorView() {
     const chatId = activeChatId
     if (chatId === null) return
     const state = responseState[chatId]
-    if (state === undefined || state.scenarioId === null) return
-    const scenario = advisorScenarios[state.scenarioId]
-    if (!scenario.webOff) return
+    const scenario = scenarioForResponseState(state)
+    if (!state || !scenario?.webOff) return
     const webOn = !state.webOn
     patchResponseState(chatId, { webOn })
     pushScenarioTurn(chatId, webOn ? scenario.turn : scenario.webOff)
@@ -438,12 +491,7 @@ export function AdvisorView() {
          falls back to keyword routing — and only when signed out; signed
          in, free text always goes to the real backend (see startFlow's
          'fallback' branch). */
-      const key =
-        start.flowKey ??
-        (authStatus === 'signed-in'
-          ? 'fallback'
-          : routeFlowKeyFromText(typeof start.prompt === 'string' ? start.prompt : start.prompt.en))
-      startFlowRef.current(key, start.prompt)
+      startFlowRef.current(resolveStartFlowKey(start, authStatus), start.prompt)
       return
     }
     if (readNavNewChat(state)) {
@@ -679,40 +727,16 @@ export function AdvisorView() {
      current (jurisdiction resolved / web toggled) drives the jurisdiction
      pill and the workspace payload. */
   const activeResponseState = activeChatId !== null ? responseState[activeChatId] : undefined
-  const activeScenario =
-    activeResponseState?.scenarioId != null
-      ? advisorScenarios[activeResponseState.scenarioId]
-      : undefined
-  const currentScenarioTurn: ScenarioTurn | undefined = activeScenario
-    ? activeScenario.resolved && activeResponseState?.provinceResolved === true
-      ? activeScenario.resolved
-      : activeScenario.webOff && activeResponseState?.webOn === false
-        ? activeScenario.webOff
-        : activeScenario.turn
-    : undefined
+  const activeScenario = scenarioForResponseState(activeResponseState)
+  const currentScenarioTurn = resolveScenarioTurn(activeScenario, activeResponseState)
   const jurisdictionLine = currentScenarioTurn?.jurisdictionLine ?? flowJurisdictions[activeFlowKey]
-  const jurisdictionTone: JurisdictionPillTone =
-    currentScenarioTurn === undefined
-      ? 'gold'
-      : currentScenarioTurn.response.route.responseMode === 'supportive'
-        ? 'support'
-        : currentScenarioTurn.response.jurisdiction.status === 'unknown'
-          ? 'warn'
-          : 'gold'
-
-  const activeResponse = activeResponseState?.response ?? null
-  const workspaceState: WorkspaceState =
-    authStatus !== 'signed-in'
-      ? { kind: 'locked' }
-      : engine.busy || sendingReal
-        ? { kind: 'running' }
-        : activeResponse !== null
-          ? {
-              kind: 'ready',
-              response: activeResponse,
-              provincePrompt: currentScenarioTurn?.provincePrompt === true,
-            }
-          : { kind: 'idle' }
+  const jurisdictionTone = resolveJurisdictionTone(currentScenarioTurn)
+  const workspaceState = resolveWorkspaceState(
+    authStatus,
+    engine.busy || sendingReal,
+    activeResponseState?.response,
+    currentScenarioTurn,
+  )
 
   /* Scenario threads group like the handoff prototype: s1 under Pinned only,
      the rest under Today. Fixture chats keep the App v2 grouping (a pinned

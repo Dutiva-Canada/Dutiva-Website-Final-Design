@@ -7,7 +7,7 @@ describe('advisorResponseSchema', () => {
   it('validates every demo scenario payload (fixtures conform to the contract)', () => {
     for (const scenario of advisorScenarioList) {
       const turns = [scenario.turn, scenario.resolved, scenario.webOff].filter(
-        (t) => t !== undefined,
+        (turn): turn is NonNullable<typeof turn> => turn !== undefined,
       )
       for (const turn of turns) {
         const parsed = advisorResponseSchema.safeParse(turn.response)

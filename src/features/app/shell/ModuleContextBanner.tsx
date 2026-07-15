@@ -43,7 +43,7 @@ export function ModuleContextBanner() {
         </svg>
       </div>
       <div className="flex min-w-0 flex-wrap items-baseline gap-[8px]">
-        <span className="text-[11px] font-bold tracking-[.05em] text-gold-dot uppercase">
+        <span className="text-[11px] font-bold tracking-wider text-gold-dot uppercase">
           {x(M.shell_advisor_mode)}
         </span>
         <span className="text-[13px] font-bold text-text">{x(mod.specialty)}</span>

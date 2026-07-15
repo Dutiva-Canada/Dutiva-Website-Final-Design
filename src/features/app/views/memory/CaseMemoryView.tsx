@@ -172,9 +172,9 @@ export function CaseMemoryView() {
               <span className="h-px flex-1 bg-border-soft" />
             </div>
             <div className="rounded-[13px] border border-border-soft bg-surface px-[16px] pt-[4px] pb-[12px]">
-              {content.timeline.map((entry, i) =>
+              {content.timeline.map((entry) =>
                 entry.kind === 'gap' ? (
-                  <div key={i} className="flex items-center gap-[12px] py-[6px] pl-px">
+                  <div key={`${entry.kind}-${entry.label.en}`} className="flex items-center gap-[12px] py-[6px] pl-px">
                     <div className="flex w-[11px] justify-center">
                       <div
                         className="h-[22px] w-[2px]"
@@ -190,7 +190,7 @@ export function CaseMemoryView() {
                   </div>
                 ) : (
                   <div
-                    key={i}
+                    key={`${entry.kind}-${entry.label.en}`}
                     className="flex gap-[13px] border-t border-inset py-[11px] first:border-t-0"
                   >
                     <div className="flex w-[11px] flex-none justify-center">

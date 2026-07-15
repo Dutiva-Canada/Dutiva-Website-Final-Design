@@ -17,18 +17,18 @@ import type { HomeAction, HomePriority } from './homeData'
  * are single-tap buttons with a due pill / severity chip.
  */
 
-function SeverityChip({ priority }: { priority: HomePriority }) {
+function SeverityChip({ priority }: { readonly priority: HomePriority }) {
   const { x } = useI18n()
   return (
     <span className={statusChipClass(priority.tone)}>{x(severityLabels[priority.severity])}</span>
   )
 }
 
-export function HomeActNowSection({ onAction }: { onAction: (action: HomeAction) => void }) {
+export function HomeActNowSection({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
   const { x } = useI18n()
   return (
     <div>
-      <div className="mb-[7px] text-[11px] font-bold tracking-[0.05em] text-risk-fg uppercase">
+      <div className="mb-[7px] text-[11px] font-bold tracking-wider text-risk-fg uppercase">
         {x(M.home_act_now)} · {actNowPriorities.length}
       </div>
       <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
@@ -76,11 +76,11 @@ export function HomeActNowSection({ onAction }: { onAction: (action: HomeAction)
   )
 }
 
-export function HomeThisWeekSection({ onAction }: { onAction: (action: HomeAction) => void }) {
+export function HomeThisWeekSection({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
   const { x } = useI18n()
   return (
     <div>
-      <div className="mb-[7px] text-[11px] font-bold tracking-[0.05em] text-warn-fg uppercase">
+      <div className="mb-[7px] text-[11px] font-bold tracking-wider text-warn-fg uppercase">
         {x(M.home_this_week)} · {thisWeekPriorities.length}
       </div>
       <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
@@ -120,11 +120,11 @@ export function HomeThisWeekSection({ onAction }: { onAction: (action: HomeActio
   )
 }
 
-export function HomeWatchingSection({ onAction }: { onAction: (action: HomeAction) => void }) {
+export function HomeWatchingSection({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
   const { x } = useI18n()
   return (
     <div>
-      <div className="mb-[7px] text-[11px] font-bold tracking-[0.05em] text-text-muted uppercase">
+      <div className="mb-[7px] text-[11px] font-bold tracking-wider text-text-muted uppercase">
         {x(M.home_watching)} · {watchingPriorities.length}
       </div>
       <div className="overflow-hidden rounded-[12px] border border-border bg-surface">

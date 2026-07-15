@@ -11,12 +11,22 @@ import type { HomeAction } from './homeData'
  */
 
 /** Prototype `scoreColor` / `fillStyle` — category tone → colour utility. */
-const categoryScoreClass = (tone: string) =>
-  tone === 'risk' ? 'text-risk-dot' : tone === 'warning' ? 'text-gold-dot' : 'text-ok-fg'
-const categoryFillClass = (tone: string) =>
-  tone === 'risk' ? 'bg-risk-dot' : tone === 'warning' ? 'bg-gold-dot' : 'bg-ok-fg'
+const categoryScoreClass = (tone: string) => {
+  if (tone === 'risk') return 'text-risk-dot'
+  if (tone === 'warning') return 'text-gold-dot'
+  return 'text-ok-fg'
+}
+const categoryFillClass = (tone: string) => {
+  if (tone === 'risk') return 'bg-risk-dot'
+  if (tone === 'warning') return 'bg-gold-dot'
+  return 'bg-ok-fg'
+}
 
-export function HomeCompliancePanel({ onAction }: { onAction: (action: HomeAction) => void }) {
+export function HomeCompliancePanel({
+  onAction,
+}: {
+  readonly onAction: (action: HomeAction) => void
+}) {
   const { x } = useI18n()
   const catRows = complianceCategories.slice(0, 3)
 

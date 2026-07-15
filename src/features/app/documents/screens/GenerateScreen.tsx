@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -189,22 +189,17 @@ function QuestionField({
 
 function AutosaveIndicator({ state }: { readonly state: SaveState }) {
   const { t } = useI18n()
-  const dot =
-    state === 'saving' ? 'bg-accent animate-pulse' : state === 'saved' ? 'bg-ok-fg' : 'bg-gold-dot'
-  const label =
-    state === 'saving'
-      ? t('doclib_gen_saving')
-      : state === 'saved'
-        ? t('doclib_gen_saved')
-        : t('doclib_gen_unsaved')
+  const saveState = {
+    saving: { dot: 'bg-accent animate-pulse', label: t('doclib_gen_saving') },
+    saved: { dot: 'bg-ok-fg', label: t('doclib_gen_saved') },
+    unsaved: { dot: 'bg-gold-dot', label: t('doclib_gen_unsaved') },
+  }[state]
+  const { dot, label } = saveState
   return (
-    <span
-      role="status"
-      className="inline-flex items-center gap-1.5 text-[12px] font-medium whitespace-nowrap text-text-muted"
-    >
+    <output className="inline-flex items-center gap-1.5 text-[12px] font-medium whitespace-nowrap text-text-muted">
       <span className={`h-[7px] w-[7px] rounded-full ${dot}`} aria-hidden="true" />
       {label}
-    </span>
+    </output>
   )
 }
 
@@ -230,6 +225,321 @@ function groupQuestions(template: DocTemplate): SectionGroup[] {
   return groups
 }
 
+type Translator = ReturnType<typeof useI18n>['t']
+
+function wizardSubtitle(step: WizardState['step'], t: Translator): string {
+  if (step === 0) return t('doclib_gen_contextSub')
+  if (step === 2) return t('doclib_gen_reviewSub')
+  return `${t('doclib_gen_step')} 2 ${t('doclib_gen_of')} 3 — ${t('doclib_gen_questions')}`
+}
+
+function prefilledAnswers(
+  answers: WizardState['answers'],
+  employee: DocEmployee | undefined,
+  nameQuestion: TemplateQuestion | undefined,
+): WizardState['answers'] {
+  if (!employee || !nameQuestion || (answers[nameQuestion.id] ?? '').trim() !== '') return answers
+  return { ...answers, [nameQuestion.id]: employee.name }
+}
+
+function jurisdictionLabel(code: Jurisdiction, x: ReturnType<typeof useI18n>['x']): string {
+  const info = jurisdictionInfo.find((jurisdiction) => jurisdiction.code === code)
+  return info ? x(info.name) : code
+}
+
+function selectEmployee(
+  id: string,
+  employees: DocEmployee[],
+  nameQuestion: TemplateQuestion | undefined,
+  setWiz: Dispatch<SetStateAction<WizardState>>,
+) {
+  const employee = employees.find((candidate) => candidate.id === id)
+  setWiz((wizard) => ({
+    ...wizard,
+    employeeId: id || undefined,
+    caseId: undefined,
+    answers: prefilledAnswers(wizard.answers, employee, nameQuestion),
+  }))
+}
+
+function scheduleAutosave(
+  timersRef: { current: number[] },
+  setWiz: Dispatch<SetStateAction<WizardState>>,
+) {
+  for (const id of timersRef.current) window.clearTimeout(id)
+  const settle = window.setTimeout(() => {
+    setWiz((wizard) => ({ ...wizard, saveState: 'saving' }))
+    const done = window.setTimeout(
+      () => setWiz((wizard) => ({ ...wizard, saveState: 'saved' })),
+      SAVE_SETTLE_MS,
+    )
+    timersRef.current.push(done)
+  }, SAVE_DEBOUNCE_MS)
+  timersRef.current = [settle]
+}
+
+function initialWizardState(
+  template: DocTemplate,
+  primaryJurisdiction: Jurisdiction,
+  language: WizardState['language'],
+): WizardState {
+  const jurisdiction = template.jurisdictions.includes(primaryJurisdiction)
+    ? primaryJurisdiction
+    : (template.jurisdictions[0] ?? primaryJurisdiction)
+  return { step: 0, jurisdiction, language, answers: {}, saveState: 'saved' }
+}
+
+function ContextStep({
+  subject,
+  jurisdictions,
+  employeeId,
+  caseId,
+  jurisdiction,
+  language,
+  employees,
+  employeeCases,
+  employeeRequired,
+  onEmployeeChange,
+  onCaseChange,
+  onJurisdictionChange,
+  onLanguageChange,
+  t,
+  x,
+}: {
+  readonly subject: DocTemplate['subject']
+  readonly jurisdictions: DocTemplate['jurisdictions']
+  readonly employeeId?: string
+  readonly caseId?: string
+  readonly jurisdiction: Jurisdiction
+  readonly language: WizardState['language']
+  readonly employees: DocEmployee[]
+  readonly employeeCases: DocCase[]
+  readonly employeeRequired: boolean
+  readonly onEmployeeChange: (id: string) => void
+  readonly onCaseChange: (id: string) => void
+  readonly onJurisdictionChange: (jurisdiction: Jurisdiction) => void
+  readonly onLanguageChange: (language: WizardState['language']) => void
+  readonly t: Translator
+  readonly x: ReturnType<typeof useI18n>['x']
+}) {
+  const showsPeoplePickers = subject === 'employee' || subject === 'candidate'
+
+  return (
+    <section className={cardClass} aria-label={t('doclib_gen_context')}>
+      <h2 className={sectionHeadingClass}>{t('doclib_gen_context')}</h2>
+      <div className="flex flex-col gap-4">
+        {showsPeoplePickers ? (
+          <>
+            <div>
+              <FieldLabel
+                htmlFor="gen-employee"
+                required={employeeRequired}
+                requiredTitle={t('doclib_gen_required')}
+              >
+                {employeeRequired ? t('doclib_gen_employeeReq') : t('doclib_gen_candLink')}
+              </FieldLabel>
+              <select
+                id="gen-employee"
+                aria-label={
+                  employeeRequired ? t('doclib_gen_employeeReq') : t('doclib_gen_candLink')
+                }
+                value={employeeId ?? ''}
+                onChange={(event) => onEmployeeChange(event.target.value)}
+                className={inputClass}
+              >
+                <option value="">{t('doclib_gen_none')}</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.name}
+                  </option>
+                ))}
+              </select>
+              <div className="mt-1 text-[11px] text-text-faint">
+                {employeeRequired ? t('doclib_gen_empRequired') : t('doclib_gen_candHint')}
+              </div>
+            </div>
+            <div>
+              <FieldLabel htmlFor="gen-case" requiredTitle={t('doclib_gen_required')}>
+                {t('doclib_gen_case')}
+              </FieldLabel>
+              <select
+                id="gen-case"
+                aria-label={t('doclib_gen_case')}
+                value={caseId ?? ''}
+                onChange={(event) => onCaseChange(event.target.value)}
+                className={inputClass}
+              >
+                <option value="">{t('doclib_gen_none')}</option>
+                {employeeCases.map((docCase) => (
+                  <option key={docCase.id} value={docCase.id}>
+                    {x(docCase.title)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        ) : (
+          <div className="rounded-[8px] border border-(--accent-soft-border) bg-accent-soft px-3 py-2 text-[12px] text-text-muted">
+            {subject === 'org' ? t('doclib_gen_orgWideNote') : t('doclib_gen_extNote')}
+          </div>
+        )}
+
+        <div>
+          <FieldLabel requiredTitle={t('doclib_gen_required')}>
+            {t('doclib_gen_jurisdiction')}
+          </FieldLabel>
+          <SegRow>
+            {jurisdictions.map((code) => (
+              <SegButton
+                key={code}
+                active={jurisdiction === code}
+                onClick={() => onJurisdictionChange(code)}
+              >
+                {code}
+              </SegButton>
+            ))}
+          </SegRow>
+        </div>
+
+        <div>
+          <FieldLabel requiredTitle={t('doclib_gen_required')}>
+            {t('doclib_gen_language')}
+          </FieldLabel>
+          <SegRow>
+            {(['en', 'fr'] as const).map((docLang) => (
+              <SegButton
+                key={docLang}
+                active={language === docLang}
+                onClick={() => onLanguageChange(docLang)}
+              >
+                {docLang.toUpperCase()}
+              </SegButton>
+            ))}
+          </SegRow>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function QuestionsStep({
+  sections,
+  answers,
+  selectedEmployee,
+  nameQuestion,
+  setAnswer,
+  x,
+}: {
+  readonly sections: SectionGroup[]
+  readonly answers: WizardState['answers']
+  readonly selectedEmployee: DocEmployee | undefined
+  readonly nameQuestion: TemplateQuestion | undefined
+  readonly setAnswer: (id: string, value: string) => void
+  readonly x: ReturnType<typeof useI18n>['x']
+}) {
+  return sections.map((group) => (
+    <section key={group.key} className={cardClass} aria-label={x(group.section)}>
+      <h2 className={sectionHeadingClass}>{x(group.section)}</h2>
+      <div className="flex flex-col gap-4">
+        {group.questions.map((question) => (
+          <QuestionField
+            key={question.id}
+            question={question}
+            value={answers[question.id] ?? ''}
+            autofilled={
+              question === nameQuestion &&
+              selectedEmployee !== undefined &&
+              answers[question.id] === selectedEmployee.name
+            }
+            onChange={(value) => setAnswer(question.id, value)}
+          />
+        ))}
+      </div>
+    </section>
+  ))
+}
+
+function ReviewStep({
+  risk,
+  review,
+  requiresLawyerReview,
+  progress,
+  progressPct,
+  jurisdiction,
+  language,
+  t,
+  x,
+}: {
+  readonly risk: DocTemplate['risk']
+  readonly review: DocTemplate['review']
+  readonly requiresLawyerReview: boolean
+  readonly progress: ReturnType<typeof fillProgress>
+  readonly progressPct: number
+  readonly jurisdiction: Jurisdiction
+  readonly language: WizardState['language']
+  readonly t: Translator
+  readonly x: ReturnType<typeof useI18n>['x']
+}) {
+  const riskInfo = riskLevelInfo[risk]
+  const reviewInfo = reviewStatusInfo[review]
+
+  return (
+    <section className={cardClass} aria-label={t('doclib_gen_review')}>
+      <h2 className={sectionHeadingClass}>{t('doclib_gen_review')}</h2>
+
+      {/* Fill progress */}
+      <div className="mb-1 flex items-baseline justify-between gap-3">
+        <span className="text-[12.5px] font-semibold text-text">
+          {`${progress.filled}/${progress.total}`}{' '}
+          <span className="font-medium text-text-muted">{t('doclib_gen_mergeFilled')}</span>
+        </span>
+        <span className="text-[12px] text-text-muted">
+          {progress.total - progress.filled > 0
+            ? `${progress.total - progress.filled} ${t('doclib_gen_mergeRemaining')}`
+            : `${progressPct}%`}
+        </span>
+      </div>
+      <div className="h-[8px] overflow-hidden rounded-full bg-inset" aria-hidden="true">
+        <div
+          className="h-full rounded-full bg-navy transition-[width]"
+          style={{ width: `${progressPct}%` }}
+        />
+      </div>
+
+      {/* Risk & review posture + context summary */}
+      <dl className="mt-4 grid grid-cols-[auto_1fr] items-center gap-x-5 gap-y-2.5 text-[12.5px]">
+        <dt className="font-semibold text-text-muted">{t('doclib_gen_riskLine')}</dt>
+        <dd>
+          <DocChip tone={riskInfo.tone}>{x(riskInfo.label)}</DocChip>
+        </dd>
+        <dt className="font-semibold text-text-muted">{t('doclib_gen_reviewLine')}</dt>
+        <dd>
+          <DocChip tone={reviewInfo.tone}>{x(reviewInfo.label)}</DocChip>
+        </dd>
+        <dt className="font-semibold text-text-muted">{t('doclib_gen_jurisdiction')}</dt>
+        <dd className="flex items-center gap-2 text-text">
+          <JurisdictionPill code={jurisdiction} />
+          {jurisdictionLabel(jurisdiction, x)}
+        </dd>
+        <dt className="font-semibold text-text-muted">{t('doclib_gen_language')}</dt>
+        <dd className="font-semibold text-text">{language.toUpperCase()}</dd>
+      </dl>
+
+      {(requiresLawyerReview || review === 'hr_review_required') && (
+        <div
+          className={`mt-4 rounded-[8px] border px-3 py-2 text-[12px] ${
+            requiresLawyerReview
+              ? 'border-risk-border bg-risk-bg text-risk-fg'
+              : 'border-border bg-warn-bg text-warn-fg'
+          }`}
+        >
+          {requiresLawyerReview ? t('doclib_gen_lawyerWarn') : t('doclib_gen_hrWarn')}
+        </div>
+      )}
+    </section>
+  )
+}
+
 function GenerateWizard({
   template,
   employees,
@@ -244,15 +554,9 @@ function GenerateWizard({
   const { showToast } = useToasts()
   const navigate = useNavigate()
 
-  const [wiz, setWiz] = useState<WizardState>(() => ({
-    step: 0,
-    jurisdiction: template.jurisdictions.includes(org.primaryJurisdiction)
-      ? org.primaryJurisdiction
-      : (template.jurisdictions[0] ?? org.primaryJurisdiction),
-    language: lang,
-    answers: {},
-    saveState: 'saved',
-  }))
+  const [wiz, setWiz] = useState<WizardState>(() =>
+    initialWizardState(template, org.primaryJurisdiction, lang),
+  )
 
   /* Simulated autosave timers — cleared on every change and on unmount. */
   const timersRef = useRef<number[]>([])
@@ -262,22 +566,10 @@ function GenerateWizard({
     },
     [],
   )
-  const kickAutosave = () => {
-    for (const id of timersRef.current) window.clearTimeout(id)
-    const settle = window.setTimeout(() => {
-      setWiz((w) => ({ ...w, saveState: 'saving' }))
-      const done = window.setTimeout(
-        () => setWiz((w) => ({ ...w, saveState: 'saved' })),
-        SAVE_SETTLE_MS,
-      )
-      timersRef.current.push(done)
-    }, SAVE_DEBOUNCE_MS)
-    timersRef.current = [settle]
-  }
 
   const setAnswer = (id: string, value: string) => {
     setWiz((w) => ({ ...w, answers: { ...w.answers, [id]: value }, saveState: 'unsaved' }))
-    kickAutosave()
+    scheduleAutosave(timersRef, setWiz)
   }
 
   /* The name question this template prefills from the chosen employee. */
@@ -287,23 +579,6 @@ function GenerateWizard({
 
   const selectedEmployee = employees.find((e) => e.id === wiz.employeeId)
 
-  const selectEmployee = (id: string) => {
-    const employee = employees.find((e) => e.id === id)
-    setWiz((w) => {
-      const answers =
-        employee && nameQuestion && (w.answers[nameQuestion.id] ?? '').trim() === ''
-          ? { ...w.answers, [nameQuestion.id]: employee.name }
-          : w.answers
-      return {
-        ...w,
-        employeeId: id === '' ? undefined : id,
-        /* Cases are scoped to the employee — reset the pick on change. */
-        caseId: undefined,
-        answers,
-      }
-    })
-  }
-
   const goStep = (step: number) => {
     const clamped = Math.max(0, Math.min(2, step)) as 0 | 1 | 2
     setWiz((w) => ({ ...w, step: clamped }))
@@ -311,7 +586,6 @@ function GenerateWizard({
 
   const employeeRequired = template.subject === 'employee'
   const contextReady = !employeeRequired || wiz.employeeId !== undefined
-  const showsPeoplePickers = template.subject === 'employee' || template.subject === 'candidate'
   const employeeCases = cases.filter(
     (c) => wiz.employeeId === undefined || c.employeeId === wiz.employeeId,
   )
@@ -347,12 +621,6 @@ function GenerateWizard({
   const progress = fillProgress(template, wiz.answers)
   const progressPct =
     progress.total === 0 ? 100 : Math.round((progress.filled / progress.total) * 100)
-  const riskInfo = riskLevelInfo[template.risk]
-  const reviewInfo = reviewStatusInfo[template.review]
-  const jurisdictionName = (code: Jurisdiction): string => {
-    const info = jurisdictionInfo.find((j) => j.code === code)
-    return info ? x(info.name) : code
-  }
 
   const applic = applicability(template, org)
   const sizeTier = sizeTiers.find(
@@ -370,12 +638,7 @@ function GenerateWizard({
     navigate(REPOSITORY_PATH)
   }
 
-  const subtitle =
-    wiz.step === 0
-      ? t('doclib_gen_contextSub')
-      : wiz.step === 2
-        ? t('doclib_gen_reviewSub')
-        : `${t('doclib_gen_step')} 2 ${t('doclib_gen_of')} 3 — ${t('doclib_gen_questions')}`
+  const subtitle = wizardSubtitle(wiz.step, t)
 
   return (
     <div>
@@ -431,187 +694,48 @@ function GenerateWizard({
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(300px,0.72fr)] items-start gap-6 max-[1023px]:grid-cols-1">
         <div className="flex min-w-0 flex-col gap-4">
           {wiz.step === 0 && (
-            <section className={cardClass} aria-label={t('doclib_gen_context')}>
-              <h2 className={sectionHeadingClass}>{t('doclib_gen_context')}</h2>
-              <div className="flex flex-col gap-4">
-                {showsPeoplePickers ? (
-                  <>
-                    <div>
-                      <FieldLabel
-                        htmlFor="gen-employee"
-                        required={employeeRequired}
-                        requiredTitle={t('doclib_gen_required')}
-                      >
-                        {employeeRequired ? t('doclib_gen_employeeReq') : t('doclib_gen_candLink')}
-                      </FieldLabel>
-                      <select
-                        id="gen-employee"
-                        aria-label={
-                          employeeRequired ? t('doclib_gen_employeeReq') : t('doclib_gen_candLink')
-                        }
-                        value={wiz.employeeId ?? ''}
-                        onChange={(event) => selectEmployee(event.target.value)}
-                        className={inputClass}
-                      >
-                        <option value="">{t('doclib_gen_none')}</option>
-                        {employees.map((employee) => (
-                          <option key={employee.id} value={employee.id}>
-                            {employee.name}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="mt-1 text-[11px] text-text-faint">
-                        {employeeRequired ? t('doclib_gen_empRequired') : t('doclib_gen_candHint')}
-                      </div>
-                    </div>
-                    <div>
-                      <FieldLabel htmlFor="gen-case" requiredTitle={t('doclib_gen_required')}>
-                        {t('doclib_gen_case')}
-                      </FieldLabel>
-                      <select
-                        id="gen-case"
-                        aria-label={t('doclib_gen_case')}
-                        value={wiz.caseId ?? ''}
-                        onChange={(event) =>
-                          setWiz((w) => ({
-                            ...w,
-                            caseId: event.target.value === '' ? undefined : event.target.value,
-                          }))
-                        }
-                        className={inputClass}
-                      >
-                        <option value="">{t('doclib_gen_none')}</option>
-                        {employeeCases.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {x(c.title)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </>
-                ) : (
-                  <div className="rounded-[8px] border border-(--accent-soft-border) bg-accent-soft px-3 py-2 text-[12px] text-text-muted">
-                    {template.subject === 'org'
-                      ? t('doclib_gen_orgWideNote')
-                      : t('doclib_gen_extNote')}
-                  </div>
-                )}
-
-                <div>
-                  <FieldLabel requiredTitle={t('doclib_gen_required')}>
-                    {t('doclib_gen_jurisdiction')}
-                  </FieldLabel>
-                  <SegRow>
-                    {template.jurisdictions.map((code) => (
-                      <SegButton
-                        key={code}
-                        active={wiz.jurisdiction === code}
-                        onClick={() => setWiz((w) => ({ ...w, jurisdiction: code }))}
-                      >
-                        {code}
-                      </SegButton>
-                    ))}
-                  </SegRow>
-                </div>
-
-                <div>
-                  <FieldLabel requiredTitle={t('doclib_gen_required')}>
-                    {t('doclib_gen_language')}
-                  </FieldLabel>
-                  <SegRow>
-                    {(['en', 'fr'] as const).map((docLang) => (
-                      <SegButton
-                        key={docLang}
-                        active={wiz.language === docLang}
-                        onClick={() => setWiz((w) => ({ ...w, language: docLang }))}
-                      >
-                        {docLang.toUpperCase()}
-                      </SegButton>
-                    ))}
-                  </SegRow>
-                </div>
-              </div>
-            </section>
+            <ContextStep
+              subject={template.subject}
+              jurisdictions={template.jurisdictions}
+              employeeId={wiz.employeeId}
+              caseId={wiz.caseId}
+              jurisdiction={wiz.jurisdiction}
+              language={wiz.language}
+              employees={employees}
+              employeeCases={employeeCases}
+              employeeRequired={employeeRequired}
+              onEmployeeChange={(id) => selectEmployee(id, employees, nameQuestion, setWiz)}
+              onCaseChange={(id) => setWiz((w) => ({ ...w, caseId: id || undefined }))}
+              onJurisdictionChange={(jurisdiction) => setWiz((w) => ({ ...w, jurisdiction }))}
+              onLanguageChange={(language) => setWiz((w) => ({ ...w, language }))}
+              t={t}
+              x={x}
+            />
           )}
 
-          {wiz.step === 1 &&
-            sections.map((group) => (
-              <section key={group.key} className={cardClass} aria-label={x(group.section)}>
-                <h2 className={sectionHeadingClass}>{x(group.section)}</h2>
-                <div className="flex flex-col gap-4">
-                  {group.questions.map((question) => (
-                    <QuestionField
-                      key={question.id}
-                      question={question}
-                      value={wiz.answers[question.id] ?? ''}
-                      autofilled={
-                        question === nameQuestion &&
-                        selectedEmployee !== undefined &&
-                        wiz.answers[question.id] === selectedEmployee.name
-                      }
-                      onChange={(value) => setAnswer(question.id, value)}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
+          {wiz.step === 1 && (
+            <QuestionsStep
+              sections={sections}
+              answers={wiz.answers}
+              selectedEmployee={selectedEmployee}
+              nameQuestion={nameQuestion}
+              setAnswer={setAnswer}
+              x={x}
+            />
+          )}
 
           {wiz.step === 2 && (
-            <section className={cardClass} aria-label={t('doclib_gen_review')}>
-              <h2 className={sectionHeadingClass}>{t('doclib_gen_review')}</h2>
-
-              {/* Fill progress */}
-              <div className="mb-1 flex items-baseline justify-between gap-3">
-                <span className="text-[12.5px] font-semibold text-text">
-                  {`${progress.filled}/${progress.total}`}{' '}
-                  <span className="font-medium text-text-muted">{t('doclib_gen_mergeFilled')}</span>
-                </span>
-                <span className="text-[12px] text-text-muted">
-                  {progress.total - progress.filled > 0
-                    ? `${progress.total - progress.filled} ${t('doclib_gen_mergeRemaining')}`
-                    : `${progressPct}%`}
-                </span>
-              </div>
-              <div className="h-[8px] overflow-hidden rounded-full bg-inset" aria-hidden="true">
-                <div
-                  className="h-full rounded-full bg-(--navy) transition-[width]"
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-
-              {/* Risk & review posture + context summary */}
-              <dl className="mt-4 grid grid-cols-[auto_1fr] items-center gap-x-5 gap-y-2.5 text-[12.5px]">
-                <dt className="font-semibold text-text-muted">{t('doclib_gen_riskLine')}</dt>
-                <dd>
-                  <DocChip tone={riskInfo.tone}>{x(riskInfo.label)}</DocChip>
-                </dd>
-                <dt className="font-semibold text-text-muted">{t('doclib_gen_reviewLine')}</dt>
-                <dd>
-                  <DocChip tone={reviewInfo.tone}>{x(reviewInfo.label)}</DocChip>
-                </dd>
-                <dt className="font-semibold text-text-muted">{t('doclib_gen_jurisdiction')}</dt>
-                <dd className="flex items-center gap-2 text-text">
-                  <JurisdictionPill code={wiz.jurisdiction} />
-                  {jurisdictionName(wiz.jurisdiction)}
-                </dd>
-                <dt className="font-semibold text-text-muted">{t('doclib_gen_language')}</dt>
-                <dd className="font-semibold text-text">{wiz.language.toUpperCase()}</dd>
-              </dl>
-
-              {(template.requiresLawyerReview || template.review === 'hr_review_required') && (
-                <div
-                  className={`mt-4 rounded-[8px] border px-3 py-2 text-[12px] ${
-                    template.requiresLawyerReview
-                      ? 'border-(--risk-border) bg-risk-bg text-risk-fg'
-                      : 'border-border bg-warn-bg text-warn-fg'
-                  }`}
-                >
-                  {template.requiresLawyerReview
-                    ? t('doclib_gen_lawyerWarn')
-                    : t('doclib_gen_hrWarn')}
-                </div>
-              )}
-            </section>
+            <ReviewStep
+              risk={template.risk}
+              review={template.review}
+              requiresLawyerReview={template.requiresLawyerReview}
+              progress={progress}
+              progressPct={progressPct}
+              jurisdiction={wiz.jurisdiction}
+              language={wiz.language}
+              t={t}
+              x={x}
+            />
           )}
 
           {/* Back / Next / Save */}
@@ -626,7 +750,7 @@ function GenerateWizard({
                 type="button"
                 disabled={wiz.step === 0 && !contextReady}
                 onClick={() => goStep(wiz.step + 1)}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[9px] bg-(--navy) px-[12px] py-[7px] text-[12.5px] font-semibold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[9px] bg-navy px-[12px] py-[7px] text-[12.5px] font-semibold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {t('doclib_gen_next')}
               </button>
@@ -641,7 +765,7 @@ function GenerateWizard({
         {/* Sticky live-preview rail */}
         <aside className="sticky top-[16px] min-w-0 self-start max-[1023px]:static">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <h2 className="text-[12px] font-bold tracking-[0.05em] uppercase text-text-muted">
+            <h2 className="text-[12px] font-bold tracking-wider uppercase text-text-muted">
               {t('doclib_gen_livePreview')}
             </h2>
             <div className="flex items-center gap-1.5">

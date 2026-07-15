@@ -26,9 +26,9 @@ function EntryCta({
   className,
   children,
 }: {
-  gated: boolean
-  className: string
-  children: ReactNode
+  readonly gated: boolean
+  readonly className: string
+  readonly children: ReactNode
 }) {
   if (gated) {
     return (
@@ -41,6 +41,63 @@ function EntryCta({
     <Link to="/app/home" className={className}>
       {children}
     </Link>
+  )
+}
+
+function EntrySignInPanel({
+  status,
+  email,
+  signOut,
+}: {
+  readonly status: ReturnType<typeof useAuth>['status']
+  readonly email: string | undefined
+  readonly signOut: ReturnType<typeof useAuth>['signOut']
+}) {
+  const { x } = useI18n()
+
+  if (status === 'signed-in' && email) {
+    return (
+      <div
+        id="signin"
+        className="mx-auto mb-[64px] max-w-[420px] scroll-mt-[100px] rounded-[16px] border border-border bg-surface p-[28px] text-left shadow-[0_24px_60px_-20px_rgba(27,36,48,0.25)]"
+      >
+        <div className="flex flex-col gap-[12px]">
+          <p className="m-0 text-[13.5px] text-text-2">{email}</p>
+          <p className="m-0 text-[13px] text-text-muted">{x(AM.auth_not_authorized)}</p>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="cursor-pointer self-start rounded-[8px] border border-border bg-transparent px-[14px] py-[8px] text-[13px] font-semibold text-text-2"
+          >
+            {x(AM.auth_sign_out)}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'sent-link') {
+    return (
+      <div
+        id="signin"
+        className="mx-auto mb-[64px] max-w-[420px] scroll-mt-[100px] rounded-[16px] border border-border bg-surface p-[28px] text-left shadow-[0_24px_60px_-20px_rgba(27,36,48,0.25)]"
+      >
+        <p className="m-0 text-[14px] text-text-2">{x(AM.auth_link_sent)}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      id="signin"
+      className="mx-auto mb-[64px] max-w-[420px] scroll-mt-[100px] rounded-[16px] border border-border bg-surface p-[28px] text-left shadow-[0_24px_60px_-20px_rgba(27,36,48,0.25)]"
+    >
+      <h2 className="m-0 mb-[6px] font-display text-[18px] font-semibold text-text">
+        {x(AM.auth_sign_in)}
+      </h2>
+      <p className="m-0 mb-[16px] text-[13px] text-text-muted">{x(AM.auth_entry_description)}</p>
+      <AuthSignInForm idPrefix="welcome" />
+    </div>
   )
 }
 
@@ -142,36 +199,7 @@ export function EntryStage() {
               and the visitor isn't already an authorized session (which
               would have redirected away via the effect above). ────────── */}
           {gated && !authorized && (
-            <div
-              id="signin"
-              className="mx-auto mb-[64px] max-w-[420px] scroll-mt-[100px] rounded-[16px] border border-border bg-surface p-[28px] text-left shadow-[0_24px_60px_-20px_rgba(27,36,48,0.25)]"
-            >
-              {status === 'signed-in' && email ? (
-                <div className="flex flex-col gap-[12px]">
-                  <p className="m-0 text-[13.5px] text-text-2">{email}</p>
-                  <p className="m-0 text-[13px] text-text-muted">{x(AM.auth_not_authorized)}</p>
-                  <button
-                    type="button"
-                    onClick={() => void signOut()}
-                    className="cursor-pointer self-start rounded-[8px] border border-border bg-transparent px-[14px] py-[8px] text-[13px] font-semibold text-text-2"
-                  >
-                    {x(AM.auth_sign_out)}
-                  </button>
-                </div>
-              ) : status === 'sent-link' ? (
-                <p className="m-0 text-[14px] text-text-2">{x(AM.auth_link_sent)}</p>
-              ) : (
-                <>
-                  <h2 className="m-0 mb-[6px] font-display text-[18px] font-semibold text-text">
-                    {x(AM.auth_sign_in)}
-                  </h2>
-                  <p className="m-0 mb-[16px] text-[13px] text-text-muted">
-                    {x(AM.auth_entry_description)}
-                  </p>
-                  <AuthSignInForm idPrefix="welcome" />
-                </>
-              )}
-            </div>
+            <EntrySignInPanel status={status} email={email} signOut={signOut} />
           )}
         </div>
 
@@ -194,7 +222,7 @@ export function EntryStage() {
                 {x(M.shell_preview_reply)}
               </div>
               <div className="flex max-w-[80%] gap-[8px] self-start rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13.5px] text-risk-fg">
-                <TriangleAlert size={15} strokeWidth={1.9} className="mt-[1px] shrink-0" />
+                <TriangleAlert size={15} strokeWidth={1.9} className="mt-px shrink-0" />
                 <span>{x(M.shell_preview_risk)}</span>
               </div>
             </div>

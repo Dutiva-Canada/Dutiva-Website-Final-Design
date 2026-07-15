@@ -6,7 +6,7 @@ import type { Toast, ToastTone } from './toastsContext'
 
 const TOAST_DURATION_MS = 3600
 
-export function ToastsProvider({ children }: { children: ReactNode }) {
+export function ToastsProvider({ children }: { readonly children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
   const nextId = useRef(1)
 

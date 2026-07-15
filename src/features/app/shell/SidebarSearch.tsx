@@ -5,7 +5,7 @@ import { useSearch } from '@/features/app/search/searchContext'
 import { SidebarTooltip } from './SidebarTooltip'
 
 interface SidebarSearchProps {
-  expanded: boolean
+  readonly expanded: boolean
 }
 
 export function SidebarSearch({ expanded }: SidebarSearchProps) {

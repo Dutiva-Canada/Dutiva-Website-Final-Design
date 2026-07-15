@@ -9,7 +9,7 @@ import type { HomeAction } from './homeData'
  * what-matters/why/do-first paragraphs, the owner/deadline/next meta row and
  * the MetricChips strip (prototype Home markup lines 345–370).
  */
-export function HomeBriefHero({ onAction }: { onAction: (action: HomeAction) => void }) {
+export function HomeBriefHero({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
   const { x } = useI18n()
 
   return (
@@ -18,7 +18,7 @@ export function HomeBriefHero({ onAction }: { onAction: (action: HomeAction) => 
         <Sparkle size={16} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="mb-[6px] text-[11px] font-bold tracking-[0.05em] text-gold-dot uppercase">
+        <div className="mb-[6px] text-[11px] font-bold tracking-wider text-gold-dot uppercase">
           {x(M.home_brief_title)}
         </div>
         <div className="text-[14px] leading-[1.6] text-text-2">{x(M.home_brief_lead)}</div>

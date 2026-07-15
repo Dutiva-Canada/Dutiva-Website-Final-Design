@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { SearchContext } from './searchContext'
 
-export function SearchProvider({ children }: { children: ReactNode }) {
+export function SearchProvider({ children }: { readonly children: ReactNode }) {
   const [open, setOpen] = useState(false)
 
   const openSearch = useCallback(() => setOpen(true), [])

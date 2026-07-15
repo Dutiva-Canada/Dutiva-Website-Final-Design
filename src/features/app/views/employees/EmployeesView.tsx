@@ -123,8 +123,7 @@ function EmployeesDemoView() {
                   {rows.map((e) => (
                     <div
                       key={e.id}
-                      onClick={() => openProfile(e)}
-                      className="grid cursor-pointer grid-cols-[2.4fr_1.7fr_0.9fr_1fr_0.8fr_34px] items-center gap-[10px] border-t border-t-inset px-[16px] py-[12px] hover:bg-bg"
+                      className="grid grid-cols-[2.4fr_1.7fr_0.9fr_1fr_0.8fr_34px] items-center gap-[10px] border-t border-t-inset px-[16px] py-[12px]"
                     >
                       <div className="flex min-w-0 items-center gap-[10px]">
                         <div className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-bold text-accent">
@@ -167,8 +166,7 @@ function EmployeesDemoView() {
                   {rows.map((e) => (
                     <div
                       key={e.id}
-                      onClick={() => openProfile(e)}
-                      className="flex cursor-pointer flex-col gap-[10px] rounded-[11px] border border-border bg-surface p-[14px]"
+                      className="flex flex-col gap-[10px] rounded-[11px] border border-border bg-surface p-[14px]"
                     >
                       <div className="flex items-center gap-[10px]">
                         <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
