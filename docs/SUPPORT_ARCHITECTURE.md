@@ -259,16 +259,23 @@ the draft is never lost.
 The safety-critical half is the **escalation policy** in
 [`firstLineAssist.ts`](../src/features/support/firstLineAssist.ts): privacy,
 security, accessibility, complaint, billing disputes, and account recovery are
-`HUMAN_ONLY_CATEGORIES` — they get **no automated first-line answer**; the form
-plainly says a person will handle it. Suggestions use the Help Centre search in
-`any`-term mode (whole-sentence questions), never a generated answer.
+`HUMAN_ONLY_CATEGORIES` — they get **no automated first-line answer** (retrieval
+*or* generative); the form plainly says a person will handle it. Retrieval
+suggestions use the Help Centre search in `any`-term mode (whole-sentence
+questions).
 
-**Deliberately retrieval-only, not generative.** The public intake is
-unauthenticated, so a generated "answer" to a compliance question there would add
-per-request model cost, an abuse/cost vector, and hallucination risk on legal
-content. A future generative first-line would plug in at `suggestFirstLine`,
-**behind auth + rate limits**, and must keep the same escalation gate — the
-`HUMAN_ONLY_CATEGORIES` set never auto-answers, regardless of engine.
+**Generative first-line — authenticated only.** On the in-app form
+(`allowGenerative`), an opt-in "Get an instant answer" button asks the model
+([`support-firstline`](../supabase/functions/support-firstline/index.ts),
+deployed) for a short answer **grounded only in the Help Centre excerpts the
+client sends** — the system prompt forbids legal advice, guessing, and inventing
+policies/citations, and tells the model to defer to a person when the answer
+isn't present. It's authenticated + per-user rate-limited (via
+`ai_telemetry_events`), reuses the active `advisor_chat` model route, and the
+answer is **advisory only**: labelled AI-generated / not legal advice, and the
+user still sends their request. The **public** Contact form never enables it —
+that endpoint stays retrieval-only to avoid unauthenticated model cost/abuse.
+Both the client and the function enforce the `HUMAN_ONLY_CATEGORIES` gate.
 
 ## Staged (not yet implemented)
 
@@ -285,9 +292,6 @@ content. A future generative first-line would plug in at `suggestFirstLine`,
   layer beyond the honeypot + rate limits.
 - **Status route + analytics** — branded status route and privacy-conscious
   support analytics events.
-- **Generative first-line** (optional) — an authenticated, rate-limited model
-  answer plugged in at `suggestFirstLine`, keeping the `HUMAN_ONLY_CATEGORIES`
-  escalation gate. The retrieval-based first-line + escalation policy ships now.
 
 ## Diagnostic context policy
 

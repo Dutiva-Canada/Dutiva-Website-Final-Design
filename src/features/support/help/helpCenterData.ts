@@ -1,5 +1,5 @@
-import { bi } from '@/i18n/core'
-import type { Bi } from '@/i18n/core'
+import { bi, pick } from '@/i18n/core'
+import type { Bi, Lang } from '@/i18n/core'
 
 /**
  * Help Centre content — the self-service layer of Dutiva's digital-first
@@ -537,6 +537,17 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
 
 export function helpArticlesByCategory(id: HelpCategoryId): HelpArticle[] {
   return HELP_ARTICLES.filter((a) => a.category === id)
+}
+
+/** Flatten an article to plain text (headings + blocks) — used as grounding
+    context for the first-line answer helper. */
+export function articlePlainText(article: HelpArticle, lang: Lang): string {
+  return article.sections
+    .flatMap((s) => [
+      ...(s.heading ? [pick(s.heading, lang)] : []),
+      ...s.blocks.map((b) => pick(b.text, lang)),
+    ])
+    .join(' ')
 }
 
 export function helpArticleBySlug(slug: string): HelpArticle | undefined {
