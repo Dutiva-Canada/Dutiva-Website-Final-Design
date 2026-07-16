@@ -123,7 +123,7 @@ export function AdvisorRail() {
                   <TypingDots size="sm" label={x(M.advisor_thinking_short)} />
                 ) : (
                   <>
-                    <div className="text-[13.5px] leading-[1.55] text-text">
+                    <div className="text-[13.5px] leading-[1.55] whitespace-pre-wrap text-text">
                       <StreamedText
                         text={message.text}
                         status={message.status}
@@ -131,7 +131,9 @@ export function AdvisorRail() {
                       />
                     </div>
                     {(message.status === 'done' || message.status === undefined) &&
-                      (message.cards ?? []).map((card) => <ToneCard key={keyOfL(card.title)} card={card} />)}
+                      (message.cards ?? []).map((card) => (
+                        <ToneCard key={keyOfL(card.title)} card={card} />
+                      ))}
                   </>
                 )}
               </div>
