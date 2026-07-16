@@ -92,6 +92,57 @@ Confirm the resolution is written in the ticket, move to `resolved`, then
 `closed` after any waiting period. Optionally invite feedback. Set
 `retention_review_at` per the (review-pending) retention schedule.
 
+## Email notifications (turning on the send worker)
+
+The outbox and the `support-notify` worker are **built and deployed**, but email
+is **off until configured** — until then, acknowledgements and alerts accumulate
+as `pending` in `support_notifications` and nothing is sent. Enabling it flushes
+the backlog, so no acknowledgement is lost.
+
+To turn it on:
+
+1. **Verify a sending domain** in Resend (SPF/DKIM) so mail from
+   `@dutiva.ca` is deliverable.
+2. **Set the function secrets** (Supabase → Edge Functions → `support-notify` →
+   Secrets, or `supabase secrets set`):
+   - `SUPPORT_EMAIL_PROVIDER_API_KEY` — the Resend API key.
+   - `SUPPORT_EMAIL_FROM` — e.g. `Dutiva Support <support@dutiva.ca>` (must be on
+     the verified domain).
+   - `SUPPORT_NOTIFY_SECRET` — a long random string. **Required**: with a
+     provider key set but no secret, the worker refuses to run (403) so the drain
+     endpoint is never open.
+   - Optional: `SITE_URL` (ticket links; defaults to `https://dutiva.ca`),
+     `SUPPORT_OPERATOR_EMAIL` (operator-alert recipient).
+3. **Schedule it** every minute or two via pg_cron + pg_net (store the secret in
+   Vault, never inline):
+
+   ```sql
+   select cron.schedule('support-notify-drain', '* * * * *', $$
+     select net.http_post(
+       url     := 'https://<project-ref>.supabase.co/functions/v1/support-notify',
+       headers := jsonb_build_object(
+         'Content-Type', 'application/json',
+         'apikey', '<publishable-key>',
+         'x-notify-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'support_notify_secret')
+       ),
+       body := '{}'::jsonb
+     );
+   $$);
+   ```
+
+4. **Verify**: create a test ticket, then invoke once manually and confirm a
+   `sent` count:
+
+   ```bash
+   curl -X POST 'https://<project-ref>.supabase.co/functions/v1/support-notify' \
+     -H 'apikey: <publishable-key>' -H 'x-notify-secret: <secret>' -d '{}'
+   ```
+
+**Monitoring:** rows stuck `pending` with a rising `attempts`/`last_error` mean a
+provider problem (bad key, unverified domain); a row hits `failed` after 5
+attempts. Query `support_notifications` (admin-read) to inspect. Re-queue a
+`failed` row by resetting `status='pending'`, `attempts=0`.
+
 ## Never do
 
 - Never publish or imply 24/7 staffed support.
