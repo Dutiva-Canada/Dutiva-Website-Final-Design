@@ -248,6 +248,28 @@ Centre, public unauthenticated intake, and ticket attachments — all shipped.
 Four edge functions: `create-support-ticket`, `create-public-support-ticket`,
 `support-agent-action`, `support-notify`, plus `support-attachment-action`.
 
+## First-line self-service (intake forms)
+
+As a requester types on the public Contact form or the in-app request form,
+[`FirstLineSuggestions`](../src/features/support/FirstLineSuggestions.tsx) surfaces
+the Help Centre articles most likely to answer them, to deflect simple questions
+before they become tickets. The links open the public help pages in a new tab so
+the draft is never lost.
+
+The safety-critical half is the **escalation policy** in
+[`firstLineAssist.ts`](../src/features/support/firstLineAssist.ts): privacy,
+security, accessibility, complaint, billing disputes, and account recovery are
+`HUMAN_ONLY_CATEGORIES` — they get **no automated first-line answer**; the form
+plainly says a person will handle it. Suggestions use the Help Centre search in
+`any`-term mode (whole-sentence questions), never a generated answer.
+
+**Deliberately retrieval-only, not generative.** The public intake is
+unauthenticated, so a generated "answer" to a compliance question there would add
+per-request model cost, an abuse/cost vector, and hallucination risk on legal
+content. A future generative first-line would plug in at `suggestFirstLine`,
+**behind auth + rate limits**, and must keep the same escalation gate — the
+`HUMAN_ONLY_CATEGORIES` set never auto-answers, regardless of engine.
+
 ## Staged (not yet implemented)
 
 - **Turn email on** (operator config): verify a Resend domain, set the secrets,
@@ -261,10 +283,11 @@ Four edge functions: `create-support-ticket`, `create-public-support-ticket`,
   that flips `support_attachments.scan_status`.
 - **CAPTCHA** on the public intake (Turnstile/hCaptcha) as a second anti-abuse
   layer beyond the honeypot + rate limits.
-- **Status, analytics, AI-assist** — branded status route, privacy-conscious
-  support analytics events, and AI-assisted first-line answers with mandatory
-  human escalation for privacy/security/accessibility/billing-dispute/
-  complaint/account-recovery.
+- **Status route + analytics** — branded status route and privacy-conscious
+  support analytics events.
+- **Generative first-line** (optional) — an authenticated, rate-limited model
+  answer plugged in at `suggestFirstLine`, keeping the `HUMAN_ONLY_CATEGORIES`
+  escalation gate. The retrieval-based first-line + escalation policy ships now.
 
 ## Diagnostic context policy
 

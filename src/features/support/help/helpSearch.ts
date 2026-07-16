@@ -62,28 +62,44 @@ export interface HelpSearchResult {
   score: number
 }
 
+export interface SearchOptions {
+  /**
+   * `'all'` (default) requires every term to match — right for the Help Centre
+   * search box, where people type keywords. `'any'` includes an article if at
+   * least one term matches and ignores terms shorter than 3 chars — better for
+   * the first-line assist, where people type whole-sentence questions.
+   */
+  mode?: 'all' | 'any'
+}
+
 /**
- * Articles matching every term in `query`, best first. An empty or
- * whitespace-only query returns `[]` (the caller shows the browse view).
+ * Articles matching `query`, best first. Empty / too-short query → `[]` (the
+ * caller shows the browse view or nothing).
  */
-export function searchHelpArticles(query: string, lang: Lang): HelpSearchResult[] {
-  const terms = normalizeText(query).split(/\s+/).filter(Boolean)
+export function searchHelpArticles(
+  query: string,
+  lang: Lang,
+  opts: SearchOptions = {},
+): HelpSearchResult[] {
+  const mode = opts.mode ?? 'all'
+  const minLen = mode === 'any' ? 3 : 1
+  const terms = normalizeText(query)
+    .split(/\s+/)
+    .filter((t) => t.length >= minLen)
   if (terms.length === 0) return []
 
   const results: HelpSearchResult[] = []
   for (const article of HELP_ARTICLES) {
     const entry = indexArticle(article, lang)
     let total = 0
-    let matchedAll = true
+    let matched = 0
     for (const term of terms) {
       const termScore = scoreTerm(entry, term)
-      if (termScore === 0) {
-        matchedAll = false
-        break
-      }
+      if (termScore > 0) matched += 1
       total += termScore
     }
-    if (matchedAll) results.push({ article, score: total })
+    const include = mode === 'all' ? matched === terms.length : matched > 0
+    if (include) results.push({ article, score: total })
   }
 
   // Highest score first; ties keep the authored (category) order for stability.

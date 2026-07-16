@@ -17,6 +17,7 @@ import type {
 } from '@/config/support'
 import { createSupportTicket } from './supportApi'
 import { gatherDiagnostics, diagnosticRows } from './diagnostics'
+import { FirstLineSuggestions } from './FirstLineSuggestions'
 
 /**
  * Authenticated support request form. Server-side validation, priority, and
@@ -287,6 +288,8 @@ export function SupportRequestForm() {
           className={textareaClass}
         />
       </Field>
+
+      <FirstLineSuggestions query={`${subject} ${description}`} category={category} />
 
       <div className="grid grid-cols-1 gap-[18px] min-[560px]:grid-cols-2">
         <Field id={fid('impact')} label={x(M.support_field_impact)}>

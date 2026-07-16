@@ -12,6 +12,7 @@ import {
 } from '@/config/support'
 import type { SupportCategory, SupportImpact, SupportUrgency } from '@/config/support'
 import { createPublicSupportTicket, PublicSupportError } from './publicSupportApi'
+import { FirstLineSuggestions } from './FirstLineSuggestions'
 
 /**
  * PUBLIC (unauthenticated) support form for the marketing-surface Contact page.
@@ -280,6 +281,8 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
           className={textareaClass}
         />
       </Field>
+
+      <FirstLineSuggestions query={`${subject} ${description}`} category={category} />
 
       <div className="grid grid-cols-1 gap-[18px] min-[560px]:grid-cols-2">
         <Field id={fid('impact')} label={x(M.support_field_impact)}>
