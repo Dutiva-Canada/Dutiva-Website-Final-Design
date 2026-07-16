@@ -37,6 +37,7 @@ function gated(view: ReactNode) {
 /* prettier-ignore */ const CommunicationsView = lazy(() => import('@/features/app/views/communications/CommunicationsView').then((m) => ({ default: m.CommunicationsView })))
 /* prettier-ignore */ const CompensationView = lazy(() => import('@/features/app/views/compensation/CompensationView').then((m) => ({ default: m.CompensationView })))
 /* prettier-ignore */ const WellbeingView = lazy(() => import('@/features/app/views/wellbeing/WellbeingView').then((m) => ({ default: m.WellbeingView })))
+/* prettier-ignore */ const SupportView = lazy(() => import('@/features/app/views/support/SupportView').then((m) => ({ default: m.SupportView })))
 /* Planning section (Tasks + Calendar as sub-tabs) */
 /* prettier-ignore */ const PlanningLayout = lazy(() => import('@/features/app/views/planning/PlanningLayout').then((m) => ({ default: m.PlanningLayout })))
 /* prettier-ignore */ const TasksView = lazy(() => import('@/features/app/views/tasks/TasksView').then((m) => ({ default: m.TasksView })))
@@ -79,6 +80,8 @@ export const appViewRoutes: RouteObject[] = [
   /* Reports handles both modes itself (live aggregation in production). */
   { path: 'reports', element: <ReportsView /> },
   { path: 'knowledge', element: <KnowledgeView /> },
+  /* Support hub — real feature (request form → create-support-ticket), ungated. */
+  { path: 'support', element: <SupportView /> },
   { path: 'communications', element: gated(<CommunicationsView />) },
   { path: 'compensation', element: gated(<CompensationView />) },
   { path: 'wellbeing', element: gated(<WellbeingView />) },
