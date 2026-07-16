@@ -93,7 +93,7 @@ export function AuthConfirm() {
     <div className="surface-app flex min-h-screen items-center justify-center bg-bg px-[24px] font-sans text-text">
       <div className="w-full max-w-[420px] rounded-[16px] border border-border bg-surface p-[28px] text-center shadow-[0_24px_60px_-20px_rgba(27,36,48,0.25)]">
         {failed ? (
-          <div className="flex flex-col gap-[12px]">
+          <div className="flex flex-col gap-[12px]" role="alert">
             <h1 className="m-0 font-display text-[18px] font-semibold text-text">
               {x(M.auth_confirm_error_title)}
             </h1>
