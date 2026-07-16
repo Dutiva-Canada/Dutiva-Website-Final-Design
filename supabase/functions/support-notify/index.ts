@@ -212,12 +212,16 @@ function renderNotificationEmail(kind: NotificationKind, ctx: EmailContext): Ren
   }
 }
 
-/** Mirror of createResendProvider().send (src/features/support/email/resendProvider.ts). */
+/**
+ * Mirror of createResendProvider().send (src/features/support/email/resendProvider.ts).
+ * Returns the provider's message id so the row can be correlated to later
+ * delivery/bounce webhooks — acceptance here is NOT delivery.
+ */
 async function resendSend(
   apiKey: string,
   from: string,
   message: { to: string; subject: string; text: string },
-): Promise<void> {
+): Promise<string | null> {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -227,6 +231,8 @@ async function resendSend(
     const detail = await res.text().catch(() => '')
     throw new Error(`Resend send failed (${res.status}): ${detail.slice(0, 300)}`)
   }
+  const body = (await res.json().catch(() => null)) as { id?: string } | null
+  return body?.id ?? null
 }
 
 interface NotificationRow {
@@ -312,10 +318,20 @@ Deno.serve(async (req: Request) => {
   for (const row of pending) {
     try {
       const email = renderNotificationEmail(row.kind, buildContext(row, appUrl))
-      await resendSend(apiKey, from, { to: row.recipient, subject: email.subject, text: email.text })
+      const providerMessageId = await resendSend(apiKey, from, {
+        to: row.recipient,
+        subject: email.subject,
+        text: email.text,
+      })
       await admin
         .from('support_notifications')
-        .update({ status: 'sent', sent_at: nowIso, attempts: row.attempts + 1, last_error: null })
+        .update({
+          status: 'sent',
+          sent_at: nowIso,
+          attempts: row.attempts + 1,
+          last_error: null,
+          provider_message_id: providerMessageId,
+        })
         .eq('id', row.id)
       sent++
     } catch (e) {

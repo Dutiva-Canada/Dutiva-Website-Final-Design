@@ -170,9 +170,30 @@ sensitive** — only the public reference and category (never the body or PII).
   [`resendProvider.ts`](../src/features/support/email/resendProvider.ts) is the
   tested reference adapter (Resend request shape + error handling).
 - Send worker: [`supabase/functions/support-notify`](../supabase/functions/support-notify/index.ts)
-  — **deployed**. Drains up to 50 `pending` rows per run, renders the bilingual
-  email, sends via Resend, and marks each row `sent`/`failed` (up to 5 attempts,
-  then `failed`). It mirrors `templates.ts` / `resendProvider.ts` / the
+  — **deployed**, scheduled every minute via pg_cron (the job reads its
+  `x-notify-secret` from Supabase Vault, so the secret is never inline in
+  `cron.job.command`). Drains up to 50 `pending` rows per run, renders the
+  bilingual email, sends via Resend, and marks each row `sent`/`failed` (up to 5
+  attempts, then `failed`).
+
+**`sent` is not `delivered`.** `status` records what *we* did — the provider
+accepted the message. A bounce comes back asynchronously minutes later. This bit
+us for real on 2026-07-16: an operator alert to a non-existent `support@dutiva.ca`
+mailbox was marked `sent`, then bounced, and nothing in the database knew. So:
+
+- `support_notify` stores Resend's `provider_message_id` on each row.
+- [`resend-webhook`](../supabase/functions/resend-webhook/index.ts) (**deployed**)
+  receives `email.delivered` / `bounced` / `complained` / `delivery_delayed` and
+  writes `delivery_status` + `delivery_detail` against that id (migration `0018`).
+- The endpoint is public, so the **Svix signature is the authentication** —
+  otherwise anyone could forge `delivered` events and mask real bounces. It
+  **fails closed**: no `RESEND_WEBHOOK_SECRET` ⇒ `503`, never accept-unsigned.
+  The verification is unit-tested against the published Svix vector in
+  [`svixSignature.ts`](../src/features/support/email/svixSignature.ts) and
+  mirrored in the function; it rejects replays via a 5-minute timestamp window.
+
+To find undelivered mail: `select * from support_notifications where
+delivery_status in ('bounced','complained')`. It mirrors `templates.ts` / `resendProvider.ts` / the
   `src/config/support.ts` labels (kept in sync the same way `suggestPriority`
   is). No sensitive content ever goes in a subject; customer emails link back to
   the authenticated ticket, operator alerts to the admin ticket view.
