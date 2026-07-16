@@ -2,6 +2,8 @@ import type { Bi, Lang } from '@/i18n/core'
 import { pick } from '@/i18n/core'
 import { LEGAL_HUB_GROUPS } from '@/features/marketing/legal/legalHubData'
 import type { LegalHubRow } from '@/features/marketing/legal/legalHubData'
+import { HELP_ARTICLES } from '@/features/support/help/helpCenterData'
+import type { HelpArticle } from '@/features/support/help/helpCenterData'
 import { messages } from '@/i18n/messages'
 
 /**
@@ -33,6 +35,7 @@ export type SeoRouteId =
   | 'templateUsage'
   | 'knownLimitations'
   | 'legal'
+  | 'help'
 
 export interface SeoRoute {
   id: SeoRouteId
@@ -161,6 +164,19 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     },
     indexable: true,
   },
+  {
+    id: 'help',
+    path: { en: '/help', fr: '/fr/aide' },
+    title: {
+      en: 'Help Centre — guides & support for Dutiva',
+      fr: 'Centre d’aide — guides et soutien pour Dutiva',
+    },
+    description: {
+      en: 'Self-service help for Dutiva: signing in, generating HR documents, using the AI Advisor, billing, privacy and security, and how digital-first support works. Bilingual EN/FR.',
+      fr: 'Aide en libre-service pour Dutiva : connexion, génération de documents RH, utilisation du Conseiller IA, facturation, confidentialité et sécurité, et fonctionnement du soutien d’abord numérique. Bilingue FR/EN.',
+    },
+    indexable: true,
+  },
 ] as const
 
 export function seoRoute(id: SeoRouteId): SeoRoute {
@@ -202,6 +218,31 @@ export function legalDocDescription(row: LegalHubRow, lang: Lang): string {
 }
 
 /* ------------------------------------------------------------------ */
+/* Help Centre articles (dynamic /help/:slug pages)                    */
+/* ------------------------------------------------------------------ */
+
+export function helpArticleBySlug(slug: string): HelpArticle | undefined {
+  return HELP_ARTICLES.find((a) => a.slug === slug)
+}
+
+export function helpArticleByFrSlug(frSlug: string): HelpArticle | undefined {
+  return HELP_ARTICLES.find((a) => a.frSlug === frSlug)
+}
+
+/** Canonical pathname of a help article in a locale. */
+export function helpDocPath(article: HelpArticle, lang: Lang): string {
+  return lang === 'fr' ? `/fr/aide/${article.frSlug}` : `/help/${article.slug}`
+}
+
+export function helpDocTitle(article: HelpArticle, lang: Lang): string {
+  return pick(article.title, lang)
+}
+
+export function helpDocDescription(article: HelpArticle, lang: Lang): string {
+  return pick(article.summary, lang)
+}
+
+/* ------------------------------------------------------------------ */
 /* Locale path mapping (language toggle + hreflang)                    */
 /* ------------------------------------------------------------------ */
 
@@ -237,7 +278,20 @@ export function allPublicPages(): PublicPage[] {
     },
     indexable: true,
   }))
-  return [...staticPages, ...legalPages]
+  const helpPages: PublicPage[] = HELP_ARTICLES.map((article) => ({
+    key: `helpDoc:${article.slug}`,
+    path: { en: helpDocPath(article, 'en'), fr: helpDocPath(article, 'fr') },
+    title: {
+      en: `${helpDocTitle(article, 'en')} | Dutiva Help`,
+      fr: `${helpDocTitle(article, 'fr')} | Aide Dutiva`,
+    },
+    description: {
+      en: helpDocDescription(article, 'en'),
+      fr: helpDocDescription(article, 'fr'),
+    },
+    indexable: true,
+  }))
+  return [...staticPages, ...legalPages, ...helpPages]
 }
 
 /**

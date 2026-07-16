@@ -19,15 +19,17 @@ import {
   langOfPath,
   legalDocPath,
 } from './routes'
+import { HELP_ARTICLES } from '@/features/support/help/helpCenterData'
 import { ORG, SITE_ORIGIN, absoluteUrl } from './site'
 
 describe('SEO route registry', () => {
   const pages = allPublicPages()
 
-  it('covers the static routes plus the 26 policy documents', () => {
+  it('covers the static routes plus the policy documents and help articles', () => {
     expect(SEO_ROUTES.length).toBeGreaterThanOrEqual(10)
     expect(LEGAL_ROWS).toHaveLength(26)
-    expect(pages).toHaveLength(SEO_ROUTES.length + 26)
+    expect(HELP_ARTICLES.length).toBeGreaterThan(0)
+    expect(pages).toHaveLength(SEO_ROUTES.length + 26 + HELP_ARTICLES.length)
   })
 
   it('gives every page a distinct pathname per locale, FR under /fr', () => {

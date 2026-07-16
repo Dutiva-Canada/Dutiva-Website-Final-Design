@@ -160,15 +160,36 @@ templates, calls the provider, and updates `status`/`sent_at`/`last_error`.
 `support@dutiva.ca`). No sensitive content ever goes in a subject line, and
 customer emails link back to the authenticated ticket rather than embedding it.
 
+## Help Centre
+
+The public, unauthenticated self-service layer (`/help`, `/fr/aide`) — the first
+step of the customer journey before a written request. It lives in the marketing
+surface alongside the legal hub and is fully prerendered/indexable in both
+locales.
+
+- Content: [`src/features/support/help/helpCenterData.ts`](../src/features/support/help/helpCenterData.ts)
+  — six topic categories and bilingual `Bi` articles (product-accurate, never
+  legal advice; compliance specifics defer to the legal documents). Pure data,
+  so search and the SEO registry consume it directly.
+- Search: [`helpSearch.ts`](../src/features/support/help/helpSearch.ts) —
+  client-side, accent- and case-insensitive, AND-across-terms, ranked
+  title > summary > body. The set is small and bundled, so no index is needed.
+- Feedback: [`helpFeedback.ts`](../src/features/support/help/helpFeedback.ts) +
+  [`HelpfulnessWidget.tsx`](../src/features/support/help/HelpfulnessWidget.tsx)
+  — "Was this article helpful?" stored locally so a returning reader isn't
+  re-asked. **Nothing is transmitted** — privacy-conscious analytics is a later
+  phase; `recordHelpfulness` is the single seam a future sink would hook.
+- Pages: `HelpCenterPage` (hero + live search + browse-by-topic + contact CTA)
+  and `HelpArticlePage` (article, feedback widget, related links, contact CTA).
+  Both register in the SEO route table (`help` id + `helpDoc:<slug>` dynamic
+  pages) so the sitemap, hreflang, and language toggle stay in sync. Entry point:
+  the marketing footer's Resources column.
+
 ## Staged phases (not yet implemented)
 
-2. **Intake & Help Centre UI** — authenticated support request form (conditional
-   fields, sensitive-info warning, diagnostic-context notice + review/remove),
-   the `create-support-ticket` edge function (server-side zod validation, rate
-   limiting, priority assignment, service-role writes), Help Centre IA
-   (categories, search, article states, "was this helpful?", contact
-   escalation), and support entry points across nav/footer/account/billing/error
-   pages.
+2. **Specialized public intake** — the remaining entry-point sweep
+   (nav/account/billing/error/login-recovery pages) and the unauthenticated
+   specialized flows (see phase 3).
 3. **Specialized flows** — security report, privacy request, accessibility
    feedback (unauthenticated-accessible), complaint escalation, and the
    post-triage "request a scheduled call" option.
