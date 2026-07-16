@@ -147,4 +147,33 @@ export const supportMessages = defineMessages({
     en: 'This request is closed. Start a new request if you need more help.',
     fr: 'Cette demande est fermée. Créez une nouvelle demande si vous avez besoin d’aide.',
   },
+
+  /* ── Founder / operator dashboard ─────────────────────────────────────── */
+  support_admin_title: { en: 'Support dashboard', fr: 'Tableau de bord du soutien' },
+  support_admin_denied: {
+    en: 'This area is limited to support operators.',
+    fr: 'Cette zone est réservée aux opérateurs de soutien.',
+  },
+  support_admin_filter_status: { en: 'Status', fr: 'Statut' },
+  support_admin_filter_priority: { en: 'Priority', fr: 'Priorité' },
+  support_admin_filter_category: { en: 'Category', fr: 'Catégorie' },
+  support_admin_filter_all: { en: 'All', fr: 'Toutes' },
+  support_admin_filter_restricted: { en: 'Restricted only', fr: 'Restreintes seulement' },
+  support_admin_search: { en: 'Search subject or reference', fr: 'Rechercher un sujet ou une référence' },
+  support_admin_empty: { en: 'No tickets match these filters.', fr: 'Aucun billet ne correspond à ces filtres.' },
+  support_admin_col_requester: { en: 'Requester', fr: 'Demandeur' },
+  support_admin_restricted_badge: { en: 'Restricted', fr: 'Restreinte' },
+  support_admin_open_queues: { en: 'Open', fr: 'Ouverts' },
+  support_admin_action_error: {
+    en: 'That action didn’t go through. Please try again.',
+    fr: 'Cette action n’a pas abouti. Veuillez réessayer.',
+  },
+  support_admin_internal_badge: { en: 'Internal note', fr: 'Note interne' },
+  support_admin_reply_label: { en: 'Reply to the customer', fr: 'Répondre au client' },
+  support_admin_reply_send: { en: 'Send reply', fr: 'Envoyer la réponse' },
+  support_admin_note_label: { en: 'Add an internal note (not visible to the customer)', fr: 'Ajouter une note interne (non visible par le client)' },
+  support_admin_note_send: { en: 'Save note', fr: 'Enregistrer la note' },
+  support_admin_set_status: { en: 'Set status', fr: 'Définir le statut' },
+  support_admin_set_priority: { en: 'Set priority', fr: 'Définir la priorité' },
+  support_admin_working: { en: 'Working…', fr: 'En cours…' },
 })

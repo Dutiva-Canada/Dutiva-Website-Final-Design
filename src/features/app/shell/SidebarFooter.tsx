@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Settings } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
+import { isCurrentUserAdmin } from '@/features/support/supportAdminApi'
 import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceModeContext'
 import { SidebarTooltip } from './SidebarTooltip'
 import { cx } from './cx'
@@ -18,6 +19,19 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [profileOpen, setProfileOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    isCurrentUserAdmin()
+      .then((admin) => {
+        if (active) setIsAdmin(admin)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
 
   const settingsActive = pathname.startsWith('/app/settings')
 
@@ -118,6 +132,20 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
             >
               {L('Contact support', 'Contacter le soutien')}
             </button>
+            {isAdmin && (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setProfileOpen(false)
+                  onNavigate?.()
+                  navigate('/app/support/admin')
+                }}
+                className="block w-full cursor-pointer border-none bg-transparent px-[14px] py-[10px] text-left text-[13px] text-text-2 hover:bg-inset"
+              >
+                {L('Support dashboard', 'Tableau de bord du soutien')}
+              </button>
+            )}
             <button
               type="button"
               role="menuitem"
