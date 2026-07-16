@@ -74,7 +74,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: ticket, error: ticketError } = await admin
     .from('support_tickets')
-    .select('id, status, first_response_at')
+    .select('id, status, first_response_at, public_reference, requester_email, language')
     .eq('id', ticketId)
     .maybeSingle()
   if (ticketError) return json({ error: ticketError.message }, 500)
@@ -113,6 +113,17 @@ Deno.serve(async (req: Request) => {
       event_type: isNote ? 'internal_note' : 'agent_reply',
       data: {},
     })
+    // Notify the customer of a new (non-internal) reply via the outbox.
+    if (!isNote && ticket.requester_email) {
+      await admin.from('support_notifications').insert({
+        ticket_id: ticketId,
+        kind: 'agent_reply',
+        audience: 'customer',
+        recipient: ticket.requester_email,
+        language: ticket.language ?? 'en',
+        payload: { reference: ticket.public_reference },
+      })
+    }
     return json({ data: { message } })
   }
 
