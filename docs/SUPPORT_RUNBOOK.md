@@ -144,6 +144,34 @@ provider problem (bad key, unverified domain); a row hits `failed` after 5
 attempts. Query `support_notifications` (admin-read) to inspect. Re-queue a
 `failed` row by resetting `status='pending'`, `attempts=0`.
 
+**`sent` does not mean delivered.** It means Resend accepted the message; a
+bounce lands minutes later. Check the provider's verdict instead:
+
+```sql
+select kind, recipient, status, delivery_status, delivery_detail
+from support_notifications
+where delivery_status in ('bounced', 'complained');
+```
+
+To populate that, add the delivery webhook (one-time):
+
+1. Resend → **Webhooks → Add Endpoint** →
+   `https://<project-ref>.supabase.co/functions/v1/resend-webhook`
+2. Subscribe to `email.delivered`, `email.bounced`, `email.complained`,
+   `email.delivery_delayed`.
+3. Copy the **signing secret** (`whsec_…`) and set it as the
+   `RESEND_WEBHOOK_SECRET` edge-function secret.
+
+Until that secret is set the webhook returns `503` and rejects everything —
+deliberately. It never accepts an unsigned event.
+
+**Role mailboxes must exist.** Every address in `src/config/support.ts`
+(`support@`, `privacy@`, `security@`, `accessibility@`, `billing@`, `sales@`)
+is published in the legal pages and Help Centre, and `support@` is both the
+operator-alert recipient and the `From:` address customers reply to. If one
+doesn't exist in Google Workspace, its mail bounces silently — create them as
+aliases or groups.
+
 ## Never do
 
 - Never publish or imply 24/7 staffed support.
