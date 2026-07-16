@@ -12,6 +12,7 @@ import {
 import type { SupportPriority, SupportStatus } from '@/config/support'
 import { adminGetTicket, isCurrentUserAdmin, runAgentAction } from '@/features/support/supportAdminApi'
 import type { AdminMessage, AdminTicket } from '@/features/support/supportAdminApi'
+import { SupportAttachments } from '@/features/support/SupportAttachments'
 
 const PRIORITIES: SupportPriority[] = ['critical', 'high', 'standard', 'low']
 
@@ -173,6 +174,8 @@ export function SupportAdminTicket() {
               </li>
             ))}
           </ol>
+
+          <SupportAttachments ticketId={ticket.id} canUpload={ticket.status !== 'closed'} />
 
           {/* Reply (customer-visible) */}
           <div className="mb-[16px] flex flex-col gap-[8px]">

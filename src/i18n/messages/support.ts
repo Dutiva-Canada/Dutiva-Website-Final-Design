@@ -175,6 +175,28 @@ export const supportMessages = defineMessages({
     fr: 'Cette demande est fermée. Créez une nouvelle demande si vous avez besoin d’aide.',
   },
 
+  /* ── Attachments ──────────────────────────────────────────────────────── */
+  support_attachments_title: { en: 'Attachments', fr: 'Pièces jointes' },
+  support_attach_add: { en: 'Attach a file', fr: 'Joindre un fichier' },
+  support_attach_uploading: { en: 'Uploading…', fr: 'Téléversement…' },
+  support_attach_download: { en: 'Download', fr: 'Télécharger' },
+  support_attach_none: { en: 'No files attached.', fr: 'Aucun fichier joint.' },
+  support_attach_hint: {
+    en: 'Images, PDF, text, or Office documents, up to 25 MB. Don’t attach confidential workplace records.',
+    fr: 'Images, PDF, texte ou documents Office, jusqu’à 25 Mo. Ne joignez pas de dossiers confidentiels du milieu de travail.',
+  },
+  support_attach_too_large: { en: 'That file is over the 25 MB limit.', fr: 'Ce fichier dépasse la limite de 25 Mo.' },
+  support_attach_bad_type: { en: 'That file type isn’t supported.', fr: 'Ce type de fichier n’est pas pris en charge.' },
+  support_attach_error: {
+    en: 'We couldn’t attach that file. Please try again.',
+    fr: 'Nous n’avons pas pu joindre ce fichier. Veuillez réessayer.',
+  },
+  support_attach_download_error: {
+    en: 'We couldn’t open that file. Please try again.',
+    fr: 'Nous n’avons pas pu ouvrir ce fichier. Veuillez réessayer.',
+  },
+  support_attach_scan_pending: { en: 'Scan pending', fr: 'Analyse en attente' },
+
   /* ── Founder / operator dashboard ─────────────────────────────────────── */
   support_admin_title: { en: 'Support dashboard', fr: 'Tableau de bord du soutien' },
   support_admin_denied: {
