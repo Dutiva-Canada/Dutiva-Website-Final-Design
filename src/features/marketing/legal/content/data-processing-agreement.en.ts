@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Data Processing Agreement",
-  "lastUpdated": "June 1, 2026",
+  "lastUpdated": "July 15, 2026",
   "effectiveDate": "June 1, 2026",
   "callout": [
     "This Data Processing Agreement (\"DPA\") applies when Dutiva Canada Inc. (\"Dutiva,\" \"we,\" \"us,\" or \"our\") processes Customer Personal Information on behalf of a customer through the Dutiva service, unless the parties sign a separate written data processing agreement.",
@@ -185,7 +185,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "Current core subprocessors or provider categories may include Supabase, Vercel, Hugging Face, Stripe, Cloudflare, Google Analytics if enabled, and other providers that support the operation, security, reliability, or administration of the service."
+          "text": "Current core subprocessors or provider categories may include Supabase, Vercel, DigitalOcean Gradient AI, Stripe, Cloudflare, Google Analytics if enabled, and other providers that support the operation, security, reliability, or administration of the service."
         },
         {
           "type": "p",

@@ -2,10 +2,10 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Accord de traitement des données",
-  "lastUpdated": "1er juin 2026",
+  "lastUpdated": "15 juillet 2026",
   "effectiveDate": "1er juin 2026",
   "callout": [
-    "Juridique | Dernière mise à jour : 1er juin 2026 | Entrée en vigueur : 1er juin 2026",
+    "Juridique | Dernière mise à jour : 15 juillet 2026 | Entrée en vigueur : 1er juin 2026",
     "Le présent Accord de traitement des données (l’« Accord ») s’applique lorsque Dutiva Canada Inc. (« Dutiva », « nous », « notre » ou « nos ») traite des Renseignements personnels du client pour le compte d’un client au moyen du service Dutiva, sauf si les parties signent un accord de traitement des données distinct.",
     "Le présent Accord fait partie des Conditions d’utilisation de Dutiva et devrait être lu avec la Politique de confidentialité, la Politique de conservation et de suppression des données, la Divulgation relative à l’utilisation de l’IA, la Politique relative à l’IA et aux technologies, ainsi que toute condition d’abonnement ou de commande applicable."
   ],
@@ -186,7 +186,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "Les principaux sous-traitants ou catégories de fournisseurs actuels peuvent comprendre Supabase, Vercel, Hugging Face, Stripe, Cloudflare, Google Analytics si activé, ainsi que d’autres fournisseurs qui soutiennent l’exploitation, la sécurité, la fiabilité ou l’administration du service."
+          "text": "Les principaux sous-traitants ou catégories de fournisseurs actuels peuvent comprendre Supabase, Vercel, DigitalOcean Gradient AI, Stripe, Cloudflare, Google Analytics si activé, ainsi que d’autres fournisseurs qui soutiennent l’exploitation, la sécurité, la fiabilité ou l’administration du service."
         },
         {
           "type": "p",

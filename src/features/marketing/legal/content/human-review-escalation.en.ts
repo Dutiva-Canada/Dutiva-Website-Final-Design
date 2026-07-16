@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Human Review Escalation Policy",
-  "lastUpdated": "June 1, 2026",
+  "lastUpdated": "July 15, 2026",
   "effectiveDate": "June 1, 2026",
   "callout": [
     "This policy defines when AI-generated outputs on the Dutiva platform are reviewed by Dutiva personnel or flagged for human attention, the criteria that trigger review, the standards applied, response timelines, and how users are notified. This policy is part of Dutiva's responsible AI use framework."
@@ -13,7 +13,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Dutiva's AI features — including Compass Advisor and the document generator — are designed to operate autonomously in most situations. However, Dutiva recognizes that AI outputs can cause harm if they are factually wrong, biased, unsafe, or used to make high-risk employment decisions without qualified review."
+          "text": "Dutiva's AI features — including Dutiva Advisor and the document generator — are designed to operate autonomously in most situations. However, Dutiva recognizes that AI outputs can cause harm if they are factually wrong, biased, unsafe, or used to make high-risk employment decisions without qualified review."
         },
         {
           "type": "p",

@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Divulgation sur les transferts de données transfrontaliers",
-  "lastUpdated": "1 juin 2026",
+  "lastUpdated": "15 juillet 2026",
   "effectiveDate": "1 juin 2026",
   "callout": [
     "Cette divulgation informe les utilisateurs canadiens des transferts transfrontaliers de données personnelles effectués par Dutiva Canada Inc., conformément à la Loi sur la protection des renseignements personnels et les documents électroniques (LPRPDE/PIPEDA) et à la Loi 25 du Québec."
@@ -22,10 +22,6 @@ export default {
         {
           "type": "li",
           "text": "Vercel : hébergement et mise en réseau de l'application, localisé aux États-Unis"
-        },
-        {
-          "type": "li",
-          "text": "OpenAI : traitement des requêtes d'intelligence artificielle, localisé aux États-Unis"
         },
         {
           "type": "li",

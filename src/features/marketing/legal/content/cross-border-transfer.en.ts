@@ -2,10 +2,10 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Cross-Border Data Transfer Disclosure",
-  "lastUpdated": "June 1, 2026",
+  "lastUpdated": "July 15, 2026",
   "effectiveDate": "June 1, 2026",
   "callout": [
-    "Dutiva Canada Inc. operates a platform that relies on third-party cloud infrastructure and AI services, most of which are based in the United States. This disclosure explains which personal information is transferred outside Canada, why, what safeguards apply, and what rights you have in connection with those transfers."
+    "Dutiva Canada Inc. operates a platform that relies on third-party cloud infrastructure and services, most of which are based in the United States. This disclosure explains which personal information is transferred outside Canada, why, what safeguards apply, and what rights you have in connection with those transfers."
   ],
   "sections": [
     {
@@ -22,10 +22,6 @@ export default {
         {
           "type": "li",
           "text": "Workspace and document data (company name, jurisdiction, document inputs, generated documents): stored by Supabase Inc. (United States); delivered by Vercel Inc. (United States and global CDN)."
-        },
-        {
-          "type": "li",
-          "text": "Advisor message content and document generation inputs: processed by OpenAI, L.L.C. (United States) to generate AI responses. Inputs are processed transiently and are not retained to train OpenAI models under our API agreement."
         },
         {
           "type": "li",
@@ -84,7 +80,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "Dutiva has conducted PIAs for its primary cross-border data flows to Supabase, Vercel, OpenAI, and Stripe and maintains documentation of these assessments. The results are used to implement appropriate safeguards and to inform this disclosure."
+          "text": "Dutiva has conducted PIAs for its primary cross-border data flows to Supabase, Vercel, and Stripe and maintains documentation of these assessments. The results are used to implement appropriate safeguards and to inform this disclosure."
         },
         {
           "type": "p",

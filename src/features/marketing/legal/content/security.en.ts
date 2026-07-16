@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Security Overview",
-  "lastUpdated": "June 1, 2026",
+  "lastUpdated": "July 15, 2026",
   "effectiveDate": "June 1, 2026",
   "callout": [
     "Dutiva Canada Inc. takes the security of customer data seriously. This overview describes the security controls, infrastructure design, encryption practices, access management, vulnerability management, and incident response capabilities in place to protect the Dutiva platform and the data you entrust to us."
@@ -90,7 +90,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Queries sent to the Compass Advisor and document generator are processed using third-party AI APIs. We minimize the data submitted to AI providers to what is required for the specific request. We do not send social insurance numbers, medical records, full payment credentials, or other highly sensitive data to AI APIs."
+          "text": "Queries sent to the Dutiva Advisor and document generator are processed using third-party AI APIs. We minimize the data submitted to AI providers to what is required for the specific request. We do not send social insurance numbers, medical records, full payment credentials, or other highly sensitive data to AI APIs."
         },
         {
           "type": "p",
