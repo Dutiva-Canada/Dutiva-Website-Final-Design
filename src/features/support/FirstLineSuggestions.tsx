@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ExternalLink, LifeBuoy, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
 import { helpDocPath } from '@/seo/routes'
 import type { SupportCategory } from '@/config/support'
 import { suggestFirstLine } from './firstLineAssist'
+import { getFirstLineAnswer } from './firstLineApi'
 
 /**
  * First-line self-service hint shown inside the intake forms (public Contact
@@ -14,16 +15,48 @@ import { suggestFirstLine } from './firstLineAssist'
  * firstLineAssist for the escalation policy). Cross-surface safe tokens only.
  * Article links are plain `<a target="_blank">` (open the public help pages in a
  * new tab, so the draft is never lost, and no router context is required).
+ *
+ * `allowGenerative` (in-app, authenticated form only) adds an opt-in "Get an
+ * instant answer" button: the model drafts a short answer grounded in the same
+ * articles. It is advisory — labelled AI-generated, not legal advice — and the
+ * user still sends their request. Never enabled for human-only categories (they
+ * return `escalate` above) or on the public form.
  */
 export function FirstLineSuggestions({
   query,
   category,
+  allowGenerative = false,
 }: {
   readonly query: string
   readonly category: SupportCategory | ''
+  readonly allowGenerative?: boolean
 }) {
   const { x, lang } = useI18n()
   const result = useMemo(() => suggestFirstLine(query, category, lang), [query, category, lang])
+  const [asking, setAsking] = useState(false)
+  const [answer, setAnswer] = useState<string | null>(null)
+  const [answerError, setAnswerError] = useState<string | null>(null)
+
+  // Editing the request after an answer invalidates it — reset so the stale
+  // answer is cleared and the button reappears.
+  useEffect(() => {
+    setAnswer(null)
+    setAnswerError(null)
+  }, [query, category])
+
+  async function onAsk() {
+    setAsking(true)
+    setAnswerError(null)
+    try {
+      const res = await getFirstLineAnswer(query, category, result.articles, lang)
+      if (res.escalate || !res.answer.trim()) setAnswerError(x(M.support_firstline_answer_error))
+      else setAnswer(res.answer)
+    } catch {
+      setAnswerError(x(M.support_firstline_answer_error))
+    } finally {
+      setAsking(false)
+    }
+  }
 
   if (result.escalate) {
     return (
@@ -60,6 +93,40 @@ export function FirstLineSuggestions({
           </li>
         ))}
       </ul>
+
+      {allowGenerative && (
+        <div className="mt-[10px]">
+          {answer === null ? (
+            <button
+              type="button"
+              onClick={onAsk}
+              disabled={asking}
+              className="inline-flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-bg px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2 hover:text-text disabled:opacity-60"
+            >
+              <Sparkles size={13} aria-hidden="true" className="text-gold-strong" />
+              {asking ? x(M.support_firstline_asking) : x(M.support_firstline_ask)}
+            </button>
+          ) : (
+            <div
+              aria-live="polite"
+              className="rounded-[9px] border border-border bg-bg px-[12px] py-[10px]"
+            >
+              <p className="m-0 mb-[4px] text-[11px] font-semibold tracking-[0.04em] text-text-3 uppercase">
+                {x(M.support_firstline_answer_label)}
+              </p>
+              <p className="m-0 text-[13px] leading-[1.55] whitespace-pre-wrap text-text">{answer}</p>
+              <p className="m-0 mt-[8px] border-t border-border pt-[6px] text-[11.5px] leading-[1.45] text-text-3">
+                {x(M.support_firstline_disclaimer)}
+              </p>
+            </div>
+          )}
+          {answerError && (
+            <p role="alert" className="m-0 mt-[8px] text-[12px] text-risk-fg">
+              {answerError}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }

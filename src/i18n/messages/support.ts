@@ -184,6 +184,17 @@ export const supportMessages = defineMessages({
     en: 'This type of request is always handled by a person, not an automated answer. Send it and we’ll reply in writing.',
     fr: 'Ce type de demande est toujours traité par une personne, et non par une réponse automatisée. Envoyez-la et nous répondrons par écrit.',
   },
+  support_firstline_ask: { en: 'Get an instant answer', fr: 'Obtenir une réponse instantanée' },
+  support_firstline_asking: { en: 'Thinking…', fr: 'Réflexion…' },
+  support_firstline_answer_label: { en: 'Suggested answer', fr: 'Réponse suggérée' },
+  support_firstline_disclaimer: {
+    en: 'AI-generated from our Help Centre — not legal advice. Send your request and a person will still help.',
+    fr: 'Générée par IA à partir de notre centre d’aide — pas un avis juridique. Envoyez votre demande et une personne vous aidera tout de même.',
+  },
+  support_firstline_answer_error: {
+    en: 'We couldn’t generate an answer. Please send your request and we’ll reply.',
+    fr: 'Nous n’avons pas pu générer de réponse. Veuillez envoyer votre demande et nous répondrons.',
+  },
 
   /* ── Attachments ──────────────────────────────────────────────────────── */
   support_attachments_title: { en: 'Attachments', fr: 'Pièces jointes' },

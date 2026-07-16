@@ -289,7 +289,7 @@ export function SupportRequestForm() {
         />
       </Field>
 
-      <FirstLineSuggestions query={`${subject} ${description}`} category={category} />
+      <FirstLineSuggestions query={`${subject} ${description}`} category={category} allowGenerative />
 
       <div className="grid grid-cols-1 gap-[18px] min-[560px]:grid-cols-2">
         <Field id={fid('impact')} label={x(M.support_field_impact)}>
