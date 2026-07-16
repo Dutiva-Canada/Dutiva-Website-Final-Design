@@ -111,6 +111,18 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
               role="menuitem"
               onClick={() => {
                 setProfileOpen(false)
+                onNavigate?.()
+                navigate('/app/support')
+              }}
+              className="block w-full cursor-pointer border-none bg-transparent px-[14px] py-[10px] text-left text-[13px] text-text-2 hover:bg-inset"
+            >
+              {L('Contact support', 'Contacter le soutien')}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setProfileOpen(false)
                 navigate('/app/welcome')
               }}
               className="block w-full cursor-pointer border-none bg-transparent px-[14px] py-[10px] text-left text-[13px] text-risk-dot hover:bg-risk-bg"

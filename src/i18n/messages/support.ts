@@ -24,10 +24,6 @@ export const supportMessages = defineMessages({
     en: 'Do not include unnecessary employee personal information, medical information, investigation evidence or other confidential workplace records. Dutiva will provide secure instructions if additional information is required.',
     fr: 'N’incluez pas inutilement de renseignements personnels sur des employés, de renseignements médicaux, de preuves liées à une enquête ou d’autres dossiers confidentiels du milieu de travail. Dutiva fournira des instructions sécurisées si des renseignements supplémentaires sont nécessaires.',
   },
-  support_disclaimer: {
-    en: 'Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice.',
-    fr: 'Dutiva offre un soutien pratique aux processus RH et des conseils axés sur la conformité. Elle ne fournit pas de conseils juridiques.',
-  },
   support_targets_note: {
     en: 'These are initial-response targets, not guaranteed resolution times. Business days exclude weekends and Ontario statutory holidays. Priority may be reassessed after review, and privacy and security incidents may follow separate procedures. You may submit a request at any time; Dutiva does not currently offer continuously staffed 24/7 support.',
     fr: 'Il s’agit de cibles de première réponse, et non de délais de résolution garantis. Les jours ouvrables excluent les fins de semaine et les jours fériés légaux de l’Ontario. La priorité peut être réévaluée après examen, et les incidents de confidentialité et de sécurité peuvent suivre des procédures distinctes. Vous pouvez soumettre une demande en tout temps; Dutiva n’offre pas pour le moment de soutien continu 24 heures sur 24, 7 jours sur 7.',
@@ -47,5 +43,108 @@ export const supportMessages = defineMessages({
   support_call_not_guaranteed: {
     en: 'Scheduled calls are arranged only where digital support cannot reasonably resolve the issue, and are not guaranteed. The written ticket remains the record of your request.',
     fr: 'Les appels planifiés sont organisés uniquement lorsque le soutien numérique ne peut raisonnablement régler la situation, et ne sont pas garantis. Le billet écrit demeure le dossier de votre demande.',
+  },
+
+  /* ── Support request form ─────────────────────────────────────────────── */
+  support_form_title: { en: 'Contact support', fr: 'Contacter le soutien' },
+  support_form_intro: {
+    en: 'Send us a support request and we’ll reply in writing. Check the Help Centre first — most questions are answered there.',
+    fr: 'Envoyez-nous une demande de soutien et nous répondrons par écrit. Consultez d’abord le centre d’aide — la plupart des questions y trouvent réponse.',
+  },
+  support_field_category: { en: 'What is this about?', fr: 'De quoi s’agit-il?' },
+  support_field_subject: { en: 'Subject', fr: 'Sujet' },
+  support_field_description: { en: 'How can we help?', fr: 'Comment pouvons-nous vous aider?' },
+  support_field_impact: { en: 'How much is this affecting you?', fr: 'Quelle est l’ampleur de l’impact?' },
+  support_field_urgency: { en: 'How time-sensitive is it?', fr: 'Quel est le degré d’urgence?' },
+  support_field_language: { en: 'Preferred language for our reply', fr: 'Langue préférée pour notre réponse' },
+  support_field_response_method: { en: 'Preferred way to hear back', fr: 'Moyen préféré pour la réponse' },
+  support_choose: { en: 'Select…', fr: 'Sélectionner…' },
+  support_optional: { en: 'optional', fr: 'facultatif' },
+
+  support_cond_account_signin: {
+    en: 'Can you still sign in to your account?',
+    fr: 'Pouvez-vous encore vous connecter à votre compte?',
+  },
+  support_cond_account_yes: { en: 'Yes, I can sign in', fr: 'Oui, je peux me connecter' },
+  support_cond_account_no: { en: 'No, I’m locked out', fr: 'Non, je suis bloqué' },
+  support_cond_billing_ref: {
+    en: 'Invoice or subscription reference',
+    fr: 'Référence de facture ou d’abonnement',
+  },
+  support_cond_accessibility: {
+    en: 'What communication accommodation would help?',
+    fr: 'Quelle mesure d’adaptation de communication vous aiderait?',
+  },
+  support_security_warning: {
+    en: 'Reporting a security concern? Give a factual description, the affected URL or feature, and safe reproduction steps. Do not access other customers’ data, disrupt the service, or include exploit details. There is no bug bounty.',
+    fr: 'Vous signalez une préoccupation de sécurité? Donnez une description factuelle, l’URL ou la fonctionnalité touchée et des étapes de reproduction sûres. N’accédez pas aux données d’autres clients, ne perturbez pas le service et n’incluez pas de détails d’exploitation. Il n’y a pas de prime aux bogues.',
+  },
+  support_privacy_notice: {
+    en: 'Privacy requests are handled separately from ordinary support. Identity verification may be required. Do not attach identity documents here.',
+    fr: 'Les demandes de confidentialité sont traitées séparément du soutien ordinaire. Une vérification d’identité peut être exigée. Ne joignez pas de pièces d’identité ici.',
+  },
+
+  support_diagnostics_title: { en: 'Technical details attached', fr: 'Détails techniques joints' },
+  support_diagnostics_toggle: {
+    en: 'Attach these technical details to help us respond faster',
+    fr: 'Joindre ces détails techniques pour nous aider à répondre plus rapidement',
+  },
+  support_consent: {
+    en: 'I understand Dutiva will use this request to respond to me, and I haven’t included unnecessary confidential workplace records.',
+    fr: 'Je comprends que Dutiva utilisera cette demande pour me répondre, et je n’ai pas inclus de dossiers confidentiels du milieu de travail inutiles.',
+  },
+  support_submit: { en: 'Send request', fr: 'Envoyer la demande' },
+  support_submitting: { en: 'Sending…', fr: 'Envoi en cours…' },
+
+  support_err_subject: { en: 'Please add a subject.', fr: 'Veuillez ajouter un sujet.' },
+  support_err_description: { en: 'Please describe how we can help.', fr: 'Veuillez décrire comment nous pouvons aider.' },
+  support_err_consent: { en: 'Please confirm to continue.', fr: 'Veuillez confirmer pour continuer.' },
+  support_err_generic: {
+    en: 'We couldn’t send your request. Please try again, or email support@dutiva.ca.',
+    fr: 'Nous n’avons pas pu envoyer votre demande. Veuillez réessayer ou écrire à support@dutiva.ca.',
+  },
+
+  support_success_title: { en: 'Request received', fr: 'Demande reçue' },
+  support_success_body: {
+    en: 'Your request has been logged. Keep this reference for your records — we’ll reply in writing to the email on your account.',
+    fr: 'Votre demande a été enregistrée. Conservez cette référence — nous répondrons par écrit au courriel de votre compte.',
+  },
+  support_success_reference: { en: 'Reference', fr: 'Référence' },
+  support_success_new: { en: 'Send another request', fr: 'Envoyer une autre demande' },
+
+  /* ── My requests / ticket thread ──────────────────────────────────────── */
+  support_new_request: { en: 'New request', fr: 'Nouvelle demande' },
+  support_my_requests: { en: 'My requests', fr: 'Mes demandes' },
+  support_requests_loading: { en: 'Loading your requests…', fr: 'Chargement de vos demandes…' },
+  support_requests_error: {
+    en: 'We couldn’t load your requests. Please try again.',
+    fr: 'Nous n’avons pas pu charger vos demandes. Veuillez réessayer.',
+  },
+  support_requests_empty: {
+    en: 'You haven’t sent any support requests yet.',
+    fr: 'Vous n’avez pas encore envoyé de demande de soutien.',
+  },
+  support_requests_empty_cta: { en: 'Send your first request', fr: 'Envoyer votre première demande' },
+  support_open_request: { en: 'Open request', fr: 'Ouvrir la demande' },
+  support_back_to_requests: { en: 'Back to my requests', fr: 'Retour à mes demandes' },
+  support_submitted_on: { en: 'Submitted', fr: 'Soumise le' },
+  support_status_label: { en: 'Status', fr: 'Statut' },
+  support_ticket_not_found: {
+    en: 'This request could not be found.',
+    fr: 'Cette demande est introuvable.',
+  },
+  support_author_you: { en: 'You', fr: 'Vous' },
+  support_author_dutiva: { en: 'Dutiva support', fr: 'Soutien Dutiva' },
+  support_author_system: { en: 'System', fr: 'Système' },
+  support_reply_label: { en: 'Add a reply', fr: 'Ajouter une réponse' },
+  support_reply_submit: { en: 'Send reply', fr: 'Envoyer la réponse' },
+  support_reply_sending: { en: 'Sending…', fr: 'Envoi en cours…' },
+  support_reply_error: {
+    en: 'We couldn’t send your reply. Please try again.',
+    fr: 'Nous n’avons pas pu envoyer votre réponse. Veuillez réessayer.',
+  },
+  support_reply_closed: {
+    en: 'This request is closed. Start a new request if you need more help.',
+    fr: 'Cette demande est fermée. Créez une nouvelle demande si vous avez besoin d’aide.',
   },
 })
