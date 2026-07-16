@@ -37,6 +37,7 @@ export type SeoRouteId =
   | 'legal'
   | 'help'
   | 'contact'
+  | 'status'
 
 export interface SeoRoute {
   id: SeoRouteId
@@ -188,6 +189,19 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     description: {
       en: 'Send Dutiva a support request without an account — product questions, privacy requests, security reports, and accessibility feedback. We reply in writing. Bilingual EN/FR.',
       fr: 'Envoyez une demande de soutien à Dutiva sans compte — questions sur le produit, demandes de confidentialité, signalements de sécurité et rétroaction sur l’accessibilité. Nous répondons par écrit. Bilingue FR/EN.',
+    },
+    indexable: true,
+  },
+  {
+    id: 'status',
+    path: { en: '/status', fr: '/fr/etat' },
+    title: {
+      en: 'Service status | Dutiva',
+      fr: 'État des services | Dutiva',
+    },
+    description: {
+      en: 'The current status of Dutiva’s services — platform, AI Advisor, HR documents, and support. Self-reported by the Dutiva team. Bilingual EN/FR.',
+      fr: 'L’état actuel des services de Dutiva — plateforme, Conseiller IA, documents RH et soutien. Signalé par l’équipe de Dutiva. Bilingue FR/EN.',
     },
     indexable: true,
   },

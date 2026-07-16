@@ -15,6 +15,7 @@ import {
   isCurrentUserAdmin,
 } from '@/features/support/supportAdminApi'
 import type { AdminTicketFilters, AdminTicketRow } from '@/features/support/supportAdminApi'
+import { ServiceStatusControl } from './ServiceStatusControl'
 
 const PRIORITIES: SupportPriority[] = ['critical', 'high', 'standard', 'low']
 
@@ -79,6 +80,8 @@ export function SupportAdminView() {
           </span>
         )}
       </header>
+
+      <ServiceStatusControl />
 
       <div className="mb-[16px] flex flex-wrap items-center gap-[10px]">
         <select
