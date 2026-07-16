@@ -1,118 +1,141 @@
 import type { PolicyEdition } from '../policyContent'
 
 export default {
-  "title": "Support Policy",
-  "lastUpdated": "June 1, 2026",
-  "effectiveDate": "June 1, 2026",
-  "callout": [
-    "This Support Policy describes how Dutiva Canada Inc. provides customer support, the channels and hours through which support is available, response time commitments by priority level, the scope of what support covers, and how escalations are handled."
+  title: 'Customer Support Policy',
+  lastUpdated: 'July 15, 2026',
+  effectiveDate: 'July 15, 2026',
+  callout: [
+    'Digital-first customer support, with phone or video assistance arranged when necessary.',
+    'This Policy describes how Dutiva Canada Inc. provides customer support: the channels available, our hours, initial-response targets by priority, what support covers, and how exceptional telephone or video appointments are arranged.',
   ],
-  "sections": [
+  sections: [
     {
-      "title": "1. Support Channels",
-      "blocks": [
+      title: '1. Our support model',
+      blocks: [
         {
-          "type": "p",
-          "text": "General support: support@dutiva.ca — for billing questions, platform issues, account problems, and general product questions."
+          type: 'p',
+          text: 'Dutiva provides customer support through our Help Centre, secure support requests and email. General inbound telephone support is not currently available. Where an issue cannot reasonably be resolved through digital support—including certain accessibility, security, account-recovery or exceptional service matters—we may arrange a telephone or video appointment.',
         },
         {
-          "type": "p",
-          "text": "Privacy requests: privacy@dutiva.ca — for data access, correction, deletion, and portability requests under PIPEDA and Quebec Law 25."
+          type: 'p',
+          text: 'Support is self-service and asynchronous by default. Our Help Centre and in-product guidance resolve most questions immediately; when you need a person, a written support request is reviewed and answered by our team.',
         },
         {
-          "type": "p",
-          "text": "Legal and policy questions: legal@dutiva.ca — for questions about legal documents, policies, intellectual property, and acceptable use."
+          type: 'p',
+          text: 'Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice.',
         },
-        {
-          "type": "p",
-          "text": "Security: security@dutiva.ca — for vulnerability reports, security questions, and enterprise security documentation requests."
-        }
-      ]
+      ],
     },
     {
-      "title": "2. Hours of Operation",
-      "blocks": [
+      title: '2. Support channels',
+      blocks: [
         {
-          "type": "p",
-          "text": "Support is available by email Monday through Friday, 9:00 AM to 5:00 PM Eastern Time, excluding Canadian federal statutory holidays and Dutiva-designated holidays. We do not currently offer live chat, phone, or weekend support."
+          type: 'p',
+          text: 'General support — support@dutiva.ca: Help Centre, product questions, and general support requests.',
         },
         {
-          "type": "p",
-          "text": "For P0 priority issues (defined below), we will respond outside of normal business hours where a security, privacy, payment, or total platform outage is confirmed."
-        }
-      ]
+          type: 'p',
+          text: 'Billing — billing@dutiva.ca: invoices, subscriptions, payments, and billing disputes.',
+        },
+        {
+          type: 'p',
+          text: 'Privacy — privacy@dutiva.ca: privacy requests and questions under PIPEDA and Québec Law 25. Privacy requests are handled separately from ordinary support.',
+        },
+        {
+          type: 'p',
+          text: 'Security — security@dutiva.ca: vulnerability reports and security concerns, handled with restricted visibility.',
+        },
+        {
+          type: 'p',
+          text: 'Accessibility — accessibility@dutiva.ca: accessibility barriers and requests for an alternative communication method. You may request telephone or video contact as an accommodation.',
+        },
+        {
+          type: 'p',
+          text: 'Sales and onboarding — sales@dutiva.ca: plans, onboarding, and enterprise enquiries.',
+        },
+      ],
     },
     {
-      "title": "3. Response Time Commitments",
-      "blocks": [
+      title: '3. Hours',
+      blocks: [
         {
-          "type": "p",
-          "text": "P0 — Security, privacy, payment, or total application outage: initial response target is same day, including outside business hours where reasonably practicable."
+          type: 'p',
+          text: 'Support requests are reviewed Monday to Friday, 9:00 a.m. to 5:00 p.m. Eastern Time, excluding Ontario statutory holidays. You may submit a request at any time. Dutiva does not currently offer continuously staffed 24/7 support.',
         },
-        {
-          "type": "p",
-          "text": "P1 — Customer cannot complete core document generation, authentication, billing, or beta access workflow: initial response target is same business day."
-        },
-        {
-          "type": "p",
-          "text": "P2 — Incorrect copy, confusing workflow, non-blocking product issue, or compliance guidance question: initial response target is 2 business days."
-        },
-        {
-          "type": "p",
-          "text": "P3 — General question, feedback, feature request, or enhancement request: initial response target is 3 business days."
-        },
-        {
-          "type": "p",
-          "text": "These targets represent initial acknowledgement and triage, not full resolution. Resolution timelines depend on issue complexity, engineering involvement, and third-party dependencies."
-        }
-      ]
+      ],
     },
     {
-      "title": "4. Scope of Support",
-      "blocks": [
+      title: '4. Initial-response targets',
+      blocks: [
         {
-          "type": "p",
-          "text": "Dutiva support covers: account access and authentication issues, billing and subscription questions, template and generator technical problems, Advisor response quality concerns, platform bugs and error reports, and general product usage questions."
+          type: 'p',
+          text: 'Critical (confirmed platform outage, credible active security incident, widespread authentication failure, severe data-access issue, or time-sensitive privacy incident): initial response within 4 business hours.',
         },
         {
-          "type": "p",
-          "text": "Dutiva support does not cover: legal advice or legal opinions on employment, privacy, labour, tax, or any other area of law; interpretation of generated document content as legally binding or correct for a specific workplace situation; advice on whether a specific HR action is lawful; or advice on how to handle specific employee situations."
+          type: 'p',
+          text: 'High (you cannot access an essential account or workflow, a billing issue is interrupting your service, a significant accessibility barrier, or a major feature failure without a reasonable workaround): initial response within 1 business day.',
         },
         {
-          "type": "p",
-          "text": "For questions that require professional legal or HR advice, we will direct you to the appropriate qualified professional resources. Dutiva support staff will not provide legal analysis even if a question is framed as a product question."
-        }
-      ]
+          type: 'p',
+          text: 'Standard (an isolated defect, a product question, a billing clarification, or a general support issue): initial response within 2 business days.',
+        },
+        {
+          type: 'p',
+          text: 'Low (a feature request, general feedback, or a non-urgent documentation suggestion): initial response within 5 business days.',
+        },
+        {
+          type: 'p',
+          text: 'These are initial-response targets, not guaranteed resolution times. Business days exclude weekends and Ontario statutory holidays. Priority is determined by Dutiva after reviewing the impact and urgency you describe, and may be reassessed. Privacy and security incidents may follow separate procedures.',
+        },
+      ],
     },
     {
-      "title": "5. Escalation",
-      "blocks": [
+      title: '5. Telephone and video appointments',
+      blocks: [
         {
-          "type": "p",
-          "text": "Security and privacy incidents: Follow Dutiva's public Incident and Breach Response Policy. Escalate immediately to security@dutiva.ca and privacy@dutiva.ca as applicable."
+          type: 'p',
+          text: 'Because support is digital-first, a scheduled telephone or video appointment is arranged only where an issue cannot reasonably be resolved in writing—for example complex account recovery, accessibility accommodations, serious security concerns, escalated billing disputes, enterprise onboarding, or a sensitive complaint where written communication is unsuitable.',
         },
         {
-          "type": "p",
-          "text": "Data loss or backup concerns: Contact support@dutiva.ca immediately and include a clear description of the affected data, account, and workflow."
+          type: 'p',
+          text: 'A call normally requires an existing support request, initial written triage, identity verification where account information will be discussed, and a scheduled appointment. A written summary is added to the request afterward. Calls are not guaranteed, and the written request remains the record of your issue.',
         },
-        {
-          "type": "p",
-          "text": "Enterprise and billing escalation: Enterprise account holders experiencing service-affecting issues should reference their subscription agreement for escalation procedures or contact support@dutiva.ca with 'Enterprise Escalation' in the subject line."
-        }
-      ]
+      ],
     },
     {
-      "title": "6. Enterprise Support",
-      "blocks": [
+      title: '6. What support covers',
+      blocks: [
         {
-          "type": "p",
-          "text": "Enterprise plan customers may negotiate enhanced support terms including dedicated support contacts, faster response time commitments, and custom escalation procedures as part of their subscription agreement."
+          type: 'p',
+          text: 'Support covers account access and authentication, billing and subscriptions, technical issues and error reports, product and workflow questions, HR Advisor response quality concerns, accessibility feedback, privacy and security matters, and complaints.',
         },
         {
-          "type": "p",
-          "text": "Contact support@dutiva.ca to discuss enterprise support arrangements."
-        }
-      ]
-    }
-  ]
+          type: 'p',
+          text: 'Support does not provide legal advice, legal opinions, or a determination that generated content is correct or lawful for a specific workplace situation. Where a question requires professional legal or HR advice, we will point you to appropriate qualified resources.',
+        },
+        {
+          type: 'p',
+          text: 'Accessibility, privacy, security, and complaint requests are available to all customers and do not depend on a paid plan.',
+        },
+      ],
+    },
+    {
+      title: '7. Protecting sensitive information',
+      blocks: [
+        {
+          type: 'p',
+          text: 'Do not include unnecessary employee personal information, medical information, investigation evidence or other confidential workplace records in a support request. Dutiva will provide secure instructions if additional information is required.',
+        },
+      ],
+    },
+    {
+      title: '8. Changes and questions',
+      blocks: [
+        {
+          type: 'p',
+          text: 'Dutiva may update this Policy as its support operations evolve; material changes are reflected by updating the date above. Questions about this Policy can be sent to support@dutiva.ca.',
+        },
+      ],
+    },
+  ],
 } satisfies PolicyEdition
