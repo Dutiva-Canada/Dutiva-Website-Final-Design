@@ -81,7 +81,7 @@ export function HomeCompliancePanel({
         </div>
         <button
           type="button"
-          onClick={() => onAction({ kind: 'doc', templateKey: 'Remote Work Policy' })}
+          onClick={() => onAction({ kind: 'doc', templateKey: 'T10' })}
           className="shrink-0 cursor-pointer rounded-[7px] border-none bg-accent-soft px-[11px] py-[6px] font-sans text-[11.5px] font-bold text-accent"
         >
           {x(M.home_lever_cta)}

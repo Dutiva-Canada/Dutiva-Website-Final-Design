@@ -4,6 +4,8 @@ import { useLocation } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { HomeView } from './HomeView'
+import { HomeCompliancePanel } from './HomeCompliancePanel'
+import { homePriorities } from './homeData'
 
 /** Echoes the current pathname so navigations triggered by the view are observable. */
 function LocationProbe() {
@@ -79,6 +81,23 @@ describe('HomeView', () => {
     expect(screen.getByText('Alberta')).toBeInTheDocument()
 
     view.unmount()
+  })
+})
+
+describe('HomeCompliancePanel', () => {
+  it('drafts the same canonical Remote Work Policy template as the Act now lever (T10)', () => {
+    const onAction = vi.fn()
+    renderApp(<HomeCompliancePanel onAction={onAction} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Draft refresh' }))
+
+    /* The compliance "Top lever" and the Act now "Draft refresh" (pr2) are the
+       same action, so they must open the same doclib template — not the legacy
+       'Remote Work Policy' flat fixture, which resolves to a different doc. */
+    const leverAction = homePriorities.find((p) => p.id === 'pr2')?.action
+    const leverKey = leverAction && leverAction.kind === 'doc' ? leverAction.templateKey : null
+    expect(leverKey).toBe('T10')
+    expect(onAction).toHaveBeenCalledWith({ kind: 'doc', templateKey: leverKey })
   })
 })
 
