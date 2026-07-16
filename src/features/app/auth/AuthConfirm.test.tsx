@@ -53,11 +53,19 @@ describe('AuthConfirm', () => {
     expect(screen.queryByText('WORKSPACE HOME')).not.toBeInTheDocument()
   })
 
-  it('surfaces an error carried in the URL without calling verifyOtp', async () => {
+  it('surfaces an error carried in the URL query without calling verifyOtp', async () => {
     renderAt('?error=access_denied&error_description=Email+link+is+invalid+or+has+expired')
 
     expect(await screen.findByText(/invalid or has expired/i)).toBeInTheDocument()
     expect(authMock.verifyOtp).not.toHaveBeenCalled()
+  })
+
+  it('surfaces an error carried in the URL fragment (implicit flow)', async () => {
+    renderAt('#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired')
+
+    expect(await screen.findByText(/invalid or has expired/i)).toBeInTheDocument()
+    expect(authMock.verifyOtp).not.toHaveBeenCalled()
+    expect(authMock.getSession).not.toHaveBeenCalled()
   })
 
   it('exchanges a PKCE code when present instead of a token_hash', async () => {
