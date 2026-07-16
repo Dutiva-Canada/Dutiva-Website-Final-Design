@@ -111,4 +111,40 @@ export const supportMessages = defineMessages({
   },
   support_success_reference: { en: 'Reference', fr: 'Référence' },
   support_success_new: { en: 'Send another request', fr: 'Envoyer une autre demande' },
+
+  /* ── My requests / ticket thread ──────────────────────────────────────── */
+  support_new_request: { en: 'New request', fr: 'Nouvelle demande' },
+  support_my_requests: { en: 'My requests', fr: 'Mes demandes' },
+  support_requests_loading: { en: 'Loading your requests…', fr: 'Chargement de vos demandes…' },
+  support_requests_error: {
+    en: 'We couldn’t load your requests. Please try again.',
+    fr: 'Nous n’avons pas pu charger vos demandes. Veuillez réessayer.',
+  },
+  support_requests_empty: {
+    en: 'You haven’t sent any support requests yet.',
+    fr: 'Vous n’avez pas encore envoyé de demande de soutien.',
+  },
+  support_requests_empty_cta: { en: 'Send your first request', fr: 'Envoyer votre première demande' },
+  support_open_request: { en: 'Open request', fr: 'Ouvrir la demande' },
+  support_back_to_requests: { en: 'Back to my requests', fr: 'Retour à mes demandes' },
+  support_submitted_on: { en: 'Submitted', fr: 'Soumise le' },
+  support_status_label: { en: 'Status', fr: 'Statut' },
+  support_ticket_not_found: {
+    en: 'This request could not be found.',
+    fr: 'Cette demande est introuvable.',
+  },
+  support_author_you: { en: 'You', fr: 'Vous' },
+  support_author_dutiva: { en: 'Dutiva support', fr: 'Soutien Dutiva' },
+  support_author_system: { en: 'System', fr: 'Système' },
+  support_reply_label: { en: 'Add a reply', fr: 'Ajouter une réponse' },
+  support_reply_submit: { en: 'Send reply', fr: 'Envoyer la réponse' },
+  support_reply_sending: { en: 'Sending…', fr: 'Envoi en cours…' },
+  support_reply_error: {
+    en: 'We couldn’t send your reply. Please try again.',
+    fr: 'Nous n’avons pas pu envoyer votre réponse. Veuillez réessayer.',
+  },
+  support_reply_closed: {
+    en: 'This request is closed. Start a new request if you need more help.',
+    fr: 'Cette demande est fermée. Créez une nouvelle demande si vous avez besoin d’aide.',
+  },
 })

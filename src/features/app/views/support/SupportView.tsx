@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
 import { RESPONSE_TARGETS, SUPPORT_CHANNELS } from '@/config/support'
 import { SupportRequestForm } from '@/features/support/SupportRequestForm'
+import { SupportSectionNav } from './SupportSectionNav'
 
 const PRIORITY_ORDER = ['critical', 'high', 'standard', 'low'] as const
 
@@ -24,6 +25,8 @@ export function SupportView() {
           {x(M.support_digital_first)}
         </p>
       </header>
+
+      <SupportSectionNav active="new" />
 
       <div className="flex items-start gap-[28px] max-[1023px]:flex-col">
         <div className="min-w-0 flex-1 rounded-[16px] border border-border bg-surface p-[24px] max-[1023px]:w-full">
