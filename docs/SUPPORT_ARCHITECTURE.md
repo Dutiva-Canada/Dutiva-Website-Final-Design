@@ -197,11 +197,39 @@ locales.
   pages) so the sitemap, hreflang, and language toggle stay in sync. Entry point:
   the marketing footer's Resources column.
 
+## Public intake (unauthenticated)
+
+The signed-out path — so the flows that must never sit behind a login
+(accessibility feedback, privacy requests, security reports) are reachable by
+anyone, alongside general product/sales questions.
+
+- Page: `ContactPage` at `/contact` · `/fr/contact` (marketing surface,
+  indexable). A `?topic=security|privacy|accessibility|product|sales` deep link
+  preselects the category. Entry points: the footer's **Contact** link and the
+  Help Centre's contact CTA.
+- Form: [`PublicSupportForm`](../src/features/support/PublicSupportForm.tsx) —
+  collects an email (no account), offers **only the `allowPublic` categories**,
+  carries no diagnostics/workspace context, includes a honeypot, and shows the
+  same category-aware notices as the in-app form.
+- Function: [`create-public-support-ticket`](../supabase/functions/create-public-support-ticket/index.ts)
+  (**deployed**, `verify_jwt` off). Accepts only public categories, re-validates
+  everything, assigns priority (capped at `high`), flags `restricted`, writes the
+  ticket with the service role (`requester_user_id = null` → admin-only under
+  RLS), and enqueues the same acknowledgement + operator-alert notifications.
+- Anti-abuse: a honeypot; per-IP (3 / 15 min) and per-email (3 / 60 min) rate
+  limits backed by `support_public_intake` (migration `0016`), which stores
+  **only salted hashes** (`PUBLIC_INTAKE_SALT`) — never the raw IP or email.
+  A third-party CAPTCHA (Turnstile/hCaptcha) is the documented next hardening.
+
+An anonymous requester can't sign in to read the ticket, so updates go by email;
+account/billing issues are steered to sign-in (those categories aren't public).
+
 ## Staged phases (not yet implemented)
 
-2. **Specialized public intake** — the remaining entry-point sweep
-   (nav/account/billing/error/login-recovery pages) and the unauthenticated
-   specialized flows (see phase 3).
+2. **Entry-point sweep & scheduled-call UX** — remaining support entry points
+   (nav/account/billing/error/login-recovery pages) and the post-triage
+   "request a scheduled call" scheduling flow (the form already offers it as a
+   preferred response method; the founder arranges calls manually today).
 3. **Specialized flows** — security report, privacy request, accessibility
    feedback (unauthenticated-accessible), complaint escalation, and the
    post-triage "request a scheduled call" option.

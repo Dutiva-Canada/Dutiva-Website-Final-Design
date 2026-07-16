@@ -36,6 +36,7 @@ export type SeoRouteId =
   | 'knownLimitations'
   | 'legal'
   | 'help'
+  | 'contact'
 
 export interface SeoRoute {
   id: SeoRouteId
@@ -174,6 +175,19 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     description: {
       en: 'Self-service help for Dutiva: signing in, generating HR documents, using the AI Advisor, billing, privacy and security, and how digital-first support works. Bilingual EN/FR.',
       fr: 'Aide en libre-service pour Dutiva : connexion, génération de documents RH, utilisation du Conseiller IA, facturation, confidentialité et sécurité, et fonctionnement du soutien d’abord numérique. Bilingue FR/EN.',
+    },
+    indexable: true,
+  },
+  {
+    id: 'contact',
+    path: { en: '/contact', fr: '/fr/contact' },
+    title: {
+      en: 'Contact Dutiva support',
+      fr: 'Contacter le soutien Dutiva',
+    },
+    description: {
+      en: 'Send Dutiva a support request without an account — product questions, privacy requests, security reports, and accessibility feedback. We reply in writing. Bilingual EN/FR.',
+      fr: 'Envoyez une demande de soutien à Dutiva sans compte — questions sur le produit, demandes de confidentialité, signalements de sécurité et rétroaction sur l’accessibilité. Nous répondons par écrit. Bilingue FR/EN.',
     },
     indexable: true,
   },
