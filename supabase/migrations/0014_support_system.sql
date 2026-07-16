@@ -10,6 +10,13 @@
 -- keep the two in sync. UUIDs are internal; `public_reference` (DUT-YYYY-NNNNNN)
 -- is the human-readable id shown to customers and used in email/URLs.
 --
+-- DEPENDENCY: the RLS policies below call is_admin(uuid) and
+-- is_org_member(uuid, uuid). Those helpers were created directly on the live
+-- project (khtwpxnvziiyplaflwru), not by a repo migration — the same situation
+-- as the guidance/law-update tables noted in 0011. They are present in
+-- production; a from-scratch replay of the repo migrations alone must create
+-- them first.
+--
 -- ROLLBACK: drop the objects in reverse dependency order and remove the bucket:
 --   drop table if exists public.support_ticket_feedback, public.support_ticket_assignments,
 --     public.support_ticket_events, public.support_attachments, public.support_messages,

@@ -183,7 +183,8 @@ export function addBusinessDays(from: Date, count: number): Date {
 export function initialResponseDueDate(from: Date, priority: SupportPriority): Date {
   const target = responseTargetFor(priority)
   if (target.unit === 'business_hours') {
-    return isBusinessDay(from) ? from : nextBusinessDay(from)
+    // Return a fresh Date (never the caller's `from` by reference).
+    return isBusinessDay(from) ? new Date(from.getTime()) : nextBusinessDay(from)
   }
   return addBusinessDays(from, target.amount)
 }
