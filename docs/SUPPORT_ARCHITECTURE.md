@@ -130,6 +130,36 @@ Every retention-sensitive table carries a `retention_review_at` column. Final
 retention durations are **flagged for privacy/legal review** and configured, not
 hard-coded — deletion/anonymization workflows are a Phase 2 edge-function job.
 
+## Email & notifications
+
+Notifications use an **outbox**: the edge functions enqueue a row into
+`support_notifications` on each event (customer acknowledgement + operator alert
+on ticket creation; a customer notification on an agent reply). A **future send
+worker** drains `pending` rows, renders the template, sends via the configured
+provider, and marks them `sent`/`failed`. Decoupling this way means a missing
+email provider never blocks ticket creation, and the outbox stores **nothing
+sensitive** — only the public reference and category (never the body or PII).
+
+- Templates: [`src/features/support/email/templates.ts`](../src/features/support/email/templates.ts)
+  — 11 bilingual customer templates + an operator alert, pure and unit-tested.
+  **Rules enforced:** subjects carry only the reference (never body/PII); bodies
+  link back to the authenticated ticket (a secure link) and reuse the approved
+  no-secrets / resolution-varies copy.
+- Rules: [`notifications.ts`](../src/features/support/email/notifications.ts) —
+  `acknowledgementKind` (category → ack), `operatorChannel` (immediate for
+  security or high/critical, else digest), and the reminder-rule catalogue for
+  the scheduler. The edge functions mirror the first two.
+- Provider seam: [`emailService.ts`](../src/features/support/email/emailService.ts)
+  — an `EmailProvider` interface; delivery no-ops (logs) when no provider is set.
+
+**To wire a provider** (Phase-complete step): implement `EmailProvider` (Resend
+/ Postmark / SES) from `SUPPORT_EMAIL_PROVIDER_API_KEY`, deploy a scheduled
+`support-notify` worker that selects `status = 'pending'` rows, renders via the
+templates, calls the provider, and updates `status`/`sent_at`/`last_error`.
+`SUPPORT_OPERATOR_EMAIL` sets the operator-alert recipient (defaults to
+`support@dutiva.ca`). No sensitive content ever goes in a subject line, and
+customer emails link back to the authenticated ticket rather than embedding it.
+
 ## Staged phases (not yet implemented)
 
 2. **Intake & Help Centre UI** — authenticated support request form (conditional

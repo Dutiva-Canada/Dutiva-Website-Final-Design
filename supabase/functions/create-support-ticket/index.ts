@@ -42,6 +42,17 @@ const LANGUAGES = ['en', 'fr'] as const
 /** Categories handled off the ordinary product queue and hidden from workspace peers. */
 const RESTRICTED_CATEGORIES = new Set<Category>(['privacy', 'security', 'accessibility', 'complaint'])
 
+const OPERATOR_EMAIL = Deno.env.get('SUPPORT_OPERATOR_EMAIL') ?? 'support@dutiva.ca'
+
+/** Customer acknowledgement kind by category (mirrors src/features/support/email/notifications.ts). */
+function acknowledgementKind(category: Category): string {
+  if (category === 'privacy') return 'privacy_ack'
+  if (category === 'security') return 'security_ack'
+  if (category === 'accessibility') return 'accessibility_ack'
+  if (category === 'complaint') return 'complaint_ack'
+  return 'ticket_received'
+}
+
 /** Allowlisted diagnostic keys — anything else the client sends is dropped. */
 const DIAGNOSTIC_KEYS = [
   'plan', 'route', 'app_version', 'browser', 'os', 'locale', 'feature',
@@ -190,6 +201,30 @@ Deno.serve(async (req: Request) => {
     { ticket_id: ticket.id, actor_user_id: user.id, event_type: 'created', data: { source: 'app_form' } },
     { ticket_id: ticket.id, actor_user_id: user.id, event_type: 'diagnostics', data: cleanDiagnostics(body.diagnostics) },
   ])
+
+  // Enqueue notifications to the outbox — a future worker renders + sends them
+  // (see docs/SUPPORT_ARCHITECTURE.md). A missing email provider never blocks
+  // ticket creation. Payload is non-sensitive (reference + category only).
+  const notifications: Record<string, unknown>[] = []
+  if (user.email) {
+    notifications.push({
+      ticket_id: ticket.id,
+      kind: acknowledgementKind(category),
+      audience: 'customer',
+      recipient: user.email,
+      language,
+      payload: { reference: ticket.public_reference, category },
+    })
+  }
+  notifications.push({
+    ticket_id: ticket.id,
+    kind: 'operator_alert',
+    audience: 'operator',
+    recipient: OPERATOR_EMAIL,
+    language: 'en',
+    payload: { reference: ticket.public_reference, category, priority },
+  })
+  await admin.from('support_notifications').insert(notifications)
 
   return json({
     data: {
