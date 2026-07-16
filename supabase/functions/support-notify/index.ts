@@ -9,7 +9,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * invoked manually to flush the queue — see docs/SUPPORT_RUNBOOK.md.
  *
  * Honest by construction:
- *   • If no provider is configured (SUPPORT_EMAIL_PROVIDER_API_KEY unset), rows
+ *   • If no provider is configured (RESEND_API_KEY / SUPPORT_EMAIL_PROVIDER_API_KEY unset), rows
  *     are LEFT pending and nothing is marked sent — so wiring the key later
  *     flushes the backlog rather than silently dropping acknowledgements.
  *   • The outbox payload is non-sensitive ({ reference, category, priority? }),
@@ -274,7 +274,11 @@ Deno.serve(async (req: Request) => {
 
   const admin = createClient(supabaseUrl, serviceRoleKey)
   const appUrl = (Deno.env.get('SITE_URL') ?? 'https://dutiva.ca').replace(/\/+$/, '')
-  const apiKey = Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY')
+  // `RESEND_API_KEY` is the name actually set on the project and says what it is;
+  // `SUPPORT_EMAIL_PROVIDER_API_KEY` stays supported as the provider-agnostic
+  // fallback so swapping providers doesn't force a secret rename.
+  const apiKey =
+    Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY')
   const from = Deno.env.get('SUPPORT_EMAIL_FROM') ?? 'Dutiva Support <support@dutiva.ca>'
 
   // Fail closed: never expose an unauthenticated send endpoint. If a provider is
