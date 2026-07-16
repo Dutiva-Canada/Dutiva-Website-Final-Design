@@ -59,4 +59,20 @@ export const authMessages = defineMessages({
     en: 'This workspace isn’t available on that account.',
     fr: 'Cet espace de travail n’est pas accessible avec ce compte.',
   },
+  auth_confirm_verifying: {
+    en: 'Signing you in…',
+    fr: 'Connexion en cours…',
+  },
+  auth_confirm_error_title: {
+    en: 'Sign-in link problem',
+    fr: 'Problème avec le lien de connexion',
+  },
+  auth_confirm_error_body: {
+    en: 'This sign-in link is invalid or has expired. Request a new one to continue.',
+    fr: 'Ce lien de connexion est invalide ou a expiré. Demandez-en un nouveau pour continuer.',
+  },
+  auth_confirm_retry: {
+    en: 'Back to sign in',
+    fr: 'Retour à la connexion',
+  },
 })

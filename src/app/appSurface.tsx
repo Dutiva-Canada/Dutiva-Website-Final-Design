@@ -21,6 +21,22 @@ const RequireAdminSession = lazy(() =>
     default: m.RequireAdminSession,
   })),
 )
+const AuthConfirm = lazy(() =>
+  import('@/features/app/auth/AuthConfirm').then((m) => ({ default: m.AuthConfirm })),
+)
+
+/** /app/auth/confirm — magic-link landing: verifies the token_hash (see
+    AuthConfirm) and enters the workspace. Ungated by design — the visitor is
+    mid-sign-in and has no session yet. */
+export function AppAuthConfirm() {
+  return (
+    <LangProvider>
+      <Suspense fallback={null}>
+        <AuthConfirm />
+      </Suspense>
+    </LangProvider>
+  )
+}
 
 /** /app/welcome — app entry stage, the sign-in gate (invite-only). */
 export function AppWelcome() {
