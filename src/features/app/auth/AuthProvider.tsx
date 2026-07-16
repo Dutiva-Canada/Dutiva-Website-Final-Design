@@ -51,7 +51,13 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       }
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.href },
+        /* Land the magic link on the dedicated confirm route, which exchanges
+           the token via verifyOtp (see AuthConfirm). A clean same-origin URL —
+           not window.location.href — keeps the `#signin` fragment and any
+           transient state out of the redirect target. Pair with a Supabase
+           email template pointing at {{ .RedirectTo }}?token_hash=…&
+           type=magiclink so scanner prefetches can't burn the one-time token. */
+        options: { emailRedirectTo: `${window.location.origin}/app/auth/confirm` },
       })
       if (error) return error.message
       setStatus('sent-link')

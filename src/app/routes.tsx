@@ -29,6 +29,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const NotFoundPage = lazy(() => import('@/features/marketing/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 /* App surface (providers + shell) — one lazy chunk, see appSurface.tsx. */
 /* prettier-ignore */ const AppWelcome = lazy(() => import('./appSurface').then((m) => ({ default: m.AppWelcome })))
+/* prettier-ignore */ const AppAuthConfirm = lazy(() => import('./appSurface').then((m) => ({ default: m.AppAuthConfirm })))
 /* prettier-ignore */ const Workspace = lazy(() => import('./appSurface').then((m) => ({ default: m.Workspace })))
 
 /**
@@ -94,6 +95,7 @@ function NotFoundRoute() {
  *   /fr /fr/a-propos …     the same pages in French (localized slugs,
  *                          see src/seo/routes.ts)
  *   /app/welcome           app entry stage — sign-in gate (invite-only)
+ *   /app/auth/confirm      magic-link landing — verifies the token, then enters
  *   /app                   workspace shell → redirects to /app/home
  *                          (gated: RequireAdminSession bounces anyone who
  *                          isn't the one allowed account back to /app/welcome)
@@ -110,6 +112,14 @@ export const routes: RouteObject[] = [
     element: (
       <Suspense fallback={null}>
         <AppWelcome />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/app/auth/confirm',
+    element: (
+      <Suspense fallback={null}>
+        <AppAuthConfirm />
       </Suspense>
     ),
   },
