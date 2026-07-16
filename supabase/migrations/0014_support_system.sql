@@ -190,11 +190,14 @@ alter table public.support_ticket_feedback enable row level security;
 
 -- A ticket is visible to its requester, to members of its workspace, and to
 -- admins. Everything else (events, assignments, internal notes) is admin-only.
+-- `restricted` tickets (privacy/security/complaint) are NOT visible to workspace
+-- peers — only the requester and admins — so a co-worker can't read someone
+-- else's privacy request or security report.
 create policy "Requester or workspace member can read own tickets"
   on public.support_tickets for select
   using (
     requester_user_id = (select auth.uid())
-    or (workspace_id is not null and is_org_member(workspace_id, (select auth.uid())))
+    or (workspace_id is not null and not restricted and is_org_member(workspace_id, (select auth.uid())))
     or is_admin((select auth.uid()))
   );
 
@@ -211,7 +214,7 @@ create policy "Read messages on a visible, non-internal ticket"
       where t.id = ticket_id
         and (
           t.requester_user_id = (select auth.uid())
-          or (t.workspace_id is not null and is_org_member(t.workspace_id, (select auth.uid())))
+          or (t.workspace_id is not null and not t.restricted and is_org_member(t.workspace_id, (select auth.uid())))
           or is_admin((select auth.uid()))
         )
     )
@@ -238,7 +241,7 @@ create policy "Read attachments on a visible ticket"
       where t.id = ticket_id
         and (
           t.requester_user_id = (select auth.uid())
-          or (t.workspace_id is not null and is_org_member(t.workspace_id, (select auth.uid())))
+          or (t.workspace_id is not null and not t.restricted and is_org_member(t.workspace_id, (select auth.uid())))
           or is_admin((select auth.uid()))
         )
     )
