@@ -105,7 +105,8 @@ To turn it on:
    `@dutiva.ca` is deliverable.
 2. **Set the function secrets** (Supabase → Edge Functions → `support-notify` →
    Secrets, or `supabase secrets set`):
-   - `SUPPORT_EMAIL_PROVIDER_API_KEY` — the Resend API key.
+   - `RESEND_API_KEY` — the Resend API key. (`SUPPORT_EMAIL_PROVIDER_API_KEY`
+     also works — it's the provider-agnostic fallback name.)
    - `SUPPORT_EMAIL_FROM` — e.g. `Dutiva Support <support@dutiva.ca>` (must be on
      the verified domain).
    - `SUPPORT_NOTIFY_SECRET` — a long random string. **Required**: with a

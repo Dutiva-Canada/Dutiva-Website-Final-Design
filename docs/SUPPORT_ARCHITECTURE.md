@@ -179,7 +179,8 @@ sensitive** — only the public reference and category (never the body or PII).
 
 **Turning email on** (operator steps — see the runbook): the mechanism is built
 and deployed; it is inert until configured. (1) Verify a sending domain in
-Resend and set `SUPPORT_EMAIL_PROVIDER_API_KEY` + `SUPPORT_EMAIL_FROM`. (2) Set
+Resend and set `RESEND_API_KEY` (or the agnostic
+`SUPPORT_EMAIL_PROVIDER_API_KEY`) + `SUPPORT_EMAIL_FROM`. (2) Set
 `SUPPORT_NOTIFY_SECRET` — the worker **fails closed** (403) if a provider key is
 set without it, so the drain endpoint is never unauthenticated. (3) Schedule the
 worker (pg_cron → the function, passing `x-notify-secret`). Until then the worker
