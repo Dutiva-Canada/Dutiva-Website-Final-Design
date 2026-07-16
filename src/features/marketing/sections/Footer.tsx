@@ -36,7 +36,7 @@ const RESOURCE_LINKS: FooterLink[] = [
 
 const COMPANY_LINKS: FooterLink[] = [
   { key: 'landing_fc_about', route: 'about' },
-  { key: 'landing_fc_contact', href: 'mailto:support@dutiva.ca' },
+  { key: 'landing_fc_contact', route: 'contact' },
   { key: 'landing_fc_openapp', to: '/app/welcome' },
   { key: 'landing_signin', to: '/app/welcome' },
 ]

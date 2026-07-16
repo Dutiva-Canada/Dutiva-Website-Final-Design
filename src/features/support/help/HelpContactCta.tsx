@@ -1,18 +1,17 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { supportChannel } from '@/config/support'
-import { legalDocPath, legalRowBySlug } from '@/seo/routes'
+import { legalDocPath, legalRowBySlug, seoRoute } from '@/seo/routes'
 
 /**
  * Closing "still need help?" escalation shown on the Help Centre index and
- * every article. The support address comes from the support config (never
- * hard-coded), and the secondary link points at the public support policy so
+ * every article. The primary action opens the public Contact form (no account
+ * needed), and the secondary link points at the public support policy so
  * visitors understand the digital-first model before they write in.
  */
 export function HelpContactCta() {
   const { t, lang } = useI18n()
-  const email = supportChannel('support').email
+  const contactPath = seoRoute('contact').path[lang]
   const policyRow = legalRowBySlug('support-policy')
   const policyPath = policyRow ? legalDocPath(policyRow, lang) : undefined
 
@@ -26,14 +25,14 @@ export function HelpContactCta() {
           {t('help_contact_body')}
         </p>
         <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
-          <a
-            href={`mailto:${email}`}
+          <Link
+            to={contactPath}
             className="gold-button"
             style={{ minHeight: 46, padding: '0 22px', fontSize: '0.9375rem' }}
           >
             {t('help_contact_action')}
             <ArrowRight size={16} />
-          </a>
+          </Link>
           {policyPath && (
             <Link
               to={policyPath}

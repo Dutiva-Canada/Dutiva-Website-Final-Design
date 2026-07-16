@@ -25,6 +25,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const PolicyPage = lazy(() => import('@/features/marketing/pages/PolicyPage').then((m) => ({ default: m.PolicyPage })))
 /* prettier-ignore */ const HelpCenterPage = lazy(() => import('@/features/marketing/pages/HelpCenterPage').then((m) => ({ default: m.HelpCenterPage })))
 /* prettier-ignore */ const HelpArticlePage = lazy(() => import('@/features/marketing/pages/HelpArticlePage').then((m) => ({ default: m.HelpArticlePage })))
+/* prettier-ignore */ const ContactPage = lazy(() => import('@/features/marketing/pages/ContactPage').then((m) => ({ default: m.ContactPage })))
 /* prettier-ignore */ const PricingShell = lazy(() => import('@/features/marketing/pages/PricingShell').then((m) => ({ default: m.PricingShell })))
 /* prettier-ignore */ const TemplatesPage = lazy(() => import('@/features/marketing/pages/TemplatesPage').then((m) => ({ default: m.TemplatesPage })))
 /* prettier-ignore */ const GuidesIndexPage = lazy(() => import('@/features/marketing/pages/GuidesIndexPage').then((m) => ({ default: m.GuidesIndexPage })))
@@ -73,6 +74,7 @@ function publicRoutes(lang: Lang): RouteObject {
       { path: `${p('legal')}/:slug`, element: <PolicyPage /> },
       { path: p('help'), element: <HelpCenterPage /> },
       { path: `${p('help')}/:slug`, element: <HelpArticlePage /> },
+      { path: p('contact'), element: <ContactPage /> },
     ],
   }
 }
@@ -95,7 +97,7 @@ function NotFoundRoute() {
  * Route map (see CONVENTIONS.md):
  *   /  /about /faq /blog /pricing /templates /guides
  *   /guides/template-usage /known-limitations /legal /legal/:slug
- *   /help /help/:slug      public marketing surface (English)
+ *   /help /help/:slug /contact   public marketing surface (English)
  *   /fr /fr/a-propos …     the same pages in French (localized slugs,
  *                          see src/seo/routes.ts)
  *   /app/welcome           app entry stage — sign-in gate (invite-only)

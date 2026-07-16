@@ -45,6 +45,33 @@ export const supportMessages = defineMessages({
     fr: 'Les appels planifiés sont organisés uniquement lorsque le soutien numérique ne peut raisonnablement régler la situation, et ne sont pas garantis. Le billet écrit demeure le dossier de votre demande.',
   },
 
+  /* ── Public (unauthenticated) contact page + form ─────────────────────── */
+  support_contact_eyebrow: { en: 'Contact', fr: 'Contact' },
+  support_contact_h1: { en: 'Contact Dutiva support', fr: 'Contacter le soutien Dutiva' },
+  support_contact_intro: {
+    en: 'Send a support request — no account needed. We reply in writing. For account or billing help, sign in and use the in-app form. Check the Help Centre first; most questions are answered there.',
+    fr: 'Envoyez une demande de soutien — aucun compte requis. Nous répondons par écrit. Pour l’aide liée au compte ou à la facturation, connectez-vous et utilisez le formulaire dans l’application. Consultez d’abord le centre d’aide — la plupart des questions y trouvent réponse.',
+  },
+  support_field_email: { en: 'Your email', fr: 'Votre courriel' },
+  support_field_email_hint: {
+    en: 'We reply to this address. Please don’t share confidential workplace records here.',
+    fr: 'Nous répondons à cette adresse. Veuillez ne pas partager de dossiers confidentiels du milieu de travail ici.',
+  },
+  support_public_account_note: {
+    en: 'Locked out or have a billing question? Those need a signed-in account.',
+    fr: 'Bloqué ou une question de facturation? Cela nécessite un compte connecté.',
+  },
+  support_public_account_link: { en: 'Sign in', fr: 'Se connecter' },
+  support_public_success_body: {
+    en: 'Your request has been logged. Keep this reference for your records — we’ll reply by email.',
+    fr: 'Votre demande a été enregistrée. Conservez cette référence — nous répondrons par courriel.',
+  },
+  support_err_email: { en: 'Please enter a valid email address.', fr: 'Veuillez saisir une adresse courriel valide.' },
+  support_err_rate_limited: {
+    en: 'You’ve sent several requests recently. Please try again later, or email support@dutiva.ca.',
+    fr: 'Vous avez envoyé plusieurs demandes récemment. Veuillez réessayer plus tard ou écrire à support@dutiva.ca.',
+  },
+
   /* ── Support request form ─────────────────────────────────────────────── */
   support_form_title: { en: 'Contact support', fr: 'Contacter le soutien' },
   support_form_intro: {
