@@ -15,8 +15,9 @@ interface SidebarFooterProps {
 }
 
 export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterProps) {
-  const { x, L } = useI18n()
+  const { x, L, lang } = useI18n()
   const navigate = useNavigate()
+  const helpCentrePath = lang === 'fr' ? '/fr/aide' : '/help'
   const { pathname } = useLocation()
   const [profileOpen, setProfileOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -119,6 +120,18 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
               className="block w-full cursor-pointer border-none bg-transparent px-[14px] py-[10px] text-left text-[13px] text-text-2 hover:bg-inset"
             >
               {x(M.shell_nav_settings)}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setProfileOpen(false)
+                onNavigate?.()
+                navigate(helpCentrePath)
+              }}
+              className="block w-full cursor-pointer border-none bg-transparent px-[14px] py-[10px] text-left text-[13px] text-text-2 hover:bg-inset"
+            >
+              {L('Help Centre', 'Centre d’aide')}
             </button>
             <button
               type="button"
