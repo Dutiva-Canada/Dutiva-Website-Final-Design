@@ -53,7 +53,8 @@ function EntrySignInPanel({
   readonly email: string | undefined
   readonly signOut: ReturnType<typeof useAuth>['signOut']
 }) {
-  const { x } = useI18n()
+  const { x, L, lang } = useI18n()
+  const helpPath = lang === 'fr' ? '/fr/aide/se-connecter' : '/help/signing-in'
 
   if (status === 'signed-in' && email) {
     return (
@@ -97,6 +98,12 @@ function EntrySignInPanel({
       </h2>
       <p className="m-0 mb-[16px] text-[13px] text-text-muted">{x(AM.auth_entry_description)}</p>
       <AuthSignInForm idPrefix="welcome" />
+      <p className="m-0 mt-[16px] text-[12.5px] text-text-muted">
+        {L('Trouble signing in?', 'Un problème de connexion?')}{' '}
+        <Link to={helpPath} className="font-semibold text-text-2 hover:text-text">
+          {L('Get help', 'Obtenir de l’aide')}
+        </Link>
+      </p>
     </div>
   )
 }

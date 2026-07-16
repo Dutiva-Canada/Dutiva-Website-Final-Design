@@ -47,11 +47,17 @@ export function NotFoundPage() {
             {L('Go to the homepage', 'Aller à la page d’accueil')}
             <ArrowRight size={15} />
           </Link>
+          <Link to={p('help')} className="ghost-button" style={PILL_STYLE}>
+            {L('Help Centre', 'Centre d’aide')}
+          </Link>
           <Link to={p('guides')} className="ghost-button" style={PILL_STYLE}>
             {L('Browse the guides', 'Consulter les guides')}
           </Link>
           <Link to={p('faq')} className="ghost-button" style={PILL_STYLE}>
             FAQ
+          </Link>
+          <Link to={p('contact')} className="ghost-button" style={PILL_STYLE}>
+            {L('Contact support', 'Contacter le soutien')}
           </Link>
           <Link to={p('legal')} className="ghost-button" style={PILL_STYLE}>
             {L('Legal & compliance documents', 'Documents juridiques et de conformité')}
