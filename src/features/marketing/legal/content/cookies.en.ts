@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Cookie Policy',
-  lastUpdated: 'June 1, 2026',
+  lastUpdated: 'July 15, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
     'Legal\nCookie Policy',
@@ -116,7 +116,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Our service providers may use cookies, browser storage, or similar technologies for operational purposes, including authentication, payment checkout, fraud prevention, hosting, performance, AI inference support, and network security. These providers may include Supabase, Vercel, Stripe, Cloudflare, Hugging Face, and Google Analytics if analytics are enabled.',
+          text: 'Our service providers may use cookies, browser storage, or similar technologies for operational purposes, including authentication, payment checkout, fraud prevention, hosting, performance, AI inference support, and network security. These providers may include Supabase, Vercel, Stripe, Cloudflare, DigitalOcean Gradient AI, and Google Analytics if analytics are enabled.',
         },
         {
           type: 'p',

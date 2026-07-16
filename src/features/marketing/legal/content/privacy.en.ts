@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Privacy Policy',
-  lastUpdated: 'June 2, 2026',
+  lastUpdated: 'July 15, 2026',
   effectiveDate: 'June 2, 2026',
   callout: [
     'Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") provides HR compliance software for Canadian employers, HR professionals, and business operators. This Privacy Policy explains how we collect, use, disclose, retain, and protect personal information when you use Dutiva, including our website, application, Advisor, document workflows, beta access, support, and related services.',
@@ -125,7 +125,7 @@ export default {
         },
         {
           type: 'li',
-          text: '•Hugging Face: model inference for Advisor responses, where message content and limited context are sent only as needed to produce the response.',
+          text: '•DigitalOcean Gradient AI: model inference for Advisor responses, where message content and limited context are sent only as needed to produce the response.',
         },
         {
           type: 'li',

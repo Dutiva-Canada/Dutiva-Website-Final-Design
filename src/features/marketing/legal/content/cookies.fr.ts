@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Politique relative aux témoins',
-  lastUpdated: '1er juin 2026',
+  lastUpdated: '15 juillet 2026',
   effectiveDate: '1er juin 2026',
   callout: [
     'Légal\nPolitique relative aux témoins',
@@ -116,7 +116,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Nos fournisseurs de services peuvent utiliser des témoins, du stockage dans le navigateur ou des technologies similaires à des fins opérationnelles, notamment pour l’authentification, le paiement, la prévention de la fraude, l’hébergement, la performance, le soutien à l’inférence par IA et la sécurité du réseau. Ces fournisseurs peuvent comprendre Supabase, Vercel, Stripe, Cloudflare, Hugging Face et Google Analytics si les outils d’analyse sont activés.',
+          text: 'Nos fournisseurs de services peuvent utiliser des témoins, du stockage dans le navigateur ou des technologies similaires à des fins opérationnelles, notamment pour l’authentification, le paiement, la prévention de la fraude, l’hébergement, la performance, le soutien à l’inférence par IA et la sécurité du réseau. Ces fournisseurs peuvent comprendre Supabase, Vercel, Stripe, Cloudflare, DigitalOcean Gradient AI et Google Analytics si les outils d’analyse sont activés.',
         },
         {
           type: 'p',

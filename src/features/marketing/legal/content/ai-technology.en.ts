@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'AI & Technology Policy',
-  lastUpdated: 'June 1, 2026',
+  lastUpdated: 'July 15, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
     'This Policy explains the technology used to operate Dutiva, including the current Advisor model flow, technology providers, data-handling boundaries, retrieval controls, and safeguards around AI-assisted HR workflows.',
@@ -27,7 +27,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Dutiva Advisor is served through Dutiva’s server-side /api/advisor-chat endpoint. The current production configuration routes Advisor messages through the Hugging Face router and uses Qwen/Qwen2.5-7B-Instruct for streamed response generation.',
+          text: 'Dutiva Advisor is served through Dutiva’s server-side advisor-chat edge function. The current production configuration routes Advisor messages to DigitalOcean Gradient AI and uses a Mistral model (mistral-3-14B) to generate responses.',
         },
         {
           type: 'p',
@@ -147,7 +147,7 @@ export default {
         },
         {
           type: 'li',
-          text: 'Hugging Face: AI model routing and inference for Advisor-related features.',
+          text: 'DigitalOcean Gradient AI: AI model routing and inference for Advisor-related features.',
         },
         {
           type: 'li',

@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Liste des sous-traitants",
-  "lastUpdated": "1 juin 2026",
+  "lastUpdated": "15 juillet 2026",
   "effectiveDate": "1 juin 2026",
   "callout": [
     "Dutiva Canada Inc. (« Dutiva ») fait appel à des fournisseurs de services tiers (« sous-traitants ») pour exploiter et améliorer la plateforme. Cette page répertorie les sous-traitants que nous utilisons actuellement, leur rôle, l'emplacement de leurs opérations de traitement des données et les catégories de données auxquelles ils peuvent avoir accès. Cette liste est mise à jour lorsque nous ajoutons ou modifions des sous-traitants."
@@ -26,7 +26,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "OpenAI, L.L.C. — Rôle : services de modèles de langage IA alimentant les réponses du conseiller Compass et la génération de documents. Données traitées : texte des messages du conseiller, contexte de juridiction, saisies de modèles sélectionnés, contexte d'orientation récupéré. Lieu de traitement : États-Unis. Les données soumises à l'API ne sont pas utilisées pour former les modèles OpenAI dans le cadre de notre accord API."
+          "text": "DigitalOcean Gradient AI — Rôle : services d'acheminement et d'inférence de modèles d'IA alimentant les réponses du Conseiller Dutiva et la génération de documents. Données traitées : texte des messages du Conseiller, contexte de juridiction, saisies de modèles sélectionnés, contexte d'orientation récupéré. Lieu de traitement : Toronto, Canada. Les données soumises pour inférence sont assujetties aux conditions de traitement des données du fournisseur et ne sont pas utilisées pour entraîner des modèles de fondation de tiers dans le cadre de l'entente de Dutiva."
         }
       ]
     },

@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Subprocessor List",
-  "lastUpdated": "June 1, 2026",
+  "lastUpdated": "July 15, 2026",
   "effectiveDate": "June 1, 2026",
   "callout": [
     "Dutiva Canada Inc. (\"Dutiva\") uses third-party service providers (\"subprocessors\") to operate and improve the platform. This page lists the subprocessors we currently use, their purpose, the location of their data processing operations, and the categories of data they may access. This list is updated when we add or change subprocessors."
@@ -26,7 +26,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Hugging Face — Purpose: AI model routing and inference services powering Dutiva Advisor responses and document generation. Data processed: Advisor message text, jurisdiction context, selected template inputs, retrieved guidance context. Processing location: United States. Data submitted for inference is subject to the provider's data processing terms and is not used to train third-party foundation models under Dutiva's arrangement."
+          "text": "DigitalOcean Gradient AI — Purpose: AI model routing and inference services powering Dutiva Advisor responses and document generation. Data processed: Advisor message text, jurisdiction context, selected template inputs, retrieved guidance context. Processing location: Toronto, Canada. Data submitted for inference is subject to the provider's data processing terms and is not used to train third-party foundation models under Dutiva's arrangement."
         }
       ]
     },

@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Politique de confidentialité',
-  lastUpdated: '2 juin 2026',
+  lastUpdated: '15 juillet 2026',
   effectiveDate: '2 juin 2026',
   callout: [
     'Dutiva Canada Inc. (« Dutiva », « nous », « notre » ou « nos ») fournit un logiciel de conformité RH destiné aux employeurs, aux professionnels des RH et aux responsables d’entreprise au Canada. La présente Politique de confidentialité explique comment nous recueillons, utilisons, communiquons, conservons et protégeons les renseignements personnels lorsque vous utilisez Dutiva, y compris notre site Web, notre application, le Conseiller, les processus documentaires, l’accès bêta, le soutien et les services connexes.',
@@ -125,7 +125,7 @@ export default {
         },
         {
           type: 'li',
-          text: 'Hugging Face : inférence de modèles pour les réponses du Conseiller, lorsque le contenu des messages et un contexte limité sont transmis uniquement dans la mesure nécessaire pour produire la réponse.',
+          text: 'DigitalOcean Gradient AI : inférence de modèles pour les réponses du Conseiller, lorsque le contenu des messages et un contexte limité sont transmis uniquement dans la mesure nécessaire pour produire la réponse.',
         },
         {
           type: 'li',

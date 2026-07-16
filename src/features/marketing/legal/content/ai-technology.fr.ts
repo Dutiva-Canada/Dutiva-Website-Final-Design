@@ -2,10 +2,10 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Politique relative à l’IA et aux technologies',
-  lastUpdated: '1er juin 2026',
+  lastUpdated: '15 juillet 2026',
   effectiveDate: '1er juin 2026',
   callout: [
-    'Juridique | Dernière mise à jour : 1er juin 2026',
+    'Juridique | Dernière mise à jour : 15 juillet 2026',
     'La présente Politique explique les technologies utilisées pour exploiter Dutiva, y compris le fonctionnement actuel du Conseiller, les fournisseurs technologiques, les limites de traitement des données, les mécanismes de récupération du contexte et les mesures de protection entourant les processus RH assistés par l’IA.',
     'La présente Politique doit être lue avec la Politique de confidentialité, les Conditions d’utilisation, l’Avis de non-responsabilité juridique, la Divulgation relative à l’utilisation de l’IA, l’Accord de traitement des données et la Politique de conservation et de suppression des données.',
   ],
@@ -28,7 +28,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Le Conseiller Dutiva fonctionne au moyen du point de terminaison côté serveur /api/advisor-chat de Dutiva. La configuration de production actuelle achemine les messages du Conseiller par le routeur Hugging Face et utilise Qwen/Qwen2.5-7B-Instruct pour la génération de réponses en continu.',
+          text: 'Le Conseiller Dutiva fonctionne au moyen de la fonction en périphérie côté serveur advisor-chat de Dutiva. La configuration de production actuelle achemine les messages du Conseiller vers DigitalOcean Gradient AI et utilise un modèle Mistral (mistral-3-14B) pour générer les réponses.',
         },
         {
           type: 'p',
@@ -148,7 +148,7 @@ export default {
         },
         {
           type: 'li',
-          text: 'Hugging Face : acheminement des modèles d’IA et inférence pour les fonctionnalités liées au Conseiller.',
+          text: 'DigitalOcean Gradient AI : acheminement des modèles d’IA et inférence pour les fonctionnalités liées au Conseiller.',
         },
         {
           type: 'li',
