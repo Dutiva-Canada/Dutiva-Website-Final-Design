@@ -277,6 +277,27 @@ user still sends their request. The **public** Contact form never enables it —
 that endpoint stays retrieval-only to avoid unauthenticated model cost/abuse.
 Both the client and the function enforce the `HUMAN_ONLY_CATEGORIES` gate.
 
+## Service status board
+
+A public, **self-reported** status page at `/status` · `/fr/etat` (marketing
+surface, indexable). There is no external status provider wired — this table is
+the source of truth, so the page is only as truthful as the operator keeps it.
+
+- Data: `service_status` (migration `0017`) — one row per component (platform,
+  advisor, documents, support) with `status`
+  (`operational|degraded|maintenance|outage`) and an optional public message.
+  **Reads are public** (`using (true)` — the point of a status page); there is no
+  write policy.
+- Writes: [`set-service-status`](../supabase/functions/set-service-status/index.ts)
+  (deployed, `is_admin`-gated, service role) — the only way status changes.
+- Client: [`statusApi.ts`](../src/features/support/statusApi.ts) (public read with
+  an all-`operational` fallback when Supabase isn't configured, e.g. prerender;
+  `overallStatus` rolls the banner up to the worst component) and
+  `StatusPage.tsx`. The founder control lives in the admin dashboard
+  ([`ServiceStatusControl`](../src/features/app/views/support/ServiceStatusControl.tsx)).
+- Prerender shows the all-operational baseline; the live status is fetched on
+  hydration. Footer entry point under Resources.
+
 ## Staged (not yet implemented)
 
 - **Turn email on** (operator config): verify a Resend domain, set the secrets,
@@ -290,8 +311,10 @@ Both the client and the function enforce the `HUMAN_ONLY_CATEGORIES` gate.
   that flips `support_attachments.scan_status`.
 - **CAPTCHA** on the public intake (Turnstile/hCaptcha) as a second anti-abuse
   layer beyond the honeypot + rate limits.
-- **Status route + analytics** — branded status route and privacy-conscious
-  support analytics events.
+- **Support analytics** — privacy-conscious support/deflection events. Not built:
+  the data model is a product decision (what to collect, anonymous vs
+  user-scoped, retention), and collecting customer-behaviour data shouldn't be
+  designed speculatively. Needs an explicit privacy model first.
 
 ## Diagnostic context policy
 

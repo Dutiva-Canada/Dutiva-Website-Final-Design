@@ -32,6 +32,7 @@ const RESOURCE_LINKS: FooterLink[] = [
   { key: 'landing_fr_tmplusage', route: 'templateUsage' },
   { key: 'landing_fr_limits', route: 'knownLimitations' },
   { key: 'landing_fr_blog', route: 'blog' },
+  { key: 'landing_fr_status', route: 'status' },
 ]
 
 const COMPANY_LINKS: FooterLink[] = [

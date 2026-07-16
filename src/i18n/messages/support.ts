@@ -196,6 +196,24 @@ export const supportMessages = defineMessages({
     fr: 'Nous n’avons pas pu générer de réponse. Veuillez envoyer votre demande et nous répondrons.',
   },
 
+  /* ── Service status page + founder control ────────────────────────────── */
+  status_eyebrow: { en: 'Status', fr: 'État' },
+  status_h1: { en: 'Service status', fr: 'État des services' },
+  status_intro: {
+    en: 'The current status of Dutiva’s services. Self-reported by our team. For help with a specific issue, contact support.',
+    fr: 'L’état actuel des services de Dutiva. Signalé par notre équipe. Pour de l’aide sur un problème précis, contactez le soutien.',
+  },
+  status_all_operational: { en: 'All systems operational', fr: 'Tous les systèmes sont opérationnels' },
+  status_some_issues: { en: 'Some systems are affected', fr: 'Certains systèmes sont touchés' },
+  status_updated: { en: 'Updated', fr: 'Mis à jour' },
+  status_admin_title: { en: 'Service status', fr: 'État des services' },
+  status_admin_message_ph: {
+    en: 'Optional note shown on the public status page',
+    fr: 'Note facultative affichée sur la page d’état publique',
+  },
+  status_admin_save: { en: 'Update', fr: 'Mettre à jour' },
+  status_admin_saved: { en: 'Saved', fr: 'Enregistré' },
+
   /* ── Attachments ──────────────────────────────────────────────────────── */
   support_attachments_title: { en: 'Attachments', fr: 'Pièces jointes' },
   support_attach_add: { en: 'Attach a file', fr: 'Joindre un fichier' },

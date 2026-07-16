@@ -858,6 +858,10 @@ export const landing = defineMessages({
     en: 'Help Centre',
     fr: 'Centre d’aide',
   },
+  landing_fr_status: {
+    en: 'Service status',
+    fr: 'État des services',
+  },
   landing_fr_tmplusage: {
     en: 'Template Usage',
     fr: 'Utilisation des modèles',
