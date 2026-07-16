@@ -4,6 +4,35 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/brand/icon-app.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Magic-link safety net. The sign-in email is meant to land on the app's
+      // confirm route (/app/auth/confirm), which exchanges the token for a
+      // session — see src/features/app/auth/AuthConfirm.tsx. If a Supabase auth
+      // redirect instead lands anywhere on the public site (most often the site
+      // root, because Supabase falls back to the "Site URL" when the confirm
+      // URL isn't in the Redirect-URLs allow-list, or because an implicit-flow
+      // token arrived in the URL fragment), nothing here consumes it and the
+      // user is left on the marketing page, still signed out. Forward any such
+      // landing — query string and fragment intact — to the confirm route.
+      // A no-op for normal navigation. See docs/AUTH_MAGIC_LINK.md.
+      ;(function () {
+        try {
+          if (window.location.pathname.indexOf('/app') === 0) return
+          var search = window.location.search || ''
+          var hash = window.location.hash || ''
+          var params = new URLSearchParams(search)
+          var isAuthRedirect =
+            params.has('token_hash') /* verifyOtp magic link */ ||
+            params.has('error_code') /* GoTrue error redirect */ ||
+            /[#&](access_token|refresh_token|error|error_code)=/.test(hash) /* implicit flow */
+          if (isAuthRedirect) {
+            window.location.replace('/app/auth/confirm' + search + hash)
+          }
+        } catch {
+          /* Never let the safety net block first paint. */
+        }
+      })()
+    </script>
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#080a0f" />
     <meta

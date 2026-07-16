@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { useI18n } from '@/i18n/context'
 import { authMessages as M } from '@/i18n/messages/auth'
@@ -41,6 +41,7 @@ export function AuthConfirm() {
   const { x } = useI18n()
   const navigate = useNavigate()
   const [params] = useSearchParams()
+  const location = useLocation()
   const [failed, setFailed] = useState(false)
   const ran = useRef(false)
 
@@ -54,8 +55,16 @@ export function AuthConfirm() {
     }
     const client = supabase
 
-    /* Supabase appends these when the link itself is rejected upstream. */
-    const linkError = params.get('error_description') ?? params.get('error')
+    /* Supabase appends these when the link itself is rejected upstream. It
+       reports the error in the query string on the verify-endpoint flow, but
+       in the URL fragment on the implicit flow (#error=…&error_description=…),
+       so check both. */
+    const hashParams = new URLSearchParams(location.hash.replace(/^#/, ''))
+    const linkError =
+      params.get('error_description') ??
+      params.get('error') ??
+      hashParams.get('error_description') ??
+      hashParams.get('error')
     if (linkError) {
       console.error('auth confirm: link rejected —', linkError)
       setFailed(true)
@@ -85,7 +94,7 @@ export function AuthConfirm() {
         setFailed(true)
       }
     })()
-  }, [navigate, params])
+  }, [navigate, params, location.hash])
 
   if (!supabase) return null
 
