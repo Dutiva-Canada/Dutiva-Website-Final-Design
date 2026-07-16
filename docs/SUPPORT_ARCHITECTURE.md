@@ -151,14 +151,26 @@ sensitive** — only the public reference and category (never the body or PII).
   the scheduler. The edge functions mirror the first two.
 - Provider seam: [`emailService.ts`](../src/features/support/email/emailService.ts)
   — an `EmailProvider` interface; delivery no-ops (logs) when no provider is set.
+  [`resendProvider.ts`](../src/features/support/email/resendProvider.ts) is the
+  tested reference adapter (Resend request shape + error handling).
+- Send worker: [`supabase/functions/support-notify`](../supabase/functions/support-notify/index.ts)
+  — **deployed**. Drains up to 50 `pending` rows per run, renders the bilingual
+  email, sends via Resend, and marks each row `sent`/`failed` (up to 5 attempts,
+  then `failed`). It mirrors `templates.ts` / `resendProvider.ts` / the
+  `src/config/support.ts` labels (kept in sync the same way `suggestPriority`
+  is). No sensitive content ever goes in a subject; customer emails link back to
+  the authenticated ticket, operator alerts to the admin ticket view.
 
-**To wire a provider** (Phase-complete step): implement `EmailProvider` (Resend
-/ Postmark / SES) from `SUPPORT_EMAIL_PROVIDER_API_KEY`, deploy a scheduled
-`support-notify` worker that selects `status = 'pending'` rows, renders via the
-templates, calls the provider, and updates `status`/`sent_at`/`last_error`.
+**Turning email on** (operator steps — see the runbook): the mechanism is built
+and deployed; it is inert until configured. (1) Verify a sending domain in
+Resend and set `SUPPORT_EMAIL_PROVIDER_API_KEY` + `SUPPORT_EMAIL_FROM`. (2) Set
+`SUPPORT_NOTIFY_SECRET` — the worker **fails closed** (403) if a provider key is
+set without it, so the drain endpoint is never unauthenticated. (3) Schedule the
+worker (pg_cron → the function, passing `x-notify-secret`). Until then the worker
+is a safe no-op (`{ note: 'no_provider' }`) and notifications accumulate as
+`pending`, so enabling it flushes the backlog rather than dropping anything.
 `SUPPORT_OPERATOR_EMAIL` sets the operator-alert recipient (defaults to
-`support@dutiva.ca`). No sensitive content ever goes in a subject line, and
-customer emails link back to the authenticated ticket rather than embedding it.
+`support@dutiva.ca`).
 
 ## Help Centre
 
