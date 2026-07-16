@@ -44,4 +44,11 @@ describe('searchHelpArticles', () => {
     expect(results.length).toBeGreaterThan(1)
     expect(results[0]?.article.slug).toBe('recover-account-access')
   })
+
+  it('any mode matches a whole-sentence question that strict mode misses', () => {
+    // "how", "do", "i" don't appear in the article, so strict AND returns nothing.
+    expect(searchHelpArticles('how do I generate a template', 'en')).toEqual([])
+    const lenient = searchHelpArticles('how do I generate a template', 'en', { mode: 'any' })
+    expect(lenient.map((r) => r.article.slug)).toContain('generate-a-document')
+  })
 })

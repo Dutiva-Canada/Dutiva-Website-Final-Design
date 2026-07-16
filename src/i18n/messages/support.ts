@@ -175,6 +175,16 @@ export const supportMessages = defineMessages({
     fr: 'Cette demande est fermée. Créez une nouvelle demande si vous avez besoin d’aide.',
   },
 
+  /* ── First-line self-service assist (intake forms) ────────────────────── */
+  support_firstline_title: {
+    en: 'Before you send — these might answer your question:',
+    fr: 'Avant d’envoyer — ceci pourrait répondre à votre question :',
+  },
+  support_firstline_human: {
+    en: 'This type of request is always handled by a person, not an automated answer. Send it and we’ll reply in writing.',
+    fr: 'Ce type de demande est toujours traité par une personne, et non par une réponse automatisée. Envoyez-la et nous répondrons par écrit.',
+  },
+
   /* ── Attachments ──────────────────────────────────────────────────────── */
   support_attachments_title: { en: 'Attachments', fr: 'Pièces jointes' },
   support_attach_add: { en: 'Attach a file', fr: 'Joindre un fichier' },
