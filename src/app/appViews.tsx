@@ -40,6 +40,8 @@ function gated(view: ReactNode) {
 /* prettier-ignore */ const SupportView = lazy(() => import('@/features/app/views/support/SupportView').then((m) => ({ default: m.SupportView })))
 /* prettier-ignore */ const SupportRequestsList = lazy(() => import('@/features/app/views/support/SupportRequestsList').then((m) => ({ default: m.SupportRequestsList })))
 /* prettier-ignore */ const SupportTicketDetail = lazy(() => import('@/features/app/views/support/SupportTicketDetail').then((m) => ({ default: m.SupportTicketDetail })))
+/* prettier-ignore */ const SupportAdminView = lazy(() => import('@/features/app/views/support/SupportAdminView').then((m) => ({ default: m.SupportAdminView })))
+/* prettier-ignore */ const SupportAdminTicket = lazy(() => import('@/features/app/views/support/SupportAdminTicket').then((m) => ({ default: m.SupportAdminTicket })))
 /* Planning section (Tasks + Calendar as sub-tabs) */
 /* prettier-ignore */ const PlanningLayout = lazy(() => import('@/features/app/views/planning/PlanningLayout').then((m) => ({ default: m.PlanningLayout })))
 /* prettier-ignore */ const TasksView = lazy(() => import('@/features/app/views/tasks/TasksView').then((m) => ({ default: m.TasksView })))
@@ -86,6 +88,9 @@ export const appViewRoutes: RouteObject[] = [
   { path: 'support', element: <SupportView /> },
   { path: 'support/requests', element: <SupportRequestsList /> },
   { path: 'support/requests/:ticketId', element: <SupportTicketDetail /> },
+  /* Founder/operator dashboard — admin-gated in the views + the edge function. */
+  { path: 'support/admin', element: <SupportAdminView /> },
+  { path: 'support/admin/:ticketId', element: <SupportAdminTicket /> },
   { path: 'communications', element: gated(<CommunicationsView />) },
   { path: 'compensation', element: gated(<CompensationView />) },
   { path: 'wellbeing', element: gated(<WellbeingView />) },

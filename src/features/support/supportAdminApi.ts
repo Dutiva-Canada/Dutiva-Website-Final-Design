@@ -1,0 +1,172 @@
+import { z } from 'zod'
+import { supabase } from '@/lib/supabaseClient'
+import type {
+  SupportCategory,
+  SupportPriority,
+  SupportStatus,
+} from '@/config/support'
+
+/**
+ * Admin/operator support API. Reads go through the session client — RLS
+ * (migration 0014) grants an admin (`is_admin`) read across all tickets,
+ * messages (incl. internal notes), attachments and feedback. All mutations go
+ * through the `support-agent-action` edge function (service-role, is_admin-gated
+ * server-side): replies, internal notes, status, and priority. No admin write
+ * policy exists on the tables, so the browser can never mutate directly.
+ */
+
+export interface AdminTicketRow {
+  id: string
+  publicReference: string
+  subject: string
+  requesterEmail: string | null
+  category: SupportCategory
+  status: SupportStatus
+  priority: SupportPriority
+  restricted: boolean
+  language: 'en' | 'fr'
+  createdAt: string
+  firstResponseAt: string | null
+}
+
+export interface AdminMessage {
+  id: string
+  authorRole: 'customer' | 'agent' | 'system'
+  body: string
+  isInternal: boolean
+  createdAt: string
+}
+
+export interface AdminTicket extends AdminTicketRow {
+  description: string
+  impact: string | null
+  urgency: string | null
+  preferredResponseMethod: string
+  messages: AdminMessage[]
+}
+
+export interface AdminTicketFilters {
+  status?: SupportStatus | 'all'
+  priority?: SupportPriority | 'all'
+  category?: SupportCategory | 'all'
+  restrictedOnly?: boolean
+  search?: string
+}
+
+const rowSchema = z.object({
+  id: z.string(),
+  public_reference: z.string(),
+  subject: z.string(),
+  requester_email: z.string().nullable(),
+  category: z.string(),
+  status: z.string(),
+  priority: z.string(),
+  restricted: z.boolean(),
+  language: z.string(),
+  created_at: z.string(),
+  first_response_at: z.string().nullable(),
+})
+
+const messageSchema = z.object({
+  id: z.string(),
+  author_role: z.enum(['customer', 'agent', 'system']),
+  body: z.string(),
+  is_internal_note: z.boolean(),
+  created_at: z.string(),
+})
+
+const LIST_COLUMNS =
+  'id, public_reference, subject, requester_email, category, status, priority, restricted, language, created_at, first_response_at'
+
+function toRow(r: z.infer<typeof rowSchema>): AdminTicketRow {
+  return {
+    id: r.id,
+    publicReference: r.public_reference,
+    subject: r.subject,
+    requesterEmail: r.requester_email,
+    category: r.category as SupportCategory,
+    status: r.status as SupportStatus,
+    priority: r.priority as SupportPriority,
+    restricted: r.restricted,
+    language: r.language === 'fr' ? 'fr' : 'en',
+    createdAt: r.created_at,
+    firstResponseAt: r.first_response_at,
+  }
+}
+
+function toMessage(m: z.infer<typeof messageSchema>): AdminMessage {
+  return {
+    id: m.id,
+    authorRole: m.author_role,
+    body: m.body,
+    isInternal: m.is_internal_note,
+    createdAt: m.created_at,
+  }
+}
+
+export async function isCurrentUserAdmin(): Promise<boolean> {
+  if (!supabase) return false
+  const { data: userData } = await supabase.auth.getUser()
+  const userId = userData?.user?.id
+  if (!userId) return false
+  const { data, error } = await supabase.rpc('is_admin', { check_user_id: userId })
+  return !error && data === true
+}
+
+export async function adminListTickets(filters: AdminTicketFilters = {}): Promise<AdminTicketRow[]> {
+  if (!supabase) return []
+  let query = supabase.from('support_tickets').select(LIST_COLUMNS)
+  if (filters.status && filters.status !== 'all') query = query.eq('status', filters.status)
+  if (filters.priority && filters.priority !== 'all') query = query.eq('priority', filters.priority)
+  if (filters.category && filters.category !== 'all') query = query.eq('category', filters.category)
+  if (filters.restrictedOnly) query = query.eq('restricted', true)
+  if (filters.search && filters.search.trim()) {
+    const term = filters.search.trim().replace(/[%,]/g, '')
+    query = query.or(`subject.ilike.%${term}%,public_reference.ilike.%${term}%`)
+  }
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(200)
+  if (error) throw error
+  return z.array(rowSchema).parse(data ?? []).map(toRow)
+}
+
+export async function adminGetTicket(id: string): Promise<AdminTicket | null> {
+  if (!supabase) return null
+  const { data: ticket, error } = await supabase
+    .from('support_tickets')
+    .select(`${LIST_COLUMNS}, description, impact, urgency, preferred_response_method`)
+    .eq('id', id)
+    .maybeSingle()
+  if (error) throw error
+  if (!ticket) return null
+  const { data: messages, error: msgError } = await supabase
+    .from('support_messages')
+    .select('id, author_role, body, is_internal_note, created_at')
+    .eq('ticket_id', id)
+    .order('created_at', { ascending: true })
+  if (msgError) throw msgError
+
+  const row = rowSchema.parse(ticket)
+  const detail = ticket as Record<string, unknown>
+  return {
+    ...toRow(row),
+    description: String(detail.description ?? ''),
+    impact: (detail.impact as string | null) ?? null,
+    urgency: (detail.urgency as string | null) ?? null,
+    preferredResponseMethod: String(detail.preferred_response_method ?? 'email'),
+    messages: z.array(messageSchema).parse(messages ?? []).map(toMessage),
+  }
+}
+
+export type AgentAction =
+  | { action: 'reply'; body: string }
+  | { action: 'note'; body: string }
+  | { action: 'status'; status: SupportStatus }
+  | { action: 'priority'; priority: SupportPriority }
+
+export async function runAgentAction(ticketId: string, payload: AgentAction): Promise<void> {
+  if (!supabase) throw new Error('Support actions are not available in this environment.')
+  const { error } = await supabase.functions.invoke('support-agent-action', {
+    body: { ticket_id: ticketId, ...payload },
+  })
+  if (error) throw error
+}
