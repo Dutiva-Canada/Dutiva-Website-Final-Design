@@ -5,7 +5,7 @@ export default {
   "lastUpdated": "July 15, 2026",
   "effectiveDate": "June 1, 2026",
   "callout": [
-    "Dutiva Canada Inc. operates a platform that relies on third-party cloud infrastructure and AI services, most of which are based in the United States. This disclosure explains which personal information is transferred outside Canada, why, what safeguards apply, and what rights you have in connection with those transfers."
+    "Dutiva Canada Inc. operates a platform that relies on third-party cloud infrastructure and services, most of which are based in the United States. This disclosure explains which personal information is transferred outside Canada, why, what safeguards apply, and what rights you have in connection with those transfers."
   ],
   "sections": [
     {
