@@ -106,7 +106,23 @@ Six tables, all with RLS enabled (migration `0014`):
 - Storage: objects are namespaced `<uid>/<ticket>/<file>`; authenticated users
   may read/write/delete **only under their own uid prefix**. The bucket is
   private (`public = false`) with a 25 MB size limit and a MIME allowlist that
-  **excludes executables**. Downloads use short-lived signed URLs (Phase 2).
+  **excludes executables**. Downloads use short-lived signed URLs.
+
+**Attachments** ([`support-attachment-action`](../supabase/functions/support-attachment-action/index.ts),
+deployed): the browser uploads a file straight to the bucket under its own
+`<uid>/<ticket>/` prefix (storage RLS permits nothing else), then the function
+records the metadata with the service role after re-validating owner + path +
+MIME + size — there is no authenticated INSERT policy on `support_attachments`,
+so that's the only way a row lands, and an orphaned object is removed if
+recording fails. Reads go through a `sign` action that access-checks the caller
+(requester / admin / non-restricted workspace member) and mints a 60-second
+signed URL. Client:
+[`attachmentsApi.ts`](../src/features/support/attachmentsApi.ts) +
+[`SupportAttachments.tsx`](../src/features/support/SupportAttachments.tsx), on the
+customer thread (upload while open) and the admin view. `scan_status` starts
+`pending`; the malware-scan hook (`SUPPORT_ATTACHMENT_SCAN_URL`) that flips it is
+the documented next hardening. The **public** intake carries no attachments by
+design (unauthenticated users can't write to the bucket).
 
 **Rollback** is documented at the top of the migration file (drop tables in
 reverse dependency order, drop the helper functions/sequence, delete the bucket).
@@ -224,22 +240,31 @@ anyone, alongside general product/sales questions.
 An anonymous requester can't sign in to read the ticket, so updates go by email;
 account/billing issues are steered to sign-in (those categories aren't public).
 
-## Staged phases (not yet implemented)
+## Done so far
 
-2. **Entry-point sweep & scheduled-call UX** — remaining support entry points
-   (nav/account/billing/error/login-recovery pages) and the post-triage
-   "request a scheduled call" scheduling flow (the form already offers it as a
-   preferred response method; the founder arranges calls manually today).
-3. **Specialized flows** — security report, privacy request, accessibility
-   feedback (unauthenticated-accessible), complaint escalation, and the
-   post-triage "request a scheduled call" option.
-4. **Founder ops** — internal support dashboard (queues, filters, internal
-   notes, audit trail), notification service abstraction (immediate for
-   critical, digest otherwise), and the bilingual email templates.
-5. **Status, analytics, AI-assist** — branded status route, privacy-conscious
-   support analytics events, and AI-assisted first-line answers with mandatory
-   human escalation for privacy/security/accessibility/billing-dispute/
-   complaint/account-recovery.
+Foundation (config, policy, data model + RLS), authenticated request flow +
+ticket loop, founder dashboard, email templates + outbox + send worker, Help
+Centre, public unauthenticated intake, and ticket attachments — all shipped.
+Four edge functions: `create-support-ticket`, `create-public-support-ticket`,
+`support-agent-action`, `support-notify`, plus `support-attachment-action`.
+
+## Staged (not yet implemented)
+
+- **Turn email on** (operator config): verify a Resend domain, set the secrets,
+  schedule `support-notify` (see the runbook). The mechanism is built; it's inert
+  until then.
+- **Entry-point sweep & scheduled-call scheduling** — remaining support entry
+  points (nav/account/billing/error/login-recovery pages) and the post-triage
+  "request a scheduled call" *scheduling* flow (the forms already offer it as a
+  preferred response method; the founder arranges calls manually today).
+- **Attachment malware scan** — a worker consuming `SUPPORT_ATTACHMENT_SCAN_URL`
+  that flips `support_attachments.scan_status`.
+- **CAPTCHA** on the public intake (Turnstile/hCaptcha) as a second anti-abuse
+  layer beyond the honeypot + rate limits.
+- **Status, analytics, AI-assist** — branded status route, privacy-conscious
+  support analytics events, and AI-assisted first-line answers with mandatory
+  human escalation for privacy/security/accessibility/billing-dispute/
+  complaint/account-recovery.
 
 ## Diagnostic context policy
 

@@ -7,6 +7,7 @@ import { supportMessages as M } from '@/i18n/messages/support'
 import { STATUS_LABELS, supportCategory } from '@/config/support'
 import { getSupportTicket, replyToSupportTicket } from '@/features/support/supportApi'
 import type { SupportMessageView, SupportTicketThread } from '@/features/support/supportApi'
+import { SupportAttachments } from '@/features/support/SupportAttachments'
 
 type State =
   | { kind: 'loading' }
@@ -129,6 +130,8 @@ export function SupportTicketDetail() {
               )
             })}
           </ol>
+
+          <SupportAttachments ticketId={state.ticket.id} canUpload={state.ticket.status !== 'closed'} />
 
           {state.ticket.status === 'closed' ? (
             <p className="m-0 rounded-[12px] border border-border bg-inset px-[16px] py-[12px] text-[13px] text-text-2">
