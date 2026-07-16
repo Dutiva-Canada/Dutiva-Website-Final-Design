@@ -94,7 +94,8 @@ create index if not exists support_messages_ticket_idx on public.support_message
 
 -- ── support_attachments ──────────────────────────────────────────────────
 -- Files live in the private `support-attachments` storage bucket; rows hold
--- metadata only (never base64). storage_path is workspace/ticket-scoped.
+-- metadata only (never base64). storage_path is uid-scoped
+-- (`<uid>/<ticket>/<file>`), matching the storage.objects policies below.
 create table if not exists public.support_attachments (
   id uuid primary key default gen_random_uuid(),
   ticket_id uuid not null references public.support_tickets (id) on delete cascade,
@@ -296,6 +297,10 @@ create policy "Users read own support attachments"
     bucket_id = 'support-attachments'
     and (storage.foldername(name))[1] = (select auth.uid())::text
   );
+-- Deletion is permitted for any object under the user's own uid prefix; the
+-- "before submit" intent (removing a not-yet-attached file) is a UX convention,
+-- not a DB constraint. Once an object is linked to a ticket its lifecycle is
+-- managed by the service role.
 create policy "Users remove own support attachments before submit"
   on storage.objects for delete to authenticated
   using (

@@ -61,6 +61,13 @@ Business days exclude weekends and **Ontario statutory holidays** (9 holidays,
 computed per year including Good Friday via the Gregorian computus). Business
 hours: Mon–Fri 09:00–17:00 America/Toronto.
 
+Phase-1 triage simplifications, refined with the scheduling work: dates are
+treated as UTC calendar dates (callers pass an ET-normalized day); only nominal
+statutory dates are modelled (no observed/substitute day when a fixed holiday
+falls on a weekend); and due dates are date-granular (no end-of-business-hours
+clock time). None affect the published targets, only edge-of-day/edge-of-year
+precision.
+
 ## Ticket status lifecycle
 
 `new → triaged → in_progress → waiting_on_customer → waiting_on_dutiva →

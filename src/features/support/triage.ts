@@ -83,6 +83,19 @@ export function responseTargetFor(priority: SupportPriority): ResponseTarget {
 }
 
 // ── Ontario business calendar ────────────────────────────────────────────
+//
+// Foundation-level simplifications, refined in the notification/scheduling
+// phase (see docs/SUPPORT_ARCHITECTURE.md):
+//   1. Dates are interpreted as UTC calendar dates. Callers pass a Date
+//      normalized to the intended America/Toronto calendar day; a raw
+//      timestamp near midnight UTC could otherwise resolve to the wrong local
+//      day. Tests use UTC-midnight dates, which are unambiguous.
+//   2. Only the nominal statutory dates are modelled. Observed/substitute days
+//      (when a fixed-date holiday falls on a weekend) are not yet added, so a
+//      response-due date in such a week may land one day early.
+//   3. `initialResponseDueDate` is date-granular; end-of-business-hours clock
+//      time (e.g. a critical ticket submitted after 17:00 ET) is layered on
+//      with the DST-aware scheduling work, not here.
 
 function iso(year: number, month1: number, day: number): string {
   return `${year}-${String(month1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
