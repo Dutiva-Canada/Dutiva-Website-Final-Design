@@ -46,3 +46,13 @@ select:focus-visible,
 :focus:not(:focus-visible) {
   outline: none;
 }
+
+/* Landscape-specific adjustments for compact mode */
+@media (orientation: landscape) and (max-height: 500px) {
+  .landscape-compact {
+    --page-gutter: 12px;
+    --text-sm: 0.8125rem;
+    --text-base: 0.9375rem;
+    --control-height: 40px;
+  }
+}

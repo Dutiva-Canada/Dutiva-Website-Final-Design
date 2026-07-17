@@ -125,7 +125,11 @@ export function AppShell() {
   else if (layout !== 'tablet' && sidebarExpanded) sidebarMode = 'expanded'
 
   return (
-    <div className="surface-app flex h-screen flex-col overflow-hidden bg-bg font-sans text-text">
+    <div
+      className={`surface-app flex h-screen flex-col overflow-hidden bg-bg font-sans text-text ${
+        isMobile && window.innerHeight < 500 ? 'landscape-compact' : ''
+      }`}
+    >
       {isMobile && (
         <MobileTopbar
           title={title}
@@ -166,7 +170,11 @@ export function AppShell() {
           </>
         )}
 
-        <main className="relative flex min-w-0 flex-1 flex-col bg-bg">
+        <main
+          className={`relative flex min-w-0 flex-1 flex-col bg-bg transition-[padding-bottom] duration-300 ease-out ${
+            isMobile ? 'pb-[60px]' : 'pb-0'
+          }`}
+        >
           {!isMobile && <Topbar title={title} />}
           <WorkspaceContextBanner />
           <ModuleContextBanner />

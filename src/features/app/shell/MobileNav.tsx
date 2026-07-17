@@ -98,7 +98,7 @@ export function MobileNav({
   return (
     <nav
       aria-label={x(M.shell_primary_nav)}
-      className="relative z-50 flex shrink-0 items-end justify-around border-t border-border bg-surface px-[4px] pb-[5px]"
+      className="relative z-50 flex shrink-0 items-end justify-around border-t border-border bg-surface px-[4px] pb-[5px] transition-transform duration-300 ease-out transform-gpu"
     >
       <MobileTab
         to="/app/home"

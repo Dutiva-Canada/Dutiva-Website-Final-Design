@@ -121,7 +121,7 @@ export function HomeWorkflowsMobileList({
   return (
     <div className="sm:hidden">
       <div className="mb-[7px] flex items-baseline justify-between">
-        <span className="text-[11px] font-bold tracking-wider text-text-muted uppercase">
+        <span className="font-display text-[12.5px] font-semibold text-gold-fg">
           {x(M.home_wf_title)}
         </span>
         <button
