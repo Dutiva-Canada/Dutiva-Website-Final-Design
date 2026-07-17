@@ -58,7 +58,7 @@ export function HomeView() {
 
         <div className="flex flex-wrap items-start gap-[18px]">
           {/* PriorityQueue column */}
-          <div className="flex min-w-0 flex-[1.6_1_460px] flex-col gap-[16px]">
+          <div className="flex min-w-0 flex-[1.6_1_360px] flex-col gap-[16px]">
             <HomeActNowSection onAction={runAction} />
             <HomeWorkflowsMobileList onAction={runAction} />
             <HomeThisWeekSection onAction={runAction} />
@@ -67,7 +67,7 @@ export function HomeView() {
           </div>
 
           {/* Right rail: CompliancePrediction + WorkflowCards (desktop) */}
-          <div className="flex max-w-[380px] min-w-[280px] flex-[1_1_290px] flex-col gap-[14px]">
+          <div className="flex max-w-[380px] min-w-[240px] flex-[1_1_240px] flex-col gap-[14px]">
             <HomeCompliancePanel onAction={runAction} />
             <HomeWorkflowsRailCard onAction={runAction} />
           </div>
@@ -75,13 +75,11 @@ export function HomeView() {
 
         {/* AdvisorComposer */}
         <div className="mx-auto mt-[24px] max-w-[760px]">
-          <div className="rounded-[14px] shadow-[0_10px_30px_-16px_rgba(27,36,48,0.18)]">
-            <ChatComposer
-              variant="chat"
-              placeholder={x(M.home_composer_placeholder)}
-              onSend={sendToAdvisor}
-            />
-          </div>
+          <ChatComposer
+            variant="home"
+            placeholder={x(M.home_composer_placeholder)}
+            onSend={sendToAdvisor}
+          />
           <Disclaimer className="mt-[8px] text-center" />
         </div>
       </div>
