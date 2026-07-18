@@ -11,6 +11,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 describe('RequireAdminSession', () => {
   afterEach(() => {
     vi.doUnmock('@/lib/supabaseClient')
+    vi.doUnmock('@/lib/deployEnv')
     vi.resetModules()
   })
 
@@ -45,6 +46,38 @@ describe('RequireAdminSession', () => {
     vi.resetModules()
     await renderGuarded()
     expect(await screen.findByText('workspace')).toBeInTheDocument()
+  })
+
+  it('renders children on a Vercel preview deployment even when signed out', async () => {
+    vi.doMock('@/lib/deployEnv', () => ({ isVercelPreview: () => true }))
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () => Promise.resolve({ data: { session: null } }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+      },
+    }))
+    vi.resetModules()
+    await renderGuarded()
+    expect(await screen.findByText('workspace')).toBeInTheDocument()
+    expect(screen.queryByText('welcome')).toBeNull()
+  })
+
+  it('still gates a signed-out visitor when not on a preview deployment', async () => {
+    vi.doMock('@/lib/deployEnv', () => ({ isVercelPreview: () => false }))
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () => Promise.resolve({ data: { session: null } }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+      },
+    }))
+    vi.resetModules()
+    await renderGuarded()
+    expect(await screen.findByText('welcome')).toBeInTheDocument()
+    expect(screen.queryByText('workspace')).toBeNull()
   })
 
   it('redirects to /app/welcome when signed out', async () => {

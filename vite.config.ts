@@ -10,6 +10,16 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  define: {
+    /* Bake Vercel's VERCEL_ENV system var ('production' | 'preview' |
+       'development') into the client bundle at build time. It's a build-only
+       env var, not VITE_-prefixed, so it isn't otherwise exposed to the
+       browser — this is the one place it crosses into client code. Unset
+       locally and in tests, where it collapses to '' (see src/lib/deployEnv).
+       Consumed by RequireAdminSession to drop the invite-only gate on
+       preview deployments only — never production. */
+    __VERCEL_ENV__: JSON.stringify(process.env.VERCEL_ENV ?? ''),
+  },
   build: {
     rolldownOptions: {
       output: {
