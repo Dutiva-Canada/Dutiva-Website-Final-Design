@@ -189,11 +189,11 @@ export function WorkflowsView() {
                 return (
                   <div
                     key={st.n}
-                    className="flex items-start gap-[12px] border-b border-border-soft py-[10px]"
+                    className="flex items-start gap-[12px] border-b border-border-soft py-[12px] sm:py-[10px]"
                   >
                     <StageMarker n={st.n} state={st.state} />
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-[8px]">
+                      <div className="flex flex-wrap items-center gap-[8px] sm:gap-[12px]">
                         <span className="text-[13px] font-semibold text-text">{x(st.title)}</span>
                         <span
                           className={`inline-flex rounded-[100px] px-[9px] py-[2px] text-[11px] font-semibold whitespace-nowrap ${chipToneClass(chip.tone)}`}
