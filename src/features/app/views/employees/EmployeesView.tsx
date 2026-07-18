@@ -111,8 +111,8 @@ function EmployeesDemoView() {
             {rows.length > 0 ? (
               <>
                 {/* Desktop / tablet: roster table */}
-                <div className="hidden overflow-hidden rounded-[12px] border border-border bg-surface md:block">
-                  <div className="grid grid-cols-[2.4fr_1.7fr_0.9fr_1fr_0.8fr_34px] gap-[10px] bg-inset px-[16px] py-[11px] text-[11.5px] font-bold tracking-[0.03em] text-text-muted uppercase">
+                <div className="hidden overflow-x-auto rounded-[12px] border border-border bg-surface md:block">
+                  <div className="grid min-w-[700px] grid-cols-[2.4fr_1.7fr_0.9fr_1fr_0.8fr_34px] gap-[10px] bg-inset px-[16px] py-[11px] text-[11.5px] font-bold tracking-[0.03em] text-text-muted uppercase">
                     <div>{x(M.employees_th_name)}</div>
                     <div>{x(M.employees_th_role)}</div>
                     <div>{x(M.employees_th_province)}</div>
@@ -123,7 +123,7 @@ function EmployeesDemoView() {
                   {rows.map((e) => (
                     <div
                       key={e.id}
-                      className="grid grid-cols-[2.4fr_1.7fr_0.9fr_1fr_0.8fr_34px] items-center gap-[10px] border-t border-t-inset px-[16px] py-[12px]"
+                      className="grid min-w-[700px] grid-cols-[2.4fr_1.7fr_0.9fr_1fr_0.8fr_34px] items-center gap-[10px] border-t border-t-inset px-[16px] py-[12px]"
                     >
                       <div className="flex min-w-0 items-center gap-[10px]">
                         <div className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-bold text-accent">

@@ -36,7 +36,7 @@ export function SidebarSearch({ expanded }: SidebarSearchProps) {
       <Search size={15} strokeWidth={1.8} className="shrink-0" />
       <span className="flex min-w-0 flex-1 items-center gap-[8px] overflow-hidden whitespace-nowrap">
         <span className="flex-1 text-left">{x(M.shell_search)}</span>
-        <span className="rounded-[4px] border border-border px-[5px] py-px text-[11px] text-text-faint">
+        <span className="hidden rounded-[4px] border border-border px-[5px] py-px text-[11px] text-text-faint sm:inline">
           ⌘K
         </span>
       </span>
