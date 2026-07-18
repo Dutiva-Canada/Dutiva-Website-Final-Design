@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef } from 'react'
-import { FileText, Globe, Heart, ShieldCheck, Sparkle, TriangleAlert } from 'lucide-react'
+import { Copy, Download, FileText, Globe, Heart, ShieldCheck, Sparkle, TriangleAlert } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
@@ -45,6 +45,8 @@ export interface ChatPaneProps {
   readonly onSuggestChip: (chip: SuggestChipSpec) => void
   readonly onQuickFormChange: (messageId: string, fieldIndex: number, valueEn: string) => void
   readonly onQuickFormSubmit: (messageId: string) => void
+  readonly onCopyMessage: (text: string) => void
+  readonly onExportMessage: (text: string) => void
   /** Province chip pick on a jurisdiction-unknown turn (response experience). */
   readonly onPickProvince?: (province: Bi) => void
   /** Opens the Compliance Workspace sheet below the xl breakpoint. */
@@ -265,13 +267,35 @@ function AdvisorTurn({
             {reasoning.length > 0 && <ReasoningExpander lines={reasoning} />}
 
             {text.length > 0 && (
-              <ChatBubble author="assistant">
-                <StreamedText
-                  text={message.text}
-                  status={message.status}
-                  streamedLen={message.streamedLen}
-                />
-              </ChatBubble>
+              <div className="group relative">
+                <ChatBubble author="assistant">
+                  <StreamedText
+                    text={message.text}
+                    status={message.status}
+                    streamedLen={message.streamedLen}
+                  />
+                </ChatBubble>
+                {done && (
+                  <div className="mt-[6px] flex items-center gap-[12px] px-[4px] opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      type="button"
+                      onClick={() => onCopyMessage(message.text)}
+                      className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent p-0 text-[11.5px] font-semibold text-text-faint hover:text-text-muted"
+                    >
+                      <Copy size={12} strokeWidth={2} />
+                      {x({ en: 'Copy', fr: 'Copier' })}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onExportMessage(message.text)}
+                      className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent p-0 text-[11.5px] font-semibold text-text-faint hover:text-text-muted"
+                    >
+                      <Download size={12} strokeWidth={2} />
+                      {x({ en: 'Export', fr: 'Exporter' })}
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
 
             {done && banner && <TurnBanner banner={banner} />}

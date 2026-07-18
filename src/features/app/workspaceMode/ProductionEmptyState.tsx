@@ -23,15 +23,19 @@ export function ProductionEmptyState({ title }: { readonly title: string }) {
           {x(M.wsmode_empty_eyebrow)}
         </div>
         <h1 className="m-0 mb-[10px] font-display text-[22px] font-semibold text-text">{title}</h1>
-        <p className="m-0 mb-[6px] text-[13.5px] leading-[1.6] text-text-muted">
+        <p className="m-0 mb-[16px] text-[14px] leading-[1.6] text-text-muted">
           {x(M.wsmode_empty_body)}
         </p>
-        <p className="m-0 mb-[20px] text-[13.5px] leading-[1.6] text-text-muted">
-          {x(M.wsmode_empty_hint)}
-        </p>
+        <div className="mb-[24px] rounded-[12px] border border-border-soft bg-inset p-[16px] text-left">
+          <p className="m-0 text-[13px] leading-[1.6] text-text-muted">
+            <span className="font-bold text-text">{x({ en: 'Why is this empty?', fr: 'Pourquoi est-ce vide ?' })}</span>
+            <br />
+            {x(M.wsmode_empty_hint)}
+          </p>
+        </div>
         <Link
           to="/app/settings"
-          className="inline-block rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-semibold text-text"
+          className="inline-block rounded-[100px] bg-navy px-[20px] py-[10px] text-[13.5px] font-bold text-white shadow-sm hover:bg-navy/90"
         >
           {x(M.wsmode_empty_settings_link)}
         </Link>

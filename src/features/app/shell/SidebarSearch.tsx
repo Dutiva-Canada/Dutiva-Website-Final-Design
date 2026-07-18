@@ -14,11 +14,11 @@ export function SidebarSearch({ expanded }: SidebarSearchProps) {
 
   if (!expanded) {
     return (
-      <SidebarTooltip label={x(M.shell_search)} show>
+      <SidebarTooltip label={`${x(M.shell_search)} (⌘K)`} show>
         <button
           type="button"
           onClick={openSearch}
-          aria-label={x(M.shell_search)}
+          aria-label={`${x(M.shell_search)} (⌘K)`}
           className="flex h-[36px] w-[36px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-transparent text-text-3 hover:bg-inset"
         >
           <Search size={16} strokeWidth={1.8} />

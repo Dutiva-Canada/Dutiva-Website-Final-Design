@@ -769,6 +769,30 @@ export function AdvisorView() {
 
   const onSuggestChip = (chip: SuggestChipSpec) => startFlow(chip.flowKey, chip.label)
 
+  const handleCopyMessage = useCallback(
+    (text: string) => {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast({
+          title: { en: 'Copied to clipboard', fr: 'Copié dans le presse-papiers' },
+          tone: 'positive',
+        })
+      })
+    },
+    [showToast],
+  )
+
+  const handleExportMessage = useCallback(
+    (text: string) => {
+      openDocStudio('T10', {
+        initialContent: text,
+      })
+      showToast({
+        title: { en: 'Drafting document...', fr: 'Rédaction du document...' },
+      })
+    },
+    [openDocStudio, showToast],
+  )
+
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <ThreadList
@@ -792,6 +816,8 @@ export function AdvisorView() {
             onSuggestChip={onSuggestChip}
             onQuickFormChange={changeQuickField}
             onQuickFormSubmit={submitQuickForm}
+            onCopyMessage={handleCopyMessage}
+            onExportMessage={handleExportMessage}
             onPickProvince={pickProvince}
             onOpenWorkspace={() => setWorkspaceOpen(true)}
           />
