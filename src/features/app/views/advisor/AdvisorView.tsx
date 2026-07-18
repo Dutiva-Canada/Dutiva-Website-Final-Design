@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { bi } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
@@ -772,10 +772,7 @@ export function AdvisorView() {
   const handleCopyMessage = useCallback(
     (text: string) => {
       navigator.clipboard.writeText(text).then(() => {
-        showToast({
-          title: { en: 'Copied to clipboard', fr: 'Copié dans le presse-papiers' },
-          tone: 'positive',
-        })
+        showToast({ en: 'Copied to clipboard', fr: 'Copié dans le presse-papiers' }, 'ok')
       })
     },
     [showToast],
@@ -783,12 +780,8 @@ export function AdvisorView() {
 
   const handleExportMessage = useCallback(
     (text: string) => {
-      openDocStudio('T10', {
-        initialContent: text,
-      })
-      showToast({
-        title: { en: 'Drafting document...', fr: 'Rédaction du document...' },
-      })
+      openDocStudio('T10', { initialContent: text })
+      showToast({ en: 'Drafting document...', fr: 'Rédaction du document...' }, 'ok')
     },
     [openDocStudio, showToast],
   )

@@ -49,9 +49,11 @@ export interface DocStudioContextValue {
   /**
    * Generate a draft from a template key (prototype `handleGenerateDoc`):
    * opens the overlay with a short "Advisor is drafting…" state, then a
-   * "draft ready" toast.
+   * "draft ready" toast. `options.initialContent` seeds the draft with a
+   * single editable section (used to export an Advisor reply into a document)
+   * instead of the template's default sections.
    */
-  openDocStudio: (templateKey: string) => void
+  openDocStudio: (templateKey: string, options?: { initialContent?: string }) => void
   /** Open an existing document without the generation shimmer (prototype `openDocFromLibrary`). */
   openDocFromLibrary: (templateKey: string) => void
   closeDocStudio: () => void

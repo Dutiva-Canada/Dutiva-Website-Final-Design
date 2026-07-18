@@ -149,7 +149,12 @@ export function DocStudioProvider({ children }: { readonly children: ReactNode }
       document.activeElement instanceof HTMLElement ? document.activeElement : null
   }
 
-  const openWith = (templateKey: string, resolved: ResolvedTemplate, generating: boolean) => {
+  const openWith = (
+    templateKey: string,
+    resolved: ResolvedTemplate,
+    generating: boolean,
+    initialContent?: string,
+  ) => {
     setStudio({
       ...CLOSED,
       open: true,
@@ -158,17 +163,20 @@ export function DocStudioProvider({ children }: { readonly children: ReactNode }
       category: resolved.category,
       highRisk: resolved.highRisk,
       meta: resolved.meta,
-      sections: resolved.sections,
+      /* Seed with the caller's content (an exported Advisor reply) as a single
+         editable section when provided; otherwise the template's sections. */
+      sections: initialContent !== undefined ? [initialContent] : resolved.sections,
       generating,
+      lastModified: initialContent !== undefined,
     })
   }
 
   /** Prototype `handleGenerateDoc(e, title)` — shimmer, then "draft ready" toast. */
   const openDocStudio = useCallback(
-    (templateKey: string) => {
+    (templateKey: string, options?: { initialContent?: string }) => {
       rememberFocus()
       const resolved = resolveTemplate(templateKey, false)
-      openWith(templateKey, resolved, true)
+      openWith(templateKey, resolved, true, options?.initialContent)
       clearGenTimer()
       genTimer.current = window.setTimeout(() => {
         genTimer.current = null
