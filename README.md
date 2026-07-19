@@ -49,6 +49,16 @@ no connectivity. It only runs in production builds, so test it with
 built-in demo data; live-backend features (sign-in, production Supabase data)
 stay online-only by design. Full details in [docs/OFFLINE_PWA.md](docs/OFFLINE_PWA.md).
 
+## Dev Annotations (AI-assisted editing)
+
+Running in dev or on a Vercel preview, an in-app **Dev Annotations** overlay
+(bottom-left ◎ pill, or ⌘/Ctrl+Shift+D) lets you click any element to pin a
+comment to it. Each note captures the element's **source file + line**, a
+description, and the route, and **Copy brief** exports them as a Markdown block
+to paste into an AI chat — so "change that button" becomes an exact,
+file-anchored instruction. It's compiled out of the production build entirely.
+Details in [docs/DEV_ANNOTATIONS.md](docs/DEV_ANNOTATIONS.md).
+
 ## Architecture
 
 Working on this repo with an AI coding agent? Start with
