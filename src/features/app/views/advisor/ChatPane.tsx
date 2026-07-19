@@ -1,5 +1,14 @@
 ﻿import { useEffect, useRef } from 'react'
-import { Copy, Download, FileText, Globe, Heart, ShieldCheck, Sparkle, TriangleAlert } from 'lucide-react'
+import {
+  Copy,
+  Download,
+  FileText,
+  Globe,
+  Heart,
+  ShieldCheck,
+  Sparkle,
+  TriangleAlert,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
@@ -92,6 +101,8 @@ export function ChatPane({
   onSuggestChip,
   onQuickFormChange,
   onQuickFormSubmit,
+  onCopyMessage,
+  onExportMessage,
   onPickProvince,
   onOpenWorkspace,
   jurisdictionTone = 'gold',
@@ -143,6 +154,8 @@ export function ChatPane({
                 onSuggestChip={onSuggestChip}
                 onQuickFormChange={onQuickFormChange}
                 onQuickFormSubmit={onQuickFormSubmit}
+                onCopyMessage={onCopyMessage}
+                onExportMessage={onExportMessage}
                 onPickProvince={onPickProvince}
               />
             ),
@@ -203,6 +216,8 @@ interface AdvisorTurnProps {
   readonly onSuggestChip: (chip: SuggestChipSpec) => void
   readonly onQuickFormChange: (messageId: string, fieldIndex: number, valueEn: string) => void
   readonly onQuickFormSubmit: (messageId: string) => void
+  readonly onCopyMessage: (text: string) => void
+  readonly onExportMessage: (text: string) => void
   readonly onPickProvince?: (province: Bi) => void
 }
 
@@ -215,6 +230,8 @@ function AdvisorTurn({
   onSuggestChip,
   onQuickFormChange,
   onQuickFormSubmit,
+  onCopyMessage,
+  onExportMessage,
   onPickProvince,
 }: AdvisorTurnProps) {
   const { x, lang } = useI18n()
@@ -279,7 +296,7 @@ function AdvisorTurn({
                   <div className="mt-[6px] flex items-center gap-[12px] px-[4px] opacity-0 transition-opacity group-hover:opacity-100">
                     <button
                       type="button"
-                      onClick={() => onCopyMessage(message.text)}
+                      onClick={() => onCopyMessage(text)}
                       className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent p-0 text-[11.5px] font-semibold text-text-faint hover:text-text-muted"
                     >
                       <Copy size={12} strokeWidth={2} />
@@ -287,7 +304,7 @@ function AdvisorTurn({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onExportMessage(message.text)}
+                      onClick={() => onExportMessage(text)}
                       className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent p-0 text-[11.5px] font-semibold text-text-faint hover:text-text-muted"
                     >
                       <Download size={12} strokeWidth={2} />
