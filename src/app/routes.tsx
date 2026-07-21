@@ -8,6 +8,7 @@ import type { Lang } from '@/i18n/core'
 import { langOfPath, seoRoute } from '@/seo/routes'
 import type { SeoRouteId } from '@/seo/routes'
 import { appViewRoutes } from './appViews'
+import { RouteErrorPage } from './RouteErrorPage'
 
 /* Route-level code splitting: marketing visitors never download the app
    workspace, and vice versa. Suspense fallbacks stay empty — each surface
@@ -113,32 +114,45 @@ function NotFoundRoute() {
  *   *                      404 (noindex)
  */
 export const routes: RouteObject[] = [
-  publicRoutes('en'),
-  publicRoutes('fr'),
   {
-    path: '/app/welcome',
-    element: (
-      <Suspense fallback={null}>
-        <AppWelcome />
-      </Suspense>
-    ),
+    /* Pathless root: it exists only to hang one error boundary over every
+       route, so a render error anywhere shows the branded recovery page
+       instead of React Router's built-in developer stack trace. */
+    element: <Outlet />,
+    errorElement: <RouteErrorPage />,
+    children: routeTree(),
   },
-  {
-    path: '/app/auth/confirm',
-    element: (
-      <Suspense fallback={null}>
-        <AppAuthConfirm />
-      </Suspense>
-    ),
-  },
-  {
-    path: '/app',
-    element: (
-      <Suspense fallback={null}>
-        <Workspace />
-      </Suspense>
-    ),
-    children: [{ index: true, element: <Navigate to="/app/home" replace /> }, ...appViewRoutes],
-  },
-  { path: '*', element: <NotFoundRoute /> },
 ]
+
+function routeTree(): RouteObject[] {
+  return [
+    publicRoutes('en'),
+    publicRoutes('fr'),
+    {
+      path: '/app/welcome',
+      element: (
+        <Suspense fallback={null}>
+          <AppWelcome />
+        </Suspense>
+      ),
+    },
+    {
+      path: '/app/auth/confirm',
+      element: (
+        <Suspense fallback={null}>
+          <AppAuthConfirm />
+        </Suspense>
+      ),
+    },
+    {
+      path: '/app',
+      element: (
+        <Suspense fallback={null}>
+          <Workspace />
+        </Suspense>
+      ),
+      children: [{ index: true, element: <Navigate to="/app/home" replace /> }, ...appViewRoutes],
+    },
+    { path: '*', element: <NotFoundRoute /> },
+  ]
+}

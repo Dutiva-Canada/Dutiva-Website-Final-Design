@@ -67,3 +67,31 @@ describe('ThemeProvider', () => {
     expect(screen.getByTestId('theme')).toHaveTextContent('light')
   })
 })
+
+describe('useTheme without a provider', () => {
+  it('fails loudly in development', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    expect(() => render(<Probe />)).toThrow(/ThemeProvider/)
+    consoleError.mockRestore()
+  })
+
+  /* In production a missing provider must degrade, not blank the site: the
+     consumer reads the theme off <html> and can still flip it. */
+  it('falls back to the DOM theme in production', async () => {
+    vi.stubEnv('DEV', false)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    document.documentElement.dataset.theme = 'light'
+    try {
+      const user = userEvent.setup()
+      render(<Probe />)
+      expect(screen.getByTestId('theme')).toHaveTextContent('light')
+      await user.click(screen.getByRole('button', { name: 'toggle' }))
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      expect(localStorage.getItem('dutiva-theme')).toBe('dark')
+      expect(consoleError).toHaveBeenCalled()
+    } finally {
+      consoleError.mockRestore()
+      vi.unstubAllEnvs()
+    }
+  })
+})
