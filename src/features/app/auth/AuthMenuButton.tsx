@@ -45,7 +45,7 @@ export function AuthMenuButton({ compact = false }: { readonly compact?: boolean
           <dialog
             open
             aria-label={x(M.auth_menu_title)}
-            className="absolute top-[38px] right-0 z-200 m-0 w-[300px] animate-[fadeInUp_.15s_ease] overflow-hidden rounded-[12px] border border-border bg-surface p-[16px] shadow-[0_16px_40px_rgba(27,36,48,0.18)]"
+            className="absolute top-[38px] right-0 left-auto z-200 m-0 w-[min(300px,calc(100vw-24px))] animate-[fadeInUp_.15s_ease] overflow-hidden rounded-[12px] border border-border bg-surface p-[16px] shadow-[0_16px_40px_rgba(27,36,48,0.18)]"
           >
             <div className="mb-[10px] text-[13.5px] font-bold text-text">
               {x(M.auth_menu_title)}
