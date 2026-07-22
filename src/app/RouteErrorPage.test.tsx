@@ -3,6 +3,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { RouteErrorPage } from './RouteErrorPage'
+import { reportRouteError } from '@/lib/errorReporting'
+
+vi.mock('@/lib/errorReporting', () => ({
+  reportRouteError: vi.fn(),
+}))
 
 function Boom(): never {
   throw new Error('useTheme must be used within a ThemeProvider')
@@ -36,6 +41,13 @@ describe('RouteErrorPage', () => {
   it('speaks French under /fr', () => {
     renderAtError('/fr/a-propos')
     expect(screen.getByRole('heading', { name: /pas pu s’afficher/i })).toBeInTheDocument()
+  })
+
+  it('reports the caught error to the telemetry sink', () => {
+    renderAtError('/')
+    expect(reportRouteError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('useTheme') }),
+    )
   })
 
   it('unregisters the service worker and drops every cache before reloading', async () => {

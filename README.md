@@ -49,6 +49,15 @@ no connectivity. It only runs in production builds, so test it with
 built-in demo data; live-backend features (sign-in, production Supabase data)
 stay online-only by design. Full details in [docs/OFFLINE_PWA.md](docs/OFFLINE_PWA.md).
 
+## Error reporting
+
+Production client-side crashes are reported to a first-party Supabase edge
+function (no third-party error-tracking vendor, no new data processor). Payloads
+are privacy-scrubbed — route **patterns** not resolved paths, coarse user-agent,
+no DOM/input/token/storage capture, no persistent id. Inert in dev and tests.
+Full privacy rationale and source-map handling in
+[docs/ERROR_REPORTING.md](docs/ERROR_REPORTING.md).
+
 ## Dev Annotations (AI-assisted editing)
 
 Running in dev or on a Vercel preview, an in-app **Dev Annotations** overlay

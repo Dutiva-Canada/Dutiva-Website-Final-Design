@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useRouteError } from 'react-router-dom'
 import { langOfPath } from '@/seo/routes'
+import { reportRouteError } from '@/lib/errorReporting'
 
 const PILL_STYLE = { minHeight: 44, padding: '0 20px' } as const
 
@@ -34,6 +35,10 @@ export function RouteErrorPage() {
 
   useEffect(() => {
     console.error('Unhandled route error', error)
+    /* Report to the telemetry sink (no-op unless installed — prod/preview
+       only). Runs in an effect, so never during SSR/prerender and never
+       before first paint. */
+    reportRouteError(error)
   }, [error])
 
   const clearOfflineCache = async () => {

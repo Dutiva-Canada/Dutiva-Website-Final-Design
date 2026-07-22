@@ -92,8 +92,18 @@ export default defineConfig(({ command }) => {
          preview deployments only — never production, and by src/devtools to
          enable the annotation overlay on preview. */
       __VERCEL_ENV__: JSON.stringify(process.env.VERCEL_ENV ?? ''),
+      /* Commit SHA of the deployed build (Vercel system var), baked in so
+         client error reports (src/lib/errorReporting) can be tied back to the
+         exact release and its source maps. Unset locally and under Vitest,
+         where it collapses to '' (see src/lib/release). */
+      __RELEASE_SHA__: JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA ?? ''),
     },
     build: {
+      /* 'hidden' emits .map files but omits the `//# sourceMappingURL` comment,
+         so browsers and crawlers never auto-fetch them. They exist only to
+         symbolicate error-report stack traces; scripts/relocate-sourcemaps.mjs
+         then moves them out of dist/ so they are never publicly served. */
+      sourcemap: 'hidden',
       rolldownOptions: {
         output: {
           /* Splits third-party deps (react, react-router-dom, lucide-react, …)
