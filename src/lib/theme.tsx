@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { readPref, writePref } from './prefs'
-import { ThemeContext } from './themeContext'
+import { THEME_KEY, ThemeContext } from './themeContext'
 import type { Theme } from './themeContext'
-
-const THEME_KEY = 'dutiva-theme'
 
 function readTheme(): Theme {
   const storedTheme = readPref(THEME_KEY, '')
