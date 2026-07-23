@@ -157,8 +157,8 @@ export const legalHubMessages = defineMessages({
     fr: 'Politique de remboursement et d’annulation',
   },
   legalHub_row21_desc: {
-    en: 'The 7-day refund window and how to cancel',
-    fr: 'La fenêtre de remboursement de 7 jours et comment annuler',
+    en: 'Refunds, cancellations, and how to reactivate',
+    fr: 'Remboursements, annulations et réactivation',
   },
   legalHub_row22_title: { en: 'Support Policy', fr: 'Politique de soutien' },
   legalHub_row22_desc: {

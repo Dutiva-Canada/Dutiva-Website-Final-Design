@@ -86,8 +86,8 @@ export const faqMessages = defineMessages({
     fr: 'Quelle est votre politique de remboursement ?',
   },
   faq_a12: {
-    en: 'After your first paid charge, you have 7 days to cancel for a full refund. See the Refund and Cancellation Policy.',
-    fr: 'Après votre premier paiement, vous avez 7 jours pour annuler et obtenir un remboursement complet. Consultez la Politique de remboursement et d’annulation.',
+    en: 'Annual plans include a 14-day money-back guarantee. Monthly plans are non-refundable after the billing date, apart from documented billing errors. You can cancel anytime — access continues to the end of your billing period. See the Refund and Cancellation Policy for full terms.',
+    fr: 'Les forfaits annuels comprennent une garantie de remboursement de 14 jours. Les forfaits mensuels ne sont pas remboursables après la date de facturation, sauf erreur de facturation documentée. Vous pouvez annuler à tout moment — l’accès se poursuit jusqu’à la fin de votre période de facturation. Consultez la Politique de remboursement et d’annulation pour les conditions complètes.',
   },
   faq_closing_t: { en: 'Still have questions?', fr: 'D’autres questions ?' },
   faq_closing_p: {

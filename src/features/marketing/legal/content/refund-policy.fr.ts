@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Politique de remboursement et d'annulation",
-  "lastUpdated": "1 juin 2026",
+  "lastUpdated": "23 juillet 2026",
   "effectiveDate": "1 juin 2026",
   "callout": [
     "Cette politique décrit les modalités d'annulation de votre abonnement Dutiva Canada Inc., ce qu'il advient de vos données et de votre accès après l'annulation, les critères d'éligibilité aux remboursements, ainsi que la façon de réactiver votre compte. En vous abonnant à Dutiva, vous acceptez les termes de cette politique."
@@ -13,7 +13,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Vous pouvez annuler votre abonnement Dutiva à tout moment via les paramètres de votre compte ou en contactant notre équipe de soutien."
+          "text": "Vous pouvez annuler votre abonnement Dutiva à tout moment via les paramètres de votre compte (Paramètres > Facturation) ou en écrivant à support@dutiva.ca."
         },
         {
           "type": "li",
@@ -25,7 +25,7 @@ export default {
         },
         {
           "type": "li",
-          "text": "Confirmation d'annulation envoyée par courriel dans les 24 heures"
+          "text": "Confirmation d'annulation envoyée par courriel; les demandes envoyées par courriel sont traitées dans les 2 jours ouvrables"
         },
         {
           "type": "li",
@@ -51,11 +51,11 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Après l'annulation de votre compte, vos données sont conservées pour une période limitée conformément à nos obligations légales et à notre politique de confidentialité."
+          "text": "Dutiva conserve vos données de compte, vos données d'espace de travail et vos documents générés pendant 30 jours suivant la date de fin de votre abonnement (la fin de votre période payée). Pendant cette période, vous pouvez vous connecter et exporter les documents que vous souhaitez conserver."
         },
         {
           "type": "li",
-          "text": "Conservation des données pendant 30 jours suivant la date d'annulation"
+          "text": "Conservation des données pendant 30 jours suivant la date de fin de l'abonnement"
         },
         {
           "type": "li",
@@ -67,7 +67,11 @@ export default {
         },
         {
           "type": "li",
-          "text": "Certaines données peuvent être conservées plus longtemps si requis par la loi"
+          "text": "Certaines données peuvent être conservées plus longtemps si la loi l'exige"
+        },
+        {
+          "type": "p",
+          "text": "Si vous avez besoin de plus de temps pour exporter vos données, écrivez à support@dutiva.ca avant l'expiration du délai de 30 jours. Nous pouvons prolonger la période de conservation dans des circonstances limitées."
         }
       ]
     },
@@ -76,7 +80,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Les abonnements mensuels ne sont généralement pas remboursables, sauf dans des circonstances spécifiques."
+          "text": "Les abonnements mensuels ne sont généralement pas remboursables après la date de facturation. Aucun remboursement n'est accordé pour une période partiellement utilisée lorsque vous annulez en cours de cycle."
         },
         {
           "type": "li",
@@ -88,7 +92,11 @@ export default {
         },
         {
           "type": "li",
-          "text": "Remboursement possible si la plateforme est inaccessible pendant plus de 24 heures consécutives dues à une défaillance de notre part"
+          "text": "Remboursement possible si la plateforme est inaccessible pendant plus de 24 heures consécutives en raison d'une défaillance de notre part"
+        },
+        {
+          "type": "li",
+          "text": "Les demandes d'exception doivent être envoyées à support@dutiva.ca dans les 14 jours suivant la date de facturation"
         }
       ]
     },
@@ -97,19 +105,19 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Les abonnements annuels bénéficient d'une période de remboursement prolongée pour vous permettre d'évaluer pleinement la plateforme."
+          "text": "Les abonnements annuels comprennent une garantie de remboursement de 14 jours pour vous permettre d'évaluer pleinement la plateforme."
         },
         {
           "type": "li",
-          "text": "Remboursement complet disponible dans les 14 jours suivant l'achat initial"
+          "text": "Remboursement complet si vous annulez et en faites la demande dans les 14 jours suivant l'achat initial"
         },
         {
           "type": "li",
-          "text": "Après 14 jours : remboursement au prorata des mois non utilisés, moins les frais de traitement"
+          "text": "Après ce délai de 14 jours : remboursement au prorata des jours non utilisés de votre période annuelle, moins des frais de traitement"
         },
         {
           "type": "li",
-          "text": "Aucun remboursement pour les renouvellements annuels après 14 jours"
+          "text": "Les renouvellements annuels ne sont pas remboursables une fois passé le délai de 14 jours suivant la date de renouvellement"
         },
         {
           "type": "li",
@@ -139,7 +147,7 @@ export default {
         },
         {
           "type": "li",
-          "text": "Réactivation possible dans les 30 jours suivant l'annulation avec conservation des données"
+          "text": "Réactivation possible dans les 30 jours suivant la fin de l'abonnement avec conservation des données"
         },
         {
           "type": "li",

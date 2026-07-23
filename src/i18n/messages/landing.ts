@@ -591,8 +591,8 @@ export const landing = defineMessages({
     fr: 'Commencez de façon structurée. Évoluez à mesure que vos RH grandissent.',
   },
   landing_price_sub: {
-    en: 'No long-term contracts. No setup fees. After your first paid charge, you have 7 days to cancel for a full refund. Prices in CAD.',
-    fr: "Aucun contrat à long terme. Aucuns frais d'installation. Après votre premier paiement, vous avez 7 jours pour annuler et obtenir un remboursement complet. Prix en CAD.",
+    en: 'No long-term contracts. No setup fees. Cancel anytime. Prices in CAD.',
+    fr: 'Aucun contrat à long terme. Aucuns frais d’installation. Annulez à tout moment. Prix en CAD.',
   },
   landing_mo: {
     en: '/mo',
@@ -707,8 +707,8 @@ export const landing = defineMessages({
     fr: 'Axé sur la conformité RH canadienne',
   },
   landing_price_foot2: {
-    en: '7-day full refund window',
-    fr: 'Fenêtre de remboursement complet de 7 jours',
+    en: 'Cancel anytime',
+    fr: 'Annulation en tout temps',
   },
   landing_price_compare: {
     en: 'Compare all plans',
