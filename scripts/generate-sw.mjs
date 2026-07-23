@@ -57,7 +57,12 @@ const shell = ['/', '/app.html', '/404.html', '/site.webmanifest'].filter((url) 
   return existsSync(path.join(dist, file))
 })
 
-const precache = Array.from(new Set([...shell, ...assetUrls, ...brandUrls])).sort()
+/* Never precache source maps: build.sourcemap is 'hidden' and
+   relocate-sourcemaps.mjs already moves them out of dist/ before this runs, but
+   filter defensively so a stray .map can never end up in the offline cache. */
+const precache = Array.from(new Set([...shell, ...assetUrls, ...brandUrls]))
+  .filter((url) => !url.endsWith('.map'))
+  .sort()
 
 if (assetUrls.length === 0) {
   console.error('generate-sw: no files under dist/assets — did `vite build` run first?')
@@ -194,8 +199,11 @@ self.addEventListener('fetch', function (event) {
     return
   }
 
-  /* Leave all other cross-origin traffic (e.g. Supabase reads) to the network
-     — real backend data must never be served stale from a cache. */
+  /* Leave all other cross-origin traffic to the network — real backend data
+     must never be served stale from a cache. This also covers the client
+     error-reporting beacon (a cross-origin POST to the Supabase edge function),
+     which is therefore never intercepted or cached; the method guard above
+     already excludes it as a non-GET request. */
   if (url.origin !== self.location.origin) return
 
   /* Never intercept the worker's own script; the browser revalidates it. */

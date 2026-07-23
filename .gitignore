@@ -30,3 +30,7 @@ coverage
 !.env.example
 
 .vercel
+
+# Client source maps, relocated out of dist/ by scripts/relocate-sourcemaps.mjs.
+# Kept only to symbolicate error-report stack traces; never served, never committed.
+sourcemaps

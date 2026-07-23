@@ -250,7 +250,9 @@ async function fetchFromSupabase(): Promise<DoclibData> {
   const documents = docRows.map((r): GeneratedDoc => {
     const tpl = tidById.get(r.template_id)
     if (!tpl)
-      throw new Error(`doclib: document ${r.id} references unknown template ${r.template_id}`)
+      // No raw ids in the message: it can surface in the error boundary and in
+      // client error telemetry, which must not carry document/template ids.
+      throw new Error('doclib: a generated document references an unknown template')
     const sig = signatureByDoc.get(r.id)
     return {
       id: r.id,
