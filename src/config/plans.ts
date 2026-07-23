@@ -69,6 +69,31 @@ export function getPlanById(id?: string | null): PlanDefinition | undefined {
   return PLANS.find((plan) => plan.id === id)
 }
 
+export type BillingPeriod = 'monthly' | 'annual'
+
+/**
+ * Annual billing charges for 10 of 12 months (two months free) — a plain,
+ * adjustable convention. NOTE: the create-checkout-session Supabase function
+ * still needs the annual Stripe price ids wired before annual checkout can
+ * settle; until then the toggle drives the displayed price and the checkout
+ * call carries the chosen period for the backend to honour.
+ */
+export const ANNUAL_MONTHS_BILLED = 10
+
+/** Effective per-month price when billed annually, rounded to the dollar (CAD). */
+export function annualPerMonth(monthlyPrice: number): number {
+  return Math.round((monthlyPrice * ANNUAL_MONTHS_BILLED) / 12)
+}
+
+/**
+ * Total charged once per year on the annual plan (CAD). Derived from the
+ * rounded per-month figure (× 12) so the displayed "$X/mo" and "billed $Y/yr"
+ * always reconcile exactly rather than drifting by a dollar after rounding.
+ */
+export function annualTotal(monthlyPrice: number): number {
+  return annualPerMonth(monthlyPrice) * 12
+}
+
 const PLAN_RANK: Record<PlanId, number> = { free: 0, starter: 1, growth: 2, pro: 3 }
 
 export function normalizePlanId(value?: string | null): PlanId {

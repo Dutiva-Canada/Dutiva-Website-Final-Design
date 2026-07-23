@@ -108,8 +108,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Tarifs — forfaits pour les employeurs canadiens | Dutiva',
     },
     description: {
-      en: 'Dutiva plans in Canadian dollars — Free/Beta, Starter, Growth, and Professional. No long-term contracts, no setup fees, and a 7-day refund window after the first paid charge.',
-      fr: 'Les forfaits Dutiva en dollars canadiens — Gratuit/Bêta, Starter, Growth et Professional. Aucun contrat à long terme, aucuns frais d’installation et un remboursement possible dans les 7 jours suivant le premier paiement.',
+      en: 'Dutiva plans in Canadian dollars — Free/Beta, Starter, Growth, and Professional. Monthly or annual billing, no long-term contracts, no setup fees, and cancel anytime.',
+      fr: 'Les forfaits Dutiva en dollars canadiens — Gratuit/Bêta, Starter, Growth et Professional. Facturation mensuelle ou annuelle, aucun contrat à long terme, aucuns frais d’installation, et annulation en tout temps.',
     },
     indexable: true,
   },
