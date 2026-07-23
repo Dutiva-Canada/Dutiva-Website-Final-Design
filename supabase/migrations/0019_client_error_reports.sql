@@ -14,15 +14,16 @@
 -- both are length-capped here as a backstop.
 --
 -- The retained report row carries NO IP-derived value at all. Rate-limit hashes
--- live in a SEPARATE short-retention table (client_error_rate_limit) that is
--- swept for all sources down to the limiter window, so no report is linkable to
--- a network beyond that window — the persistent pseudonymous identifier the
--- privacy design promises to avoid never exists.
+-- live in a SEPARATE table (client_error_rate_limit), decoupled from reports and
+-- holding no report content; the ingest RPC sweeps them for all sources down to
+-- the window on every call. Under traffic a hash is short-lived; on a quiet
+-- endpoint it persists until purge_client_error_data() runs (see RETENTION).
 --
--- RETENTION: report rows are bounded to 90 days — enforced opportunistically in
--- the ingest RPC and on a schedule by purge_client_error_data() — so the
--- free-form message/stack cannot accumulate indefinitely. Limiter rows live at
--- most ~one window (plus a 1-hour scheduled backstop).
+-- RETENTION: report rows target a 90-day bound. The ingest RPC enforces it
+-- opportunistically (best-effort, traffic-driven only); the REAL guarantee is a
+-- REQUIRED scheduled purge_client_error_data() job — see the DEPLOY note at the
+-- bottom. Until that job is provisioned and verified, retention is best-effort
+-- and old rows can persist, so do not treat 90 days as guaranteed before then.
 --
 -- DEPENDENCY: the admin read policies call is_admin(uuid), created directly on
 -- the live project (not by a repo migration) — see migrations 0014 / 0016. It
@@ -164,11 +165,12 @@ revoke all on function public.ingest_client_error_report(
 grant execute on function public.ingest_client_error_report(
   text, text, text, text, text, text, text, text, text, integer, integer) to service_role;
 
--- ── Retention purge ────────────────────────────────────────────────────────
--- Bounded retention for both tables, in one place: reports past 90 days (they
+-- ── Retention purge (REQUIRED scheduled job) ───────────────────────────────
+-- Bounded retention for both tables in one place: reports past 90 days (they
 -- carry free-form message/stack that may hold PII) and any straggler limiter
--- rows. The ingest RPC already enforces this opportunistically under traffic;
--- this is the scheduled path that also covers a quiet endpoint.
+-- rows. The ingest RPC enforces this opportunistically under traffic, but that
+-- is best-effort only — it never runs on a quiet endpoint — so a scheduled job
+-- is REQUIRED to actually enforce retention.
 create or replace function public.purge_client_error_data() returns void
 language sql
 security definer
@@ -180,19 +182,16 @@ $$;
 
 revoke all on function public.purge_client_error_data() from public, anon, authenticated;
 
--- Schedule the purge hourly via pg_cron. Guarded so a from-scratch replay on a
--- project without pg_cron enabled still succeeds — enable the extension and
--- re-run this block, or call public.purge_client_error_data() from any external
--- scheduler. Idempotent: cron.schedule upserts a job by name.
-do $$
-begin
-  perform cron.schedule(
-    'purge-client-error-data',
-    '23 * * * *',
-    'select public.purge_client_error_data()'
-  );
-exception
-  when others then
-    raise notice 'pg_cron unavailable (%); schedule public.purge_client_error_data() externally', sqlerrm;
-end
-$$;
+-- DEPLOY (required and verified — not optional): schedule the purge. It is kept
+-- out of this migration deliberately, so the migration neither silently succeeds
+-- with no job (a swallowed cron error) nor hard-fails a replay on a project
+-- without pg_cron. Provision ONE of the following and verify it:
+--   • pg_cron (native scheduler):
+--       create extension if not exists pg_cron;
+--       select cron.schedule('purge-client-error-data', '23 * * * *',
+--                             'select public.purge_client_error_data()');
+--       -- verify: select jobname, schedule from cron.job
+--       --           where jobname = 'purge-client-error-data';
+--   • or an external scheduler (Vercel Cron / GitHub Action) that calls
+--     public.purge_client_error_data() at least hourly.
+-- Until one is provisioned and verified, retention is best-effort (RPC-only).

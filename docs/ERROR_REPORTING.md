@@ -47,11 +47,17 @@ pathname to its **pattern** before it leaves the browser:
 
 - The query string and hash are dropped entirely (they can carry search text or
   tokens).
-- Public policy/help slugs collapse to their named pattern (`/legal/:slug`).
-- Any segment following a known entity collection, or one that looks like an
-  identifier, becomes `:id`. This catches opaque UUIDs **and** the human-readable
-  slugs demo fixtures use (e.g. a person's name), which a pure "looks like an id"
-  heuristic would miss.
+- The full path is matched against a **known route registry** (deny-by-default),
+  and the matched **pattern** is returned — `/legal/:slug`, `/app/cases/:id`. The
+  match is position-aware, so `/app/employees/studio` binds `studio` to
+  `:employeeId` → `/app/employees/:id` (it can't be mistaken for the
+  documents-only `studio` route).
+- Any path that matches **no** registered route degrades to a safe label —
+  `/unknown`, or `/app/:unknown` on the private surface — **never** the resolved
+  path. So a 404, or a new dynamic route not yet added to the registry, can never
+  transmit a segment; the worst case is a lost grouping, not a leak. This also
+  covers the human-readable slugs demo fixtures use (e.g. a person's name), which
+  a "looks like an id" heuristic would miss.
 
 **Residual risk, stated honestly:** `message` and `stack` are free-form. If app
 code throws `new Error('failed for jane@corp.ca')`, that text is sent. We can't
@@ -120,24 +126,30 @@ on a retained report row:
   committed default, so IPv4's low entropy can't be brute-forced from table
   access without also holding the secret. The function **fails closed** (500) if
   the pepper is unset.
-- The hash lives in a **separate short-retention table**
-  (`client_error_rate_limit`). The ingest RPC sweeps expired rows for **all
-  sources** on every call — not just the calling IP — so a one-shot sender's hash
-  is removed by the next report from anyone rather than lingering until that same
-  source returns; `purge_client_error_data()` covers a quiet endpoint on a
-  schedule. So the "no persistent pseudonymous identifier" promise holds: nothing
-  links a report to a network beyond the ~1-minute window.
+- The hash lives in a **separate table** (`client_error_rate_limit`), decoupled
+  from reports, and holds no report content. The ingest RPC sweeps expired rows
+  for **all sources** on every call — not just the calling IP — so under normal
+  traffic a hash is removed within ~a window of the next report from anyone. Two
+  honest caveats: on a **quiet** endpoint a hash persists until the scheduled
+  `purge_client_error_data()` runs, and if that job is **not provisioned** it can
+  persist indefinitely. So the hash is short-lived under traffic **and** a
+  correctly scheduled purge — not unconditionally.
 
 ### Retention
 
 `message` and `stack` are **privacy-minimized, not PII-free** — free text can
-still carry a name, email, or URL (see the residual-risk note above). So report
-rows are **bounded to 90 days**, enforced two ways: opportunistically inside the
-ingest RPC (a sampled, index-backed delete, so it needs no scheduler) and by
-`purge_client_error_data()`, scheduled hourly via pg_cron where available. The
-migration's pg_cron block is guarded, so a project without the extension still
-applies cleanly — enable pg_cron, or run `purge_client_error_data()` from any
-external scheduler.
+still carry a name, email, or URL (see the residual-risk note above). Report rows
+therefore target a **90-day** bound, enforced by two mechanisms with different
+guarantees:
+
+- **Opportunistic (best-effort):** the ingest RPC deletes past-window rows on a
+  small sample of calls. This needs no scheduler but only runs *under traffic* —
+  it cannot bound retention on a quiet endpoint.
+- **Scheduled (the real guarantee — REQUIRED):** `purge_client_error_data()` must
+  be scheduled at least hourly (pg_cron or an external scheduler) as a verified
+  deploy step (see the migration's DEPLOY note and *Deploying the endpoint*
+  below). **Until it is provisioned and verified, retention is best-effort only**
+  and old rows can persist — do not treat 90 days as guaranteed before then.
 
 ## Source maps
 
@@ -165,10 +177,17 @@ from the precache defensively.
   `resend-webhook`), so `sendBeacon` can reach it without an auth header.
 - **Required:** set `ERROR_REPORT_SALT` (or `SUPPORT_NOTIFY_SECRET`) — the pepper
   for the rate-limit IP HMAC. The function fails closed without it.
-- Retention (90-day reports, 1-hour limiter) is enforced automatically by the
-  ingest RPC and by `purge_client_error_data()`. For the scheduled path, enable
-  **pg_cron** (the migration schedules it, guarded) or run
-  `purge_client_error_data()` from any external scheduler.
+- **Required — schedule retention and verify it.** The migration does *not*
+  schedule the purge itself (so it neither silently no-ops nor hard-fails a
+  replay). Provision one of, then confirm it exists:
+  - pg_cron: `create extension if not exists pg_cron;` then
+    `select cron.schedule('purge-client-error-data','23 * * * *','select public.purge_client_error_data()');`
+    — verify with `select jobname, schedule from cron.job where jobname = 'purge-client-error-data';`
+  - or an external scheduler (Vercel Cron / GitHub Action) calling
+    `purge_client_error_data()` at least hourly.
+
+  Until this is done, retention is best-effort (RPC-only) and unbounded on a quiet
+  endpoint.
 - Reports land in `public.client_error_reports`; reads are admin-only (RLS).
 
 ## Files

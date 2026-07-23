@@ -41,6 +41,48 @@ const LOCALES = ['en-CA', 'fr-CA']
 /** Max accepted request body (a scrubbed report is < ~14 KB by construction). */
 const MAX_BODY_BYTES = 16 * 1024
 
+/**
+ * Read the request body incrementally, cancelling the stream as soon as the
+ * byte budget is exceeded — so this open, unauthenticated endpoint never buffers
+ * or decodes an oversized body (Content-Length can be absent on chunked/HTTP2
+ * traffic, and text length would count UTF-16 units, not wire bytes). Returns
+ * the decoded text, or null if the body is over budget or unreadable.
+ */
+async function readCappedText(req: Request, maxBytes: number): Promise<string | null> {
+  const body = req.body
+  if (!body) return ''
+  const reader = body.getReader()
+  const chunks: Uint8Array[] = []
+  let total = 0
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      if (!value) continue
+      total += value.byteLength
+      if (total > maxBytes) {
+        await reader.cancel()
+        return null
+      }
+      chunks.push(value)
+    }
+  } catch {
+    try {
+      await reader.cancel()
+    } catch {
+      /* already closed */
+    }
+    return null
+  }
+  const bytes = new Uint8Array(total)
+  let offset = 0
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return new TextDecoder().decode(bytes)
+}
+
 /* Per-IP rate limit, enforced atomically in the RPC. One broken render loop is
    already deduped/capped client-side; this bounds abuse of the open endpoint. */
 const RATE_WINDOW_SECONDS = 60
@@ -96,17 +138,10 @@ Deno.serve(async (req: Request) => {
     return serverError()
   }
 
-  // Reject oversized bodies before reading them into memory.
-  const declared = Number(req.headers.get('content-length') ?? '0')
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) return noContent()
-
-  let raw = ''
-  try {
-    raw = await req.text()
-  } catch {
-    return noContent()
-  }
-  if (raw.length === 0 || raw.length > MAX_BODY_BYTES) return noContent()
+  // Read the body with a hard byte cap, cancelling the stream if exceeded, so
+  // an oversized body is never fully buffered or decoded (see readCappedText).
+  const raw = await readCappedText(req, MAX_BODY_BYTES)
+  if (!raw) return noContent()
 
   let body: Record<string, unknown>
   try {
