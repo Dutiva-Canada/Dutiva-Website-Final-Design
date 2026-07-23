@@ -3,7 +3,7 @@ import type { PolicyEdition } from '../policyContent'
 export default {
   "title": "Refund and Cancellation Policy",
   "lastUpdated": "July 23, 2026",
-  "effectiveDate": "June 1, 2026",
+  "effectiveDate": "July 23, 2026",
   "callout": [
     "This Refund and Cancellation Policy explains how to cancel a Dutiva subscription, what happens to your data and access after cancellation, refund eligibility criteria, and how to reactivate your account. This policy applies to all paid Dutiva subscription plans."
   ],
@@ -13,11 +13,11 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "To cancel your subscription, sign in to Dutiva and go to Settings > Billing. Select 'Cancel subscription' and confirm your cancellation when prompted. Your cancellation takes effect at the end of your current billing period, and you will receive a confirmation email at the address on your account."
+          "text": "To cancel your subscription, open the billing portal — from the Pricing page, select 'Manage billing' under Your plan. In the portal you can manage or cancel your subscription. Your cancellation takes effect at the end of your current billing period, and you will receive a confirmation email at the address on your account."
         },
         {
           "type": "p",
-          "text": "If you cannot access your account or the billing settings, email support@dutiva.ca from the email address associated with your account with 'Cancel Subscription' in the subject line. Include your account email and confirm that you wish to cancel. We process email cancellation requests within 2 business days."
+          "text": "You can also cancel by emailing support@dutiva.ca from the email address associated with your account with 'Cancel Subscription' in the subject line. Include your account email and confirm that you wish to cancel. We process email cancellation requests within 2 business days."
         }
       ]
     },
@@ -31,6 +31,10 @@ export default {
         {
           "type": "p",
           "text": "After the billing period ends, your account is downgraded to the free tier. You can still sign in but will have limited access consistent with the free plan limits."
+        },
+        {
+          "type": "p",
+          "text": "If an annual refund is issued (see Section 5), your paid access instead ends on the refund date rather than at the end of the billing period."
         }
       ]
     },
@@ -77,7 +81,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "Annual renewals are non-refundable once 14 days have passed since the renewal date."
+          "text": "When a refund is issued, your paid access ends and your account is downgraded to the free tier as of the refund date. Annual renewals are non-refundable once 14 days have passed since the renewal date."
         }
       ]
     },
@@ -86,7 +90,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "You can downgrade your plan at any time from Settings > Billing. Downgrades take effect at the end of the current billing period. You will retain access to your current plan's features until the period ends."
+          "text": "You can downgrade your plan at any time from the billing portal (open it from the Pricing page under Your plan > Manage billing). Downgrades take effect at the end of the current billing period. You will retain access to your current plan's features until the period ends."
         },
         {
           "type": "p",
@@ -99,11 +103,11 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "You can reactivate your subscription at any time by signing in and selecting a new plan from Settings > Billing. Billing resumes on the reactivation date. If the 30-day data retention window has not expired, your previous workspace, documents, and settings will be restored."
+          "text": "You can reactivate your subscription by signing in and choosing a plan from the billing portal (open it from the Pricing page under Your plan > Manage billing) or by contacting support@dutiva.ca. Billing resumes on the reactivation date."
         },
         {
           "type": "p",
-          "text": "Reactivation after the 30-day window results in a new workspace with no document history. Contact support@dutiva.ca before reactivating if you have questions about data recovery."
+          "text": "If you reactivate within 30 days of your subscription end date, your previous workspace, documents, and settings are restored. After 30 days, your data has been permanently deleted, so reactivation starts a new workspace with no history on your existing account. Contact support@dutiva.ca before reactivating if you have questions about data recovery."
         }
       ]
     },

@@ -3,7 +3,7 @@ import type { PolicyEdition } from '../policyContent'
 export default {
   "title": "Politique de remboursement et d'annulation",
   "lastUpdated": "23 juillet 2026",
-  "effectiveDate": "1 juin 2026",
+  "effectiveDate": "23 juillet 2026",
   "callout": [
     "Cette politique décrit les modalités d'annulation de votre abonnement Dutiva Canada Inc., ce qu'il advient de vos données et de votre accès après l'annulation, les critères d'éligibilité aux remboursements, ainsi que la façon de réactiver votre compte. En vous abonnant à Dutiva, vous acceptez les termes de cette politique."
   ],
@@ -13,11 +13,11 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Vous pouvez annuler votre abonnement Dutiva à tout moment via les paramètres de votre compte (Paramètres > Facturation) ou en écrivant à support@dutiva.ca."
+          "text": "Vous pouvez annuler votre abonnement Dutiva à tout moment depuis le portail de facturation (sur la page Tarifs, sélectionnez « Gérer la facturation » sous Votre forfait) ou en écrivant à support@dutiva.ca."
         },
         {
           "type": "li",
-          "text": "Annulation en libre-service disponible dans les paramètres du compte"
+          "text": "Gestion et annulation en libre-service dans le portail de facturation"
         },
         {
           "type": "li",
@@ -43,6 +43,10 @@ export default {
         {
           "type": "p",
           "text": "À la fin de la période de facturation, votre compte est rétrogradé au forfait gratuit. Vous pouvez toujours vous connecter, mais avec un accès limité correspondant aux limites du forfait gratuit."
+        },
+        {
+          "type": "p",
+          "text": "Si un remboursement annuel est accordé (voir la section 5), votre accès payant prend plutôt fin à la date du remboursement plutôt qu'à la fin de la période de facturation."
         }
       ]
     },
@@ -117,6 +121,10 @@ export default {
         },
         {
           "type": "li",
+          "text": "Lorsqu'un remboursement est accordé, votre accès payant prend fin et votre compte est rétrogradé au forfait gratuit à la date du remboursement"
+        },
+        {
+          "type": "li",
           "text": "Les renouvellements annuels ne sont pas remboursables une fois passé le délai de 14 jours suivant la date de renouvellement"
         },
         {
@@ -130,7 +138,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Vous pouvez rétrograder votre forfait à tout moment dans Paramètres > Facturation. Les rétrogradations prennent effet à la fin de la période de facturation en cours. Vous conservez l'accès aux fonctionnalités de votre forfait actuel jusqu'à la fin de la période."
+          "text": "Vous pouvez rétrograder votre forfait à tout moment depuis le portail de facturation (ouvrez-le à partir de la page Tarifs, sous Votre forfait > Gérer la facturation). Les rétrogradations prennent effet à la fin de la période de facturation en cours. Vous conservez l'accès aux fonctionnalités de votre forfait actuel jusqu'à la fin de la période."
         },
         {
           "type": "p",
@@ -143,23 +151,19 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Si vous souhaitez reprendre votre abonnement Dutiva après une annulation, vous pouvez réactiver votre compte dans certains délais."
+          "text": "Vous pouvez réactiver votre abonnement en vous connectant et en choisissant un forfait depuis le portail de facturation (ouvrez-le à partir de la page Tarifs, sous Votre forfait > Gérer la facturation) ou en écrivant à support@dutiva.ca. La facturation reprend à la date de réactivation."
         },
         {
           "type": "li",
-          "text": "Réactivation possible dans les 30 jours suivant la fin de l'abonnement avec conservation des données"
+          "text": "Réactivation dans les 30 jours suivant la date de fin de l'abonnement : votre espace de travail, vos documents et vos réglages précédents sont restaurés"
         },
         {
           "type": "li",
-          "text": "Réactivation via les paramètres du compte ou en contactant le soutien"
+          "text": "Après 30 jours : vos données ont été supprimées définitivement; la réactivation démarre un nouvel espace de travail sans historique sur votre compte existant"
         },
         {
           "type": "li",
           "text": "La facturation reprend à la date de réactivation"
-        },
-        {
-          "type": "li",
-          "text": "Après 30 jours : création d'un nouveau compte requise, les données précédentes sont perdues"
         }
       ]
     },
