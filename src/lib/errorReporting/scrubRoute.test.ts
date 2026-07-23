@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { scrubRoutePattern } from './scrubRoute'
 
 describe('scrubRoutePattern', () => {
-  it('leaves static public and app routes untouched', () => {
+  it('leaves known static public and app routes untouched', () => {
     expect(scrubRoutePattern('/')).toBe('/')
     expect(scrubRoutePattern('/pricing')).toBe('/pricing')
     expect(scrubRoutePattern('/fr/tarifs')).toBe('/fr/tarifs')
@@ -28,8 +28,7 @@ describe('scrubRoutePattern', () => {
     expect(scrubRoutePattern('/app/support/admin/DUT-2025-000123')).toBe('/app/support/admin/:id')
   })
 
-  it('scrubs human-readable fixture ids the identifier heuristic alone would miss', () => {
-    // Demo fixtures use name-based slugs; the collection rule catches them.
+  it('scrubs human-readable fixture ids (name slugs), not just opaque ones', () => {
     expect(scrubRoutePattern('/app/employees/jordan-mensah')).toBe('/app/employees/:id')
     expect(scrubRoutePattern('/app/settings/memory/people/riley-summers')).toBe(
       '/app/settings/memory/people/:id',
@@ -37,6 +36,13 @@ describe('scrubRoutePattern', () => {
     expect(scrubRoutePattern('/app/settings/memory/conversations/kickoff')).toBe(
       '/app/settings/memory/conversations/:id',
     )
+  })
+
+  it('matches position-aware: a static-looking id under a dynamic route is still scrubbed', () => {
+    // `employees/:employeeId` has no static `studio` child, so `studio` here is
+    // an employee id — must not leak via the documents-only `studio` route.
+    expect(scrubRoutePattern('/app/employees/studio')).toBe('/app/employees/:id')
+    expect(scrubRoutePattern('/app/cases/templates')).toBe('/app/cases/:id')
   })
 
   it('keeps real document sub-routes but scrubs the document id', () => {
@@ -51,6 +57,14 @@ describe('scrubRoutePattern', () => {
     expect(scrubRoutePattern('/app/documents/8f3b9c1e0a2d4b6f')).toBe('/app/documents/:id')
   })
 
+  it('degrades an unknown route to a safe label rather than echoing the path', () => {
+    // A 404 or a not-yet-registered dynamic route must never transmit a segment.
+    expect(scrubRoutePattern('/app/missing/jane-doe')).toBe('/app/:unknown')
+    expect(scrubRoutePattern('/app/some-new-feature/42')).toBe('/app/:unknown')
+    expect(scrubRoutePattern('/totally/made/up')).toBe('/unknown')
+    expect(scrubRoutePattern('/not-a-path')).toBe('/unknown')
+  })
+
   it('drops query strings and fragments entirely', () => {
     expect(scrubRoutePattern('/app/cases/abc-123?tab=notes#section')).toBe('/app/cases/:id')
     expect(scrubRoutePattern('/pricing?ref=email&utm=x')).toBe('/pricing')
@@ -58,11 +72,12 @@ describe('scrubRoutePattern', () => {
 
   it('strips a trailing slash but preserves root', () => {
     expect(scrubRoutePattern('/pricing/')).toBe('/pricing')
+    expect(scrubRoutePattern('/app/')).toBe('/app')
     expect(scrubRoutePattern('/')).toBe('/')
   })
 
   it('is total: never throws on odd input', () => {
     expect(scrubRoutePattern('')).toBe('/')
-    expect(scrubRoutePattern('not-a-path')).toBe('/not-a-path')
+    expect(scrubRoutePattern('///')).toBe('/')
   })
 })

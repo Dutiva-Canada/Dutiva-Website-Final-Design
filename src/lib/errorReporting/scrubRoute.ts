@@ -5,62 +5,112 @@
  * The binding constraint: the `/app` surface carries employee, case, document,
  * person, and conversation identifiers directly in the URL
  * (`/app/employees/:employeeId`, `/app/cases/:caseId`, …). Sending the resolved
- * path would leak those identifiers into telemetry. So we send the *pattern*
- * (`/app/employees/:id`), never the resolved value — and we strip the query
- * string and hash entirely, since those can carry search text or tokens.
+ * path would leak those identifiers into telemetry.
  *
- * Two layers, defensively combined so a route the table doesn't anticipate is
- * still scrubbed:
- *   1. Known public dynamic routes collapse to their named pattern so the
- *      public policy/help slugs (which are not PII) group cleanly rather than
- *      being over-scrubbed to `:id`.
- *   2. Everything else is walked segment by segment: a segment following a
- *      known entity collection, or one that merely *looks* like an identifier,
- *      becomes `:id`. Demo fixtures use human-readable ids (e.g. a person's
- *      name slug), which the identifier heuristic alone would miss — the
- *      collection rule is what guarantees those are scrubbed too.
+ * Approach: **deny-by-default matching against a known route registry.** A
+ * pathname is matched, segment by segment, against the real route patterns
+ * below; a matching pattern is returned verbatim (`/app/cases/:id`) and the
+ * query string and hash are dropped. Anything that does **not** match a known
+ * route degrades to `/unknown` (or `/app/:unknown` on the private surface) —
+ * never to the resolved path. This is position-aware, so `/app/employees/studio`
+ * binds `studio` to `:employeeId` (there is no static `employees/studio` route)
+ * and scrubs to `/app/employees/:id`, and a 404 or a newly added dynamic route
+ * that isn't in the registry yet can never transmit an identifier — the worst
+ * case is a lost grouping, never a leak.
+ *
+ * The registry mirrors src/seo/routes.ts, src/app/routes.tsx, and
+ * src/app/appViews.tsx. If a route is added or renamed there, add it here too;
+ * forgetting only over-scrubs it to `/unknown`, which is privacy-safe.
  */
 
-/** Public dynamic routes whose slug is public content (policy / help docs). */
-const PUBLIC_DYNAMIC: ReadonlyArray<readonly [RegExp, string]> = [
-  [/^\/legal\/[^/]+$/, '/legal/:slug'],
-  [/^\/help\/[^/]+$/, '/help/:slug'],
-  [/^\/fr\/juridique\/[^/]+$/, '/fr/juridique/:slug'],
-  [/^\/fr\/aide\/[^/]+$/, '/fr/aide/:slug'],
+/** Every real route pattern, absolute. `:name` segments match any single value. */
+const ROUTE_PATTERNS: readonly string[] = [
+  // Public marketing — English
+  '/',
+  '/about',
+  '/faq',
+  '/blog',
+  '/pricing',
+  '/templates',
+  '/guides',
+  '/guides/template-usage',
+  '/known-limitations',
+  '/legal',
+  '/legal/:slug',
+  '/help',
+  '/help/:slug',
+  '/contact',
+  '/status',
+  // Public marketing — French (localized slugs)
+  '/fr',
+  '/fr/a-propos',
+  '/fr/faq',
+  '/fr/blogue',
+  '/fr/tarifs',
+  '/fr/modeles',
+  '/fr/guides',
+  '/fr/guides/utilisation-des-modeles',
+  '/fr/limites-connues',
+  '/fr/juridique',
+  '/fr/juridique/:slug',
+  '/fr/aide',
+  '/fr/aide/:slug',
+  '/fr/contact',
+  '/fr/etat',
+  // App surface — entry + shell
+  '/app/welcome',
+  '/app/auth/confirm',
+  '/app',
+  '/app/home',
+  '/app/advisor',
+  '/app/workflows',
+  '/app/cases',
+  '/app/cases/:id',
+  '/app/employees',
+  '/app/employees/:id',
+  '/app/compliance',
+  '/app/policies',
+  '/app/templates',
+  '/app/reports',
+  '/app/knowledge',
+  '/app/support',
+  '/app/support/requests',
+  '/app/support/requests/:id',
+  '/app/support/admin',
+  '/app/support/admin/:id',
+  '/app/communications',
+  '/app/compensation',
+  '/app/wellbeing',
+  '/app/tasks',
+  '/app/calendar',
+  '/app/memory',
+  '/app/planning',
+  '/app/planning/tasks',
+  '/app/planning/calendar',
+  '/app/settings',
+  '/app/settings/memory',
+  '/app/settings/memory/people/:id',
+  '/app/settings/memory/cases/:id',
+  '/app/settings/memory/conversations/:id',
+  '/app/documents',
+  '/app/documents/hr-library',
+  '/app/documents/studio',
+  '/app/documents/templates/:id',
+  '/app/documents/generate/:id',
+  '/app/documents/:id',
 ]
 
-/**
- * App-surface path segments whose *following* segment is always an entity
- * identifier — even when that identifier is a plain word (demo fixtures) that
- * the identifier heuristic below would not otherwise catch. Kept in sync with
- * the dynamic routes in src/app/appViews.tsx.
- */
-const ENTITY_COLLECTIONS = new Set([
-  'cases',
-  'employees',
-  'people',
-  'conversations',
-  'documents',
-  'templates',
-  'generate',
-  'requests',
-  'admin',
-])
-
-/** Static children of an entity collection that are real routes, not ids
-    (e.g. `/app/documents/studio`) — kept rather than scrubbed. */
-const STATIC_CHILDREN = new Set(['studio', 'hr-library', 'templates', 'generate'])
-
-/** Heuristic: does this segment look like an opaque or numeric identifier? */
-function isIdentifierLike(segment: string): boolean {
-  if (segment.includes('@')) return true // email-ish
-  if (/^\d+$/.test(segment)) return true // all digits
-  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment)) return true // uuid
-  if (/^[0-9a-f]{16,}$/i.test(segment)) return true // long hex
-  if (/^[A-Za-z0-9_-]{20,}$/.test(segment)) return true // long opaque token / nanoid
-  if (/\d/.test(segment) && /^[A-Za-z0-9._-]{8,}$/.test(segment)) return true // mixed alnum with a digit
-  return false
+/** Split a pathname/pattern into segments (root → []). */
+function toSegments(value: string): string[] {
+  const trimmed = value.replace(/\/+$/, '')
+  return trimmed === '' ? [] : trimmed.slice(1).split('/')
 }
+
+/** Precompute once: each pattern's segments, longest-first isn't needed since
+    we score by static-segment count to prefer the most specific match. */
+const PATTERN_SEGMENTS: ReadonlyArray<{ pattern: string; segments: string[] }> = ROUTE_PATTERNS.map(
+  (pattern) => ({ pattern, segments: toSegments(pattern) }),
+)
 
 /**
  * Turn a resolved pathname (optionally with query/hash) into a route pattern
@@ -70,30 +120,33 @@ export function scrubRoutePattern(rawPath: string): string {
   try {
     const path = (rawPath.split(/[?#]/)[0] || '/').trim()
     const normalized = path.startsWith('/') ? path : `/${path}`
+    const segments = toSegments(normalized)
 
-    for (const [re, pattern] of PUBLIC_DYNAMIC) {
-      if (re.test(normalized)) return pattern
+    let best: string | null = null
+    let bestStatic = -1
+    for (const { pattern, segments: patternSegments } of PATTERN_SEGMENTS) {
+      if (patternSegments.length !== segments.length) continue
+      let matched = true
+      let staticCount = 0
+      for (let i = 0; i < patternSegments.length; i++) {
+        const patternSegment = patternSegments[i]!
+        if (patternSegment.startsWith(':')) continue // wildcard — matches any value
+        if (patternSegment !== segments[i]) {
+          matched = false
+          break
+        }
+        staticCount += 1
+      }
+      // Prefer the match with the most static segments (most specific).
+      if (matched && staticCount > bestStatic) {
+        best = pattern
+        bestStatic = staticCount
+      }
     }
 
-    const segments = normalized.split('/')
-    const out: string[] = []
-    for (let i = 0; i < segments.length; i++) {
-      const segment = segments[i]!
-      if (segment === '') {
-        out.push(segment)
-        continue
-      }
-      const prev = i > 0 ? segments[i - 1]! : ''
-      if (ENTITY_COLLECTIONS.has(prev) && !STATIC_CHILDREN.has(segment)) {
-        out.push(':id')
-        continue
-      }
-      out.push(isIdentifierLike(segment) ? ':id' : segment)
-    }
-
-    let result = out.join('/') || '/'
-    if (result.length > 1) result = result.replace(/\/+$/, '') || '/'
-    return result.slice(0, 128)
+    if (best) return best.slice(0, 128)
+    // Unknown route: never echo the path. Keep only the surface it was on.
+    return segments[0] === 'app' ? '/app/:unknown' : '/unknown'
   } catch {
     /* A scrubbing failure must never block a report — degrade to a safe label. */
     return '/unknown'

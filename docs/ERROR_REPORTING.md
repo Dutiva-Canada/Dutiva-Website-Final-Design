@@ -103,8 +103,27 @@ and the payload is PII-free either way. The only cost is noise, mitigated by the
   never surfaces its own failure** to the user.
 - **Dedupe + rate-limit** (`reporter.ts`): a per-fingerprint dedupe window, a
   rolling-window cap, and a hard per-session cap, so one broken render loop can't
-  flood the endpoint. The edge function adds a per-IP (salted-hash) server-side
-  limit as a second line of defence.
+  flood the endpoint. Server-side, `ingest_client_error_report()` enforces a
+  per-IP window **atomically** — a transaction-scoped advisory lock keyed on the
+  IP hash serializes concurrent calls so the check-then-insert can't be raced
+  past the limit — and a storage failure returns **500** (visible in the function
+  logs) rather than a silent 204.
+
+### IP handling (rate-limit only)
+
+The source IP is used **only** to rate-limit the open endpoint, and never lands
+on a retained report row:
+
+- It's keyed with **HMAC-SHA256 under a required secret pepper**
+  (`ERROR_REPORT_SALT`, falling back to `SUPPORT_NOTIFY_SECRET`) — never a
+  committed default, so IPv4's low entropy can't be brute-forced from table
+  access without also holding the secret. The function **fails closed** (500) if
+  the pepper is unset.
+- The hash lives in a **separate short-retention table**
+  (`client_error_rate_limit`), which the RPC purges per-IP down to the limiter
+  window on every call (plus a recommended scheduled purge of the tail). So the
+  "no persistent pseudonymous identifier" promise holds: nothing links a report
+  to a network beyond the ~1-minute window.
 
 ## Source maps
 
@@ -130,8 +149,10 @@ from the precache defensively.
 
 - Deploy `supabase/functions/report-error` with **`verify_jwt` off** (as with
   `resend-webhook`), so `sendBeacon` can reach it without an auth header.
-- Optionally set `ERROR_REPORT_SALT` (falls back to `SUPPORT_NOTIFY_SECRET`) for
-  the rate-limit IP hash.
+- **Required:** set `ERROR_REPORT_SALT` (or `SUPPORT_NOTIFY_SECRET`) — the pepper
+  for the rate-limit IP HMAC. The function fails closed without it.
+- Recommended: schedule a purge of the limiter tail, e.g.
+  `delete from public.client_error_rate_limit where created_at < now() - interval '1 hour';`
 - Reports land in `public.client_error_reports`; reads are admin-only (RLS).
 
 ## Files
