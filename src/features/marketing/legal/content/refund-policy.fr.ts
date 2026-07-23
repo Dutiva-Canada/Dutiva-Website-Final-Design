@@ -67,7 +67,7 @@ export default {
         },
         {
           "type": "li",
-          "text": "Suppression définitive de toutes les données après 30 jours, conformément à notre politique de conservation et de suppression des données"
+          "text": "Suppression définitive planifiée après 30 jours, conformément à notre politique de conservation et de suppression des données"
         },
         {
           "type": "li",
@@ -109,7 +109,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Les abonnements annuels comprennent une garantie de remboursement de 14 jours pour vous permettre d'évaluer pleinement la plateforme."
+          "text": "Les nouveaux abonnements annuels comprennent une garantie de remboursement de 14 jours pour vous permettre d'évaluer pleinement la plateforme."
         },
         {
           "type": "li",
@@ -159,7 +159,7 @@ export default {
         },
         {
           "type": "li",
-          "text": "Après 30 jours : vos données ont été supprimées définitivement; la réactivation démarre un nouvel espace de travail sans historique sur votre compte existant"
+          "text": "Après 30 jours : votre espace de travail précédent n'est plus disponible pour restauration (voir la section 3); la réactivation démarre un nouvel espace de travail sans historique sur votre compte existant"
         },
         {
           "type": "li",

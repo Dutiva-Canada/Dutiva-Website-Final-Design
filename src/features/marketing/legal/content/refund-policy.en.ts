@@ -77,7 +77,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "After the initial 14-day window, you may request a prorated refund based on the number of unused days remaining in your annual term, less a processing fee, by contacting support@dutiva.ca."
+          "text": "After the initial 14-day window, you are eligible for a prorated refund based on the number of unused days remaining in your annual term, less a processing fee, when you cancel and request the refund by contacting support@dutiva.ca."
         },
         {
           "type": "p",
@@ -107,7 +107,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "If you reactivate within 30 days of your subscription end date, your previous workspace, documents, and settings are restored. After 30 days, your data has been permanently deleted, so reactivation starts a new workspace with no history on your existing account. Contact support@dutiva.ca before reactivating if you have questions about data recovery."
+          "text": "If you reactivate within 30 days of your subscription end date, your previous workspace, documents, and settings are restored. After 30 days, your previous workspace is no longer available for restoration (see Section 3), so reactivation starts a new workspace with no history on your existing account. Contact support@dutiva.ca before reactivating if you have questions about data recovery."
         }
       ]
     },
