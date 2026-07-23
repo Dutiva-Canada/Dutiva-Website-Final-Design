@@ -100,6 +100,10 @@ export const authMessages = defineMessages({
   },
   auth_name_label: { en: 'Full name', fr: 'Nom complet' },
   auth_name_placeholder: { en: 'Jordan Mensah', fr: 'Jordan Mensah' },
+  auth_name_required: {
+    en: 'Please enter your full name.',
+    fr: 'Veuillez saisir votre nom complet.',
+  },
   auth_submit_signin: { en: 'Send sign-in link', fr: 'Envoyer le lien de connexion' },
   auth_submit_signup: { en: 'Create account', fr: 'Créer mon compte' },
   auth_passwordless_note: {

@@ -57,6 +57,13 @@ export function AuthPanel() {
 
   const handleSubmit = (e: SubmitEvent) => {
     e.preventDefault()
+    /* `required` alone accepts a whitespace-only name, which the provider then
+       trims away — so the sign-up would succeed without the promised metadata.
+       Require at least one non-whitespace character. */
+    if (mode === 'signup' && !name.trim()) {
+      setError(x(M.auth_name_required))
+      return
+    }
     send(email.trim(), mode === 'signup')
   }
 
@@ -134,7 +141,8 @@ export function AuthPanel() {
                   setSentTo(undefined)
                   setError(undefined)
                 }}
-                className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent text-[12.5px] font-semibold text-text-muted hover:text-text-2"
+                disabled={sending}
+                className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent text-[12.5px] font-semibold text-text-muted hover:text-text-2 disabled:cursor-default disabled:opacity-60"
               >
                 <ArrowLeft size={13} aria-hidden="true" />
                 {x(M.auth_use_different_email)}
