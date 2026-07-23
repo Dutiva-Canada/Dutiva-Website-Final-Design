@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Loader2, MailCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { authMessages as M } from '@/i18n/messages/auth'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { useAuth } from './authContext'
 
 type Mode = 'signin' | 'signup'
@@ -30,6 +31,7 @@ const primaryBtnClass =
  */
 export function AuthPanel() {
   const { x, L, lang } = useI18n()
+  const { legalDoc } = usePublicPath()
   const { status, session, signInWithEmail, signOut } = useAuth()
   const [mode, setMode] = useState<Mode>('signin')
   const [name, setName] = useState('')
@@ -41,7 +43,6 @@ export function AuthPanel() {
   const [sentTo, setSentTo] = useState<string | undefined>()
 
   const helpPath = lang === 'fr' ? '/fr/aide/se-connecter' : '/help/signing-in'
-  const legalPath = lang === 'fr' ? '/fr/juridique' : '/legal'
   const signedInEmail = session?.user.email
 
   const send = (targetEmail: string, withName: boolean) => {
@@ -152,20 +153,17 @@ export function AuthPanel() {
   return (
     <div>
       <div className={cardClass}>
-        {/* Sign in / Sign up toggle */}
-        <div
-          role="tablist"
-          aria-label={x(M.auth_sign_in)}
-          className="mb-[22px] flex gap-[3px] rounded-[11px] bg-inset p-[4px]"
-        >
+        {/* Sign in / Sign up toggle. Plain toggle buttons with aria-pressed
+            (matching ShellControls' LangToggle) — not an ARIA tablist, since
+            there are no tabpanels or roving/arrow-key semantics to back that up. */}
+        <div className="mb-[22px] flex gap-[3px] rounded-[11px] bg-inset p-[4px]">
           {(['signin', 'signup'] as const).map((m) => {
             const active = mode === m
             return (
               <button
                 key={m}
                 type="button"
-                role="tab"
-                aria-selected={active}
+                aria-pressed={active}
                 onClick={() => {
                   setMode(m)
                   setError(undefined)
@@ -199,6 +197,7 @@ export function AuthPanel() {
               <input
                 id={nameId}
                 type="text"
+                required
                 autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -243,11 +242,17 @@ export function AuthPanel() {
           {mode === 'signup' && (
             <p className="m-0 text-center text-[11.5px] leading-[1.5] text-text-faint">
               {x(M.auth_terms_prefix)}
-              <Link to={legalPath} className="font-semibold text-text-muted hover:text-text-2">
+              <Link
+                to={legalDoc('terms')}
+                className="font-semibold text-text-muted hover:text-text-2"
+              >
                 {x(M.auth_terms_link)}
               </Link>
               {x(M.auth_terms_and)}
-              <Link to={legalPath} className="font-semibold text-text-muted hover:text-text-2">
+              <Link
+                to={legalDoc('privacy')}
+                className="font-semibold text-text-muted hover:text-text-2"
+              >
                 {x(M.auth_privacy_link)}
               </Link>
               {x(M.auth_terms_suffix)}

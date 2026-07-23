@@ -67,7 +67,13 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
           ...(name ? { data: { full_name: name } } : {}),
         },
       })
-      if (error) return error.message
+      if (error) {
+        /* Don't surface Supabase's raw English error.message — it would leak
+           into the French UI. Log the specific failure, show a localized
+           generic instead. */
+        console.error('auth: magic-link request failed —', error)
+        return x(M.auth_generic_error)
+      }
       setStatus('sent-link')
       return undefined
     },

@@ -19,9 +19,10 @@ interface EntryLocationState {
 function AppWordmark() {
   return (
     <div className="flex items-center gap-[10px]">
+      {/* Decorative: the adjacent wordmark text already names the brand. */}
       <img
         src="/brand/dutiva-leaf.png"
-        alt="Dutiva"
+        alt=""
         className="block h-[26px] w-auto"
         style={{ filter: 'var(--logo-glow)' }}
       />
@@ -45,27 +46,29 @@ function BrandRail() {
     <aside
       className="relative hidden w-[45%] max-w-[600px] shrink-0 flex-col justify-between overflow-hidden px-[52px] py-[44px] lg:flex"
       style={{
-        background: 'radial-gradient(130% 120% at 12% 8%, #1b3350 0%, #0d1b2a 46%, #081018 100%)',
+        background:
+          'radial-gradient(130% 120% at 12% 8%, #1b3350 0%, var(--dutiva-navy) 46%, #081018 100%)',
       }}
     >
       {/* Gold glow accents */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -top-[130px] -right-[120px] h-[340px] w-[340px] rounded-full opacity-[0.18]"
-        style={{ background: 'radial-gradient(circle, #d4af37 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%)' }}
       />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-[150px] -left-[110px] h-[320px] w-[320px] rounded-full opacity-[0.12]"
-        style={{ background: 'radial-gradient(circle, #d4af37 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%)' }}
       />
 
       <div className="relative flex items-center gap-[10px]">
+        {/* Decorative: the adjacent wordmark text already names the brand. */}
         <img
           src="/brand/dutiva-leaf.png"
-          alt="Dutiva"
+          alt=""
           className="block h-[28px] w-auto"
-          style={{ filter: 'drop-shadow(0 0 6px rgba(212,175,55,0.35))' }}
+          style={{ filter: 'drop-shadow(0 0 6px rgba(var(--dutiva-gold-rgb),0.35))' }}
         />
         <span className="font-display text-[18px] font-bold tracking-[-0.01em] text-white">
           Duti<span style={{ color: 'var(--dutiva-gold)' }}>va</span>
@@ -73,7 +76,7 @@ function BrandRail() {
       </div>
 
       <div className="relative">
-        <div className="mb-[22px] inline-flex items-center gap-[8px] rounded-full border border-[rgba(212,175,55,0.28)] bg-[rgba(212,175,55,0.10)] px-[13px] py-[6px] text-[12px] font-semibold text-[#e9c877]">
+        <div className="mb-[22px] inline-flex items-center gap-[8px] rounded-full border border-[rgba(var(--dutiva-gold-rgb),0.28)] bg-[rgba(var(--dutiva-gold-rgb),0.10)] px-[13px] py-[6px] text-[12px] font-semibold text-[#e9c877]">
           <Sparkle size={12} fill="currentColor" strokeWidth={0} aria-hidden="true" />
           {x(M.auth_brand_badge)}
         </div>
@@ -86,7 +89,7 @@ function BrandRail() {
         <ul className="m-0 flex list-none flex-col gap-[14px] p-0">
           {points.map((point, i) => (
             <li key={i} className="flex items-start gap-[11px] text-[13.5px] leading-[1.5] text-white/85">
-              <span className="mt-px flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[rgba(212,175,55,0.16)] text-[#e9c877]">
+              <span className="mt-px flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[rgba(var(--dutiva-gold-rgb),0.16)] text-[#e9c877]">
                 <Check size={12} strokeWidth={2.5} aria-hidden="true" />
               </span>
               {x(point)}
