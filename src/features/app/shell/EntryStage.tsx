@@ -1,13 +1,12 @@
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Sparkle, TriangleAlert } from 'lucide-react'
+import { Check, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { shellMessages as M } from '@/i18n/messages/shell'
-import { authMessages as AM } from '@/i18n/messages/auth'
+import { authMessages as M } from '@/i18n/messages/auth'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuth } from '@/features/app/auth/authContext'
-import { AuthSignInForm } from '@/features/app/auth/AuthSignInForm'
+import { AuthPanel } from '@/features/app/auth/AuthPanel'
 import { isAllowedSignInEmail } from '@/features/app/auth/allowedEmail'
 import { LangToggle, ThemeToggle } from './ShellControls'
 
@@ -16,112 +15,170 @@ interface EntryLocationState {
   from?: { pathname: string }
 }
 
-/**
- * CTA that either enters the workspace directly (no Supabase configured —
- * local dev/tests, where RequireAdminSession is a no-op) or jumps to the
- * sign-in panel below (real deployment — the workspace is gated).
- */
-function EntryCta({
-  gated,
-  className,
-  children,
-}: {
-  readonly gated: boolean
-  readonly className: string
-  readonly children: ReactNode
-}) {
-  if (gated) {
-    return (
-      <a href="#signin" className={className}>
-        {children}
-      </a>
-    )
-  }
+/** Wordmark on the app surface (themed) — used in the mobile/tablet top bar. */
+function AppWordmark() {
   return (
-    <Link to="/app/home" className={className}>
-      {children}
-    </Link>
-  )
-}
-
-function EntrySignInPanel({
-  status,
-  email,
-  signOut,
-}: {
-  readonly status: ReturnType<typeof useAuth>['status']
-  readonly email: string | undefined
-  readonly signOut: ReturnType<typeof useAuth>['signOut']
-}) {
-  const { x, L, lang } = useI18n()
-  const helpPath = lang === 'fr' ? '/fr/aide/se-connecter' : '/help/signing-in'
-
-  if (status === 'signed-in' && email) {
-    return (
-      <div
-        id="signin"
-        className="mx-auto mb-[64px] max-w-[420px] scroll-mt-[100px] rounded-[16px] border border-border bg-surface p-[28px] text-left shadow-[0_24px_60px_-20px_rgba(27,36,48,0.25)]"
-      >
-        <div className="flex flex-col gap-[12px]">
-          <p className="m-0 text-[13.5px] text-text-2">{email}</p>
-          <p className="m-0 text-[13px] text-text-muted">{x(AM.auth_not_authorized)}</p>
-          <button
-            type="button"
-            onClick={() => void signOut()}
-            className="cursor-pointer self-start rounded-[8px] border border-border bg-transparent px-[14px] py-[8px] text-[13px] font-semibold text-text-2"
-          >
-            {x(AM.auth_sign_out)}
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  if (status === 'sent-link') {
-    return (
-      <div
-        id="signin"
-        className="mx-auto mb-[64px] max-w-[420px] scroll-mt-[100px] rounded-[16px] border border-border bg-surface p-[28px] text-left shadow-[0_24px_60px_-20px_rgba(27,36,48,0.25)]"
-      >
-        <p className="m-0 text-[14px] text-text-2">{x(AM.auth_link_sent)}</p>
-      </div>
-    )
-  }
-
-  return (
-    <div
-      id="signin"
-      className="mx-auto mb-[64px] max-w-[420px] scroll-mt-[100px] rounded-[16px] border border-border bg-surface p-[28px] text-left shadow-[0_24px_60px_-20px_rgba(27,36,48,0.25)]"
-    >
-      <h2 className="m-0 mb-[6px] font-display text-[18px] font-semibold text-text">
-        {x(AM.auth_sign_in)}
-      </h2>
-      <p className="m-0 mb-[16px] text-[13px] text-text-muted">{x(AM.auth_entry_description)}</p>
-      <AuthSignInForm idPrefix="welcome" />
-      <p className="m-0 mt-[16px] text-[12.5px] text-text-muted">
-        {L('Trouble signing in?', 'Un problème de connexion?')}{' '}
-        <Link to={helpPath} className="font-semibold text-text-2 hover:text-text">
-          {L('Get help', 'Obtenir de l’aide')}
-        </Link>
-      </p>
+    <div className="flex items-center gap-[10px]">
+      {/* Decorative: the adjacent wordmark text already names the brand. */}
+      <img
+        src="/brand/dutiva-leaf.png"
+        alt=""
+        className="block h-[26px] w-auto"
+        style={{ filter: 'var(--logo-glow)' }}
+      />
+      <span className="font-display text-[17px] font-bold tracking-[-0.01em]">
+        Duti<span className="text-gold-dot">va</span>
+      </span>
     </div>
   )
 }
 
 /**
- * App entry stage (/app/welcome) — sign-in landing from `App v2.dc.html`
- * (`isLanding` branch), now doubling as the actual gate: with Supabase
- * configured, every CTA here leads to the magic-link form instead of
- * straight into /app/home (see RequireAdminSession — the workspace is
- * invite-only for one account, not a public demo anymore). Without
- * Supabase configured, CTAs still enter directly, matching every other
- * feature's "degrade to signed-out" posture in local dev/tests.
+ * Left brand rail — always a dark navy surface regardless of theme, so its
+ * copy uses explicit light/gold colors rather than the theme-flipping tokens.
+ * Hidden below `lg`, where the form panel stands on its own.
+ */
+function BrandRail() {
+  const { x } = useI18n()
+  const points = [M.auth_brand_point_1, M.auth_brand_point_2, M.auth_brand_point_3]
+
+  return (
+    <aside
+      className="relative hidden w-[45%] max-w-[600px] shrink-0 flex-col justify-between overflow-hidden px-[52px] py-[44px] lg:flex"
+      style={{
+        background:
+          'radial-gradient(130% 120% at 12% 8%, #1b3350 0%, var(--dutiva-navy) 46%, #081018 100%)',
+      }}
+    >
+      {/* Gold glow accents */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-[130px] -right-[120px] h-[340px] w-[340px] rounded-full opacity-[0.18]"
+        style={{ background: 'radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%)' }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-[150px] -left-[110px] h-[320px] w-[320px] rounded-full opacity-[0.12]"
+        style={{ background: 'radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%)' }}
+      />
+
+      <div className="relative flex items-center gap-[10px]">
+        {/* Decorative: the adjacent wordmark text already names the brand. */}
+        <img
+          src="/brand/dutiva-leaf.png"
+          alt=""
+          className="block h-[28px] w-auto"
+          style={{ filter: 'drop-shadow(0 0 6px rgba(var(--dutiva-gold-rgb),0.35))' }}
+        />
+        <span className="font-display text-[18px] font-bold tracking-[-0.01em] text-white">
+          Duti<span style={{ color: 'var(--dutiva-gold)' }}>va</span>
+        </span>
+      </div>
+
+      <div className="relative">
+        <div className="mb-[22px] inline-flex items-center gap-[8px] rounded-full border border-[rgba(var(--dutiva-gold-rgb),0.28)] bg-[rgba(var(--dutiva-gold-rgb),0.10)] px-[13px] py-[6px] text-[12px] font-semibold text-[#e9c877]">
+          <Sparkle size={12} fill="currentColor" strokeWidth={0} aria-hidden="true" />
+          {x(M.auth_brand_badge)}
+        </div>
+        <h2 className="m-0 mb-[16px] max-w-[460px] font-display text-[30px] leading-[1.15] font-semibold tracking-[-0.02em] text-white">
+          {x(M.auth_brand_headline)}
+        </h2>
+        <p className="m-0 mb-[30px] max-w-[430px] text-[14.5px] leading-[1.6] text-white/70">
+          {x(M.auth_brand_sub)}
+        </p>
+        <ul className="m-0 flex list-none flex-col gap-[14px] p-0">
+          {points.map((point, i) => (
+            <li key={i} className="flex items-start gap-[11px] text-[13.5px] leading-[1.5] text-white/85">
+              <span className="mt-px flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[rgba(var(--dutiva-gold-rgb),0.16)] text-[#e9c877]">
+                <Check size={12} strokeWidth={2.5} aria-hidden="true" />
+              </span>
+              {x(point)}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="relative text-[12px] text-white/45">{x(M.auth_brand_footer)}</div>
+    </aside>
+  )
+}
+
+/**
+ * Direct-entry card for local dev / tests, where Supabase isn't configured and
+ * RequireAdminSession is a no-op — no sign-in is needed, so offer a plain way
+ * into the workspace. Matches every feature's "degrade to signed-out" posture.
+ */
+function EnterWorkspaceCard() {
+  const { x } = useI18n()
+  return (
+    <div className="rounded-[18px] border border-border bg-surface p-[28px] text-center shadow-[0_20px_50px_-24px_rgba(13,27,42,0.35)] min-[640px]:p-[32px]">
+      <h1 className="m-0 font-display text-[22px] font-semibold tracking-[-0.01em] text-text">
+        {x(M.auth_welcome_title)}
+      </h1>
+      <p className="mx-auto mt-[8px] mb-[22px] max-w-[300px] text-[13.5px] leading-[1.5] text-text-3">
+        {x(M.auth_welcome_sub)}
+      </p>
+      <Link
+        to="/app/home"
+        className="flex h-[46px] w-full items-center justify-center rounded-[11px] bg-navy text-[14px] font-semibold text-white"
+      >
+        {x(M.auth_enter_workspace)}
+      </Link>
+    </div>
+  )
+}
+
+function FormColumn({ children }: { readonly children: ReactNode }) {
+  const { L, lang } = useI18n()
+  const legalPath = lang === 'fr' ? '/fr/juridique' : '/legal'
+
+  return (
+    <main className="relative flex flex-1 flex-col">
+      <div className="flex items-center justify-between px-[24px] py-[20px] min-[640px]:px-[40px]">
+        <div className="lg:hidden">
+          <AppWordmark />
+        </div>
+        {/* ml-auto keeps the controls right-aligned at lg+, where the wordmark
+            above is display:none and would otherwise let justify-between pull
+            this lone flex child to the left edge. */}
+        <div className="ml-auto flex items-center gap-[10px]">
+          <LangToggle />
+          <ThemeToggle
+            className="flex h-[34px] w-[34px] shrink-0 cursor-pointer items-center justify-center rounded-[8px] border-none bg-inset text-text-2"
+            iconSize={17}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-1 items-center justify-center px-[24px] pb-[40px] min-[640px]:px-[40px]">
+        <div className="w-full max-w-[400px] animate-[fadeInUp_.4s_ease]">{children}</div>
+      </div>
+
+      <div className="px-[24px] pb-[26px] text-center min-[640px]:px-[40px]">
+        <p className="m-0 text-[11.5px] text-text-faint">
+          © Dutiva Canada Inc. ·{' '}
+          <Link to={legalPath} className="hover:text-text-muted">
+            {L('Legal', 'Juridique')}
+          </Link>
+        </p>
+      </div>
+    </main>
+  )
+}
+
+/**
+ * App entry stage (/app/welcome) — the dedicated sign in / sign up page. A
+ * two-panel layout: a dark navy brand rail (hidden below `lg`) beside the
+ * auth form. With Supabase configured the workspace is gated (invite-only for
+ * one account, see RequireAdminSession), so the form emails a passwordless
+ * magic link via AuthPanel; without it, CTAs enter directly, matching every
+ * feature's "degrade to signed-out" posture in local dev/tests. An already
+ * authorized session is redirected straight into the workspace.
  */
 export function EntryStage() {
-  const { x } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
-  const { status, session, signOut } = useAuth()
+  const { status, session } = useAuth()
 
   const gated = !!supabase
   const email = session?.user.email
@@ -135,107 +192,12 @@ export function EntryStage() {
 
   return (
     <div className="surface-app min-h-screen bg-bg font-sans text-text">
-      {/* ── Top bar ─────────────────────────────────────────────────────── */}
-      <header className="mx-auto flex max-w-[1180px] items-center justify-between gap-[12px] px-[20px] py-[16px] min-[640px]:px-[48px] min-[640px]:py-[22px]">
-        <div className="flex items-center gap-[10px]">
-          <div className="flex h-[34px] w-[34px] items-center justify-center">
-            <img
-              src="/brand/dutiva-leaf.png"
-              alt="Dutiva"
-              className="block h-[26px] w-auto"
-              style={{ filter: 'var(--logo-glow)' }}
-            />
-          </div>
-          <span className="font-display text-[17px] font-bold tracking-[-0.01em]">
-            Duti<span className="text-gold-dot">va</span>
-          </span>
-        </div>
-        <div className="flex items-center gap-[10px] text-[14.5px] text-text-3 min-[640px]:gap-[22px]">
-          <span className="hidden min-[820px]:inline">{x(M.shell_nav_platform)}</span>
-          <span className="hidden min-[820px]:inline">{x(M.shell_nav_provinces)}</span>
-          <span className="hidden min-[820px]:inline">{x(M.shell_nav_pricing)}</span>
-          <LangToggle />
-          <ThemeToggle
-            className="flex h-[34px] w-[34px] shrink-0 cursor-pointer items-center justify-center rounded-[8px] border-none bg-inset text-text-2"
-            iconSize={17}
-          />
-          <EntryCta
-            gated={gated}
-            className="hidden whitespace-nowrap text-[14.5px] font-semibold text-text min-[560px]:block"
-          >
-            {x(M.shell_signin)}
-          </EntryCta>
-          <EntryCta
-            gated={gated}
-            className="shrink-0 whitespace-nowrap rounded-[8px] bg-navy px-[18px] py-[10px] text-[14.5px] font-semibold text-white"
-          >
-            {x(M.shell_start_free)}
-          </EntryCta>
-        </div>
-      </header>
-
-      <main>
-        {/* ── Hero ──────────────────────────────────────────────────────── */}
-        <div className="mx-auto mt-[64px] max-w-[840px] px-[32px] text-center">
-          <div className="mb-[28px] inline-flex items-center gap-[8px] rounded-full bg-gold-bg px-[14px] py-[6px] text-[13px] font-semibold text-gold-fg">
-            <Sparkle size={13} fill="currentColor" strokeWidth={0} aria-hidden="true" />
-            {x(M.shell_hero_badge)}
-          </div>
-          <h1 className="m-0 mb-[22px] font-display text-[34px] leading-[1.08] font-semibold tracking-[-0.02em] min-[560px]:text-[44px] min-[860px]:text-[56px]">
-            {x(M.shell_hero_title)}
-          </h1>
-          <p className="mx-auto mt-0 mb-[36px] max-w-[600px] text-[16px] leading-[1.6] text-text-3 min-[560px]:text-[18px]">
-            {x(M.shell_hero_sub)}
-          </p>
-          <div className="mb-[48px] flex flex-wrap justify-center gap-[12px] min-[560px]:mb-[64px]">
-            <EntryCta
-              gated={gated}
-              className="rounded-[9px] bg-navy px-[26px] py-[14px] text-[15px] font-semibold text-white"
-            >
-              {x(M.shell_cta_primary)}
-            </EntryCta>
-            <EntryCta
-              gated={gated}
-              className="rounded-[9px] border border-border bg-surface px-[26px] py-[14px] text-[15px] font-semibold text-text"
-            >
-              {x(M.shell_cta_secondary)}
-            </EntryCta>
-          </div>
-
-          {/* ── Sign-in panel — real gate, only when Supabase is configured
-              and the visitor isn't already an authorized session (which
-              would have redirected away via the effect above). ────────── */}
-          {gated && !authorized && (
-            <EntrySignInPanel status={status} email={email} signOut={signOut} />
-          )}
-        </div>
-
-        {/* ── Advisor conversation preview (browser-chrome frame) ──────── */}
-        <div className="mx-auto mb-[80px] max-w-[920px] px-[32px]">
-          <div className="overflow-hidden rounded-[16px] border border-border bg-surface shadow-[0_24px_60px_-20px_rgba(27,36,48,0.25)]">
-            <div className="flex items-center gap-[8px] border-b border-border-soft px-[24px] py-[18px]">
-              <div className="h-[9px] w-[9px] rounded-full bg-border" />
-              <div className="h-[9px] w-[9px] rounded-full bg-border" />
-              <div className="h-[9px] w-[9px] rounded-full bg-border" />
-              <span className="ml-[8px] text-[12.5px] text-text-muted">
-                {x(M.shell_preview_title)}
-              </span>
-            </div>
-            <div className="flex flex-col gap-[14px] bg-surface-2 px-[30px] py-[26px]">
-              <div className="max-w-[70%] self-end rounded-[12px] rounded-br-[2px] bg-navy px-[16px] py-[10px] text-[14.5px] text-white">
-                {x(M.shell_preview_user)}
-              </div>
-              <div className="max-w-[80%] self-start rounded-[12px] rounded-tl-[2px] border border-border-soft bg-surface px-[16px] py-[14px] text-[14.5px] leading-[1.55]">
-                {x(M.shell_preview_reply)}
-              </div>
-              <div className="flex max-w-[80%] gap-[8px] self-start rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13.5px] text-risk-fg">
-                <TriangleAlert size={15} strokeWidth={1.9} className="mt-px shrink-0" />
-                <span>{x(M.shell_preview_risk)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+      <div className="flex min-h-screen">
+        <BrandRail />
+        <FormColumn>
+          {gated ? !authorized && <AuthPanel /> : <EnterWorkspaceCard />}
+        </FormColumn>
+      </div>
     </div>
   )
 }

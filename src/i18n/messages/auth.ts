@@ -43,6 +43,13 @@ export const authMessages = defineMessages({
     en: 'Sign-in for this workspace is currently invite-only.',
     fr: 'La connexion à cet espace de travail est actuellement sur invitation seulement.',
   },
+  /* Bilingual fallback for a provider/network failure, so the sign-in surfaces
+     never surface Supabase's raw English error.message in French mode. The
+     specific error is logged for diagnostics; the user sees this. */
+  auth_generic_error: {
+    en: 'We couldn’t send the sign-in link. Please try again in a moment.',
+    fr: 'Nous n’avons pas pu envoyer le lien de connexion. Veuillez réessayer dans un instant.',
+  },
   auth_menu_title: {
     en: 'Account',
     fr: 'Compte',
@@ -75,4 +82,89 @@ export const authMessages = defineMessages({
     en: 'Back to sign in',
     fr: 'Retour à la connexion',
   },
+
+  /* ── Dedicated sign in / sign up page (EntryStage / AuthPanel) ──────────────
+     Self-authored EN + FR. The mechanism stays passwordless magic-link: both
+     the sign-in and sign-up tabs email a secure link. "Sign up" additionally
+     captures a display name, carried as user metadata on the same OTP call. */
+  auth_tab_signup: { en: 'Sign up', fr: 'S’inscrire' },
+  auth_signin_title: { en: 'Welcome back', fr: 'Content de vous revoir' },
+  auth_signin_sub: {
+    en: 'Sign in to your Dutiva workspace.',
+    fr: 'Connectez-vous à votre espace de travail Dutiva.',
+  },
+  auth_signup_title: { en: 'Create your account', fr: 'Créez votre compte' },
+  auth_signup_sub: {
+    en: 'Get started with Dutiva — your AI advisor for Canadian HR.',
+    fr: 'Commencez avec Dutiva — votre conseiller IA pour les RH canadiennes.',
+  },
+  auth_name_label: { en: 'Full name', fr: 'Nom complet' },
+  auth_name_placeholder: { en: 'Jordan Mensah', fr: 'Jordan Mensah' },
+  auth_name_required: {
+    en: 'Please enter your full name.',
+    fr: 'Veuillez saisir votre nom complet.',
+  },
+  auth_submit_signin: { en: 'Send sign-in link', fr: 'Envoyer le lien de connexion' },
+  auth_submit_signup: { en: 'Create account', fr: 'Créer mon compte' },
+  auth_passwordless_note: {
+    en: 'No password needed — we’ll email you a secure sign-in link.',
+    fr: 'Aucun mot de passe requis — nous vous enverrons un lien de connexion sécurisé par courriel.',
+  },
+  auth_terms_prefix: {
+    en: 'By continuing, you agree to Dutiva’s ',
+    fr: 'En continuant, vous acceptez les ',
+  },
+  auth_terms_link: { en: 'Terms', fr: 'Conditions' },
+  auth_terms_and: { en: ' and ', fr: ' et la ' },
+  auth_privacy_link: { en: 'Privacy Policy', fr: 'Politique de confidentialité' },
+  auth_terms_suffix: { en: '.', fr: ' de Dutiva.' },
+  auth_sent_title: { en: 'Check your inbox', fr: 'Consultez votre boîte de réception' },
+  auth_sent_body_prefix: {
+    en: 'We sent a secure sign-in link to',
+    fr: 'Nous avons envoyé un lien de connexion sécurisé à',
+  },
+  auth_sent_body_suffix: {
+    en: 'Open it on this device to continue.',
+    fr: 'Ouvrez-le sur cet appareil pour continuer.',
+  },
+  auth_sent_spam: {
+    en: 'It can take a minute to arrive. Check your spam folder if it’s not there.',
+    fr: 'La réception peut prendre une minute. Vérifiez vos indésirables s’il n’y est pas.',
+  },
+  auth_resend: { en: 'Resend link', fr: 'Renvoyer le lien' },
+  auth_use_different_email: { en: 'Use a different email', fr: 'Utiliser une autre adresse' },
+  auth_brand_badge: {
+    en: 'Built for Canadian employment law — all provinces & federal',
+    fr: 'Conçu pour le droit du travail canadien — toutes les provinces et le fédéral',
+  },
+  auth_brand_headline: {
+    en: 'Canadian HR compliance, handled.',
+    fr: 'La conformité RH canadienne, maîtrisée.',
+  },
+  auth_brand_sub: {
+    en: 'One intelligent workspace across every conversation, employee record, document, and compliance deadline.',
+    fr: 'Un espace de travail intelligent réunissant chaque conversation, dossier d’employé, document et échéance de conformité.',
+  },
+  auth_brand_point_1: {
+    en: 'AI Advisor across every case, document, and deadline',
+    fr: 'Conseiller IA pour chaque dossier, document et échéance',
+  },
+  auth_brand_point_2: {
+    en: 'Federal and all-province coverage, in English and French',
+    fr: 'Couverture fédérale et de toutes les provinces, en français et en anglais',
+  },
+  auth_brand_point_3: {
+    en: 'Compliance guardrails and risk flags on every answer',
+    fr: 'Garde-fous de conformité et alertes de risque sur chaque réponse',
+  },
+  auth_brand_footer: {
+    en: 'Bilingual EN / FR · Made for Canadian employers',
+    fr: 'Bilingue FR / EN · Conçu pour les employeurs canadiens',
+  },
+  auth_welcome_title: { en: 'Welcome to Dutiva', fr: 'Bienvenue chez Dutiva' },
+  auth_welcome_sub: {
+    en: 'Your AI operating system for Canadian HR compliance.',
+    fr: 'Votre système d’exploitation IA pour la conformité RH canadienne.',
+  },
+  auth_enter_workspace: { en: 'Enter workspace', fr: 'Accéder à l’espace de travail' },
 })
