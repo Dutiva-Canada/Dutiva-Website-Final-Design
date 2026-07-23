@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   }, [])
 
   const signInWithEmail = useCallback(
-    async (email: string) => {
+    async (email: string, opts?: { name?: string }) => {
       if (!supabase) return 'Real legal sources are not configured in this environment.'
       /* The whole workspace is invite-only, not just this feature. The real
          boundary is enforced server-side (RLS on guidance_sources/
@@ -49,6 +49,11 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       if (!isAllowedSignInEmail(email)) {
         return x(M.auth_domain_restricted)
       }
+      /* The sign-up tab collects a display name; carry it as user metadata on
+         the same passwordless OTP call. signInWithOtp already creates the user
+         on first sign-in, so "sign up" and "sign in" are the same magic-link
+         action — the name just personalizes the created account. */
+      const name = opts?.name?.trim()
       const { error } = await supabase.auth.signInWithOtp({
         email,
         /* Land the magic link on the dedicated confirm route, which exchanges
@@ -57,7 +62,10 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
            transient state out of the redirect target. Pair with a Supabase
            email template pointing at {{ .RedirectTo }}?token_hash=…&
            type=magiclink so scanner prefetches can't burn the one-time token. */
-        options: { emailRedirectTo: `${window.location.origin}/app/auth/confirm` },
+        options: {
+          emailRedirectTo: `${window.location.origin}/app/auth/confirm`,
+          ...(name ? { data: { full_name: name } } : {}),
+        },
       })
       if (error) return error.message
       setStatus('sent-link')

@@ -15,8 +15,13 @@ export type AuthStatus = 'loading' | 'signed-out' | 'sent-link' | 'signed-in'
 export interface AuthContextValue {
   status: AuthStatus
   session: Session | null
-  /** Sends a magic-link email; resolves to an error message, or undefined on success. */
-  signInWithEmail: (email: string) => Promise<string | undefined>
+  /**
+   * Sends a magic-link email; resolves to an error message, or undefined on
+   * success. Passwordless throughout — the sign-up tab passes `{ name }` so
+   * the same OTP call carries a display name as user metadata; sign-in omits
+   * it. No password/credential path.
+   */
+  signInWithEmail: (email: string, opts?: { name?: string }) => Promise<string | undefined>
   signOut: () => Promise<void>
 }
 
