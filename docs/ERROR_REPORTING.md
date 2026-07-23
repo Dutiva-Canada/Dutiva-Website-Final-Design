@@ -67,11 +67,17 @@ pathname to its **pattern** before it leaves the browser:
   covers the human-readable slugs demo fixtures use (e.g. a person's name), which
   a "looks like an id" heuristic would miss.
 
-**Residual risk, stated honestly:** `message` and `stack` are free-form. If app
-code throws `new Error('failed for jane@corp.ca')`, that text is sent. We can't
-scrub free text without destroying its usefulness, so the mitigations are: both
-fields are length-capped (client and DB), nothing else is attached, and the
-engineering guideline is *don't embed PII in thrown error messages.*
+**Residual risk, stated honestly:** `message` and `stack` are free-form, so they
+can still carry PII an app throw embeds. Mitigations, in order: a **redaction
+pass** (`reporter.ts`) strips emails, UUIDs, and long hex strings from both
+fields before sending — deliberately conservative so it never mangles the
+content-hashed asset names a stack needs for symbolication; known
+identifier-bearing throws are also fixed at the source (e.g. doclib no longer
+puts document/template ids in its message); both fields are length-capped
+(client + DB); a **90-day retention** bounds how long anything lingers; nothing
+else is attached; and the standing guideline is *don't embed PII in thrown error
+messages.* Redaction is a safety net, not a guarantee — free text can't be fully
+scrubbed without destroying its usefulness.
 
 ## Where the data lives (residency)
 
@@ -154,6 +160,13 @@ on a retained report row:
   `purge_client_error_data()` runs, and if that job is **not provisioned** it can
   persist indefinitely. So the hash is short-lived under traffic **and** a
   correctly scheduled purge — not unconditionally.
+- **The HMAC governs only our table, not the platform logs.** The raw client IP
+  is in the HTTP request, so Supabase's Edge/network invocation logs retain it as
+  request metadata independently of what we store — the same transport-metadata
+  caveat as the user-agent. "Used only to rate-limit" describes *our* use; it does
+  not erase the platform log. Verify Supabase's log **region**, **retention**, and
+  any **log drains** for the project, and disclose them as part of the residency
+  posture.
 
 ### Retention
 

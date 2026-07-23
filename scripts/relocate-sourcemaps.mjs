@@ -36,8 +36,12 @@ async function collectMaps(dir) {
   let entries
   try {
     entries = await readdir(dir, { withFileTypes: true })
-  } catch {
-    return found // dist/ (or a subdir) may not exist — nothing to move.
+  } catch (err) {
+    // Only a genuinely absent directory is fine. A permission/I/O error must
+    // fail the build — otherwise unreadable subtrees could leave .map files
+    // under dist/ and ship them, breaking the never-deploy-source-maps rule.
+    if (err && err.code === 'ENOENT') return found
+    throw err
   }
   for (const entry of entries) {
     const full = path.join(dir, entry.name)

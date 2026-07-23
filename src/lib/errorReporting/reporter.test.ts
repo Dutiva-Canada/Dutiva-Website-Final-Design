@@ -47,6 +47,19 @@ describe('createReporter', () => {
     expect(payload).not.toHaveProperty('installId')
   })
 
+  it('redacts emails and id-like tokens from message and stack', () => {
+    const reporter = makeReporter()
+    const err = new Error('doclib: document 8f3b9c1e-0a2d-4b6f-9c1e-0a2d4b6f9c1e failed for jane@corp.ca')
+    err.stack = 'Error: boom\n    at load (https://app.dutiva.ca/x.js?token=deadbeefdeadbeef:1:2)'
+    reporter.report({ error: err, kind: 'route-boundary', pathname: '/app/home' })
+    const { message, stack } = sent[0]!.payload
+    expect(message).not.toContain('8f3b9c1e-0a2d-4b6f-9c1e-0a2d4b6f9c1e')
+    expect(message).not.toContain('jane@corp.ca')
+    expect(message).toContain('[id]')
+    expect(message).toContain('[email]')
+    expect(stack).not.toContain('deadbeefdeadbeef')
+  })
+
   it('reads locale from the live <html lang>', () => {
     document.documentElement.setAttribute('lang', 'fr-CA')
     const reporter = makeReporter()

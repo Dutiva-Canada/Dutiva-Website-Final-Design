@@ -70,6 +70,27 @@ function truncate(value: string, max: number): string {
   return value.length > max ? value.slice(0, max) : value
 }
 
+/**
+ * Redact high-confidence identifiers/PII from free-form message/stack before
+ * sending. `message`/`stack` bypass the route scrubber, and app code does throw
+ * errors carrying ids (e.g. doclib's "document <id> references template <id>"),
+ * so this is the safety net for the residual free-text risk. Deliberately
+ * conservative — emails, UUIDs, and long hex strings — so it never mangles the
+ * content-hashed asset filenames in a stack (short mixed-case, not hex/UUID)
+ * that symbolication relies on.
+ */
+const REDACTIONS: ReadonlyArray<readonly [RegExp, string]> = [
+  [/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[email]'],
+  [/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '[id]'],
+  [/\b[0-9a-f]{16,}\b/gi, '[id]'],
+]
+
+function redact(text: string): string {
+  let out = text
+  for (const [re, replacement] of REDACTIONS) out = out.replace(re, replacement)
+  return out
+}
+
 function messageOf(error: unknown): string {
   if (error instanceof Error) return error.message || error.name || 'Error'
   if (typeof error === 'string') return error
@@ -147,8 +168,8 @@ export function createReporter(config: ReporterConfig): Reporter {
       const pathname =
         input.pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '/')
       const route = scrubRoutePattern(pathname)
-      const message = truncate(messageOf(input.error), MAX_MESSAGE)
-      const stack = truncate(stackOf(input.error), MAX_STACK)
+      const message = truncate(redact(messageOf(input.error)), MAX_MESSAGE)
+      const stack = truncate(redact(stackOf(input.error)), MAX_STACK)
       const fingerprint = `${input.kind}|${route}|${message}|${firstFrame(stack)}`
       const now = clock()
 
