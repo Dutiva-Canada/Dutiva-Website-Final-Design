@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
+import { authMessages } from '@/i18n/messages/auth'
 import { GuidanceSourcesPanel } from './GuidanceSourcesPanel'
 
 /**
@@ -14,16 +15,14 @@ describe('GuidanceSourcesPanel', () => {
   it('shows the sign-in form when signed out', () => {
     renderApp(<GuidanceSourcesPanel />)
     expect(screen.getByText('Sign in to see real legal guidance sources and recent law changes.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Send magic link' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send sign-in link' })).toBeInTheDocument()
   })
 
   it('reports the not-configured error when submitting without Supabase configured', async () => {
     const user = userEvent.setup()
     renderApp(<GuidanceSourcesPanel />)
     await user.type(screen.getByLabelText('Work email'), 'a@b.com')
-    await user.click(screen.getByRole('button', { name: 'Send magic link' }))
-    expect(
-      await screen.findByText('Real legal sources are not configured in this environment.'),
-    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Send sign-in link' }))
+    expect(await screen.findByText(authMessages.auth_not_configured.en)).toBeInTheDocument()
   })
 })

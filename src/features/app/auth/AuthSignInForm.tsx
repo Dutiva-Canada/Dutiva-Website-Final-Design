@@ -48,7 +48,7 @@ export function AuthSignInForm({ idPrefix = 'auth' }: Readonly<{ idPrefix?: stri
           disabled={sending}
           className="shrink-0 cursor-pointer rounded-[10px] bg-navy px-[16px] py-[9px] text-[13.5px] font-semibold text-white disabled:opacity-60"
         >
-          {sending ? x(M.auth_sending) : x(M.auth_send_link)}
+          {sending ? x(M.auth_sending) : x(M.auth_submit_signin)}
         </button>
       </div>
       {error && <p className="text-[12.5px] text-risk-fg">{error}</p>}

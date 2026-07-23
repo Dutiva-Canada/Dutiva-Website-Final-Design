@@ -24,6 +24,7 @@ describe('AuthProvider', () => {
     const { AuthProvider } = await import('./AuthProvider')
     const { useAuth } = await import('./authContext')
     const { LangProvider } = await import('@/i18n/LangProvider')
+    const { authMessages } = await import('@/i18n/messages/auth')
 
     function Probe() {
       const { status, signInWithEmail } = useAuth()
@@ -47,7 +48,7 @@ describe('AuthProvider', () => {
     )
     expect(screen.getByTestId('status')).toHaveTextContent('signed-out')
     await user.click(screen.getByRole('button', { name: 'send' }))
-    expect(await screen.findByTestId('error')).toHaveTextContent('not configured')
+    expect(await screen.findByTestId('error')).toHaveTextContent(authMessages.auth_not_configured.en)
   })
 
   it('reflects an existing session on load and updates on sign-out', async () => {

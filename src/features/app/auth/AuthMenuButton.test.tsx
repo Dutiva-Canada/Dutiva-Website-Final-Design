@@ -22,7 +22,7 @@ describe('AuthMenuButton', () => {
     expect(
       screen.getByText('Sign in to unlock real AI Advisor replies and live legal sources.'),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Send magic link' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send sign-in link' })).toBeInTheDocument()
   })
 
   it('closes when clicking the backdrop', async () => {

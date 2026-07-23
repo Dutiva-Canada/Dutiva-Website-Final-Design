@@ -27,10 +27,6 @@ export const authMessages = defineMessages({
     en: 'you@company.com',
     fr: 'vous@entreprise.com',
   },
-  auth_send_link: {
-    en: 'Send magic link',
-    fr: 'Envoyer le lien magique',
-  },
   auth_sending: {
     en: 'Sending…',
     fr: 'Envoi en cours…',
@@ -49,6 +45,12 @@ export const authMessages = defineMessages({
   auth_generic_error: {
     en: 'We couldn’t send the sign-in link. Please try again in a moment.',
     fr: 'Nous n’avons pas pu envoyer le lien de connexion. Veuillez réessayer dans un instant.',
+  },
+  /* Shown only where Supabase isn't configured (local dev/tests) and a visitor
+     submits a sign-in form. Localized like everything else on these surfaces. */
+  auth_not_configured: {
+    en: 'Sign-in isn’t configured in this environment.',
+    fr: 'La connexion n’est pas configurée dans cet environnement.',
   },
   auth_menu_title: {
     en: 'Account',

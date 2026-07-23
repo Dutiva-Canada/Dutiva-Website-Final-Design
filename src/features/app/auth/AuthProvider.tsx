@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
 
   const signInWithEmail = useCallback(
     async (email: string, opts?: { name?: string }) => {
-      if (!supabase) return 'Real legal sources are not configured in this environment.'
+      if (!supabase) return x(M.auth_not_configured)
       /* The whole workspace is invite-only, not just this feature. The real
          boundary is enforced server-side (RLS on guidance_sources/
          law_updates, an explicit check in the advisor-chat edge function,
