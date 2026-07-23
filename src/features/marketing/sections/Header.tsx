@@ -1,26 +1,60 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ChevronRight, Globe, LogIn, Menu, Moon, Sun, X } from 'lucide-react'
 import { HTML_LANG, writeLang } from '@/i18n/lang'
 import type { Lang } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
 import { usePublicPath } from '@/seo/usePublicPath'
+import type { SeoRouteId } from '@/seo/routes'
 import { LeafTile, Wordmark } from '../Brand'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 
-/* Landing-section anchors, resolved against the locale homepage ('/'
-   or '/fr') so they work from the subpages in either language; on the
-   landing page itself the path part is a no-op and the browser jumps
-   straight to the anchor. */
-const NAV_ITEMS: { hash: string; key: LandingMessageKey }[] = [
+/* Header nav entries. Most are landing-section anchors, resolved against the
+   locale homepage ('/' or '/fr') so they work from subpages in either
+   language; on the landing page itself the path is a no-op and the browser
+   jumps to the anchor. `route` entries (Pricing) link straight to a dedicated
+   page instead of a homepage section. */
+const NAV_ITEMS: { key: LandingMessageKey; hash?: string; route?: SeoRouteId }[] = [
   { hash: 'how', key: 'landing_nav_how' },
   { hash: 'workflows', key: 'landing_nav_workflows' },
   { hash: 'product', key: 'landing_nav_docs' },
   { hash: 'coverage', key: 'landing_nav_coverage' },
-  { hash: 'pricing', key: 'landing_nav_pricing' },
+  { route: 'pricing', key: 'landing_nav_pricing' },
   { hash: 'guides', key: 'landing_nav_guides' },
 ]
+
+/** A nav entry: a router link for `route` entries (Pricing → /pricing), or a
+    homepage anchor otherwise. Shared by the desktop bar and the mobile drawer. */
+function NavLink({
+  item,
+  className,
+  onClick,
+  children,
+}: {
+  readonly item: (typeof NAV_ITEMS)[number]
+  readonly className: string
+  readonly onClick?: () => void
+  readonly children?: ReactNode
+}) {
+  const { lt } = useLanding()
+  const { home, p } = usePublicPath()
+  if (item.route) {
+    return (
+      <Link to={p(item.route)} className={className} onClick={onClick}>
+        {lt(item.key)}
+        {children}
+      </Link>
+    )
+  }
+  return (
+    <a href={home(item.hash ?? 'top')} className={className} onClick={onClick}>
+      {lt(item.key)}
+      {children}
+    </a>
+  )
+}
 
 /* Compact desktop control pill (lang / theme) — prototype `.hdr-ctrl`. */
 const CTRL =
@@ -90,13 +124,11 @@ export function Header() {
 
           <nav className="hidden items-center gap-0.5 min-[901px]:flex">
             {NAV_ITEMS.map((item) => (
-              <a
-                key={item.hash}
-                href={home(item.hash)}
+              <NavLink
+                key={item.key}
+                item={item}
                 className="rounded-full px-3.5 py-2 text-sm font-semibold text-text-2 transition-opacity hover:opacity-80"
-              >
-                {lt(item.key)}
-              </a>
+              />
             ))}
           </nav>
 
@@ -183,15 +215,14 @@ export function Header() {
         </div>
         <nav className="flex flex-col">
           {NAV_ITEMS.map((item) => (
-            <a
-              key={item.hash}
-              href={home(item.hash)}
+            <NavLink
+              key={item.key}
+              item={item}
               onClick={closeMenu}
               className="flex items-center justify-between rounded-xl border-b border-border px-3 py-[15px] text-[1.0625rem] font-semibold text-text hover:bg-[rgba(127,127,127,0.06)]"
             >
-              {lt(item.key)}
               <ChevronRight size={16} className="text-text-3" />
-            </a>
+            </NavLink>
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-2.5 pt-5">

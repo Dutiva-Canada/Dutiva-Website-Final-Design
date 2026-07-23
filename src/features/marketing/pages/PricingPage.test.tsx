@@ -33,7 +33,7 @@ function renderPricing() {
 }
 
 describe('PricingPage', () => {
-  it('renders the hero and all four plan cards in English', () => {
+  it('renders the hero and all four plan tiers in English', () => {
     renderPricing()
     expect(
       screen.getByRole('heading', {
@@ -42,11 +42,30 @@ describe('PricingPage', () => {
       }),
     ).toBeInTheDocument()
 
-    expect(screen.getByText('Free / Beta')).toBeInTheDocument()
-    expect(screen.getByText('Starter')).toBeInTheDocument()
-    expect(screen.getByText('Growth')).toBeInTheDocument()
-    expect(screen.getByText('Professional')).toBeInTheDocument()
+    /* Each tier name now appears in both the plan card and the comparison
+       table header, so assert presence rather than a single occurrence. */
+    for (const name of ['Free / Beta', 'Starter', 'Growth', 'Professional']) {
+      expect(screen.getAllByText(name).length).toBeGreaterThan(0)
+    }
     expect(screen.getByText('Most popular')).toBeInTheDocument()
+  })
+
+  it('switches plan prices when toggling to annual billing', async () => {
+    const user = userEvent.setup()
+    renderPricing()
+    // Growth is $49/mo on monthly billing.
+    expect(screen.getByText('$49')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Annual/i }))
+    // Annual = two months free → $41/mo effective for Growth.
+    expect(screen.getByText('$41')).toBeInTheDocument()
+    expect(screen.queryByText('$49')).not.toBeInTheDocument()
+  })
+
+  it('renders the feature comparison table', () => {
+    renderPricing()
+    expect(screen.getByText('AI Advisor')).toBeInTheDocument()
+    expect(screen.getByText('Advisor access')).toBeInTheDocument()
+    expect(screen.getByText('Save & export documents')).toBeInTheDocument()
   })
 
   it('shows the not-legal-advice disclaimer', () => {

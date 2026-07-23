@@ -1,18 +1,21 @@
-import { useState } from 'react'
-import { ArrowRight, Check, ShieldCheck, Sparkles } from 'lucide-react'
+import { Fragment, useState } from 'react'
+import type { ReactNode } from 'react'
+import { ArrowRight, Ban, Check, Lock, Minus, RotateCcw, ShieldCheck, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useAuth } from '@/features/app/auth/authContext'
 import { usePlan } from '@/features/app/billing/planContext'
 import { supabase } from '@/lib/supabaseClient'
-import { PLANS, getPlanById } from '@/config/plans'
-import type { PlanDefinition } from '@/config/plans'
+import { PLANS, annualPerMonth, annualTotal, getPlanById } from '@/config/plans'
+import type { BillingPeriod, PlanDefinition } from '@/config/plans'
+import { PLAN_COMPARISON } from '@/config/planComparison'
+import type { ComparisonCell } from '@/config/planComparison'
+import type { MessageKey } from '@/i18n/messages'
 import { Disclaimer } from '@/components/Disclaimer'
 import { Seo } from '@/seo/Seo'
 import { webApplicationNode } from '@/seo/jsonld'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
-import type { ReactNode } from 'react'
 
-/** Full-width band with no heading — for the admin-bypass banner and the checkout notice. */
+/** Full-width band with no heading — for the admin-bypass banner and checkout notice. */
 function Band({ children }: { readonly children: ReactNode }) {
   return <section className="mx-auto max-w-[960px] px-6 py-2">{children}</section>
 }
@@ -24,17 +27,63 @@ interface CheckoutResponse {
   error?: string
 }
 
+/** Segmented Monthly / Annual control; the annual segment advertises the saving. */
+function BillingToggle({
+  period,
+  onChange,
+}: {
+  readonly period: BillingPeriod
+  readonly onChange: (next: BillingPeriod) => void
+}) {
+  const { t } = useI18n()
+  const seg = (active: boolean) =>
+    'inline-flex cursor-pointer items-center gap-2 rounded-full border-0 px-4 py-2 text-sm font-semibold transition-colors ' +
+    (active ? 'bg-bg-elevated text-text shadow-sm' : 'bg-transparent text-text-3 hover:text-text-2')
+  return (
+    <div className="flex justify-center">
+      <div
+        role="group"
+        aria-label={t('pricing_eyebrow')}
+        className="inline-flex items-center gap-1 rounded-full border border-border bg-bg-soft p-1"
+      >
+        <button
+          type="button"
+          aria-pressed={period === 'monthly'}
+          onClick={() => onChange('monthly')}
+          className={seg(period === 'monthly')}
+        >
+          {t('pricing_billing_monthly')}
+        </button>
+        <button
+          type="button"
+          aria-pressed={period === 'annual'}
+          onClick={() => onChange('annual')}
+          className={seg(period === 'annual')}
+        >
+          {t('pricing_billing_annual')}
+          <span className="rounded-full bg-gold-subtle px-2 py-0.5 text-[0.625rem] font-semibold tracking-wide text-gold-strong">
+            {t('pricing_billing_save')}
+          </span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function PriceCard({
   plan,
+  period,
   onCheckout,
   isLoading,
 }: {
   readonly plan: PlanDefinition
+  readonly period: BillingPeriod
   readonly onCheckout: (plan: PlanDefinition) => void
   readonly isLoading: boolean
 }) {
   const { t } = useI18n()
   const hasPrice = plan.monthlyPrice > 0
+  const perMonth = period === 'annual' ? annualPerMonth(plan.monthlyPrice) : plan.monthlyPrice
 
   return (
     <div
@@ -55,13 +104,23 @@ function PriceCard({
       <p className="mt-2 text-sm leading-6 text-text-2">{t(plan.descKey)}</p>
 
       <div className="mt-6 flex items-end gap-2">
-        <div className="font-display text-4xl font-semibold tracking-[-0.02em] text-text">
-          {hasPrice ? `$${plan.monthlyPrice}` : t('landing_free_amt')}
+        <div
+          className={`font-display text-4xl font-semibold tracking-[-0.02em] ${
+            plan.popular ? 'text-gold-strong' : 'text-text'
+          }`}
+        >
+          {hasPrice ? `$${perMonth}` : t('landing_free_amt')}
         </div>
         {hasPrice ? <div className="pb-1 text-sm text-text-2">CAD{t('pricing_mo')}</div> : null}
       </div>
+      {/* Reserve the line in both periods so card heights stay aligned. */}
+      <p className="mt-1 min-h-[1.125rem] text-xs text-text-3">
+        {hasPrice && period === 'annual'
+          ? `$${annualTotal(plan.monthlyPrice)} ${t('pricing_billed_yearly')}`
+          : ''}
+      </p>
 
-      <ul className="m-0 mt-6 flex-1 list-none space-y-3 p-0">
+      <ul className="m-0 mt-5 flex-1 list-none space-y-3 p-0">
         {plan.featureKeys.map((key) => (
           <li key={key} className="flex items-start gap-3 text-sm text-text-2">
             <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-gold-subtle text-gold-strong">
@@ -88,17 +147,136 @@ function PriceCard({
   )
 }
 
+const TRUST_ITEMS = [
+  { icon: Lock, key: 'pricing_trust_stripe' },
+  { icon: RotateCcw, key: 'pricing_trust_refund' },
+  { icon: Ban, key: 'pricing_trust_cancel' },
+  { icon: ShieldCheck, key: 'pricing_trust_privacy' },
+] as const
+
+function TrustBand() {
+  const { t } = useI18n()
+  return (
+    <div className="mx-auto max-w-[960px] px-6">
+      <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 rounded-2xl border border-border bg-bg-elevated px-6 py-4">
+        {TRUST_ITEMS.map(({ icon: Icon, key }) => (
+          <span key={key} className="inline-flex items-center gap-2 text-sm text-text-2">
+            <Icon size={16} className="shrink-0 text-gold-strong" aria-hidden="true" />
+            {t(key)}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CellView({ cell }: { readonly cell: ComparisonCell }) {
+  const { t } = useI18n()
+  if (cell === true) {
+    return (
+      <>
+        <Check size={16} className="text-gold-strong" aria-hidden="true" />
+        <span className="sr-only">{t('pricing_included')}</span>
+      </>
+    )
+  }
+  if (cell === false) {
+    return (
+      <>
+        <Minus size={16} className="text-text-3" aria-hidden="true" />
+        <span className="sr-only">{t('pricing_not_included')}</span>
+      </>
+    )
+  }
+  return <span className="text-text-2">{t(cell)}</span>
+}
+
+function ComparisonTable({ priceFor }: { readonly priceFor: (plan: PlanDefinition) => string }) {
+  const { t } = useI18n()
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-border">
+      <table className="w-full min-w-[720px] border-collapse text-left">
+        <caption className="sr-only">{t('pricing_compare_title')}</caption>
+        <thead>
+          <tr className="border-b border-border">
+            <th scope="col" className="px-5 py-4 text-sm font-semibold text-text-3">
+              {t('pricing_feature_col')}
+            </th>
+            {PLANS.map((plan) => (
+              <th
+                key={plan.id}
+                scope="col"
+                className={`px-4 py-4 text-center ${plan.popular ? 'bg-gold-subtle' : ''}`}
+              >
+                <div
+                  className={`text-sm font-semibold ${plan.popular ? 'text-gold-strong' : 'text-text'}`}
+                >
+                  {t(plan.nameKey)}
+                </div>
+                <div className="mt-0.5 text-xs font-normal text-text-3">{priceFor(plan)}</div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {PLAN_COMPARISON.map((group) => (
+            <Fragment key={group.headingKey}>
+              <tr className="bg-bg-soft">
+                <th
+                  scope="colgroup"
+                  colSpan={1 + PLANS.length}
+                  className="px-5 py-2.5 text-left text-xs font-semibold tracking-wider text-gold-strong uppercase"
+                >
+                  {t(group.headingKey)}
+                </th>
+              </tr>
+              {group.rows.map((row) => (
+                <tr key={row.labelKey} className="border-t border-border">
+                  <th scope="row" className="px-5 py-3 text-left text-sm font-normal text-text-2">
+                    {t(row.labelKey)}
+                  </th>
+                  {PLANS.map((plan) => (
+                    <td
+                      key={plan.id}
+                      className={`px-4 py-3 text-center text-sm ${plan.popular ? 'bg-gold-subtle' : ''}`}
+                    >
+                      <span className="inline-flex items-center justify-center">
+                        <CellView cell={row.cells[plan.id]} />
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </Fragment>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+const FAQ_ITEMS: { q: MessageKey; a: MessageKey }[] = [
+  { q: 'pricing_faq_legal_q', a: 'pricing_faq_legal_a' },
+  { q: 'pricing_faq_jur_q', a: 'pricing_faq_jur_a' },
+  { q: 'pricing_faq_billing_q', a: 'pricing_faq_billing_a' },
+  { q: 'pricing_faq_annual_q', a: 'pricing_faq_annual_a' },
+  { q: 'pricing_faq_switch_q', a: 'pricing_faq_switch_a' },
+  { q: 'pricing_faq_refund_q', a: 'pricing_faq_refund_a' },
+]
+
 /**
- * /pricing — the full plan comparison page the landing page's Pricing
- * section links to ("Compare all plans"). Checkout goes through the
- * `create-checkout-session` Supabase function (supabase/functions/); an
- * internal Dutiva account bypasses it automatically (adminAccess.ts) and
- * sees a confirmation banner instead of a Stripe redirect.
+ * /pricing — the full plan comparison page the landing page's Pricing section
+ * and the header nav link to. Monthly/annual toggle drives the displayed
+ * price and is carried into checkout; the feature table sits below the cards.
+ * Checkout goes through the `create-checkout-session` Supabase function; an
+ * internal Dutiva account bypasses it (adminAccess.ts) and sees a confirmation
+ * banner instead of a Stripe redirect.
  */
 export function PricingPage() {
   const { t, lang } = useI18n()
   const { status } = useAuth()
   const { isAdmin, plan: currentPlan, stripeCustomerId, loading: planLoading } = usePlan()
+  const [period, setPeriod] = useState<BillingPeriod>('monthly')
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
   const [notice, setNotice] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
@@ -118,9 +296,12 @@ export function PricingPage() {
 
     setCheckoutPlanId(plan.id)
     try {
+      /* Carry the chosen period so the backend can pick the matching Stripe
+         price. Annual price ids still need wiring in the edge function before
+         annual checkout settles (see ANNUAL_MONTHS_BILLED in config/plans). */
       const { data, error } = await supabase.functions.invoke<CheckoutResponse>(
         'create-checkout-session',
-        { body: { plan: plan.id } },
+        { body: { plan: plan.id, billingPeriod: period } },
       )
       if (error) throw error
 
@@ -165,8 +346,14 @@ export function PricingPage() {
     }
   }
 
-  /* Offer nodes mirror the plan cards rendered below (same PLANS catalogue,
-     same visible CAD prices) — schema pricing can never drift from the page. */
+  const priceFor = (plan: PlanDefinition): string => {
+    if (plan.monthlyPrice === 0) return t('landing_free_amt')
+    const perMonth = period === 'annual' ? annualPerMonth(plan.monthlyPrice) : plan.monthlyPrice
+    return `$${perMonth}${t('pricing_mo')}`
+  }
+
+  /* Offer nodes mirror the plan cards (same PLANS catalogue, monthly CAD
+     prices) — schema pricing can never drift from the page. */
   const offers = PLANS.map((plan) => ({ name: t(plan.nameKey), priceCad: plan.monthlyPrice }))
   return (
     <MarketingPageShell>
@@ -219,15 +406,15 @@ export function PricingPage() {
         </PageSection>
       ) : null}
 
-      <PageSection title={t('pricing_compare_title')}>
-        <p className="-mt-3 mb-6 max-w-[62ch] text-sm leading-6 text-text-2">
-          {t('pricing_compare_sub')}
-        </p>
-        <div className="grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {/* ── Plans (billing toggle + cards) ─────────────────────────────────── */}
+      <section className="mx-auto max-w-[1200px] px-6 pt-4 pb-2">
+        <BillingToggle period={period} onChange={setPeriod} />
+        <div className="mt-8 grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((plan) => (
             <PriceCard
               key={plan.id}
               plan={plan}
+              period={period}
               onCheckout={handleCheckout}
               isLoading={checkoutPlanId === plan.id}
             />
@@ -243,19 +430,34 @@ export function PricingPage() {
             {t('landing_price_foot2')}
           </span>
         </div>
-        <Disclaimer variant="block" className="mt-6" />
+      </section>
+
+      <div className="pt-6">
+        <TrustBand />
+      </div>
+
+      <Band>
+        <Disclaimer variant="block" className="mt-4" />
+      </Band>
+
+      {/* ── Full feature comparison ────────────────────────────────────────── */}
+      <PageSection title={t('pricing_compare_title')}>
+        <p className="-mt-3 mb-6 max-w-[62ch] text-sm leading-6 text-text-2">
+          {t('pricing_compare_sub')}
+        </p>
+        <ComparisonTable priceFor={priceFor} />
+        <p className="mt-4 max-w-[68ch] text-xs leading-5 text-text-3">{t('pricing_compare_note')}</p>
       </PageSection>
 
+      {/* ── FAQ ────────────────────────────────────────────────────────────── */}
       <PageSection title={t('pricing_faq_title')}>
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="premium-card-soft p-5">
-            <div className="text-sm font-semibold text-text">{t('pricing_faq_legal_q')}</div>
-            <p className="mt-2 text-sm leading-6 text-text-2">{t('pricing_faq_legal_a')}</p>
-          </div>
-          <div className="premium-card-soft p-5">
-            <div className="text-sm font-semibold text-text">{t('pricing_faq_jur_q')}</div>
-            <p className="mt-2 text-sm leading-6 text-text-2">{t('pricing_faq_jur_a')}</p>
-          </div>
+          {FAQ_ITEMS.map((item) => (
+            <div key={item.q} className="premium-card-soft p-5">
+              <div className="text-sm font-semibold text-text">{t(item.q)}</div>
+              <p className="mt-2 text-sm leading-6 text-text-2">{t(item.a)}</p>
+            </div>
+          ))}
         </div>
       </PageSection>
 

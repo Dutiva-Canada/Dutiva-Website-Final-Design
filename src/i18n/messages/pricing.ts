@@ -104,4 +104,107 @@ export const pricingMessages = defineMessages({
     en: 'Ask a question',
     fr: 'Poser une question',
   },
+
+  /* ── Billing period toggle ─────────────────────────────────────────────── */
+  pricing_billing_monthly: { en: 'Monthly', fr: 'Mensuel' },
+  pricing_billing_annual: { en: 'Annual', fr: 'Annuel' },
+  pricing_billing_save: { en: '2 months free', fr: '2 mois gratuits' },
+  pricing_billed_yearly: { en: 'billed yearly', fr: 'facturé par année' },
+
+  /* ── Trust band ────────────────────────────────────────────────────────── */
+  pricing_trust_stripe: { en: 'Secure Stripe checkout', fr: 'Paiement Stripe sécurisé' },
+  pricing_trust_refund: { en: '7-day money-back', fr: 'Remboursement sous 7 jours' },
+  pricing_trust_cancel: { en: 'Cancel anytime', fr: 'Annulation en tout temps' },
+  pricing_trust_privacy: {
+    en: 'Privacy-first, built in Canada',
+    fr: 'Confidentialité d’abord, conçu au Canada',
+  },
+
+  /* ── Feature comparison table ──────────────────────────────────────────── */
+  pricing_feature_col: { en: 'Features', fr: 'Fonctionnalités' },
+  pricing_included: { en: 'Included', fr: 'Inclus' },
+  pricing_not_included: { en: 'Not included', fr: 'Non inclus' },
+  pricing_compare_note: {
+    en: 'Plan limits are being finalized during beta. Reach out if you need specifics for your team.',
+    fr: 'Les limites des forfaits sont en cours de finalisation pendant la bêta. Écrivez-nous si vous avez besoin de précisions pour votre équipe.',
+  },
+  pricing_grp_advisor: { en: 'AI Advisor', fr: 'Conseiller IA' },
+  pricing_grp_documents: { en: 'HR documents', fr: 'Documents RH' },
+  pricing_grp_workspace: { en: 'Workspace & support', fr: 'Espace de travail et soutien' },
+  pricing_grp_billing: { en: 'Billing & terms', fr: 'Facturation et conditions' },
+
+  pricing_row_advisor_access: { en: 'Advisor access', fr: 'Accès au Conseiller' },
+  pricing_row_ask: { en: 'Ask-anything HR guidance', fr: 'Conseils RH sur demande' },
+  pricing_row_riskflags: {
+    en: 'Compliance risk flags',
+    fr: 'Alertes de risque de conformité',
+  },
+  pricing_row_jurisdiction: {
+    en: 'Coverage — ON · QC · Federal',
+    fr: 'Couverture — ON · QC · fédéral',
+  },
+  pricing_row_docgen: { en: 'Generate HR documents', fr: 'Génération de documents RH' },
+  pricing_row_templates: {
+    en: 'Canadian HR template library',
+    fr: 'Bibliothèque de modèles RH canadiens',
+  },
+  pricing_row_export: {
+    en: 'Save & export documents',
+    fr: 'Sauvegarde et exportation des documents',
+  },
+  pricing_row_advworkflows: {
+    en: 'Advanced document workflows',
+    fr: 'Processus documentaires avancés',
+  },
+  pricing_row_preview: {
+    en: 'Workspace preview & guidance',
+    fr: 'Aperçu et conseils dans l’espace de travail',
+  },
+  pricing_row_support: { en: 'Support', fr: 'Soutien' },
+  pricing_row_contract: { en: 'No long-term contract', fr: 'Aucun contrat à long terme' },
+  pricing_row_refund: {
+    en: '7-day money-back guarantee',
+    fr: 'Garantie de remboursement de 7 jours',
+  },
+
+  pricing_v_limited: { en: 'Limited', fr: 'Limité' },
+  pricing_v_core: { en: 'Core', fr: 'Essentiel' },
+  pricing_v_expanded: { en: 'Expanded', fr: 'Étendu' },
+  pricing_v_higher: { en: 'Higher limits', fr: 'Limites élevées' },
+  pricing_v_basic: { en: 'Basic', fr: 'De base' },
+  pricing_v_full: { en: 'Full library', fr: 'Bibliothèque complète' },
+  pricing_v_one: { en: '1 document', fr: '1 document' },
+  pricing_v_priority: { en: 'Priority', fr: 'Prioritaire' },
+  pricing_v_email: { en: 'Email', fr: 'Courriel' },
+
+  /* ── Expanded FAQ ──────────────────────────────────────────────────────── */
+  pricing_faq_switch_q: {
+    en: 'Can I change plans later?',
+    fr: 'Puis-je changer de forfait plus tard?',
+  },
+  pricing_faq_switch_a: {
+    en: 'Yes. Upgrade, downgrade, or cancel anytime from your billing settings — changes take effect right away.',
+    fr: 'Oui. Passez à un forfait supérieur ou inférieur, ou annulez à tout moment depuis vos paramètres de facturation — les changements prennent effet immédiatement.',
+  },
+  pricing_faq_billing_q: { en: 'How does billing work?', fr: 'Comment fonctionne la facturation?' },
+  pricing_faq_billing_a: {
+    en: 'Paid plans are billed securely through Stripe in Canadian dollars, monthly or annually. Manage or cancel your subscription anytime.',
+    fr: 'Les forfaits payants sont facturés en toute sécurité via Stripe en dollars canadiens, mensuellement ou annuellement. Gérez ou annulez votre abonnement à tout moment.',
+  },
+  pricing_faq_refund_q: {
+    en: 'What is your refund policy?',
+    fr: 'Quelle est votre politique de remboursement?',
+  },
+  pricing_faq_refund_a: {
+    en: 'After your first paid charge you have 7 days to cancel for a full refund. No long-term contracts, no setup fees.',
+    fr: 'Après votre premier paiement, vous avez 7 jours pour annuler et obtenir un remboursement complet. Aucun contrat à long terme, aucuns frais d’installation.',
+  },
+  pricing_faq_annual_q: {
+    en: 'Is annual billing cheaper?',
+    fr: 'La facturation annuelle est-elle moins chère?',
+  },
+  pricing_faq_annual_a: {
+    en: 'Yes. Choosing annual billing gives you two months free compared with paying month to month.',
+    fr: 'Oui. La facturation annuelle vous offre deux mois gratuits par rapport au paiement mensuel.',
+  },
 })
