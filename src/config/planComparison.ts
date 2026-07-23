@@ -103,10 +103,6 @@ export const PLAN_COMPARISON: ComparisonGroup[] = [
         labelKey: 'pricing_row_contract',
         cells: { free: true, starter: true, growth: true, pro: true },
       },
-      {
-        labelKey: 'pricing_row_refund',
-        cells: { free: false, starter: true, growth: true, pro: true },
-      },
     ],
   },
 ]

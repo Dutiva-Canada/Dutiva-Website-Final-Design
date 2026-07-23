@@ -1,6 +1,6 @@
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { ArrowRight, Ban, Check, Lock, Minus, RotateCcw, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, Ban, Check, Lock, Minus, ShieldCheck, Sparkles, Wallet } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useAuth } from '@/features/app/auth/authContext'
 import { usePlan } from '@/features/app/billing/planContext'
@@ -149,7 +149,7 @@ function PriceCard({
 
 const TRUST_ITEMS = [
   { icon: Lock, key: 'pricing_trust_stripe' },
-  { icon: RotateCcw, key: 'pricing_trust_refund' },
+  { icon: Wallet, key: 'pricing_trust_nosetup' },
   { icon: Ban, key: 'pricing_trust_cancel' },
   { icon: ShieldCheck, key: 'pricing_trust_privacy' },
 ] as const
@@ -218,38 +218,39 @@ function ComparisonTable({ priceFor }: { readonly priceFor: (plan: PlanDefinitio
             ))}
           </tr>
         </thead>
-        <tbody>
-          {PLAN_COMPARISON.map((group) => (
-            <Fragment key={group.headingKey}>
-              <tr className="bg-bg-soft">
-                <th
-                  scope="colgroup"
-                  colSpan={1 + PLANS.length}
-                  className="px-5 py-2.5 text-left text-xs font-semibold tracking-wider text-gold-strong uppercase"
-                >
-                  {t(group.headingKey)}
+        {/* One <tbody> per feature group; the heading spans the row group it
+            introduces (scope="rowgroup") so screen readers associate it with
+            the rows below, not the columns. */}
+        {PLAN_COMPARISON.map((group) => (
+          <tbody key={group.headingKey}>
+            <tr className="bg-bg-soft">
+              <th
+                scope="rowgroup"
+                colSpan={1 + PLANS.length}
+                className="px-5 py-2.5 text-left text-xs font-semibold tracking-wider text-gold-strong uppercase"
+              >
+                {t(group.headingKey)}
+              </th>
+            </tr>
+            {group.rows.map((row) => (
+              <tr key={row.labelKey} className="border-t border-border">
+                <th scope="row" className="px-5 py-3 text-left text-sm font-normal text-text-2">
+                  {t(row.labelKey)}
                 </th>
+                {PLANS.map((plan) => (
+                  <td
+                    key={plan.id}
+                    className={`px-4 py-3 text-center text-sm ${plan.popular ? 'bg-gold-subtle' : ''}`}
+                  >
+                    <span className="inline-flex items-center justify-center">
+                      <CellView cell={row.cells[plan.id]} />
+                    </span>
+                  </td>
+                ))}
               </tr>
-              {group.rows.map((row) => (
-                <tr key={row.labelKey} className="border-t border-border">
-                  <th scope="row" className="px-5 py-3 text-left text-sm font-normal text-text-2">
-                    {t(row.labelKey)}
-                  </th>
-                  {PLANS.map((plan) => (
-                    <td
-                      key={plan.id}
-                      className={`px-4 py-3 text-center text-sm ${plan.popular ? 'bg-gold-subtle' : ''}`}
-                    >
-                      <span className="inline-flex items-center justify-center">
-                        <CellView cell={row.cells[plan.id]} />
-                      </span>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </Fragment>
-          ))}
-        </tbody>
+            ))}
+          </tbody>
+        ))}
       </table>
     </div>
   )
@@ -286,6 +287,15 @@ export function PricingPage() {
 
     if (plan.id === 'free' || status !== 'signed-in') {
       window.location.href = '/app/welcome'
+      return
+    }
+
+    /* Annual checkout isn't wired end-to-end yet — create-checkout-session only
+       has monthly Stripe prices. Rather than silently bill a monthly plan to a
+       customer who picked Annual, stop here with a "coming soon" notice until
+       the annual price ids + webhook/schema support land. */
+    if (period === 'annual') {
+      setNotice({ tone: 'error', text: t('pricing_annual_soon') })
       return
     }
 
@@ -420,19 +430,9 @@ export function PricingPage() {
             />
           ))}
         </div>
-        <div className="mt-5 flex flex-wrap items-center gap-5 text-sm text-text-3">
-          <span className="inline-flex items-center gap-1.5">
-            <Check size={15} className="text-gold-strong" />
-            {t('landing_price_foot1')}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Check size={15} className="text-gold-strong" />
-            {t('landing_price_foot2')}
-          </span>
-        </div>
       </section>
 
-      <div className="pt-6">
+      <div className="pt-8">
         <TrustBand />
       </div>
 

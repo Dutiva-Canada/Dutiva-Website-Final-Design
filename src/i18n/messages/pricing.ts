@@ -17,8 +17,8 @@ export const pricingMessages = defineMessages({
     fr: 'Commencez de façon structurée. Évoluez à mesure que vos RH grandissent.',
   },
   pricing_intro: {
-    en: 'No long-term contracts. No setup fees. After your first paid charge, you have 7 days to cancel for a full refund. Prices in CAD.',
-    fr: "Aucun contrat à long terme. Aucuns frais d'installation. Après votre premier paiement, vous avez 7 jours pour annuler et obtenir un remboursement complet. Prix en CAD.",
+    en: 'No long-term contracts and no setup fees. Cancel anytime — your plan stays active until the end of your billing period. Prices in CAD.',
+    fr: 'Aucun contrat à long terme ni frais d’installation. Annulez à tout moment — votre forfait reste actif jusqu’à la fin de votre période de facturation. Prix en CAD.',
   },
   pricing_mo: {
     en: '/mo',
@@ -105,15 +105,24 @@ export const pricingMessages = defineMessages({
     fr: 'Poser une question',
   },
 
-  /* ── Billing period toggle ─────────────────────────────────────────────── */
+  /* ── Expanded pricing-page copy (billing toggle, trust band, comparison
+        table, FAQ). Self-authored EN + FR — no prototype/handoff counterpart.
+        Refund/cancellation wording is kept in sync with the checked-in Refund &
+        Cancellation Policy (legal/content/refund-policy.*): monthly plans are
+        non-refundable after the billing date, annual plans allow a prorated
+        refund within 14 days, and cancellations take effect at period end. ── */
   pricing_billing_monthly: { en: 'Monthly', fr: 'Mensuel' },
   pricing_billing_annual: { en: 'Annual', fr: 'Annuel' },
   pricing_billing_save: { en: '2 months free', fr: '2 mois gratuits' },
   pricing_billed_yearly: { en: 'billed yearly', fr: 'facturé par année' },
+  pricing_annual_soon: {
+    en: 'Annual billing is coming soon — email support@dutiva.ca and we’ll set it up for you.',
+    fr: 'La facturation annuelle arrive bientôt — écrivez à support@dutiva.ca et nous la configurerons pour vous.',
+  },
 
   /* ── Trust band ────────────────────────────────────────────────────────── */
   pricing_trust_stripe: { en: 'Secure Stripe checkout', fr: 'Paiement Stripe sécurisé' },
-  pricing_trust_refund: { en: '7-day money-back', fr: 'Remboursement sous 7 jours' },
+  pricing_trust_nosetup: { en: 'No setup fees', fr: 'Aucuns frais d’installation' },
   pricing_trust_cancel: { en: 'Cancel anytime', fr: 'Annulation en tout temps' },
   pricing_trust_privacy: {
     en: 'Privacy-first, built in Canada',
@@ -162,10 +171,6 @@ export const pricingMessages = defineMessages({
   },
   pricing_row_support: { en: 'Support', fr: 'Soutien' },
   pricing_row_contract: { en: 'No long-term contract', fr: 'Aucun contrat à long terme' },
-  pricing_row_refund: {
-    en: '7-day money-back guarantee',
-    fr: 'Garantie de remboursement de 7 jours',
-  },
 
   pricing_v_limited: { en: 'Limited', fr: 'Limité' },
   pricing_v_core: { en: 'Core', fr: 'Essentiel' },
@@ -183,8 +188,8 @@ export const pricingMessages = defineMessages({
     fr: 'Puis-je changer de forfait plus tard?',
   },
   pricing_faq_switch_a: {
-    en: 'Yes. Upgrade, downgrade, or cancel anytime from your billing settings — changes take effect right away.',
-    fr: 'Oui. Passez à un forfait supérieur ou inférieur, ou annulez à tout moment depuis vos paramètres de facturation — les changements prennent effet immédiatement.',
+    en: 'Yes. Upgrade, downgrade, or cancel anytime from your billing settings. Downgrades and cancellations take effect at the end of your current billing period.',
+    fr: 'Oui. Passez à un forfait supérieur ou inférieur, ou annulez à tout moment depuis vos paramètres de facturation. Les rétrogradations et les annulations prennent effet à la fin de votre période de facturation en cours.',
   },
   pricing_faq_billing_q: { en: 'How does billing work?', fr: 'Comment fonctionne la facturation?' },
   pricing_faq_billing_a: {
@@ -196,8 +201,8 @@ export const pricingMessages = defineMessages({
     fr: 'Quelle est votre politique de remboursement?',
   },
   pricing_faq_refund_a: {
-    en: 'After your first paid charge you have 7 days to cancel for a full refund. No long-term contracts, no setup fees.',
-    fr: 'Après votre premier paiement, vous avez 7 jours pour annuler et obtenir un remboursement complet. Aucun contrat à long terme, aucuns frais d’installation.',
+    en: 'Refunds depend on your billing period. Annual plans may be eligible for a prorated refund if requested within 14 days of the charge; monthly plans are non-refundable after the billing date, apart from documented billing errors. You can cancel anytime — access continues until the end of your billing period. See our Refund & Cancellation Policy for full terms.',
+    fr: 'Les remboursements dépendent de votre période de facturation. Les forfaits annuels peuvent donner droit à un remboursement au prorata s’il est demandé dans les 14 jours suivant le paiement; les forfaits mensuels ne sont pas remboursables après la date de facturation, sauf erreur de facturation documentée. Vous pouvez annuler à tout moment — l’accès se poursuit jusqu’à la fin de votre période de facturation. Consultez notre politique de remboursement et d’annulation pour les conditions complètes.',
   },
   pricing_faq_annual_q: {
     en: 'Is annual billing cheaper?',
