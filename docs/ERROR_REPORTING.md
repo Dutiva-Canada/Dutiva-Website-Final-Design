@@ -84,7 +84,8 @@ Reporting is **inert** unless every gate passes (`src/lib/errorReporting/index.t
 
 **Preview reporting is on, by design.** Catching a crash in a preview build —
 before it reaches a customer — is strictly more valuable than catching it after,
-and the payload is PII-free either way. The only cost is noise, mitigated by the
+and the payload is equally privacy-minimized either way (the residual free-text
+risk below applies the same to both). The only cost is noise, mitigated by the
 `env` column so preview can be filtered out in triage.
 
 ### Sources of errors
@@ -120,10 +121,23 @@ on a retained report row:
   access without also holding the secret. The function **fails closed** (500) if
   the pepper is unset.
 - The hash lives in a **separate short-retention table**
-  (`client_error_rate_limit`), which the RPC purges per-IP down to the limiter
-  window on every call (plus a recommended scheduled purge of the tail). So the
-  "no persistent pseudonymous identifier" promise holds: nothing links a report
-  to a network beyond the ~1-minute window.
+  (`client_error_rate_limit`). The ingest RPC sweeps expired rows for **all
+  sources** on every call — not just the calling IP — so a one-shot sender's hash
+  is removed by the next report from anyone rather than lingering until that same
+  source returns; `purge_client_error_data()` covers a quiet endpoint on a
+  schedule. So the "no persistent pseudonymous identifier" promise holds: nothing
+  links a report to a network beyond the ~1-minute window.
+
+### Retention
+
+`message` and `stack` are **privacy-minimized, not PII-free** — free text can
+still carry a name, email, or URL (see the residual-risk note above). So report
+rows are **bounded to 90 days**, enforced two ways: opportunistically inside the
+ingest RPC (a sampled, index-backed delete, so it needs no scheduler) and by
+`purge_client_error_data()`, scheduled hourly via pg_cron where available. The
+migration's pg_cron block is guarded, so a project without the extension still
+applies cleanly — enable pg_cron, or run `purge_client_error_data()` from any
+external scheduler.
 
 ## Source maps
 
@@ -151,8 +165,10 @@ from the precache defensively.
   `resend-webhook`), so `sendBeacon` can reach it without an auth header.
 - **Required:** set `ERROR_REPORT_SALT` (or `SUPPORT_NOTIFY_SECRET`) — the pepper
   for the rate-limit IP HMAC. The function fails closed without it.
-- Recommended: schedule a purge of the limiter tail, e.g.
-  `delete from public.client_error_rate_limit where created_at < now() - interval '1 hour';`
+- Retention (90-day reports, 1-hour limiter) is enforced automatically by the
+  ingest RPC and by `purge_client_error_data()`. For the scheduled path, enable
+  **pg_cron** (the migration schedules it, guarded) or run
+  `purge_client_error_data()` from any external scheduler.
 - Reports land in `public.client_error_reports`; reads are admin-only (RLS).
 
 ## Files
