@@ -92,8 +92,14 @@ function coarseUa(value: unknown): string | null {
   return ua && COARSE_UA_RE.test(ua) ? ua : null
 }
 
-/** Max accepted request body (a scrubbed report is < ~14 KB by construction). */
-const MAX_BODY_BYTES = 16 * 1024
+/**
+ * Max accepted request body. The client caps message/stack by UTF-16 code
+ * units, but JSON.stringify can encode one unit as up to 6 bytes (control chars
+ * → `\uXXXX`), so the reporter's ~5,000 capped units plus the other fields can
+ * exceed a tight limit and silently drop valid crash reports. 64 KiB comfortably
+ * covers that worst case while still bounding abuse of the open endpoint.
+ */
+const MAX_BODY_BYTES = 64 * 1024
 
 /**
  * Read the request body incrementally, cancelling the stream as soon as the

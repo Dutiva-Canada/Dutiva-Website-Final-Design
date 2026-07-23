@@ -72,6 +72,19 @@ describe('createReporter', () => {
     expect(sent).toHaveLength(2)
   })
 
+  it('does not dedupe distinct Firefox/Safari-format stacks (non-V8 frames)', () => {
+    const reporter = makeReporter()
+    const a = new Error('boom')
+    a.stack = 'handleClick@https://app.dutiva.ca/assets/app.js:12:34'
+    const b = new Error('boom')
+    b.stack = 'renderRow@https://app.dutiva.ca/assets/app.js:56:78'
+    reporter.report({ error: a, kind: 'window-error', pathname: '/app/home' })
+    reporter.report({ error: b, kind: 'window-error', pathname: '/app/home' })
+    // Different first frames → different fingerprints → both sent (they would
+    // collapse to one if the @-format frame weren't recognized).
+    expect(sent).toHaveLength(2)
+  })
+
   it('rate-limits a burst of distinct errors in the rolling window', () => {
     const reporter = makeReporter()
     for (let i = 0; i < 10; i++) {

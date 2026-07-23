@@ -7,9 +7,16 @@
  * from dist/ would still expose the unminified source to anyone who guesses the
  * URL, so this step relocates every dist/**\/*.map into sourcemaps/<rev>/
  * (git-ignored) BEFORE the service worker precaches dist/assets and before
- * dist/ is deployed. The maps stay available as a build artifact — CI can
- * archive sourcemaps/, and the build is deterministic, so a given release's
- * maps can also be regenerated at the same commit.
+ * dist/ is deployed.
+ *
+ * IMPORTANT — this local dir is NOT a durable artifact. The deploy build (on
+ * Vercel) discards everything outside the deployed output, so to symbolicate a
+ * production trace the DEPLOY pipeline must archive sourcemaps/<rev>/ to private
+ * storage keyed by the release SHA before its workspace is torn down (see
+ * docs/ERROR_REPORTING.md → Source maps). Do not rely on rebuilding to
+ * reproduce them: the client bundle bakes in build-time env values
+ * (__RELEASE_SHA__) and preview builds add extra transforms, so an exact
+ * rebuild is not guaranteed without replicating the original build environment.
  *
  * Runs in the `npm run build` pipeline between `vite build` and `build:ssr`.
  */

@@ -22,13 +22,24 @@ export type { ReportKind, ReportPayload } from './reporter'
 
 let reporter: Reporter | null = null
 
+/** Region the reporting function is pinned to — must match the intended data
+    residency (the project's DB region). */
+const REPORTING_REGION = 'ca-central-1'
+
 /** Resolve the beacon endpoint, or null if reporting must stay off. */
 export function reportingEndpoint(): string | null {
   if (typeof window === 'undefined') return null
   if (VERCEL_ENV !== 'production' && VERCEL_ENV !== 'preview') return null
   const base = import.meta.env.VITE_SUPABASE_URL
   if (!base || typeof base !== 'string') return null
-  return `${base.replace(/\/+$/, '')}/functions/v1/report-error`
+  /* Pin Edge Function execution to the Canadian region. The Supabase project
+     region pins the DATABASE, but functions otherwise run at the edge nearest
+     the caller — so without this, payload processing and function logs can leave
+     Canada even with the DB in ca-central-1. `forceFunctionRegion` routes the
+     invocation to ca-central-1 (verify via the response's x-sb-edge-region
+     header). If the project is hosted outside Canada, change REPORTING_REGION to
+     match and disclose it (see docs/ERROR_REPORTING.md → residency). */
+  return `${base.replace(/\/+$/, '')}/functions/v1/report-error?forceFunctionRegion=${REPORTING_REGION}`
 }
 
 function currentPath(): string {

@@ -28,6 +28,12 @@ describe('coarseUserAgent', () => {
     expect(coarseUserAgent(fxiOS)).toBe('Firefox/121 iOS')
   })
 
+  it('classifies iPadOS desktop-mode (Macintosh + Mobile token) as iOS, not macOS', () => {
+    const ua =
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15 Mobile/15E148'
+    expect(coarseUserAgent(ua)).toBe('Safari/17 iOS')
+  })
+
   it('detects Edge ahead of Chrome', () => {
     const ua =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0'

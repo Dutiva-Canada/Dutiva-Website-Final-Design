@@ -44,7 +44,8 @@ export interface ReporterConfig {
   env: string
   /** Commit SHA, or '' when unknown. */
   release: string
-  /** Transport. Defaults to sendBeacon-then-fetch. Injectable for tests. */
+  /** Transport. Defaults to a credentials-omitting keepalive fetch (postReport).
+      Injectable for tests. */
   send?: (endpoint: string, body: string) => boolean
   /** Clock. Injectable for tests. */
   now?: () => number
@@ -87,11 +88,17 @@ function stackOf(error: unknown): string {
   return error instanceof Error && typeof error.stack === 'string' ? error.stack : ''
 }
 
-/** First meaningful stack frame, for the dedupe fingerprint. */
+/**
+ * First meaningful stack frame, for the dedupe fingerprint. Handles both V8
+ * (`at fn (url:line:col)`) and SpiderMonkey/JavaScriptCore
+ * (`fn@url:line:col`) formats — otherwise Firefox/Safari would yield an empty
+ * frame and distinct crashes with the same route+message would collapse.
+ */
 function firstFrame(stack: string): string {
   for (const line of stack.split('\n')) {
     const trimmed = line.trim()
-    if (trimmed.startsWith('at ')) return trimmed
+    if (trimmed.startsWith('at ')) return trimmed // V8
+    if (/@.+:\d+(?::\d+)?$/.test(trimmed)) return trimmed // SpiderMonkey / JSC
   }
   return ''
 }

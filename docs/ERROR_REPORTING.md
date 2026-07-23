@@ -86,6 +86,17 @@ US or EU. Keeping reports inside Supabase adds zero new processors.
 > a Canadian region (`ca-central-1`). If the project is hosted elsewhere, that is
 > the residency fact to disclose — surface it, don't assume it.
 
+**Edge Function region — a separate control.** The project region pins the
+**database**, but Supabase Edge Functions run at the edge **nearest the caller**
+by default, so the function's *execution* (and its platform logs) can happen
+outside Canada even with the DB in `ca-central-1`. The reporter therefore pins
+the invocation with `?forceFunctionRegion=ca-central-1` (`REPORTING_REGION` in
+`src/lib/errorReporting/index.ts`). Verify it in production via the response's
+`x-sb-edge-region` header, and keep `REPORTING_REGION` aligned with the DB region
+if the project ever moves. (The HTTP transport still traverses the caller's
+network path like any web request; this control governs where the function
+*processes and logs* the payload.)
+
 ## How it runs (and when it doesn't)
 
 Reporting is **inert** unless every gate passes (`src/lib/errorReporting/index.ts`):
@@ -169,9 +180,17 @@ Minified stacks are useless, so `build.sourcemap` is `'hidden'`:
 - `scripts/relocate-sourcemaps.mjs` then **moves every `dist/**/*.map` out of
   `dist/`** into a git-ignored `sourcemaps/<sha>/` — *before* the service worker
   precaches assets and before `dist/` is deployed — so the maps are **never
-  publicly served**. They're kept as a build artifact (CI can archive them; the
-  build is deterministic, so they can also be regenerated at the same commit) to
-  symbolicate a release's traces.
+  publicly served**.
+- **Archival is a required deploy step, not automatic.** `sourcemaps/<sha>/` is a
+  local build directory; the deploy build (Vercel) discards everything outside
+  the deployed output, and the GitHub CI build produces *different* bundles
+  (no `__RELEASE_SHA__`, so different hashes), so neither preserves the deployed
+  release's maps on its own. To symbolicate production traces, the **deploy
+  pipeline must upload `sourcemaps/<sha>/` to private storage keyed by the
+  release SHA** (e.g. a Vercel post-build hook) before the workspace is torn
+  down. Don't rely on rebuilding to reproduce them: the bundle bakes in
+  build-time env values and preview builds add extra transforms, so an exact
+  rebuild needs the original build environment replicated.
 
 ## Service worker
 

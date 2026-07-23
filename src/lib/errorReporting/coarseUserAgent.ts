@@ -29,6 +29,8 @@ function detectBrowser(ua: string): string {
 function detectOs(ua: string): string {
   if (/Windows NT/.test(ua)) return 'Windows'
   if (/iPhone|iPad|iPod/.test(ua)) return 'iOS'
+  // iPadOS in desktop mode reports as "Macintosh" but keeps a "Mobile/" token.
+  if (/Mac OS X/.test(ua) && /Mobile\//.test(ua)) return 'iOS'
   if (/Mac OS X/.test(ua)) return 'macOS'
   if (/Android/.test(ua)) return 'Android'
   if (/CrOS/.test(ua)) return 'ChromeOS'
