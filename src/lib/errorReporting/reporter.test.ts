@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { beaconOrFetch, createReporter } from './reporter'
+import { createReporter, postReport } from './reporter'
 import type { ReportPayload } from './reporter'
 
 describe('createReporter', () => {
@@ -27,7 +27,7 @@ describe('createReporter', () => {
     document.documentElement.setAttribute('lang', 'en-CA')
   })
 
-  it('builds a scrubbed, PII-free payload', () => {
+  it('builds a scrubbed, privacy-minimized payload', () => {
     const reporter = makeReporter()
     reporter.report({
       error: new Error('Cannot read properties of undefined'),
@@ -114,42 +114,38 @@ describe('createReporter', () => {
   })
 })
 
-describe('beaconOrFetch', () => {
+describe('postReport', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  it('prefers sendBeacon and does not call fetch when it succeeds', () => {
-    const sendBeacon = vi.fn().mockReturnValue(true)
-    const fetchSpy = vi.fn()
-    vi.stubGlobal('navigator', { ...navigator, sendBeacon })
-    vi.stubGlobal('fetch', fetchSpy)
-
-    expect(beaconOrFetch('https://e', '{}')).toBe(true)
-    expect(sendBeacon).toHaveBeenCalledWith('https://e', '{}')
-    expect(fetchSpy).not.toHaveBeenCalled()
-  })
-
-  it('falls back to a keepalive fetch when sendBeacon returns false', () => {
-    const sendBeacon = vi.fn().mockReturnValue(false)
+  it('posts a keepalive fetch with credentials omitted (no cookies) and no sendBeacon', () => {
     const fetchSpy = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
-    vi.stubGlobal('navigator', { ...navigator, sendBeacon })
+    const sendBeacon = vi.fn().mockReturnValue(true)
     vi.stubGlobal('fetch', fetchSpy)
+    vi.stubGlobal('navigator', { ...navigator, sendBeacon })
 
-    expect(beaconOrFetch('https://e', '{}')).toBe(true)
+    expect(postReport('https://e', '{}')).toBe(true)
     expect(fetchSpy).toHaveBeenCalledWith(
       'https://e',
       expect.objectContaining({ method: 'POST', keepalive: true, credentials: 'omit' }),
     )
+    // sendBeacon is never used: it can't omit credentials.
+    expect(sendBeacon).not.toHaveBeenCalled()
   })
 
-  it('falls back to fetch when sendBeacon throws', () => {
-    const sendBeacon = vi.fn().mockImplementation(() => {
-      throw new Error('nope')
-    })
-    const fetchSpy = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
-    vi.stubGlobal('navigator', { ...navigator, sendBeacon })
-    vi.stubGlobal('fetch', fetchSpy)
+  it('never throws when fetch throws synchronously', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => {
+        throw new Error('nope')
+      }),
+    )
+    expect(() => postReport('https://e', '{}')).not.toThrow()
+    expect(postReport('https://e', '{}')).toBe(false)
+  })
 
-    expect(beaconOrFetch('https://e', '{}')).toBe(true)
-    expect(fetchSpy).toHaveBeenCalled()
+  it('swallows an async fetch rejection', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+    expect(postReport('https://e', '{}')).toBe(true)
+    await Promise.resolve()
   })
 })

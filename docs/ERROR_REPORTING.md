@@ -29,14 +29,22 @@ Exactly these fields, and nothing else, per report:
 
 - **No DOM snapshots, no input-value capture, no session replay.**
 - **No breadcrumbs** of any kind — nothing records user-entered text.
-- **No Supabase auth token, session, or any `localStorage`/cookie data.**
+- **No Supabase auth token, session, or any `localStorage`/cookie data.** The
+  transport is a keepalive `fetch` with `credentials: 'omit'`, so no cookies for
+  the endpoint origin are ever attached (`sendBeacon` is avoided precisely
+  because it can't omit credentials).
 - **No persistent per-user / install id.** We considered a random install id for
   grouping and rejected it: dedupe is done in-memory client-side, and grouping is
   done server-side on `route` + `message` + stack. A persisted id in
   `localStorage` would be a *new identifier* we'd have to justify under Law 25 for
   no benefit, so it isn't collected.
-- **No full user-agent string.** The raw UA is a high-entropy fingerprinting
-  vector; it's reduced to `family/major OS` before sending.
+- **No full user-agent string is retained.** The raw UA is a high-entropy
+  fingerprinting vector, so the value **stored in a report row** is reduced to
+  `family/major OS` — and the server re-validates that shape, dropping anything
+  that isn't already a coarse label. Caveat, stated plainly: the browser's HTTP
+  `User-Agent` header still travels to the Supabase edge on every request (as it
+  does for any web request) and may appear in the platform's transport logs; the
+  coarsening controls the retained payload, not that transport metadata.
 
 ### URL scrubbing (the core PII control)
 
@@ -103,9 +111,10 @@ risk below applies the same to both). The only cost is noise, mitigated by the
 
 ### Fail-safe behaviour
 
-- Transport is `navigator.sendBeacon` with a plain-string body (`text/plain`,
-  CORS-safelisted → no preflight, no headers needed), falling back to
-  `fetch(..., { keepalive: true })`.
+- Transport is a keepalive `fetch` with `credentials: 'omit'` and a plain-string
+  body (`text/plain`, CORS-safelisted → no preflight). `keepalive` survives the
+  page unload that often follows a crash; `sendBeacon` is deliberately not used
+  because it always sends credentials.
 - Everything is wrapped so **reporting never throws, never blocks paint, and
   never surfaces its own failure** to the user.
 - **Dedupe + rate-limit** (`reporter.ts`): a per-fingerprint dedupe window, a
@@ -174,7 +183,8 @@ from the precache defensively.
 ## Deploying the endpoint
 
 - Deploy `supabase/functions/report-error` with **`verify_jwt` off** (as with
-  `resend-webhook`), so `sendBeacon` can reach it without an auth header.
+  `resend-webhook`), so the credentials-omitting `fetch` can reach it without an
+  auth header.
 - **Required:** set `ERROR_REPORT_SALT` (or `SUPPORT_NOTIFY_SECRET`) — the pepper
   for the rate-limit IP HMAC. The function fails closed without it.
 - **Required — schedule retention and verify it.** The migration does *not*

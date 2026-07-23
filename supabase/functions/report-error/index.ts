@@ -38,6 +38,60 @@ const KINDS = ['route-boundary', 'window-error', 'unhandled-rejection']
 const ENVS = ['production', 'preview']
 const LOCALES = ['en-CA', 'fr-CA']
 
+/**
+ * Allowed scrubbed route labels — mirrors the ROUTE_PATTERNS output set in
+ * src/lib/errorReporting/scrubRoute.ts, plus the two unknown sentinels. A route
+ * not in this set is coerced to '/unknown', so a client regression or a direct
+ * caller can never persist a resolved path like `/app/employees/jane-doe` and
+ * defeat the scrubbing control. Keep in sync with scrubRoute.ts (drift only
+ * over-scrubs a new pattern to '/unknown' — privacy-safe).
+ */
+const KNOWN_ROUTES = new Set<string>([
+  '/', '/about', '/faq', '/blog', '/pricing', '/templates', '/guides',
+  '/guides/template-usage', '/known-limitations', '/legal', '/legal/:slug',
+  '/help', '/help/:slug', '/contact', '/status',
+  '/fr', '/fr/a-propos', '/fr/faq', '/fr/blogue', '/fr/tarifs', '/fr/modeles',
+  '/fr/guides', '/fr/guides/utilisation-des-modeles', '/fr/limites-connues',
+  '/fr/juridique', '/fr/juridique/:slug', '/fr/aide', '/fr/aide/:slug',
+  '/fr/contact', '/fr/etat',
+  '/app/welcome', '/app/auth/confirm', '/app', '/app/home', '/app/advisor',
+  '/app/workflows', '/app/cases', '/app/cases/:id', '/app/employees',
+  '/app/employees/:id', '/app/compliance', '/app/policies', '/app/templates',
+  '/app/reports', '/app/knowledge', '/app/support', '/app/support/requests',
+  '/app/support/requests/:id', '/app/support/admin', '/app/support/admin/:id',
+  '/app/communications', '/app/compensation', '/app/wellbeing', '/app/tasks',
+  '/app/calendar', '/app/memory', '/app/planning', '/app/planning/tasks',
+  '/app/planning/calendar', '/app/settings', '/app/settings/memory',
+  '/app/settings/memory/people/:id', '/app/settings/memory/cases/:id',
+  '/app/settings/memory/conversations/:id', '/app/documents',
+  '/app/documents/hr-library', '/app/documents/studio',
+  '/app/documents/templates/:id', '/app/documents/generate/:id',
+  '/app/documents/:id',
+  '/unknown', '/app/:unknown',
+])
+
+/**
+ * The coarse user-agent format coarseUserAgent() produces (`Chrome/120 macOS`,
+ * `Other iOS`, `unknown`, …). Anything else — e.g. a full raw UA slipping
+ * through a future client bug — is dropped, so a length cap alone never lets the
+ * high-entropy string be persisted.
+ */
+const COARSE_UA_RE =
+  /^(?:(?:Edge|Opera|Samsung|Firefox|Chrome|Safari)\/\d{1,4}|Other)(?: (?:Windows|iOS|macOS|Android|ChromeOS|Linux))?$|^unknown$/
+
+/** Accept only a known scrubbed route label; coerce anything else to '/unknown'. */
+function knownRoute(value: unknown): string | null {
+  const route = str(value, 200)
+  if (route === null) return null
+  return KNOWN_ROUTES.has(route) ? route : '/unknown'
+}
+
+/** Accept only a coarse UA label; drop anything that isn't already minimized. */
+function coarseUa(value: unknown): string | null {
+  const ua = str(value, 200)
+  return ua && COARSE_UA_RE.test(ua) ? ua : null
+}
+
 /** Max accepted request body (a scrubbed report is < ~14 KB by construction). */
 const MAX_BODY_BYTES = 16 * 1024
 
@@ -166,12 +220,12 @@ Deno.serve(async (req: Request) => {
     p_ip_hash: ipHash,
     p_env: oneOf(body.env, ENVS),
     p_release: str(body.release, 64),
-    p_route: str(body.route, 200),
+    p_route: knownRoute(body.route),
     p_locale: oneOf(body.locale, LOCALES),
     p_kind: oneOf(body.kind, KINDS),
     p_message: message,
     p_stack: str(body.stack, 8000),
-    p_user_agent: str(body.ua, 200),
+    p_user_agent: coarseUa(body.ua),
     p_window_seconds: RATE_WINDOW_SECONDS,
     p_limit: RATE_LIMIT,
   })

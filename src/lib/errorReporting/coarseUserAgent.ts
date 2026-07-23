@@ -12,8 +12,9 @@ const BROWSERS: ReadonlyArray<readonly [string, RegExp]> = [
   ['Edge', /Edg(?:e|A|iOS)?\/(\d+)/],
   ['Opera', /OPR\/(\d+)/],
   ['Samsung', /SamsungBrowser\/(\d+)/],
-  ['Firefox', /Firefox\/(\d+)/],
-  ['Chrome', /Chrome\/(\d+)/],
+  // iOS Firefox/Chrome brand as FxiOS/CriOS (still WebKit); match before Safari.
+  ['Firefox', /(?:Firefox|FxiOS)\/(\d+)/],
+  ['Chrome', /(?:Chrome|CriOS)\/(\d+)/],
   ['Safari', /Version\/(\d+)[.\d]*\s+.*Safari/],
 ]
 

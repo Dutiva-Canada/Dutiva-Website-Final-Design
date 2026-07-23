@@ -19,6 +19,15 @@ describe('coarseUserAgent', () => {
     expect(coarseUserAgent(ua)).toBe('Safari/17 iOS')
   })
 
+  it('detects iOS Chrome (CriOS) and iOS Firefox (FxiOS) by family, not "Other"', () => {
+    const criOS =
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/120.0.6099.119 Mobile/15E148 Safari/604.1'
+    expect(coarseUserAgent(criOS)).toBe('Chrome/120 iOS')
+    const fxiOS =
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/121.0 Mobile/15E148 Safari/605.1.15'
+    expect(coarseUserAgent(fxiOS)).toBe('Firefox/121 iOS')
+  })
+
   it('detects Edge ahead of Chrome', () => {
     const ua =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0'

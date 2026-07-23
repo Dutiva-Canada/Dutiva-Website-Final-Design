@@ -1,13 +1,14 @@
 /**
  * The client error reporter: builds a privacy-scrubbed payload, dedupes and
- * rate-limits it, and fires it at the reporting endpoint as a beacon. It never
- * throws, never blocks paint, and sends nothing beyond the fields below.
+ * rate-limits it, and posts it to the reporting endpoint. It never throws,
+ * never blocks paint, and sends nothing beyond the fields below.
  *
- * Transport is `navigator.sendBeacon` with a plain-string body, which the
- * browser sends as `text/plain;charset=UTF-8` — a CORS-safelisted content type,
- * so there is no preflight and no headers to set (sendBeacon can't set any).
- * A `fetch(..., { keepalive: true })` fallback covers browsers/paths where
- * sendBeacon is unavailable or refuses the payload.
+ * Transport is a keepalive `fetch` with **`credentials: 'omit'`**, so no cookies
+ * for the endpoint origin are ever attached — honoring the no-cookie guarantee.
+ * `navigator.sendBeacon` is deliberately NOT used: it always sends with
+ * credentials 'include' and gives no way to omit them. `keepalive` lets the
+ * request outlive the page unload that often follows a crash; the plain-string
+ * body is sent as `text/plain;charset=UTF-8` (CORS-safelisted → no preflight).
  *
  * See ./scrubRoute (route patterns), ./coarseUserAgent (UA reduction), and
  * docs/ERROR_REPORTING.md for the full privacy rationale.
@@ -102,41 +103,32 @@ function localeOf(): string {
 }
 
 /**
- * Send a report body via sendBeacon, falling back to a keepalive fetch. Returns
- * whether the report was handed off to the browser; swallows every error so a
- * transport failure never surfaces.
+ * Post a report body as a keepalive `fetch` with credentials omitted (no
+ * cookies attached). Returns whether the request was dispatched; swallows every
+ * error so a transport failure never surfaces.
  */
-export function beaconOrFetch(endpoint: string, body: string): boolean {
+export function postReport(endpoint: string, body: string): boolean {
   try {
-    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-      // String body → text/plain;charset=UTF-8 → CORS-safelisted, no preflight.
-      if (navigator.sendBeacon(endpoint, body)) return true
-    }
+    if (typeof fetch !== 'function') return false
+    void fetch(endpoint, {
+      method: 'POST',
+      body,
+      keepalive: true,
+      mode: 'cors',
+      credentials: 'omit',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    }).catch(() => {
+      /* Best effort — a failed report is never retried or surfaced. */
+    })
+    return true
   } catch {
-    /* Fall through to fetch. */
+    /* Nothing to try — never surface a transport failure. */
+    return false
   }
-  try {
-    if (typeof fetch === 'function') {
-      void fetch(endpoint, {
-        method: 'POST',
-        body,
-        keepalive: true,
-        mode: 'cors',
-        credentials: 'omit',
-        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-      }).catch(() => {
-        /* Best effort — a failed report is never retried or surfaced. */
-      })
-      return true
-    }
-  } catch {
-    /* Nothing more to try. */
-  }
-  return false
 }
 
 export function createReporter(config: ReporterConfig): Reporter {
-  const send = config.send ?? beaconOrFetch
+  const send = config.send ?? postReport
   const clock = config.now ?? (() => Date.now())
 
   const seen = new Map<string, number>()

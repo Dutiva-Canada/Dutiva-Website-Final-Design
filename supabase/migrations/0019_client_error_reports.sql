@@ -75,7 +75,9 @@ create policy "Admins read client error reports"
 -- committed default). The ingest RPC sweeps expired rows for ALL sources on
 -- every call (not just the calling IP's), so a hash lives at most ~one window
 -- under any traffic; the scheduled purge_client_error_data() job below covers
--- the zero-traffic tail. This is not a store of personal data.
+-- the zero-traffic tail. The keyed hash is a minimized, short-lived pseudonymous
+-- value used solely for rate limiting — it holds no report content and is swept
+-- aggressively — not claimed to be fully anonymous.
 create table if not exists public.client_error_rate_limit (
   id uuid primary key default gen_random_uuid(),
   ip_hash text not null,
@@ -181,6 +183,10 @@ as $$
 $$;
 
 revoke all on function public.purge_client_error_data() from public, anon, authenticated;
+-- The external-scheduler path (Vercel Cron / GitHub Action) invokes this RPC
+-- with the service role, so grant it explicitly — as the ingest RPC does. A
+-- pg_cron job runs as the function owner and needs no extra grant.
+grant execute on function public.purge_client_error_data() to service_role;
 
 -- DEPLOY (required and verified — not optional): schedule the purge. It is kept
 -- out of this migration deliberately, so the migration neither silently succeeds
