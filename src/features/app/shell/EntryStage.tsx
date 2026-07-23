@@ -138,7 +138,10 @@ function FormColumn({ children }: { readonly children: ReactNode }) {
         <div className="lg:hidden">
           <AppWordmark />
         </div>
-        <div className="flex items-center gap-[10px]">
+        {/* ml-auto keeps the controls right-aligned at lg+, where the wordmark
+            above is display:none and would otherwise let justify-between pull
+            this lone flex child to the left edge. */}
+        <div className="ml-auto flex items-center gap-[10px]">
           <LangToggle />
           <ThemeToggle
             className="flex h-[34px] w-[34px] shrink-0 cursor-pointer items-center justify-center rounded-[8px] border-none bg-inset text-text-2"
