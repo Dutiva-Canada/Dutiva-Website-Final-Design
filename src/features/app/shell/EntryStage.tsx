@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Check, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { authMessages as M } from '@/i18n/messages/auth'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuth } from '@/features/app/auth/authContext'
 import { AuthPanel } from '@/features/app/auth/AuthPanel'
@@ -15,10 +16,15 @@ interface EntryLocationState {
   from?: { pathname: string }
 }
 
-/** Wordmark on the app surface (themed) — used in the mobile/tablet top bar. */
+/** Wordmark on the app surface (themed) — used in the mobile/tablet top bar.
+    Links back to the marketing home page (same as the marketing header logo). */
 function AppWordmark() {
+  const { home } = usePublicPath()
   return (
-    <div className="flex items-center gap-[10px]">
+    <Link
+      to={home('top')}
+      className="flex w-fit items-center gap-[10px] rounded-[8px] transition-opacity hover:opacity-80"
+    >
       {/* Decorative: the adjacent wordmark text already names the brand. */}
       <img
         src="/brand/dutiva-leaf.png"
@@ -29,7 +35,7 @@ function AppWordmark() {
       <span className="font-display text-[17px] font-bold tracking-[-0.01em]">
         Duti<span className="text-gold-dot">va</span>
       </span>
-    </div>
+    </Link>
   )
 }
 
@@ -40,6 +46,7 @@ function AppWordmark() {
  */
 function BrandRail() {
   const { x } = useI18n()
+  const { home } = usePublicPath()
   const points = [M.auth_brand_point_1, M.auth_brand_point_2, M.auth_brand_point_3]
 
   return (
@@ -62,7 +69,10 @@ function BrandRail() {
         style={{ background: 'radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%)' }}
       />
 
-      <div className="relative flex items-center gap-[10px]">
+      <Link
+        to={home('top')}
+        className="relative flex w-fit items-center gap-[10px] transition-opacity hover:opacity-80"
+      >
         {/* Decorative: the adjacent wordmark text already names the brand. */}
         <img
           src="/brand/dutiva-leaf.png"
@@ -73,7 +83,7 @@ function BrandRail() {
         <span className="font-display text-[18px] font-bold tracking-[-0.01em] text-white">
           Duti<span style={{ color: 'var(--dutiva-gold)' }}>va</span>
         </span>
-      </div>
+      </Link>
 
       <div className="relative">
         <div className="mb-[22px] inline-flex items-center gap-[8px] rounded-full border border-[rgba(var(--dutiva-gold-rgb),0.28)] bg-[rgba(var(--dutiva-gold-rgb),0.10)] px-[13px] py-[6px] text-[12px] font-semibold text-[#e9c877]">
