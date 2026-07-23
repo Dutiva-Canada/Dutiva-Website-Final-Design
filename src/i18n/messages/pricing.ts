@@ -107,10 +107,12 @@ export const pricingMessages = defineMessages({
 
   /* ── Expanded pricing-page copy (billing toggle, trust band, comparison
         table, FAQ). Self-authored EN + FR — no prototype/handoff counterpart.
-        Refund/cancellation wording is kept in sync with the checked-in Refund &
-        Cancellation Policy (legal/content/refund-policy.*): monthly plans are
-        non-refundable after the billing date, annual plans allow a prorated
-        refund within 14 days, and cancellations take effect at period end. ── */
+        Refund copy deliberately defers to the checked-in Refund & Cancellation
+        Policy rather than restating specific windows: the EN and FR policy
+        documents currently differ on annual-refund terms, so marketing points
+        to the policy instead of committing to a number. Only the cancellation
+        timing (access continues to period end), which both locales agree on,
+        is stated directly. ── */
   pricing_billing_monthly: { en: 'Monthly', fr: 'Mensuel' },
   pricing_billing_annual: { en: 'Annual', fr: 'Annuel' },
   pricing_billing_save: { en: '2 months free', fr: '2 mois gratuits' },
@@ -201,8 +203,8 @@ export const pricingMessages = defineMessages({
     fr: 'Quelle est votre politique de remboursement?',
   },
   pricing_faq_refund_a: {
-    en: 'Refunds depend on your billing period. Annual plans may be eligible for a prorated refund if requested within 14 days of the charge; monthly plans are non-refundable after the billing date, apart from documented billing errors. You can cancel anytime — access continues until the end of your billing period. See our Refund & Cancellation Policy for full terms.',
-    fr: 'Les remboursements dépendent de votre période de facturation. Les forfaits annuels peuvent donner droit à un remboursement au prorata s’il est demandé dans les 14 jours suivant le paiement; les forfaits mensuels ne sont pas remboursables après la date de facturation, sauf erreur de facturation documentée. Vous pouvez annuler à tout moment — l’accès se poursuit jusqu’à la fin de votre période de facturation. Consultez notre politique de remboursement et d’annulation pour les conditions complètes.',
+    en: 'Refund eligibility depends on your plan and billing period. You can cancel anytime — your access continues until the end of your billing period. See our Refund & Cancellation Policy for the full, current terms.',
+    fr: 'L’admissibilité au remboursement dépend de votre forfait et de votre période de facturation. Vous pouvez annuler à tout moment — votre accès se poursuit jusqu’à la fin de votre période de facturation. Consultez notre politique de remboursement et d’annulation pour les conditions complètes et à jour.',
   },
   pricing_faq_annual_q: {
     en: 'Is annual billing cheaper?',
