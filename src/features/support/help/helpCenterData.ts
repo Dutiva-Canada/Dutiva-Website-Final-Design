@@ -365,8 +365,8 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
             'Les forfaits Dutiva sont facturés en dollars canadiens sans contrat à long terme. Depuis le portail de facturation, vous pouvez voir votre forfait actuel, mettre à jour votre mode de paiement, télécharger vos factures et modifier ou annuler votre abonnement.',
           ),
           p(
-            'A refund is available within 7 days of your first paid charge. For a billing question or dispute, send a request under “Billing” and include the invoice or subscription reference — please don’t email full card numbers.',
-            'Un remboursement est possible dans les 7 jours suivant votre premier paiement. Pour une question ou un différend de facturation, envoyez une demande sous « Facturation » et incluez la référence de facture ou d’abonnement — veuillez ne pas envoyer de numéros de carte complets par courriel.',
+            'New annual subscriptions include a 14-day money-back guarantee; monthly plans are non-refundable after the billing date, apart from documented billing errors or an outage over 24 consecutive hours. See the Refund and Cancellation Policy for full terms. For a billing question or dispute, send a request under “Billing” and include the invoice or subscription reference — please don’t email full card numbers.',
+            'Les nouveaux abonnements annuels comprennent une garantie de remboursement de 14 jours; les forfaits mensuels ne sont pas remboursables après la date de facturation, sauf erreur de facturation documentée ou panne de plus de 24 heures consécutives. Consultez la Politique de remboursement et d’annulation pour les conditions complètes. Pour une question ou un différend de facturation, envoyez une demande sous « Facturation » et incluez la référence de facture ou d’abonnement — veuillez ne pas envoyer de numéros de carte complets par courriel.',
           ),
         ],
       },

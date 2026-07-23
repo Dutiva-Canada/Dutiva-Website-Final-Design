@@ -60,7 +60,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "Cancellation does not entitle Customer to a refund for the current paid period except as provided in the Refund and Cancellation Policy. Access continues until the end of the current Subscription Term."
+          "text": "Cancellation does not entitle Customer to a refund for the current paid period except as provided in the Refund and Cancellation Policy. Access continues until the end of the current Subscription Term, except where a refund is issued under that policy, in which case access ends on the refund date."
         }
       ]
     },
