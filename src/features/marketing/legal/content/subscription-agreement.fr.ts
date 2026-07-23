@@ -60,7 +60,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "L'annulation ne donne pas droit à un remboursement pour la période payée en cours, sauf disposition contraire de la Politique de remboursement et d'annulation. L'accès se poursuit jusqu'à la fin de la durée d'abonnement en cours."
+          "text": "L'annulation ne donne pas droit à un remboursement pour la période payée en cours, sauf disposition contraire de la Politique de remboursement et d'annulation. L'accès se poursuit jusqu'à la fin de la durée d'abonnement en cours, sauf lorsqu'un remboursement est accordé en vertu de cette politique, auquel cas l'accès prend fin à la date du remboursement."
         }
       ]
     },

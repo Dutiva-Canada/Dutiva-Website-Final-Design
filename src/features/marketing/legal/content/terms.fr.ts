@@ -85,7 +85,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "Vous pouvez annuler votre abonnement au moyen du portail de facturation ou en communiquant avec le soutien. Sauf indication contraire au moment du paiement ou exigence contraire de la loi, l’annulation met fin aux renouvellements futurs et l’accès se poursuit jusqu’à la fin de la période de facturation payée."
+          "text": "Vous pouvez annuler votre abonnement au moyen du portail de facturation ou en communiquant avec le soutien. Sauf indication contraire au moment du paiement ou exigence contraire de la loi, l’annulation met fin aux renouvellements futurs et l’accès se poursuit jusqu’à la fin de la période de facturation payée. Lorsqu’un remboursement est accordé en vertu de la Politique de remboursement et d’annulation, l’accès prend plutôt fin à la date du remboursement."
         },
         {
           "type": "p",

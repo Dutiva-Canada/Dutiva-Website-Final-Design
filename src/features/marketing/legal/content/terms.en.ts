@@ -84,7 +84,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "You may cancel through the billing portal or by contacting support. Unless otherwise stated at checkout or required by law, cancellation stops future renewals and access continues until the end of the paid billing period."
+          "text": "You may cancel through the billing portal or by contacting support. Unless otherwise stated at checkout or required by law, cancellation stops future renewals and access continues until the end of the paid billing period. Where a refund is issued under the Refund and Cancellation Policy, access instead ends on the refund date."
         },
         {
           "type": "p",
