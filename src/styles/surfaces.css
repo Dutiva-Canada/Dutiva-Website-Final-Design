@@ -15,7 +15,10 @@
 .surface-marketing {
   color-scheme: dark;
 
-  --bg: #080a0f;
+  /* Deep floor tinted toward the brand navy (#0d1b2a). Kept darker than
+     --bg-elevated so the elevation ramp still reads; the .dutiva-surface
+     canvas gradient resolves to the literal brand navy at its lower stop. */
+  --bg: #081019;
   --bg-elevated: #0f1219;
   --bg-soft: #151922;
   --bg-softer: #1a1f2c;
@@ -54,9 +57,9 @@
 
   --surface-1: var(--card-bg-1);
   --surface-2: var(--bg-soft);
-  --sidebar-bg: #080a0f;
+  --sidebar-bg: #081019;
   --sidebar-border: rgba(255, 255, 255, 0.05);
-  --topbar-bg: rgba(8, 10, 15, 0.88);
+  --topbar-bg: rgba(8, 16, 25, 0.88);
   --card-bg-1: rgba(16, 20, 28, 0.98);
   --card-bg-2: rgba(12, 15, 22, 0.98);
 

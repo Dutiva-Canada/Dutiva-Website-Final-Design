@@ -15,7 +15,7 @@ body.dutiva-surface {
   background:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(var(--dutiva-gold-rgb), 0.13), transparent),
     radial-gradient(ellipse 50% 40% at 85% 10%, rgba(26, 107, 74, 0.08), transparent),
-    linear-gradient(170deg, #06080d 0%, #080b12 55%, #0c1020 100%);
+    linear-gradient(170deg, #081019 0%, #0a1522 55%, #0d1b2a 100%);
 }
 [data-theme='light'] .dutiva-surface,
 [data-theme='light'] body.dutiva-surface {
