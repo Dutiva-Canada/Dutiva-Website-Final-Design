@@ -9,8 +9,9 @@
 --
 -- Supersedes 0003_restrict_guidance_law_updates_to_dutiva_domain.sql's
 -- `(auth.jwt() ->> 'email') like '%@dutiva.ca'` clauses with an exact,
--- case-insensitive match. NOT yet applied to the live project — run via
--- the Supabase MCP (apply_migration) or `supabase db push` once confirmed.
+-- case-insensitive match. STATUS: applied to the live project — the
+-- guidance_sources / guidance_chunks / law_updates read policies are
+-- confirmed to match exactly `martin.constantineau@dutiva.ca`.
 --
 -- Written defensively, matching 0003: the guidance/law-update tables were
 -- created directly on the live project and have no CREATE migration in
