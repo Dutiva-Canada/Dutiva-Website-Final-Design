@@ -23,8 +23,8 @@ export const aboutMessages = defineMessages({
   },
   about_s2: { en: 'Why we built Dutiva', fr: 'Pourquoi nous avons créé Dutiva' },
   about_why: {
-    en: 'Dutiva was built by a Canadian HR and payroll professional who has processed payroll, prepared Records of Employment, and drafted termination letters across federal and provincial standards. It names the statute, not just the province — and speaks French as fluently as English.',
-    fr: 'Dutiva a été conçu par un professionnel canadien des RH et de la paie qui a traité des paies, préparé des relevés d’emploi et rédigé des lettres de cessation d’emploi selon les normes fédérales et provinciales. Il nomme la loi, pas seulement la province — et parle français aussi couramment que l’anglais.',
+    en: 'Dutiva was built by a Canadian HR professional who has prepared Records of Employment, drafted termination letters, and worked across federal and provincial employment standards. Dutiva is HR compliance and documentation software — not a payroll provider. It names the statute, not just the province — and speaks French as fluently as English.',
+    fr: 'Dutiva a été conçu par un professionnel canadien des RH qui a préparé des relevés d’emploi, rédigé des lettres de cessation d’emploi et travaillé avec les normes du travail fédérales et provinciales. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il nomme la loi, pas seulement la province — et parle français aussi couramment que l’anglais.',
   },
   about_why_foot: {
     en: 'Built in Ottawa, Canada · Grounded in real HR operations, not generic research.',

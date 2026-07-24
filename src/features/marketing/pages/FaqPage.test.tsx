@@ -25,7 +25,12 @@ describe('FaqPage', () => {
         'No. Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice. Complex or high-risk situations should be reviewed with qualified counsel.',
       ),
     ).toBeInTheDocument()
-    expect(container.querySelectorAll('details')).toHaveLength(12)
+    // Payroll-scope disambiguation renders under the General group.
+    expect(main.getByText('Does Dutiva run payroll?')).toBeInTheDocument()
+    expect(
+      main.getByText(/Dutiva is HR compliance and documentation software — not a payroll provider/),
+    ).toBeInTheDocument()
+    expect(container.querySelectorAll('details')).toHaveLength(13)
     expect(main.getByRole('link', { name: /Contact support/ })).toHaveAttribute(
       'href',
       'mailto:support@dutiva.ca',

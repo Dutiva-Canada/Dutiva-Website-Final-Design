@@ -29,6 +29,11 @@ export const faqMessages = defineMessages({
     en: 'Yes. Every workflow ships in English and professional, Québec-appropriate French. Switch languages any time with the EN/FR toggle.',
     fr: 'Oui. Chaque processus est offert en anglais et en français professionnel adapté au Québec. Changez de langue à tout moment avec le sélecteur EN/FR.',
   },
+  faq_q13: { en: 'Does Dutiva run payroll?', fr: 'Dutiva gère-t-il la paie ?' },
+  faq_a13: {
+    en: 'No. Dutiva is HR compliance and documentation software — not a payroll provider. It does not process payroll, run pay cycles, remit source deductions, or issue pay. Dutiva helps Canadian employers with jurisdiction-aware HR guidance and review-ready documents across the employee lifecycle.',
+    fr: 'Non. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il ne traite pas la paie, n’effectue pas de cycles de paie, ne verse pas les retenues à la source et n’émet pas la paie. Dutiva aide les employeurs canadiens grâce à des conseils RH adaptés à la compétence applicable et à des documents prêts à réviser tout au long du cycle de vie de l’employé.',
+  },
   faq_c_title: { en: 'Compliance & coverage', fr: 'Conformité et couverture' },
   faq_q4: {
     en: 'Which jurisdictions does Dutiva cover?',
