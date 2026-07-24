@@ -35,27 +35,27 @@ export default {
         },
         {
           "type": "li",
-          "text": "•Incident Lead: coordinates triage, containment, investigation, status updates, decision logging, and post-incident review."
+          "text": "Incident Lead: coordinates triage, containment, investigation, status updates, decision logging, and post-incident review."
         },
         {
           "type": "li",
-          "text": "•Privacy Officer: assesses personal-information impact, notification duties, privacy-risk thresholds, breach records, confidentiality-incident registers, and regulator communications."
+          "text": "Privacy Officer: assesses personal-information impact, notification duties, privacy-risk thresholds, breach records, confidentiality-incident registers, and regulator communications."
         },
         {
           "type": "li",
-          "text": "•Engineering Owner: investigates technical cause, reviews logs, rotates credentials, patches code, validates fixes, and verifies remediation."
+          "text": "Engineering Owner: investigates technical cause, reviews logs, rotates credentials, patches code, validates fixes, and verifies remediation."
         },
         {
           "type": "li",
-          "text": "•Customer Communications Owner: prepares customer-facing updates, support guidance, affected-user notices, and follow-up messaging where required."
+          "text": "Customer Communications Owner: prepares customer-facing updates, support guidance, affected-user notices, and follow-up messaging where required."
         },
         {
           "type": "li",
-          "text": "•Legal Counsel: reviews high-risk notifications, regulator filings, contractual duties, evidence preservation, privilege considerations, and litigation or tribunal exposure."
+          "text": "Legal Counsel: reviews high-risk notifications, regulator filings, contractual duties, evidence preservation, privilege considerations, and litigation or tribunal exposure."
         },
         {
           "type": "li",
-          "text": "•Executive Sponsor, where needed: supports priority decisions, customer-impact decisions, resource allocation, and external communications for material incidents."
+          "text": "Executive Sponsor, where needed: supports priority decisions, customer-impact decisions, resource allocation, and external communications for material incidents."
         }
       ]
     },
@@ -68,35 +68,35 @@ export default {
         },
         {
           "type": "li",
-          "text": "•Detect: receive and review signals from monitoring, logs, provider alerts, users, support tickets, security researchers, internal review, or unusual service behaviour."
+          "text": "Detect: receive and review signals from monitoring, logs, provider alerts, users, support tickets, security researchers, internal review, or unusual service behaviour."
         },
         {
           "type": "li",
-          "text": "•Triage: classify severity, systems affected, data categories, customer impact, individual impact, active exploitation risk, provider involvement, and whether personal information may be involved."
+          "text": "Triage: classify severity, systems affected, data categories, customer impact, individual impact, active exploitation risk, provider involvement, and whether personal information may be involved."
         },
         {
           "type": "li",
-          "text": "•Contain: revoke or rotate credentials, isolate systems, disable affected features, block abusive traffic, suspend risky processing, apply emergency fixes, or preserve affected workflows while preventing further harm."
+          "text": "Contain: revoke or rotate credentials, isolate systems, disable affected features, block abusive traffic, suspend risky processing, apply emergency fixes, or preserve affected workflows while preventing further harm."
         },
         {
           "type": "li",
-          "text": "•Investigate: preserve relevant evidence, identify root cause, determine affected records, estimate affected individuals or customers, reconstruct the timeline, and confirm whether a provider or subprocessor was involved."
+          "text": "Investigate: preserve relevant evidence, identify root cause, determine affected records, estimate affected individuals or customers, reconstruct the timeline, and confirm whether a provider or subprocessor was involved."
         },
         {
           "type": "li",
-          "text": "•Assess: determine legal, privacy, contractual, customer, operational, security, and reputational implications, including whether notification thresholds are met."
+          "text": "Assess: determine legal, privacy, contractual, customer, operational, security, and reputational implications, including whether notification thresholds are met."
         },
         {
           "type": "li",
-          "text": "•Notify: provide notices to customers, regulators, affected individuals, providers, insurers, law enforcement, or other parties where required or appropriate."
+          "text": "Notify: provide notices to customers, regulators, affected individuals, providers, insurers, law enforcement, or other parties where required or appropriate."
         },
         {
           "type": "li",
-          "text": "•Recover: restore service, validate fixes, monitor for recurrence, update safeguards, and move the incident to post-incident review once operationally stable."
+          "text": "Recover: restore service, validate fixes, monitor for recurrence, update safeguards, and move the incident to post-incident review once operationally stable."
         },
         {
           "type": "li",
-          "text": "•Improve: track corrective actions, policy updates, technical changes, training needs, and product or process changes separately from the incident record."
+          "text": "Improve: track corrective actions, policy updates, technical changes, training needs, and product or process changes separately from the incident record."
         }
       ]
     },
@@ -130,23 +130,23 @@ export default {
         },
         {
           "type": "li",
-          "text": "•report the breach to the Office of the Privacy Commissioner of Canada as soon as feasible;"
+          "text": "report the breach to the Office of the Privacy Commissioner of Canada as soon as feasible;"
         },
         {
           "type": "li",
-          "text": "•notify affected individuals as soon as feasible unless prohibited by law;"
+          "text": "notify affected individuals as soon as feasible unless prohibited by law;"
         },
         {
           "type": "li",
-          "text": "•notify other organizations or government institutions where appropriate and where doing so may reduce or mitigate harm;"
+          "text": "notify other organizations or government institutions where appropriate and where doing so may reduce or mitigate harm;"
         },
         {
           "type": "li",
-          "text": "•provide notice content required by applicable law and information reasonably useful for affected individuals to reduce risk;"
+          "text": "provide notice content required by applicable law and information reasonably useful for affected individuals to reduce risk;"
         },
         {
           "type": "li",
-          "text": "•keep records of every breach of security safeguards for at least 24 months after the day Dutiva determines that the breach occurred, unless a longer period is required or reasonably necessary."
+          "text": "keep records of every breach of security safeguards for at least 24 months after the day Dutiva determines that the breach occurred, unless a longer period is required or reasonably necessary."
         }
       ]
     },
@@ -163,27 +163,27 @@ export default {
         },
         {
           "type": "li",
-          "text": "•notify the Commission d'accès à l'information du Québec with diligence;"
+          "text": "notify the Commission d'accès à l'information du Québec with diligence;"
         },
         {
           "type": "li",
-          "text": "•notify affected persons with diligence unless doing so could hamper an investigation carried out under law to prevent, detect, or repress crime or offences under law;"
+          "text": "notify affected persons with diligence unless doing so could hamper an investigation carried out under law to prevent, detect, or repress crime or offences under law;"
         },
         {
           "type": "li",
-          "text": "•take reasonable measures to reduce the risk of injury and prevent new incidents of the same nature;"
+          "text": "take reasonable measures to reduce the risk of injury and prevent new incidents of the same nature;"
         },
         {
           "type": "li",
-          "text": "•provide supplementary information to the Commission d'accès à l'information du Québec with diligence if Dutiva becomes aware of additional required information after the initial notice;"
+          "text": "provide supplementary information to the Commission d'accès à l'information du Québec with diligence if Dutiva becomes aware of additional required information after the initial notice;"
         },
         {
           "type": "li",
-          "text": "•record the incident in Dutiva's confidentiality-incident register; and"
+          "text": "record the incident in Dutiva's confidentiality-incident register; and"
         },
         {
           "type": "li",
-          "text": "•retain Quebec confidentiality-incident register entries for at least five years after the date or period on which Dutiva became aware of the incident."
+          "text": "retain Quebec confidentiality-incident register entries for at least five years after the date or period on which Dutiva became aware of the incident."
         }
       ]
     },
@@ -247,27 +247,27 @@ export default {
         },
         {
           "type": "li",
-          "text": "•date discovered, estimated date or period of occurrence, internal timeline, and date Dutiva became aware of the incident;"
+          "text": "date discovered, estimated date or period of occurrence, internal timeline, and date Dutiva became aware of the incident;"
         },
         {
           "type": "li",
-          "text": "•systems, providers, subprocessors, customers, individuals, accounts, records, and data categories involved;"
+          "text": "systems, providers, subprocessors, customers, individuals, accounts, records, and data categories involved;"
         },
         {
           "type": "li",
-          "text": "•containment, eradication, recovery, monitoring, and mitigation steps taken or planned;"
+          "text": "containment, eradication, recovery, monitoring, and mitigation steps taken or planned;"
         },
         {
           "type": "li",
-          "text": "•risk assessment, privacy threshold analysis, notification analysis, notices sent, and regulator filings;"
+          "text": "risk assessment, privacy threshold analysis, notification analysis, notices sent, and regulator filings;"
         },
         {
           "type": "li",
-          "text": "•customer communications, affected-individual communications, public notices, and support guidance where applicable;"
+          "text": "customer communications, affected-individual communications, public notices, and support guidance where applicable;"
         },
         {
           "type": "li",
-          "text": "•root cause, corrective actions, responsible owners, deadlines, verification evidence, and closure decision."
+          "text": "root cause, corrective actions, responsible owners, deadlines, verification evidence, and closure decision."
         },
         {
           "type": "p",
