@@ -10,37 +10,54 @@
  * on each navigation rather than serving it from the HTTP cache — so a
  * redeployed worker is picked up promptly. A failed registration is swallowed:
  * offline support is an enhancement and must never break the live app.
- *
- * Auto-recovery: the worker calls skipWaiting()/clients.claim() on a new
- * deploy, so a freshly activated worker takes control of already-open tabs.
- * Without the page reacting, such a tab keeps rendering whatever the
- * superseded worker had served until the user manually hard-refreshes. The
- * `controllerchange` handler below reloads the tab once when that happens, so
- * it re-renders against the new worker with fresh, per-route HTML instead. The
- * reload is skipped on the very first control hand-off (no worker was
- * controlling this load — a first visit has nothing stale to escape), and the
- * `reloaded` latch keeps it to a single reload, so it can never loop.
  */
 export function registerServiceWorker(): void {
   if (!import.meta.env.PROD) return
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
 
-  /* Was an active worker already controlling this page at startup? Only then
-     is a controllerchange an *update* replacing a running worker (reload to
-     escape its output); a null controller means a first-visit install, whose
-     initial claim needs no reload. Null too after a hard-reload (the worker is
-     bypassed), which is already the freshest possible load — nothing to do. */
-  const hadController = navigator.serviceWorker.controller !== null
-  let reloaded = false
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (reloaded || !hadController) return
-    reloaded = true
-    window.location.reload()
-  })
+  reloadOnWorkerTakeover(navigator.serviceWorker, window.location)
 
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {
       /* Never let a registration failure surface to the user. */
     })
+  })
+}
+
+/**
+ * When a replacement worker takes control of this already-open tab (a new
+ * deploy activated and called clients.claim()), reload once so the page
+ * re-renders against the new worker with fresh, per-route HTML — instead of
+ * leaving the tab on whatever the superseded worker had served until the user
+ * manually hard-refreshes (the "content looks stale / doubled until I force a
+ * refresh" symptom this recovers from).
+ *
+ * Exported for tests; registerServiceWorker wires it to the real
+ * navigator.serviceWorker + window.location in production browsers only.
+ *
+ * Guards, in order:
+ *  - Nothing was controlling this load (`hadController` false): a first-visit
+ *    install's initial claim, or a hard reload (worker bypassed) — either way
+ *    already the freshest load, with nothing stale to escape. Also means the
+ *    reload only ever fires for an *update* replacing a running worker.
+ *  - The app surface (`/app*`): workspace drafts — the Advisor composer text,
+ *    a half-filled new-case form — live only in React state, so reloading
+ *    would silently discard unsent work. The stale-content symptom this fixes
+ *    was on the public marketing pages, which hold no such unsaved state, so
+ *    recovery is limited to them. Read at takeover time so a client-side
+ *    navigation into /app is respected.
+ *  - `reloaded` latch: one reload per page load, so it can never loop.
+ */
+export function reloadOnWorkerTakeover(
+  container: ServiceWorkerContainer,
+  location: Pick<Location, 'pathname' | 'reload'>,
+): void {
+  const hadController = container.controller !== null
+  let reloaded = false
+  container.addEventListener('controllerchange', () => {
+    if (reloaded || !hadController) return
+    if (location.pathname.startsWith('/app')) return
+    reloaded = true
+    location.reload()
   })
 }
