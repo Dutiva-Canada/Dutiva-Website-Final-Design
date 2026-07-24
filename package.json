@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "check": "npm run typecheck && npm run lint && npm run test"
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "db:snapshot": "supabase db dump -f supabase/schema.sql"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.2",
