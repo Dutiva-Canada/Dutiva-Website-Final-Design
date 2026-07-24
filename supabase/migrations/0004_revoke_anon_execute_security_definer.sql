@@ -17,14 +17,18 @@
 --   archive_old_document_versions,
 --   cleanup_old_activity_logs                — scheduled maintenance jobs
 --
--- ⚠ DO NOT APPLY THIS TO PRODUCTION WITHOUT REVIEW. It has not been run
--- against the live project. Before applying:
---   1. Confirm none of these are called directly by anon/browser client
---      code (grep the production frontend for supabase.rpc(...) calls to
---      each name) — if one is, it needs an authenticated caller or a
---      narrower rewrite instead of a blanket revoke, or this will break it.
---   2. Apply via the Supabase SQL editor or `supabase db push`, ideally
---      against a staging project first.
+-- STATUS: applied to the live project. ⚠ INSUFFICIENT ON ITS OWN — see
+-- 0020_harden_definer_execute_revoke_public.sql. Revoking EXECUTE only FROM
+-- anon does not remove Postgres' default grant to PUBLIC (grantee 0), which
+-- anon inherits, so anon retained access after this ran. 0020 revokes the
+-- PUBLIC grant (and locks the background jobs to service_role) and is the
+-- migration that actually closes the exposure. This file is kept for history.
+--
+-- Reviewed before applying:
+--   1. None of these are called by anon/browser client code (grep of src/**
+--      for supabase.rpc(...) — only is_admin_user is called, from
+--      authenticated code, which tolerates a permission error).
+--   2. Applied via the Supabase MCP (apply_migration) against the live project.
 --
 -- Longer term: this public, anon-readable demo sharing a Supabase project
 -- with the real product's tables is itself the underlying risk — a
