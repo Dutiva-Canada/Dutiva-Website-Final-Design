@@ -22,7 +22,7 @@ const NAV_ITEMS: { key: LandingMessageKey; hash?: string; route?: SeoRouteId }[]
   { hash: 'product', key: 'landing_nav_docs' },
   { hash: 'coverage', key: 'landing_nav_coverage' },
   { route: 'pricing', key: 'landing_nav_pricing' },
-  { hash: 'guides', key: 'landing_nav_guides' },
+  { route: 'guides', key: 'landing_nav_guides' },
 ]
 
 /** A nav entry: a router link for `route` entries (Pricing → /pricing), or a
