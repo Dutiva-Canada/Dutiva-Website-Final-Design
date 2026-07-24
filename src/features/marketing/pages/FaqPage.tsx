@@ -11,6 +11,7 @@ const GROUPS: { titleKey: MessageKey; items: { q: MessageKey; a: MessageKey }[] 
       { q: 'faq_q1', a: 'faq_a1' },
       { q: 'faq_q2', a: 'faq_a2' },
       { q: 'faq_q3', a: 'faq_a3' },
+      { q: 'faq_q13', a: 'faq_a13' },
     ],
   },
   {
