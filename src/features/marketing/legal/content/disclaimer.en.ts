@@ -44,19 +44,19 @@ export default {
         },
         {
           type: 'li',
-          text: '•AI may produce incorrect statutory references, deadlines, entitlements, thresholds, legal standards, or procedural steps.',
+          text: 'AI may produce incorrect statutory references, deadlines, entitlements, thresholds, legal standards, or procedural steps.',
         },
         {
           type: 'li',
-          text: '•AI does not know all facts about your workplace, employees, contracts, policies, bargaining unit status, benefits arrangements, industry, or decision history.',
+          text: 'AI does not know all facts about your workplace, employees, contracts, policies, bargaining unit status, benefits arrangements, industry, or decision history.',
         },
         {
           type: 'li',
-          text: '•AI-generated outputs are not reviewed by a lawyer before delivery.',
+          text: 'AI-generated outputs are not reviewed by a lawyer before delivery.',
         },
         {
           type: 'li',
-          text: '•AI should not be the only source for decisions involving legal, financial, employment, privacy, health, safety, tax, or reputational risk.',
+          text: 'AI should not be the only source for decisions involving legal, financial, employment, privacy, health, safety, tax, or reputational risk.',
         },
         {
           type: 'p',
@@ -99,27 +99,27 @@ export default {
         },
         {
           type: 'li',
-          text: '•Terminations, layoffs, constructive dismissal, severance, or common-law reasonable notice exposure.',
+          text: 'Terminations, layoffs, constructive dismissal, severance, or common-law reasonable notice exposure.',
         },
         {
           type: 'li',
-          text: '•Human rights, disability, accommodation, harassment, violence, reprisal, or workplace investigation matters.',
+          text: 'Human rights, disability, accommodation, harassment, violence, reprisal, or workplace investigation matters.',
         },
         {
           type: 'li',
-          text: '•Unionized workplaces, collective agreements, or labour board proceedings.',
+          text: 'Unionized workplaces, collective agreements, or labour board proceedings.',
         },
         {
           type: 'li',
-          text: '•Privacy breaches, employee monitoring, cross-border transfers, or sensitive employee data processing.',
+          text: 'Privacy breaches, employee monitoring, cross-border transfers, or sensitive employee data processing.',
         },
         {
           type: 'li',
-          text: '•Pay equity, executive compensation, incentive plans, tax, pension, benefits, or equity arrangements.',
+          text: 'Pay equity, executive compensation, incentive plans, tax, pension, benefits, or equity arrangements.',
         },
         {
           type: 'li',
-          text: '•Any actual or threatened claim, regulator contact, litigation, arbitration, or tribunal proceeding.',
+          text: 'Any actual or threatened claim, regulator contact, litigation, arbitration, or tribunal proceeding.',
         },
       ],
     },
