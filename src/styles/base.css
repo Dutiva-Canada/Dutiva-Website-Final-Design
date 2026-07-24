@@ -13,6 +13,17 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Never let the page scroll sideways. Off-canvas/fixed overlays — chiefly the
+   mobile nav drawer, which parks just off the right edge while closed — extend
+   the initial containing block and otherwise leave a phantom horizontal
+   scroll (a blank band on the right on mobile). Clip it at the root. `clip`,
+   not `hidden`, so no scroll container is created and the sticky header keeps
+   sticking; genuinely wide blocks (e.g. the pricing comparison table) still
+   scroll inside their own `overflow-x: auto` wrappers. */
+html {
+  overflow-x: clip;
+}
+
 [data-theme='light'] body {
   background: var(--bg, #f3f5fa);
 }

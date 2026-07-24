@@ -184,68 +184,77 @@ export function Header() {
         </div>
       </header>
 
-      {/* Mobile drawer */}
-      <div
-        aria-hidden="true"
-        onClick={closeMenu}
-        className={`fixed inset-0 z-40 bg-[rgba(4,6,11,0.6)] backdrop-blur-xs transition-opacity duration-200 ease-in-out motion-reduce:transition-none ${
-          menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-        }`}
-      />
-      <aside
-        inert={!menuOpen}
-        className={`fixed top-0 right-0 bottom-0 z-41 flex w-[min(84vw,340px)] flex-col border-l border-border bg-bg-elevated p-5 shadow-[-20px_0_60px_rgba(0,0,0,0.5)] transition-transform duration-240 ease-in-out motion-reduce:transition-none ${
-          menuOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <span className="flex items-center gap-2.5">
-            <LeafTile size={38} radius={11} leafHeight={26} />
-            <Wordmark fontSize="1.05rem" />
-          </span>
-          <button
-            type="button"
-            className={PILL}
-            style={{ minWidth: 40, height: 40, padding: 0 }}
-            aria-label={L('Close menu', 'Fermer le menu')}
-            onClick={closeMenu}
-          >
-            <X size={18} />
-          </button>
-        </div>
-        <nav className="flex flex-col">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.key}
-              item={item}
+      {/* Mobile drawer. Wrapped in a viewport-sized, click-through layer that
+          clips horizontally: the panel parks just past the right edge while
+          closed, so without this it would extend the page and leave a phantom
+          horizontal scroll — a blank band down the right side on mobile.
+          Because the wrapper is `position: fixed`, the `absolute` panel inside
+          is contained (and clipped) by it rather than escaping to the viewport
+          the way a `fixed` panel would. The backdrop and panel re-enable
+          pointer events when the menu is open. */}
+      <div className="pointer-events-none fixed inset-0 z-40 overflow-x-clip">
+        <div
+          aria-hidden="true"
+          onClick={closeMenu}
+          className={`absolute inset-0 bg-[rgba(4,6,11,0.6)] backdrop-blur-xs transition-opacity duration-200 ease-in-out motion-reduce:transition-none ${
+            menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          }`}
+        />
+        <aside
+          inert={!menuOpen}
+          className={`pointer-events-auto absolute top-0 right-0 bottom-0 flex w-[min(84vw,340px)] flex-col border-l border-border bg-bg-elevated p-5 shadow-[-20px_0_60px_rgba(0,0,0,0.5)] transition-transform duration-240 ease-in-out motion-reduce:transition-none ${
+            menuOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <span className="flex items-center gap-2.5">
+              <LeafTile size={38} radius={11} leafHeight={26} />
+              <Wordmark fontSize="1.05rem" />
+            </span>
+            <button
+              type="button"
+              className={PILL}
+              style={{ minWidth: 40, height: 40, padding: 0 }}
+              aria-label={L('Close menu', 'Fermer le menu')}
               onClick={closeMenu}
-              className="flex items-center justify-between rounded-xl border-b border-border px-3 py-[15px] text-[1.0625rem] font-semibold text-text hover:bg-[rgba(127,127,127,0.06)]"
             >
-              <ChevronRight size={16} className="text-text-3" />
-            </NavLink>
-          ))}
-        </nav>
-        <div className="mt-auto flex flex-col gap-2.5 pt-5">
-          <Link
-            to="/app/welcome"
-            className="ghost-button"
-            style={{ width: '100%', minHeight: 48 }}
-            onClick={closeMenu}
-          >
-            <LogIn size={16} />
-            {lt('landing_signin')}
-          </Link>
-          <Link
-            to="/app/welcome"
-            className="gold-button"
-            style={{ width: '100%', minHeight: 48 }}
-            onClick={closeMenu}
-          >
-            {lt('landing_start_free')}
-            <ArrowRight size={16} />
-          </Link>
-        </div>
-      </aside>
+              <X size={18} />
+            </button>
+          </div>
+          <nav className="flex flex-col">
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.key}
+                item={item}
+                onClick={closeMenu}
+                className="flex items-center justify-between rounded-xl border-b border-border px-3 py-[15px] text-[1.0625rem] font-semibold text-text hover:bg-[rgba(127,127,127,0.06)]"
+              >
+                <ChevronRight size={16} className="text-text-3" />
+              </NavLink>
+            ))}
+          </nav>
+          <div className="mt-auto flex flex-col gap-2.5 pt-5">
+            <Link
+              to="/app/welcome"
+              className="ghost-button"
+              style={{ width: '100%', minHeight: 48 }}
+              onClick={closeMenu}
+            >
+              <LogIn size={16} />
+              {lt('landing_signin')}
+            </Link>
+            <Link
+              to="/app/welcome"
+              className="gold-button"
+              style={{ width: '100%', minHeight: 48 }}
+              onClick={closeMenu}
+            >
+              {lt('landing_start_free')}
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+        </aside>
+      </div>
     </>
   )
 }
