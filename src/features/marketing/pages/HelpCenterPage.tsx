@@ -52,7 +52,7 @@ export function HelpCenterPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('help_search_placeholder')}
             autoComplete="off"
-            className="w-full rounded-full border border-border bg-bg py-3.5 pr-12 pl-11 text-[0.9375rem] text-text shadow-sm outline-none transition-colors focus-visible:border-gold-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-strong"
+            className="w-full rounded-full border border-control-border bg-bg py-3.5 pr-12 pl-11 text-[0.9375rem] text-text shadow-sm outline-none transition-colors focus-visible:border-gold-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-strong"
           />
           {trimmed && (
             <button

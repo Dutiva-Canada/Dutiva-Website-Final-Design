@@ -28,7 +28,7 @@ export function LandingPage() {
     <div className="surface-marketing dutiva-surface min-h-screen text-text">
       <Seo route="home" extraNodes={[webApplicationNode(lang)]} />
       <Header />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <Hero />
         <TrustStrip />
         <HowItWorks />

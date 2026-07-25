@@ -61,6 +61,7 @@
   --color-bg-soft: var(--bg-soft);
   --color-bg-softer: var(--bg-softer);
   --color-border-strong: var(--border-strong);
+  --color-control-border: var(--control-border);
   --color-gold: var(--gold);
   --color-gold-strong: var(--gold-strong);
   --color-gold-subtle: var(--gold-subtle);

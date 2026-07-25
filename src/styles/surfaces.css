@@ -25,6 +25,12 @@
 
   --border: #222838;
   --border-strong: #2e3648;
+  /* Boundary for active controls (form fields, outlined buttons, header
+     pills). WCAG 1.4.11 requires a control's visual boundary to hold ≥3:1
+     against adjacent colours; the structural --border/--border-strong are too
+     faint for that. #5a6780 clears 3:1 against the dark input, elevated and
+     card fills alike. */
+  --control-border: #5a6780;
 
   --text: #f0f2f8;
   --text-2: #9aa2b4;
@@ -87,6 +93,9 @@
 
   --border: #d8dcea;
   --border-strong: #c4c9d9;
+  /* Control boundary, light ramp (see the dark note). #838b9f clears ≥3:1
+     against both white and the --bg (#f3f5fa) fill behind form controls. */
+  --control-border: #838b9f;
 
   --text: #0c1020;
   --text-2: #424d66;
