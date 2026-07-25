@@ -89,7 +89,7 @@ function OrgProfileBar({
       className="mb-5 flex flex-wrap items-center gap-3 rounded-[12px] border border-border bg-surface px-[14px] py-[11px] max-[640px]:px-[10px]"
     >
       <div className="flex items-center gap-[9px]">
-        <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[8px] bg-navy text-[#F2D9A8]">
+        <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[8px] bg-navy text-gold-on-navy">
           <Building2 size={15} strokeWidth={1.8} aria-hidden="true" />
         </span>
         <div className="leading-tight">

@@ -37,6 +37,8 @@
   --color-text-faint: var(--text-faint);
   --color-navy: var(--navy);
   --color-gold-fg: var(--gold-fg);
+  --color-gold-on-navy: var(--gold-on-navy);
+  --color-gold-on-dark: var(--gold-on-dark);
   --color-gold-bg: var(--gold-bg);
   --color-gold-border: var(--gold-border);
   --color-gold-dot: var(--gold-dot);

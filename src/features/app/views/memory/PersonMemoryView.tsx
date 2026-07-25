@@ -53,7 +53,7 @@ export function PersonMemoryView() {
       <div className="mx-auto max-w-[1080px] px-[16px] pt-[26px] pb-[40px] md:px-[28px]">
         {/* Profile header */}
         <div className="mb-[22px] flex flex-wrap items-start gap-[16px]">
-          <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-[16px] bg-navy font-display text-[20px] font-semibold text-[#F2D9A8]">
+          <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-[16px] bg-navy font-display text-[20px] font-semibold text-gold-on-navy">
             {employee.initials}
           </div>
           <div className="min-w-[220px] flex-1">
@@ -79,7 +79,7 @@ export function PersonMemoryView() {
               }
               className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border-none bg-navy px-[14px] py-[9px] font-sans text-[13px] font-bold text-white"
             >
-              <Sparkle size={15} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+              <Sparkle size={15} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
               {x(M.memory_person_ask)} {first}
             </button>
             {person.caseId !== null && (
@@ -104,7 +104,7 @@ export function PersonMemoryView() {
           <div className="min-w-[300px] flex-1">
             <div className="mb-[18px] flex items-start gap-[11px] rounded-[14px] border border-gold-border bg-gold-bg px-[16px] py-[14px]">
               <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] bg-navy">
-                <Sparkle size={14} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+                <Sparkle size={14} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
               </div>
               <div>
                 <div className="mb-[2px] text-[14px] font-bold text-text">

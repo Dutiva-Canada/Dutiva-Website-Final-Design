@@ -70,7 +70,7 @@ export function AdvisorRail() {
               </div>
             ) : (
               <div className="flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-[7px] bg-navy">
-                <Sparkle size={12} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+                <Sparkle size={12} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
               </div>
             )}
             <div className="min-w-0">

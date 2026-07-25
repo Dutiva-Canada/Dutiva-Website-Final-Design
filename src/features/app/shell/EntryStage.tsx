@@ -86,7 +86,7 @@ function BrandRail() {
       </Link>
 
       <div className="relative">
-        <div className="mb-[22px] inline-flex items-center gap-[8px] rounded-full border border-[rgba(var(--dutiva-gold-rgb),0.28)] bg-[rgba(var(--dutiva-gold-rgb),0.10)] px-[13px] py-[6px] text-[12px] font-semibold text-[#e9c877]">
+        <div className="mb-[22px] inline-flex items-center gap-[8px] rounded-full border border-[rgba(var(--dutiva-gold-rgb),0.28)] bg-[rgba(var(--dutiva-gold-rgb),0.10)] px-[13px] py-[6px] text-[12px] font-semibold text-gold-on-dark">
           <Sparkle size={12} fill="currentColor" strokeWidth={0} aria-hidden="true" />
           {x(M.auth_brand_badge)}
         </div>
@@ -99,7 +99,7 @@ function BrandRail() {
         <ul className="m-0 flex list-none flex-col gap-[14px] p-0">
           {points.map((point, i) => (
             <li key={i} className="flex items-start gap-[11px] text-[13.5px] leading-[1.5] text-white/85">
-              <span className="mt-px flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[rgba(var(--dutiva-gold-rgb),0.16)] text-[#e9c877]">
+              <span className="mt-px flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[rgba(var(--dutiva-gold-rgb),0.16)] text-gold-on-dark">
                 <Check size={12} strokeWidth={2.5} aria-hidden="true" />
               </span>
               {x(point)}

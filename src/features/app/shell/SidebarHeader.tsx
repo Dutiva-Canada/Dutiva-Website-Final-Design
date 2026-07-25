@@ -23,7 +23,7 @@ export function SidebarHeader({ expanded, inDrawer, identity, onCloseDrawer }: S
       )}
     >
       <SidebarTooltip label={identity.companyName} show={!expanded}>
-        <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] bg-navy text-[14px] font-bold text-[#F2D9A8]">
+        <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] bg-navy text-[14px] font-bold text-gold-on-navy">
           {identity.companyName.charAt(0)}
         </div>
       </SidebarTooltip>

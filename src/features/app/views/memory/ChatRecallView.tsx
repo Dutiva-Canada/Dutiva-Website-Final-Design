@@ -183,7 +183,7 @@ export function ChatRecallView() {
               return (
                 <div key={turn.text?.en ?? turn.recallIds?.join('-')} className="flex items-start gap-[12px]">
                   <div className="mt-[2px] flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[8px] bg-navy">
-                    <Sparkle size={14} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+                    <Sparkle size={14} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-[9px]">
                     {turn.fromEarlier === true && (
