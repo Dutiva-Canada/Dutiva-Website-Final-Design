@@ -77,6 +77,81 @@ describe('sendAdvisorMessage', () => {
     expect(result.response).toEqual(advisorResponse)
   })
 
+  it('records a safety-backstop event when a gate fires (unknown jurisdiction + figure)', async () => {
+    const advisorResponse = {
+      route: {
+        responseMode: 'hr',
+        workspaceAllowed: true,
+        retrievalAllowed: true,
+        legalBasisAllowed: true,
+        documentsAllowed: true,
+        webSearchAllowed: false,
+      },
+      jurisdiction: { status: 'unknown', value: '' },
+      risk: { compliance: 'high', safety: 'none' },
+      professionalReview: null,
+      supportNotice: false,
+      legalBasis: { items: [] },
+      retrieval: { items: [] },
+      webSearch: null,
+      confidence: null,
+      warnings: [],
+      isCrisis: false,
+    }
+    const invoke = vi.fn().mockResolvedValue({
+      data: {
+        data: {
+          reply: "That's about 8 weeks' notice.",
+          conversation_id: 'conv-4',
+          advisor_response: advisorResponse,
+        },
+      },
+      error: null,
+    })
+    const { sendAdvisorMessage } = await loadChatApiWithFakeInvoke(invoke)
+
+    const result = await sendAdvisorMessage('How much notice do I owe?', null)
+
+    // The gate hardened the response...
+    expect(result.response?.route.legalBasisAllowed).toBe(false)
+    // ...and a telemetry event was recorded fire-and-forget.
+    expect(invoke).toHaveBeenCalledWith('advisor-safety-event', {
+      body: { conversation_id: 'conv-4', actions: ['legal-basis-withheld'] },
+    })
+  })
+
+  it('records no safety-backstop event on a clean, jurisdiction-confirmed turn', async () => {
+    const advisorResponse = {
+      route: {
+        responseMode: 'hr',
+        workspaceAllowed: true,
+        retrievalAllowed: true,
+        legalBasisAllowed: true,
+        documentsAllowed: true,
+        webSearchAllowed: false,
+      },
+      jurisdiction: { status: 'known', value: 'Ontario' },
+      risk: { compliance: 'low', safety: 'none' },
+      professionalReview: null,
+      supportNotice: false,
+      legalBasis: { items: [] },
+      retrieval: { items: [] },
+      webSearch: null,
+      confidence: null,
+      warnings: [],
+      isCrisis: false,
+    }
+    const invoke = vi.fn().mockResolvedValue({
+      data: { data: { reply: 'Here is the process.', conversation_id: 'c', advisor_response: advisorResponse } },
+      error: null,
+    })
+    const { sendAdvisorMessage } = await loadChatApiWithFakeInvoke(invoke)
+
+    await sendAdvisorMessage('What is the layoff process?', null)
+
+    expect(invoke).not.toHaveBeenCalledWith('advisor-safety-event', expect.anything())
+  })
+
   it('returns response null (reply intact) when the structured payload is malformed', async () => {
     const invoke = vi.fn().mockResolvedValue({
       data: {

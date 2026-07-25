@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { advisorResponseSchema } from './contract'
 import type { AdvisorResponse } from './contract'
 import { applySafetyBackstop } from './safety'
+import { reportSafetyEvent } from './safetyTelemetry'
 
 /**
  * Real AI Advisor replies — calls the `advisor-chat` edge function (bearer
@@ -54,11 +55,19 @@ export async function sendAdvisorMessage(
   if (parsed.data.advisor_response !== undefined) {
     const structured = advisorResponseSchema.safeParse(parsed.data.advisor_response)
     if (structured.success) {
-      response = applySafetyBackstop({
+      const backstop = applySafetyBackstop({
         userMessage: message,
         reply: parsed.data.reply,
         response: structured.data,
-      }).response
+      })
+      response = backstop.response
+      // Fire-and-forget: record which gate(s) fired, never block the reply.
+      if (backstop.actions.length > 0) {
+        void reportSafetyEvent({
+          conversationId: parsed.data.conversation_id,
+          actions: backstop.actions,
+        })
+      }
     } else {
       console.warn('advisor: structured payload failed contract validation', structured.error)
     }

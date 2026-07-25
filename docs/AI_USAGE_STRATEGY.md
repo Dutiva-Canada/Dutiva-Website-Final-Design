@@ -202,6 +202,14 @@ this is why they fail safe to a hedge, and is flagged for a reviewer.
 - **Testable** — every rule is a pure function with fixture-driven tests
   (`*.test.ts` beside each file), same discipline as `triage.ts`.
 
+### 5.4 Observability
+When a gate fires, `chatApi.ts` records it fire-and-forget via the
+`advisor-safety-event` edge function — one `ai_telemetry_events` row per gated
+turn with `operation = 'safety_backstop'` and the fired actions in `metadata`
+(mirroring advisor-chat's telemetry shape). So "how often does the crisis
+intercept or the figure gate actually catch something?" is a query, not a guess.
+Telemetry is best-effort: a logging failure never blocks or breaks a reply.
+
 ---
 
 ## 6. The gate test — for every *new* AI feature
