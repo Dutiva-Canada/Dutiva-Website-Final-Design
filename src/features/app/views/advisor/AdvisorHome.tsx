@@ -71,7 +71,7 @@ export function AdvisorHome({
       <div className="flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto px-[24px] pt-[10vh] pb-[40px]">
         <div className="w-full max-w-[680px] text-center">
           <div className="mx-auto mb-[20px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-navy">
-            <Sparkle size={22} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+            <Sparkle size={22} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
           </div>
           <h1 className="m-0 mb-[6px] font-display text-[27px] font-semibold text-text">
             {x(WM.wsmode_advisor_greeting)}
@@ -94,7 +94,7 @@ export function AdvisorHome({
       <div className="w-full max-w-[680px] text-center">
         {/* Spark hero */}
         <div className="mx-auto mb-[20px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-navy">
-          <Sparkle size={22} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+          <Sparkle size={22} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
         </div>
         <h1 className="m-0 mb-[6px] font-display text-[27px] font-semibold text-text">
           {x(M.advisorview_greeting)}
@@ -131,7 +131,7 @@ export function AdvisorHome({
         {/* Daily brief */}
         <div className="mb-[22px] flex items-start gap-[11px] rounded-[14px] border border-gold-border bg-gold-bg px-[16px] py-[14px] text-left">
           <div className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-[8px] bg-navy">
-            <Sparkle size={15} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+            <Sparkle size={15} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
           </div>
           <div className="min-w-0">
             <div className="mb-[3px] text-[11px] font-bold tracking-wider text-gold-dot uppercase">

@@ -87,7 +87,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
               profileOpen ? 'bg-border-soft' : 'bg-transparent hover:bg-inset',
             )}
           >
-            <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-navy text-[11.5px] font-bold text-[#F2D9A8]">
+            <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-navy text-[11.5px] font-bold text-gold-on-navy">
               {identity.user.initials}
             </div>
             {expanded && (

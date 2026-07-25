@@ -83,7 +83,7 @@ export function OrgChart() {
       {departing && (
         <div className="mb-[22px] flex items-start gap-[11px] rounded-[12px] border border-gold-border bg-gold-bg px-[16px] py-[13px]">
           <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[7px] bg-navy">
-            <Sparkle size={14} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+            <Sparkle size={14} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
           </div>
           <div>
             <div className="mb-[2px] text-[11px] font-bold tracking-wider text-gold-dot uppercase">
@@ -96,7 +96,7 @@ export function OrgChart() {
 
       <div className="flex flex-col items-center">
         <div className="flex items-center gap-[11px] rounded-[12px] bg-navy px-[18px] py-[12px] shadow-[0_4px_14px_rgba(13,27,42,0.18)]">
-          <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-[rgba(242,217,168,0.16)] text-[12.5px] font-bold text-[#F2D9A8]">
+          <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-[rgba(var(--gold-on-navy-rgb),0.16)] text-[12.5px] font-bold text-gold-on-navy">
             {orgRoot.initials}
           </div>
           <div className="text-left">

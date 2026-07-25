@@ -248,7 +248,7 @@ function IdleState() {
     <div className="p-[18px]">
       <div className="rounded-[14px] border border-dashed border-border bg-surface px-[18px] py-[22px] text-center">
         <div className="mx-auto mb-[12px] flex h-[38px] w-[38px] items-center justify-center rounded-[11px] bg-navy">
-          <Sparkle size={18} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+          <Sparkle size={18} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
         </div>
         <div className="mb-[5px] text-[14px] font-bold text-text">{x(M.advws_idle_title)}</div>
         <div className="text-[12.5px] leading-[1.55] text-text-muted">{x(M.advws_idle_body)}</div>

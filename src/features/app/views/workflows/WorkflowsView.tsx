@@ -40,7 +40,7 @@ function StageMarker({ n, state }: { readonly n: number; readonly state: Termina
     )
   }
   if (state === 'current' || state === 'partial') {
-    return <div className={`${base} bg-navy text-[10.5px] font-bold text-[#F2D9A8]`}>{n}</div>
+    return <div className={`${base} bg-navy text-[10.5px] font-bold text-gold-on-navy`}>{n}</div>
   }
   if (state === 'waiting') {
     return (
@@ -158,7 +158,7 @@ export function WorkflowsView() {
               <Share2
                 size={15}
                 strokeWidth={1.8}
-                className="-scale-x-100 text-[#F2D9A8]"
+                className="-scale-x-100 text-gold-on-navy"
                 aria-hidden="true"
               />
             </div>
@@ -247,7 +247,7 @@ export function WorkflowsView() {
                 }
                 className="flex cursor-pointer flex-col items-start gap-[9px] rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border)"
               >
-                <div className="flex h-[29px] w-[29px] items-center justify-center rounded-[8px] bg-navy text-[#F2D9A8]">
+                <div className="flex h-[29px] w-[29px] items-center justify-center rounded-[8px] bg-navy text-gold-on-navy">
                   <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
                 </div>
                 <div>

@@ -15,7 +15,7 @@ export function HomeBriefHero({ onAction }: { readonly onAction: (action: HomeAc
   return (
     <div className="mb-[18px] flex items-start gap-[13px] rounded-[14px] border border-gold-border bg-gold-bg px-[18px] py-[16px]">
       <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] bg-navy">
-        <Sparkle size={16} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+        <Sparkle size={16} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="mb-[6px] text-[11px] font-bold tracking-wider text-gold-dot uppercase">

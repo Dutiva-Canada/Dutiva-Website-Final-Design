@@ -119,7 +119,7 @@ export function MobileNav({
         className="flex flex-none flex-col items-center gap-[3px] px-[4px]"
       >
         <span className="mt-[-16px] flex h-[50px] w-[50px] items-center justify-center rounded-full border-[3px] border-surface bg-navy shadow-[0_6px_18px_-4px_rgba(31,58,95,0.5)]">
-          <Star size={22} strokeWidth={0} fill="#F2D9A8" aria-hidden="true" />
+          <Star size={22} strokeWidth={0} className="fill-gold-on-navy" aria-hidden="true" />
         </span>
         <span className="text-[10px] font-semibold text-accent">{x(M.shell_tab_ask)}</span>
       </Link>

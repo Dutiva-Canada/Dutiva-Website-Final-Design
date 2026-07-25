@@ -31,7 +31,7 @@ export function WorkspaceContextBanner() {
 
   return (
     <div className="flex shrink-0 items-center gap-[12px] border-b border-gold-border bg-gold-bg px-[22px] py-[10px]">
-      <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-navy text-[11.5px] font-bold text-[#F2D9A8]">
+      <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-navy text-[11.5px] font-bold text-gold-on-navy">
         {context.initials}
       </div>
       <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-[8px]">

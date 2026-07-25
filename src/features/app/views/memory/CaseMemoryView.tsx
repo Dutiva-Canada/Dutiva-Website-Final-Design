@@ -76,7 +76,7 @@ export function CaseMemoryView() {
 
         {/* Resume banner */}
         <div className="mb-[18px] flex items-start gap-[12px] rounded-[14px] border border-gold-border bg-gold-bg px-[17px] py-[15px]">
-          <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[9px] bg-navy text-[#F2D9A8]">
+          <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[9px] bg-navy text-gold-on-navy">
             <History size={14} strokeWidth={1.7} aria-hidden="true" />
           </div>
           <div className="min-w-0 flex-1">
@@ -99,7 +99,7 @@ export function CaseMemoryView() {
                 }
                 className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[13px] py-[8px] font-sans text-[12.5px] font-bold text-white"
               >
-                <Sparkle size={14} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+                <Sparkle size={14} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
                 {x(M.memory_case_resume_chat)}
               </button>
               <button
@@ -118,7 +118,7 @@ export function CaseMemoryView() {
             {/* Case memory summary */}
             <div className="mb-[18px] rounded-[14px] border border-border-soft bg-surface px-[17px] py-[15px]">
               <div className="mb-[9px] flex items-center gap-[9px]">
-                <Sparkle size={14} fill="#F2D9A8" strokeWidth={0} aria-hidden="true" />
+                <Sparkle size={14} className="fill-gold-dot" strokeWidth={0} aria-hidden="true" />
                 <div>
                   <div className="text-[13.5px] font-bold text-text">
                     {x(M.memory_case_summary_title)}

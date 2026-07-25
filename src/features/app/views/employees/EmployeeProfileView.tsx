@@ -198,7 +198,7 @@ function EmployeeProfileDemoView() {
 
         {/* Identity header */}
         <div className="mb-[6px] flex flex-wrap items-start gap-[16px]">
-          <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-navy text-[19px] font-bold text-[#F2D9A8]">
+          <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-navy text-[19px] font-bold text-gold-on-navy">
             {emp.initials}
           </div>
           <div className="min-w-[200px] flex-1">

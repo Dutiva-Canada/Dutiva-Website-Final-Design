@@ -16,6 +16,15 @@
   --dutiva-black: #111111;
   --dutiva-white: #ffffff;
   --gold-gradient: linear-gradient(135deg, #b98512 0%, #d4af37 45%, #f4c54b 70%, #ffe37a 100%);
+  --gold-bright: #f4d03f; /* bright headline gold — end stop of .gradient-text */
+  /* Fixed golds for always-dark surfaces (navy chips, auth BrandRail). These
+     never theme-flip: the surfaces they sit on stay navy in both themes, so
+     the theme-scoped --gold-fg (#7d600f in light) would vanish there.
+     --gold-on-navy is the handoff's "gold-on-navy text"; --gold-on-dark is
+     the readable gold copy shade (equals the dark-ramp --gold-fg). */
+  --gold-on-navy: #f2d9a8;
+  --gold-on-navy-rgb: 242, 217, 168;
+  --gold-on-dark: #e9c877;
 
   /* ── Families ────────────────────────────────────────────────────────────── */
   --font-display: 'Montserrat', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
