@@ -137,57 +137,70 @@ model classification. §5 closes that gap for the two highest-stakes routes.
 
 ---
 
-## 5. Concrete design — a deterministic safety backstop
+## 5. The deterministic safety backstop
 
 Goal: no single LLM misclassification can (a) drop the crisis intercept, or (b)
 leak statutory figures before jurisdiction is confirmed. The pattern is a cheap,
-auditable rule layer that runs **before and after** the model and can only ever
-*tighten*, never loosen.
+auditable rule layer that runs around the model and can only ever *tighten*,
+never loosen.
+
+> **Status: implemented.** `src/features/app/advisor/safety/` — a pure,
+> unit-tested module wired into `advisor/chatApi.ts`, which hardens the engine's
+> validated `AdvisorResponse` before it reaches the Compliance Workspace. It is
+> client-side **defense-in-depth**, not a replacement for the engine's own
+> gating: the engine remains the primary control ("the client gates too").
 
 ### 5.1 Crisis intercept — pre-classifier, fail-safe-on
-Run a maintained lexical/deterministic signal **before** the model and OR it with
-the model's `isCrisis`. The union wins; the model can escalate to crisis but can
-never clear a crisis the rule detected.
+`detectCrisisSignal(userText)` (a maintained, bilingual phrase set in
+`crisisSignals.ts`) is OR'd with the engine's `isCrisis` in `safetyBackstop.ts`.
+The union wins; the model can escalate to crisis but can never clear a crisis the
+rule detected.
 
 ```
-isCrisis_final = ruleCrisisSignal(userText) OR model.isCrisis
-// if isCrisis_final → maintained resources only; every gate OFF; no HR content.
+isCrisis_final = detectCrisisSignal(userText) OR engine.isCrisis
+// if isCrisis_final → maintained resources only; every gate OFF (allowedSurfaces);
 // A model that fails to flag crisis cannot suppress the intercept.
 ```
 
-`ruleCrisisSignal` is a small, reviewed, bilingual phrase set (self-harm,
-suicide, immediate danger) — maintained like the crisis resource list itself,
-version-controlled, unit-tested. False positives are acceptable here (worst case:
-a support resource is shown unnecessarily); false negatives are not.
+The phrase set is version-controlled and unit-tested, maintained like the crisis
+resource list itself (never model-generated). It is scoped to **first-person**
+distress so third-party workplace-violence reports stay in escalation mode, not
+supportive/crisis. False positives are acceptable here (worst case: a support
+resource is shown unnecessarily); false negatives are not.
 
 ### 5.2 Jurisdiction / statutory-figure gate — post-filter, fail-safe-closed
-Statutory *figures* (notice weeks, severance thresholds, headcount triggers)
-should come from a **structured jurisdiction table**, not the model's memory —
-extend the existing `JurisdictionInfo` (which already holds statute *names*) with
-the numeric thresholds. Then enforce two deterministic rules independent of the
-model:
+Two deterministic rules, independent of the model:
 
 ```
-// 1. Gate: no figures until jurisdiction is confirmed.
-if jurisdiction.status != 'known' AND responseMentionsStatutoryFigures(reply):
-    withhold reply, emit collect-jurisdiction prompt  // never "assume Ontario"
+// 1. Gate: no figures until jurisdiction is confirmed (safetyBackstop.ts).
+if jurisdiction.status NOT in {known, assumed, not_applicable}
+   AND mentionsStatutoryFigure(reply):
+       legalBasisAllowed = false; add withheld-warning   // never "assume Ontario"
 
-// 2. Ground: any figure that does ship is looked up, not generated.
-figure = STATUTORY_TABLE[jurisdiction][topic]   // authoritative source
-//        └─ retrieval / table lookup; the model may phrase it, not invent it
+// 2. Ground: any figure that ships is looked up, not generated (statutoryNotice.ts).
+weeks = lookupStatutoryNoticeWeeks(jurisdiction, tenureMonths)  // table, not memory
+//       └─ ON ESA s.57 seeded; QC/FED null → hedge, don't guess
 ```
 
 The model may *phrase* "about 8 weeks' notice"; the number `8` comes from the
-table. If the table has no entry, the Advisor hedges and points to the primary
-source (`ontario.ca`, the ESA) rather than guessing — exactly the bounded-fallback
-behaviour `AGENT.md` §9 already requires when web search is unavailable.
+table (`NOTICE_SCHEDULES`). If the table has no entry (`null`), the Advisor hedges
+and points to the primary source rather than guessing — the bounded-fallback
+behaviour `AGENT.md` §9 already requires.
+
+**Honest limitation.** Rule 1 inspects the model's *prose*, and a client cannot
+un-say prose — so it gates the structured legal-basis surface off and raises an
+operator warning, rather than rewriting the sentence. The definitive fix stays
+server-side (the engine withholds figures before generating). The table
+(`statutoryNotice.ts`) seeds only Ontario today; **Québec (LNT s.82) and Federal
+(CLC Part III s.230) are intentionally `null` pending qualified legal review** —
+this is why they fail safe to a hedge, and is flagged for a reviewer.
 
 ### 5.3 Why this shape
-- **Cheap & auditable** — regex/phrase-set + a table lookup, no extra model call.
-- **Monotonic** — the backstop can only tighten (add a gate, withhold a figure);
-  it can never open a gate the contract closed.
-- **Testable** — both rules are pure functions with fixture-driven tests, same as
-  `triage.ts`.
+- **Cheap & auditable** — phrase-set + regex + a table lookup, no extra model call.
+- **Monotonic** — the backstop can only tighten (raise crisis, withhold a figure);
+  it can never open a gate the contract closed. Proven by the pass-through test.
+- **Testable** — every rule is a pure function with fixture-driven tests
+  (`*.test.ts` beside each file), same discipline as `triage.ts`.
 
 ---
 
