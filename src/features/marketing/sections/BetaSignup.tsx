@@ -20,7 +20,7 @@ function isValidEmail(value: string): boolean {
 
 const LABEL = 'text-[0.8125rem] font-semibold text-text'
 const INPUT =
-  'rounded-xl border border-border bg-bg px-4 font-sans text-text placeholder:text-text-3'
+  'rounded-xl border border-control-border bg-bg px-4 font-sans text-text placeholder:text-text-3'
 
 function readSignups(): string[] {
   try {
@@ -109,6 +109,7 @@ export function BetaSignup() {
                   id="beta-email"
                   name="email"
                   type="email"
+                  autoComplete="email"
                   required
                   placeholder={lt('landing_cta_email_ph')}
                   value={email}
@@ -125,6 +126,7 @@ export function BetaSignup() {
                     id="beta-company"
                     name="company"
                     type="text"
+                    autoComplete="organization"
                     placeholder={lt('landing_cta_company_ph')}
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
@@ -138,9 +140,10 @@ export function BetaSignup() {
                   <select
                     id="beta-prov"
                     name="province"
+                    autoComplete="address-level1"
                     value={province}
                     onChange={(e) => setProvince(e.target.value)}
-                    className="min-h-11 rounded-xl border border-border bg-bg px-3 font-sans text-sm text-text"
+                    className="min-h-11 rounded-xl border border-control-border bg-bg px-3 font-sans text-sm text-text"
                   >
                     <option value="">{lt('landing_cta_prov_0')}</option>
                     <option value="on">{lt('landing_cta_prov_on')}</option>

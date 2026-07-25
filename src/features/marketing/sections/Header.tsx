@@ -58,11 +58,11 @@ function NavLink({
 
 /* Compact desktop control pill (lang / theme) — prototype `.hdr-ctrl`. */
 const CTRL =
-  'inline-flex h-9 min-w-9 cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-border-strong bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color,background-color,color] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(127,127,127,0.06)] motion-reduce:transition-none'
+  'inline-flex h-9 min-w-9 cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-control-border bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color,background-color,color] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(127,127,127,0.06)] motion-reduce:transition-none'
 
 /* Large mobile pill (lang · theme · hamburger) — prototype `.hdr-pill`. */
 const PILL =
-  'inline-flex h-[46px] min-w-[46px] cursor-pointer items-center justify-center gap-[7px] rounded-2xl border border-border-strong bg-bg-elevated px-4 font-sans text-[0.9375rem] font-semibold text-text transition-[border-color,background-color,transform] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(255,255,255,0.05)] active:translate-y-px motion-reduce:transition-none'
+  'inline-flex h-[46px] min-w-[46px] cursor-pointer items-center justify-center gap-[7px] rounded-2xl border border-control-border bg-bg-elevated px-4 font-sans text-[0.9375rem] font-semibold text-text transition-[border-color,background-color,transform] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(255,255,255,0.05)] active:translate-y-px motion-reduce:transition-none'
 
 /**
  * Language toggle. On the public surface (URL-scoped language) it renders a
@@ -108,6 +108,11 @@ export function Header() {
 
   return (
     <>
+      {/* WCAG 2.4.1 — first focusable element on every public page: a
+          keyboard bypass past the header/nav to the page's <main>. */}
+      <a href="#main-content" className="skip-link">
+        {L('Skip to main content', 'Passer au contenu principal')}
+      </a>
       <header className="sticky top-0 z-30 border-b border-border bg-(--topbar-bg) backdrop-blur-[18px]">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-3">
           <a href={home('top')} className="flex items-center gap-2.5">

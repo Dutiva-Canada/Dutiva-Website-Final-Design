@@ -22,7 +22,9 @@ export function MarketingPageShell({ children }: { readonly children: ReactNode 
   return (
     <div className="surface-marketing dutiva-surface min-h-screen text-text">
       <Header />
-      <main>{children}</main>
+      <main id="main-content" tabIndex={-1}>
+        {children}
+      </main>
       <Footer />
     </div>
   )

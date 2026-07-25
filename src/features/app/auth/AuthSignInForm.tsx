@@ -37,6 +37,7 @@ export function AuthSignInForm({ idPrefix = 'auth' }: Readonly<{ idPrefix?: stri
         <input
           id={emailId}
           type="email"
+          autoComplete="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}

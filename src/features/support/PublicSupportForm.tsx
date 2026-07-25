@@ -33,7 +33,7 @@ const PUBLIC_CATEGORIES = SUPPORT_CATEGORIES.filter((c) => c.allowPublic)
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const controlClass =
-  'w-full rounded-[9px] border border-border bg-bg px-[12px] py-[10px] text-[14px] text-text outline-none focus-visible:border-gold-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-strong'
+  'w-full rounded-[9px] border border-control-border bg-bg px-[12px] py-[10px] text-[14px] text-text outline-none focus-visible:border-gold-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-strong'
 const textareaClass = `${controlClass} min-h-[130px] resize-y`
 
 function Field({
@@ -166,7 +166,7 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
         <button
           type="button"
           onClick={reset}
-          className="cursor-pointer rounded-[9px] border border-border bg-bg px-[16px] py-[9px] text-[13.5px] font-semibold text-text-2"
+          className="cursor-pointer rounded-[9px] border border-control-border bg-bg px-[16px] py-[9px] text-[13.5px] font-semibold text-text-2"
         >
           {x(M.support_success_new)}
         </button>
