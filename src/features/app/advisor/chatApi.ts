@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
 import { advisorResponseSchema } from './contract'
 import type { AdvisorResponse } from './contract'
+import { applySafetyBackstop } from './safety'
 
 /**
  * Real AI Advisor replies — calls the `advisor-chat` edge function (bearer
@@ -15,6 +16,11 @@ import type { AdvisorResponse } from './contract'
  * only returns text: when present and valid it feeds the Compliance
  * Workspace; when absent or malformed the reply still renders and the
  * workspace shows nothing rather than an unvalidated payload.
+ *
+ * A validated payload is then passed through the deterministic safety backstop
+ * (`./safety`, docs/AI_USAGE_STRATEGY.md §5) before it reaches the workspace —
+ * client-side defense-in-depth that can only tighten gates (crisis intercept,
+ * jurisdiction/statutory-figure gate), never loosen them.
  */
 
 const advisorChatResponseSchema = z.object({
@@ -48,7 +54,11 @@ export async function sendAdvisorMessage(
   if (parsed.data.advisor_response !== undefined) {
     const structured = advisorResponseSchema.safeParse(parsed.data.advisor_response)
     if (structured.success) {
-      response = structured.data
+      response = applySafetyBackstop({
+        userMessage: message,
+        reply: parsed.data.reply,
+        response: structured.data,
+      }).response
     } else {
       console.warn('advisor: structured payload failed contract validation', structured.error)
     }
