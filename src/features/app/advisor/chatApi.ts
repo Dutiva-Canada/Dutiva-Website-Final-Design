@@ -46,8 +46,15 @@ export async function sendAdvisorMessage(
   if (!supabase) {
     throw new Error('Real AI Advisor replies are not configured in this environment.')
   }
+  /* The edge function stamps the current date/time into the system prompt so
+     the model knows morning from evening — that only works in the user's own
+     timezone, which the server can't infer. */
   const { data, error } = await supabase.functions.invoke('advisor-chat', {
-    body: { message, conversation_id: conversationId },
+    body: {
+      message,
+      conversation_id: conversationId,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    },
   })
   if (error) throw error
   const parsed = advisorChatResponseSchema.parse(data)

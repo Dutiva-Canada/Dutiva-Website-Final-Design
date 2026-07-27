@@ -229,7 +229,11 @@ describe('AdvisorView', () => {
       fireEvent.keyDown(composer, { key: 'Enter' })
 
       expect(invoke).toHaveBeenCalledWith('advisor-chat', {
-        body: { message: 'I need to terminate an employee', conversation_id: null },
+        body: {
+          message: 'I need to terminate an employee',
+          conversation_id: null,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
       })
       /* Real (unmocked) timers: the engine's 850ms thinking delay plus the
          streaming animation exceed testing-library's default 1000ms wait. */
