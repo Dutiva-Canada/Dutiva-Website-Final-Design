@@ -94,6 +94,43 @@ describe('AdvisorView', () => {
       expect(screen.getByText(/Noted — I've added that to this case/)).toBeInTheDocument()
     })
 
+    it('routes a signed-out home-composer crisis message to the support thread, not a scenario', () => {
+      renderApp(<AdvisorView />, { route: '/app/advisor' })
+
+      const composer = screen.getByPlaceholderText('Ask Advisor anything about your team…')
+      fireEvent.change(composer, { target: { value: 'I feel suicidal' } })
+      fireEvent.keyDown(composer, { key: 'Enter' })
+
+      act(() => {
+        vi.advanceTimersByTime(849 + 8000)
+      })
+      /* Maintained 9-8-8 resource, in a "Support" thread — no scenario script
+         (s4's jurisdiction prompt is what routeScenarioFromText would give). */
+      expect(screen.getByText(/please contact 9-8-8/)).toBeInTheDocument()
+      expect(screen.getAllByText('Support').length).toBeGreaterThan(0)
+      expect(screen.queryByText('Which jurisdiction applies?')).not.toBeInTheDocument()
+    })
+
+    it('crisis text wins over a dispatched termination flow (intercept precedes flow routing)', () => {
+      /* Same navigation contract as the intake test below — but the prompt
+         carries a crisis signal, so the quick form must never render. */
+      renderApp(<AdvisorView />, {
+        route: '/app/advisor',
+        state: {
+          prompt: 'They want to terminate me and I feel suicidal',
+          flowKey: 'termination',
+        },
+      })
+      act(() => {
+        vi.advanceTimersByTime(849 + 8000)
+      })
+      expect(screen.getByText(/please contact 9-8-8/)).toBeInTheDocument()
+      expect(
+        screen.queryByText(/To calculate this correctly and flag any risk/),
+      ).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Employment type')).not.toBeInTheDocument()
+    })
+
     it('runs the termination intake: quick form → answer chips → assessment with docs and follow-ups', () => {
       /* The intake flow is started by its navigation contract (Home /
          Workflows dispatch { prompt, flowKey } router state). */
@@ -244,6 +281,46 @@ describe('AdvisorView', () => {
       expect(
         screen.queryByText(/To calculate this correctly and flag any risk/),
       ).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Employment type')).not.toBeInTheDocument()
+    })
+
+    it('intercepts a crisis message before any model call, even with a flow keyword', async () => {
+      const fakeSession = { user: { id: 'u1' } }
+      const invoke = vi.fn().mockResolvedValue({ data: { data: { recorded: 1 } }, error: null })
+      vi.doMock('@/lib/supabaseClient', () => ({
+        supabase: {
+          auth: {
+            getSession: () => Promise.resolve({ data: { session: fakeSession } }),
+            onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+          },
+          functions: { invoke },
+        },
+      }))
+      vi.resetModules()
+
+      const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+      const { AdvisorView: AdvisorViewFresh } = await import('./AdvisorView')
+      const { resetAdvisorSession: resetAdvisorSessionFresh } = await import('./advisorSession')
+      resetAdvisorSessionFresh()
+
+      renderAppFresh(<AdvisorViewFresh />, { route: '/app/advisor' })
+
+      const composer = await screen.findByPlaceholderText('Ask Advisor anything about your team…')
+      /* Signed-in home-composer path: the crisis signal must stop the turn
+         before the model call (flow-routing precedence is covered by the
+         fake-timer dispatch test above). */
+      fireEvent.change(composer, {
+        target: { value: 'They want to terminate me and I feel suicidal' },
+      })
+      fireEvent.keyDown(composer, { key: 'Enter' })
+
+      /* The maintained 9-8-8 resource streams in (never model-generated). */
+      expect(await screen.findByText(/9-8-8/, {}, { timeout: 8000 })).toBeInTheDocument()
+      /* No model call, no scripted flow — only the safety-event log. */
+      expect(invoke).not.toHaveBeenCalledWith('advisor-chat', expect.anything())
+      expect(invoke).toHaveBeenCalledWith('advisor-safety-event', {
+        body: { conversation_id: null, actions: ['crisis-intercept'] },
+      })
       expect(screen.queryByLabelText('Employment type')).not.toBeInTheDocument()
     })
   })

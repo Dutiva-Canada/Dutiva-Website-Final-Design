@@ -36,7 +36,16 @@ const SYSTEM_PROMPT =
   'agreeable: if the user says something inaccurate — even something small, like ' +
   'greeting you with "Good evening" when it is morning — respond with the correct ' +
   'fact (e.g., "Good morning") rather than echoing the mistake, then continue ' +
-  'helping. When you are unsure of a fact, say so instead of guessing.'
+  'helping. When you are unsure of a fact, say so instead of guessing.\n\n' +
+  'Statutory precision: never cite bill numbers, section or regulation numbers, or ' +
+  'court cases from memory — name the governing law in general terms instead (e.g., ' +
+  '"the Ontario Employment Standards Act", "the Loi sur les normes du travail", ' +
+  '"the Canada Labour Code"). Only state a specific statutory figure (weeks of ' +
+  'notice, dollar thresholds, percentages) when you are confident it is current; ' +
+  'otherwise say you are not certain and point the user to the official source ' +
+  '(Ontario.ca, the CNESST, or Canada.ca). When the jurisdiction is unknown and it ' +
+  'changes the answer, ask for it before giving figures. Employment rules change — ' +
+  'when giving figures, remind the user to verify against the official source.'
 
 /* The model has no clock — without an explicit timestamp it can only infer the
    time of day from what the user says, which is how "Good evening" gets
@@ -96,7 +105,7 @@ interface ModelProvider {
 
 interface ModelRoute {
   model_name: string
-  config: { max_tokens?: number } | null
+  config: { max_tokens?: number; temperature?: number } | null
 }
 
 interface ActiveModelRoute {
@@ -266,6 +275,12 @@ async function requestCompletion(
           userMessage,
         ],
         max_tokens: route.config?.max_tokens ?? 800,
+        /* DB-tunable so a model that pins sampling (some reasoning models
+           reject temperature != 1) needs a config change, not a deploy. The
+           typeof guard keeps a jsonb null or string from reaching the wire. */
+        ...(typeof route.config?.temperature === 'number'
+          ? { temperature: route.config.temperature }
+          : {}),
       }),
     })
     if (!upstream.ok) {

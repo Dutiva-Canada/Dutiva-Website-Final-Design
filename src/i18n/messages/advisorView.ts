@@ -64,4 +64,15 @@ export const advisorViewMessages = defineMessages({
     en: 'You can type your question again to retry.',
     fr: 'Vous pouvez retaper votre question pour réessayer.',
   },
+
+  /* Crisis intercept (AGENT.md §8) — deterministic, maintained copy shown
+     instead of any model reply when the crisis pre-classifier fires. The
+     9-8-8 sentence is the handoff's verbatim resource: maintained from
+     public sources, never model-generated. Single literals on purpose — the
+     maintained sentence must stay greppable in full. */
+  advisorview_crisis_support: {
+    en: "I'm really sorry you're going through this — thank you for saying it here. What you're feeling matters, and you don't have to carry it alone. It can help to step back for a moment and talk to someone you trust — a friend, a family member, your doctor, or an employee assistance program if one is available to you. If you ever feel you might be in crisis, please contact 9-8-8 — the Suicide Crisis Helpline, available 24/7 by call or text. I'm here when you're ready to continue, at whatever pace works for you.",
+    fr: 'Je suis vraiment désolé que vous traversiez cela — merci de l’avoir dit ici. Ce que vous ressentez compte, et vous n’avez pas à porter tout cela sans soutien. Il peut être utile de prendre un moment de recul et de parler à une personne de confiance — un ami, un proche, votre médecin, ou un programme d’aide aux employés si vous y avez accès. Si vous sentez que vous pourriez être en crise, veuillez contacter le 9-8-8 — la Ligne d’aide en cas de crise de suicide, offerte 24 h sur 24, 7 jours sur 7, par appel ou texto. Je suis là quand vous voudrez continuer, à votre rythme.', // [FR self-authored]
+  },
+  advisorview_crisis_thread_title: { en: 'Support', fr: 'Soutien' }, // [FR self-authored]
 })

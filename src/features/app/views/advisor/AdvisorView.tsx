@@ -7,6 +7,8 @@ import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
 import { useAuth } from '@/features/app/auth/authContext'
 import { sendAdvisorMessage } from '@/features/app/advisor/chatApi'
+import { detectCrisisSignal } from '@/features/app/advisor/safety'
+import { reportSafetyEvent } from '@/features/app/advisor/safetyTelemetry'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
@@ -111,6 +113,11 @@ const freshResponseState = (scenarioId: ScenarioId | null): ThreadResponseState 
   webOn: true,
   response: null,
 })
+
+/* Maintained supportive workspace payload for crisis turns — the s5 wellbeing
+   scenario's (support notice on, every gate off), reused so the crisis
+   framing stays single-sourced rather than duplicated. */
+const supportiveCrisisResponse = advisorScenarios.s5.turn.response
 
 /** Freeze in-flight turns when a thread is stashed (switching threads). */
 function settle(messages: ChatMessage[]): ChatMessage[] {
@@ -502,6 +509,60 @@ export function AdvisorView() {
 
   /* ----------------------------------------------------------- chat flows */
 
+  /* Crisis intercept (AGENT.md §8, AI_USAGE_STRATEGY §5.1): deterministic and
+     BEFORE any model call or flow routing, on every free-text entry point. A
+     crisis message never reaches the LLM, never starts an HR workflow, and
+     always gets the maintained resource — fail-safe regardless of auth state.
+     Returns true when it fired (callers stop the turn). */
+  const interceptCrisis = (raw: string, chatId: string | null): boolean => {
+    if (!detectCrisisSignal(raw)) return false
+    /* Fresh-turn contract: replace any prior structured payload with the
+       maintained supportive one, so no compliance scaffolding (risk meters,
+       legal basis, stale scenario reads) sits beside the crisis reply. */
+    if (chatId !== null) patchResponseState(chatId, { response: supportiveCrisisResponse })
+    pushAdvisor({ text: M.advisorview_crisis_support })
+    void reportSafetyEvent({
+      conversationId: conversationIdRef.current,
+      actions: ['crisis-intercept'],
+    })
+    return true
+  }
+
+  /* Home-composer crisis: start a dedicated support thread — support title,
+     the supportive workspace payload, the maintained 9-8-8 reply — instead of
+     any flow or scenario routing. Returns false when there is no crisis
+     signal (caller proceeds normally). */
+  const startCrisisThread = (text: string): boolean => {
+    if (!detectCrisisSignal(text)) return false
+    stashActive()
+    const id = `session-${advisorSession.nextChatSeq++}`
+    updateSessionChats((prev) => [
+      {
+        id,
+        title: M.advisorview_crisis_thread_title,
+        pinned: false,
+        bucket: 'today',
+        flowKey: 'fallback',
+      },
+      ...prev,
+    ])
+    updateActiveChatId(id)
+    conversationIdRef.current = null
+    setResponseState((prev) => {
+      const next = {
+        ...prev,
+        [id]: { ...freshResponseState(null), response: supportiveCrisisResponse },
+      }
+      advisorSession.responseState = next
+      return next
+    })
+    engine.reset([])
+    pushUser(text)
+    pushAdvisor({ text: M.advisorview_crisis_support })
+    void reportSafetyEvent({ conversationId: null, actions: ['crisis-intercept'] })
+    return true
+  }
+
   const startFlow = (flowKey: FlowKeyOrFallback, userText: LText) => {
     stashActive()
     const id = `session-${advisorSession.nextChatSeq++}`
@@ -513,6 +574,11 @@ export function AdvisorView() {
     conversationIdRef.current = null
     engine.reset([])
     pushUser(userText)
+
+    /* Before flow routing: a crisis phrase containing a flow keyword (e.g.
+       "terminate") must not launch the termination quick-form. */
+    const raw = typeof userText === 'string' ? userText : `${userText.en}\n${userText.fr}`
+    if (interceptCrisis(raw, id)) return
 
     if (flowKey === 'termination') {
       const turnId = pushAdvisor({
@@ -582,6 +648,9 @@ export function AdvisorView() {
   const sendInThread = (text: string) => {
     const chatId = activeChatId
     pushUser(text)
+    /* Before the scenario/auth branches — scripted threads must not answer a
+       crisis message with a canned acknowledgement either. */
+    if (interceptCrisis(text, chatId)) return
     const isScenarioThread = chatId !== null && responseState[chatId]?.scenarioId != null
     if (isScenarioThread) {
       pushAdvisor({ text: authStatus === 'signed-in' ? scenarioAck : scenarioAckSignedOut })
@@ -825,6 +894,9 @@ export function AdvisorView() {
       ) : (
         <AdvisorHome
           onSend={(text) => {
+            /* Crisis first — regardless of auth state, before flow or
+               scenario routing (AGENT.md §8). */
+            if (startCrisisThread(text)) return
             if (authStatus === 'signed-in') startFlow('fallback', text)
             else startScenario(routeScenarioFromText(text), text)
           }}
