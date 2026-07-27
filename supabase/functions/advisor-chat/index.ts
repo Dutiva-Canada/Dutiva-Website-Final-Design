@@ -31,7 +31,35 @@ const SYSTEM_PROMPT =
   'employers. Give practical, jurisdiction-aware HR guidance (Ontario, Quebec, and ' +
   'federally regulated workplaces). You are not a lawyer and do not provide legal ' +
   'advice — for high-risk employment decisions (termination, discipline, ' +
-  'accommodation), tell the user to consult qualified legal counsel.'
+  'accommodation), tell the user to consult qualified legal counsel.\n\n' +
+  'Be factual and grounded at all times. Do not go along with statements just to be ' +
+  'agreeable: if the user says something inaccurate — even something small, like ' +
+  'greeting you with "Good evening" when it is morning — respond with the correct ' +
+  'fact (e.g., "Good morning") rather than echoing the mistake, then continue ' +
+  'helping. When you are unsure of a fact, say so instead of guessing.'
+
+/* The model has no clock — without an explicit timestamp it can only infer the
+   time of day from what the user says, which is how "Good evening" gets
+   mirrored back in the morning. The client sends its IANA timezone; anything
+   invalid falls back to UTC (Intl throws on bad zone names, which also keeps
+   unvetted client input out of the prompt). */
+function currentTimeLine(timezone: string | null): string {
+  let tz = 'UTC'
+  if (timezone) {
+    try {
+      new Intl.DateTimeFormat('en-CA', { timeZone: timezone })
+      tz = timezone
+    } catch {
+      /* invalid timezone from client — keep UTC */
+    }
+  }
+  const formatted = new Intl.DateTimeFormat('en-CA', {
+    dateStyle: 'full',
+    timeStyle: 'short',
+    timeZone: tz,
+  }).format(new Date())
+  return `Current date and time for the user: ${formatted} (${tz}).`
+}
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
@@ -55,6 +83,7 @@ interface ChatRequest {
   message: string
   conversationId: string | null
   organizationId: string | null
+  timezone: string | null
 }
 
 interface ModelProvider {
@@ -137,6 +166,7 @@ async function readChatRequest(req: Request): Promise<ChatRequest | Response> {
     message,
     conversationId: typeof body.conversation_id === 'string' ? body.conversation_id : null,
     organizationId: typeof body.organization_id === 'string' ? body.organization_id : null,
+    timezone: typeof body.timezone === 'string' ? body.timezone : null,
   }
 }
 
@@ -227,7 +257,14 @@ async function requestCompletion(
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
         model: route.model_name,
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history, userMessage],
+        messages: [
+          {
+            role: 'system',
+            content: `${SYSTEM_PROMPT}\n\n${currentTimeLine(request.timezone)}`,
+          },
+          ...history,
+          userMessage,
+        ],
         max_tokens: route.config?.max_tokens ?? 800,
       }),
     })

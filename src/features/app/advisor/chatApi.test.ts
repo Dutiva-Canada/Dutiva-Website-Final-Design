@@ -35,7 +35,11 @@ describe('sendAdvisorMessage', () => {
     const result = await sendAdvisorMessage('What is ESA notice?', 'conv-0')
 
     expect(invoke).toHaveBeenCalledWith('advisor-chat', {
-      body: { message: 'What is ESA notice?', conversation_id: 'conv-0' },
+      body: {
+        message: 'What is ESA notice?',
+        conversation_id: 'conv-0',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
     })
     expect(result).toEqual({
       reply: 'Here is some guidance.',
