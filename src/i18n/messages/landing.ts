@@ -978,9 +978,12 @@ export const landing = defineMessages({
     en: 'Other',
     fr: 'Autre',
   },
+  /* The consent itself is the checkbox (landing_cta_consent_label) — CASL
+     wants express consent, not consent implied by submitting. This line is
+     only the privacy-handling notice that accompanies it. */
   landing_cta_consent: {
-    en: 'By submitting this form, you agree to receive product updates about Dutiva. You can unsubscribe at any time. Dutiva will handle your information according to its',
-    fr: 'En soumettant ce formulaire, vous acceptez de recevoir des mises à jour sur Dutiva. Vous pouvez vous désabonner en tout temps. Dutiva traitera vos renseignements conformément à sa',
+    en: 'Dutiva will handle your information according to its',
+    fr: 'Dutiva traitera vos renseignements conformément à sa',
   },
   landing_cta_privacy_link: {
     en: 'Privacy Policy',
@@ -990,12 +993,24 @@ export const landing = defineMessages({
     en: 'Sending…',
     fr: 'Envoi…',
   },
-  landing_cta_dup: {
-    en: "This email is already on the beta list — you're all set.",
-    fr: 'Ce courriel figure déjà sur la liste bêta — tout est en ordre.',
-  },
   landing_cta_error: {
     en: 'Please enter a valid work email address.',
     fr: 'Veuillez saisir une adresse courriel valide.',
+  },
+  landing_cta_consent_label: {
+    en: 'Yes, email me product updates about Dutiva. I can unsubscribe at any time.',
+    fr: 'Oui, envoyez-moi des mises à jour sur Dutiva. Je peux me désabonner en tout temps.',
+  },
+  landing_cta_consent_err: {
+    en: 'Please confirm you agree to receive product updates.',
+    fr: 'Veuillez confirmer que vous acceptez de recevoir des mises à jour.',
+  },
+  landing_cta_rate_limited: {
+    en: 'Too many attempts in a short time. Please try again later, or email support@dutiva.ca.',
+    fr: 'Trop de tentatives en peu de temps. Réessayez plus tard ou écrivez à support@dutiva.ca.',
+  },
+  landing_cta_fail: {
+    en: 'Could not record your signup. Please try again, or email support@dutiva.ca.',
+    fr: "Impossible d'enregistrer votre inscription. Réessayez ou écrivez à support@dutiva.ca.",
   },
 })

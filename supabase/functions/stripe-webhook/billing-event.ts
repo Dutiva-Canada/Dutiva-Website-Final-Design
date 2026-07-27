@@ -37,6 +37,31 @@ export function normalizePlan(value: unknown): string | null {
   return ALLOWED_PLANS.has(plan) ? plan : null
 }
 
+/**
+ * Stripe's subscription statuses are a wider set than `profiles`'
+ * `subscription_status` check constraint accepts, so writing one through
+ * verbatim (`incomplete`, `unpaid`, `paused`, …) fails the constraint and
+ * loses the update. Map onto the accepted set instead, failing closed:
+ * anything unrecognized becomes `inactive` rather than something that reads
+ * as entitled.
+ */
+const STATUS_MAP: Record<string, string> = {
+  active: 'active',
+  trialing: 'trialing',
+  past_due: 'past_due',
+  canceled: 'canceled',
+  // Payment is outstanding but the subscription still exists — the same
+  // state `invoice.payment_failed` records.
+  unpaid: 'past_due',
+  incomplete: 'inactive',
+  incomplete_expired: 'inactive',
+  paused: 'inactive',
+}
+
+export function normalizeSubscriptionStatus(value: unknown): string {
+  return STATUS_MAP[String(value ?? '').toLowerCase()] ?? 'inactive'
+}
+
 export function inferCheckoutPrice(session: Record<string, unknown>): string | null {
   const lineItems = session.line_items as { data?: Array<{ price?: unknown }> } | undefined
   const lineItemPrice = lineItems?.data?.[0]?.price
@@ -87,7 +112,7 @@ export function getSubscriptionProfileUpdate(
   // Prefer the actual subscribed price over client-editable metadata.plan.
   const plan = priceMatch?.plan ?? normalizePlan(metadata.plan) ?? null
   const updates: ProfileUpdate = {
-    subscription_status: String(subscription.status ?? 'active'),
+    subscription_status: normalizeSubscriptionStatus(subscription.status ?? 'active'),
     stripe_subscription_id: stringId(subscription.id),
   }
 

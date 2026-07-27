@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, CircleCheck, ShieldCheck } from 'lucide-react'
 import { usePublicPath } from '@/seo/usePublicPath'
+import { createBetaSignup, BetaSignupError } from '../betaSignupApi'
+import type { BetaProvince } from '../betaSignupApi'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
-
-const SIGNUPS_KEY = 'dutiva-beta-signups'
 
 /** Same validation shape as the prototype's beta-form handler (linear-time). */
 function isValidEmail(value: string): boolean {
@@ -22,59 +22,60 @@ const LABEL = 'text-[0.8125rem] font-semibold text-text'
 const INPUT =
   'rounded-xl border border-control-border bg-bg px-4 font-sans text-text placeholder:text-text-3'
 
-function readSignups(): string[] {
-  try {
-    const raw = localStorage.getItem(SIGNUPS_KEY)
-    if (!raw) return []
-    const parsed: unknown = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []
-  } catch {
-    return []
-  }
-}
-
 type Status = 'idle' | 'sending' | 'done'
 
+/**
+ * Beta waiting-list form. Submissions go to the `create-beta-signup` edge
+ * function (see ../betaSignupApi), which stores the address, alerts the
+ * operator, and emails the visitor a confirmation.
+ *
+ * A repeat address is reported by the server as an ordinary success, so
+ * there is deliberately no "already on the list" state here — telling the
+ * visitor would leak list membership to anyone who can type an address.
+ */
 export function BetaSignup() {
-  const { lt } = useLanding()
+  const { lt, lang } = useLanding()
   const { legalDoc } = usePublicPath()
   const [email, setEmail] = useState('')
   const [company, setCompany] = useState('')
-  const [province, setProvince] = useState('')
+  const [province, setProvince] = useState<BetaProvince | ''>('')
+  const [consent, setConsent] = useState(false)
+  const [honeypot, setHoneypot] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [message, setMessage] = useState<{ key: LandingMessageKey; isError: boolean } | null>(null)
-  const timerRef = useRef<number | null>(null)
 
-  useEffect(
-    () => () => {
-      if (timerRef.current !== null) window.clearTimeout(timerRef.current)
-    },
-    [],
-  )
-
-  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
     const value = email.trim()
     if (!isValidEmail(value)) {
       setMessage({ key: 'landing_cta_error', isError: true })
       return
     }
-    const list = readSignups()
-    if (list.includes(value.toLowerCase())) {
-      setMessage({ key: 'landing_cta_dup', isError: false })
+    if (!consent) {
+      setMessage({ key: 'landing_cta_consent_err', isError: true })
       return
     }
+
     setMessage(null)
     setStatus('sending')
-    timerRef.current = window.setTimeout(() => {
-      try {
-        list.push(value.toLowerCase())
-        localStorage.setItem(SIGNUPS_KEY, JSON.stringify(list))
-      } catch {
-        /* localStorage unavailable — success state still shown, as in the prototype */
-      }
+    try {
+      await createBetaSignup({
+        email: value,
+        company,
+        province,
+        language: lang === 'fr' ? 'fr' : 'en',
+        consent,
+        honeypot,
+      })
       setStatus('done')
-    }, 700)
+    } catch (error) {
+      const code = error instanceof BetaSignupError ? error.code : 'error'
+      setMessage({
+        key: code === 'rate_limited' ? 'landing_cta_rate_limited' : 'landing_cta_fail',
+        isError: true,
+      })
+      setStatus('idle')
+    }
   }
 
   return (
@@ -101,6 +102,19 @@ export function BetaSignup() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
+              {/* Honeypot: off-screen, not announced, never tab-focusable. */}
+              <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                <label htmlFor="beta-fax">Do not fill this field</label>
+                <input
+                  id="beta-fax"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
+
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="beta-email" className={LABEL}>
                   {lt('landing_cta_email_label')}
@@ -142,7 +156,7 @@ export function BetaSignup() {
                     name="province"
                     autoComplete="address-level1"
                     value={province}
-                    onChange={(e) => setProvince(e.target.value)}
+                    onChange={(e) => setProvince(e.target.value as BetaProvince | '')}
                     className="min-h-11 rounded-xl border border-control-border bg-bg px-3 font-sans text-sm text-text"
                   >
                     <option value="">{lt('landing_cta_prov_0')}</option>
@@ -153,6 +167,23 @@ export function BetaSignup() {
                   </select>
                 </div>
               </div>
+
+              {/* CASL express consent — the server rejects a submission without
+                  it, so this is the record, not a courtesy. */}
+              <label className="mt-0.5 flex items-start gap-2.5">
+                <input
+                  id="beta-consent"
+                  name="consent"
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span className="text-[0.8125rem] leading-[1.5] text-text-2">
+                  {lt('landing_cta_consent_label')}
+                </span>
+              </label>
+
               <button
                 type="submit"
                 className="gold-button"
