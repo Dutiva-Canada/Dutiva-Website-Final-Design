@@ -1,0 +1,69 @@
+import { supabase } from '@/lib/supabaseClient'
+
+/**
+ * Client for the `create-beta-signup` edge function — the unauthenticated
+ * waiting-list intake behind the landing page's `#start` form. Sibling of
+ * `features/support/publicSupportApi.ts`, and deliberately shaped the same
+ * way: the server re-validates everything, rate-limits by hashed IP/email,
+ * and answers a repeat address exactly like a new one, so this only shapes
+ * the payload.
+ *
+ * `honeypot` maps to the server's hidden `contact_fax` trap; real users
+ * leave it empty.
+ */
+
+export type BetaSignupErrorCode = 'rate_limited' | 'validation' | 'error'
+
+export class BetaSignupError extends Error {
+  constructor(public readonly code: BetaSignupErrorCode) {
+    super(code)
+    this.name = 'BetaSignupError'
+  }
+}
+
+/** The jurisdictions the server accepts; anything else is stored as `other`. */
+export type BetaProvince = 'on' | 'qc' | 'fed' | 'other'
+
+export interface BetaSignupInput {
+  email: string
+  company?: string
+  /** Omitted when the visitor leaves the (optional) jurisdiction select blank. */
+  province?: BetaProvince | ''
+  language: 'en' | 'fr'
+  /** CASL express consent — the server rejects the submission without it. */
+  consent: boolean
+  /** Honeypot — always empty for real users. */
+  honeypot?: string
+}
+
+function errorCodeFromStatus(status: number | undefined): BetaSignupErrorCode {
+  if (status === 429) return 'rate_limited'
+  if (status === 400 || status === 422) return 'validation'
+  return 'error'
+}
+
+/**
+ * Record a beta signup. Resolves on success — including for an address that
+ * is already on the list, which the server reports as success on purpose so
+ * the endpoint can't be used to test list membership.
+ */
+export async function createBetaSignup(input: BetaSignupInput): Promise<void> {
+  if (!supabase) throw new BetaSignupError('error')
+
+  const { error } = await supabase.functions.invoke('create-beta-signup', {
+    body: {
+      email: input.email,
+      company: input.company?.trim() || undefined,
+      province: input.province || undefined,
+      language: input.language,
+      source: 'landing',
+      consent: input.consent,
+      contact_fax: input.honeypot ?? '',
+    },
+  })
+
+  if (error) {
+    const status = (error as { context?: { status?: number } }).context?.status
+    throw new BetaSignupError(errorCodeFromStatus(status))
+  }
+}

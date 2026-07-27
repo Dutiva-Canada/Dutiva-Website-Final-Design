@@ -38,20 +38,43 @@ function buildPriceLookup(): PriceLookup {
   return lookup
 }
 
+/**
+ * Every profile write goes through here so a failure is never silent. A
+ * rejected write used to be discarded — the handler still answered Stripe
+ * `{received: true}`, so a customer could be charged with no entitlement and
+ * nothing anywhere would say so. Returning the error lets the caller answer
+ * non-2xx, which is what makes Stripe retry.
+ */
+async function applyProfileUpdate(
+  // deno-lint-ignore no-explicit-any
+  query: any,
+  context: string,
+): Promise<{ ok: boolean }> {
+  const { error } = await query
+  if (error) {
+    console.error(`[stripe-webhook] ${context} failed:`, error.message, error.code ?? '')
+    return { ok: false }
+  }
+  return { ok: true }
+}
+
 async function updateProfileByIdOrEmail(
   // deno-lint-ignore no-explicit-any
   supabase: any,
   userId: string | null,
   email: string | null,
   updates: Record<string, unknown>,
-) {
+): Promise<{ ok: boolean }> {
   if (userId) {
-    return supabase.from('profiles').update(updates).eq('id', userId)
+    return applyProfileUpdate(
+      supabase.from('profiles').update(updates).eq('id', userId),
+      `profile update for user ${userId}`,
+    )
   }
 
   if (!email) {
-    console.warn('[stripe-webhook] No user id or email available for profile update.')
-    return null
+    console.error('[stripe-webhook] No user id or email available for profile update.')
+    return { ok: false }
   }
 
   // Do NOT interpolate an externally-influenced email into a PostgREST
@@ -62,13 +85,16 @@ async function updateProfileByIdOrEmail(
     .select('id')
     .eq('account_email', email.trim().toLowerCase())
     .maybeSingle()
-  if (error) console.warn('[stripe-webhook] profile lookup error:', error.message)
+  if (error) console.error('[stripe-webhook] profile lookup error:', error.message)
   if (!data?.id) {
-    console.warn('[stripe-webhook] Could not resolve profile by checkout email:', email)
-    return null
+    console.error('[stripe-webhook] Could not resolve profile by checkout email:', email)
+    return { ok: false }
   }
 
-  return supabase.from('profiles').update(updates).eq('id', data.id)
+  return applyProfileUpdate(
+    supabase.from('profiles').update(updates).eq('id', data.id),
+    `profile update for ${email}`,
+  )
 }
 
 Deno.serve(async (req: Request) => {
@@ -105,6 +131,18 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  /**
+   * Answer non-2xx so Stripe retries, and release the dedup claim first —
+   * otherwise the retry would match the row this delivery just inserted, be
+   * dismissed as a duplicate, and the failed write would never be reapplied.
+   */
+  async function fail(message: string) {
+    if (event.id) {
+      await supabase.from('stripe_webhook_events').delete().eq('event_id', event.id)
+    }
+    return json({ error: message }, 500)
+  }
+
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object
     const { userId, email, updates } = getCheckoutProfilePatch(session, priceLookup)
@@ -116,7 +154,8 @@ Deno.serve(async (req: Request) => {
       console.warn('[stripe-webhook] checkout.session.completed: subscription is not a string ID.')
     }
 
-    await updateProfileByIdOrEmail(supabase, userId, email, updates)
+    const result = await updateProfileByIdOrEmail(supabase, userId, email, updates)
+    if (!result.ok) return fail('Could not apply checkout to profile.')
   }
 
   if (
@@ -127,7 +166,11 @@ Deno.serve(async (req: Request) => {
     const { customerId, updates } = getSubscriptionProfileUpdate(sub, priceLookup)
 
     if (customerId) {
-      await supabase.from('profiles').update(updates).eq('stripe_customer_id', customerId)
+      const result = await applyProfileUpdate(
+        supabase.from('profiles').update(updates).eq('stripe_customer_id', customerId),
+        `subscription update for customer ${customerId}`,
+      )
+      if (!result.ok) return fail('Could not apply subscription to profile.')
     }
   }
 
@@ -135,10 +178,14 @@ Deno.serve(async (req: Request) => {
     const invoice = event.data.object
     const customerId = stringId(invoice.customer)
     if (customerId) {
-      await supabase
-        .from('profiles')
-        .update({ subscription_status: 'past_due' })
-        .eq('stripe_customer_id', customerId)
+      const result = await applyProfileUpdate(
+        supabase
+          .from('profiles')
+          .update({ subscription_status: 'past_due' })
+          .eq('stripe_customer_id', customerId),
+        `past_due flag for customer ${customerId}`,
+      )
+      if (!result.ok) return fail('Could not flag the profile past due.')
     }
   }
 
@@ -146,10 +193,14 @@ Deno.serve(async (req: Request) => {
     const sub = event.data.object
     const customerId = stringId(sub.customer)
     if (customerId) {
-      await supabase
-        .from('profiles')
-        .update({ plan: 'free', subscription_status: 'canceled' })
-        .eq('stripe_customer_id', customerId)
+      const result = await applyProfileUpdate(
+        supabase
+          .from('profiles')
+          .update({ plan: 'free', subscription_status: 'canceled' })
+          .eq('stripe_customer_id', customerId),
+        `cancellation for customer ${customerId}`,
+      )
+      if (!result.ok) return fail('Could not apply the cancellation.')
     }
   }
 

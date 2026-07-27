@@ -4,6 +4,7 @@ import {
   getSubscriptionProfileUpdate,
   inferCheckoutPrice,
   normalizePlan,
+  normalizeSubscriptionStatus,
   stringId,
 } from './billing-event'
 
@@ -119,5 +120,38 @@ describe('stripe webhook billing event helpers', () => {
         stripe_subscription_id: 'sub_123',
       },
     })
+  })
+  it('maps Stripe statuses onto the ones profiles accepts, failing closed', () => {
+    /* The check constraint on profiles.subscription_status accepts only these
+       five; anything else would fail the write and lose the update. */
+    expect(normalizeSubscriptionStatus('active')).toBe('active')
+    expect(normalizeSubscriptionStatus('trialing')).toBe('trialing')
+    expect(normalizeSubscriptionStatus('past_due')).toBe('past_due')
+    expect(normalizeSubscriptionStatus('canceled')).toBe('canceled')
+    expect(normalizeSubscriptionStatus('unpaid')).toBe('past_due')
+
+    /* Never entitling: an unrecognized or in-between status reads as inactive
+       rather than active. */
+    expect(normalizeSubscriptionStatus('incomplete')).toBe('inactive')
+    expect(normalizeSubscriptionStatus('incomplete_expired')).toBe('inactive')
+    expect(normalizeSubscriptionStatus('paused')).toBe('inactive')
+    expect(normalizeSubscriptionStatus('something_new_from_stripe')).toBe('inactive')
+    expect(normalizeSubscriptionStatus(undefined)).toBe('inactive')
+  })
+
+  it('normalizes the status on a subscription update', () => {
+    const result = getSubscriptionProfileUpdate(
+      {
+        id: 'sub_456',
+        customer: 'cus_456',
+        status: 'incomplete',
+        items: { data: [{ price: { id: 'price_pro_monthly' } }] },
+        metadata: {},
+      },
+      priceLookup,
+    )
+
+    expect(result.updates.subscription_status).toBe('inactive')
+    expect(result.updates.plan).toBe('pro')
   })
 })

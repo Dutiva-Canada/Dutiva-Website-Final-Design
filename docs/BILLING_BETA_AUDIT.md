@@ -1,5 +1,14 @@
 # Stripe billing & beta-signup audit
 
+> **Status (2026-07-27, after remediation).** Items 1–3 of "Suggested order of
+> work" have been done: the beta form now posts to `create-beta-signup`,
+> migration `0024` reconciled the live billing schema, and all three Stripe
+> functions are deployed. **Checkout still needs its Stripe secrets set on the
+> Supabase project before a payment can complete** — see "Remaining work" at
+> the bottom. B2 (invite-only sign-in) is unchanged and still gates the whole
+> paid funnel. The findings below are kept as written, as the record of what
+> was found.
+
 **Date:** 2026-07-27
 **Scope:** the paid-signup path (`/pricing` → Stripe Checkout → entitlement) and
 the beta waiting-list path (landing `#start` form).
@@ -13,20 +22,20 @@ one of those two, and the evidence is named inline.
 **Neither path works today.** A customer cannot complete a payment, and a beta
 signup is discarded by the browser rather than recorded.
 
-The *code* in this repo is largely sound — signature verification, RLS, and the
+The _code_ in this repo is largely sound — signature verification, RLS, and the
 plan-resolution hardening are genuinely well built. The failures are all at the
 seams: code that was never deployed, a schema that was never migrated, and a
 form that was never wired to the backend that already exists for it.
 
 Supporting evidence that this is not theoretical:
 
-| Live check | Result |
-| --- | --- |
-| `select count(*) from auth.users` | **1** (the internal account) |
-| `select count(*) from public.beta_signups` | **0** |
-| `create-checkout-session` in deployed Edge Functions | **absent** |
-| `create-portal-session` in deployed Edge Functions | **absent** |
-| `to_regclass('public.stripe_webhook_events')` | **null** |
+| Live check                                           | Result                       |
+| ---------------------------------------------------- | ---------------------------- |
+| `select count(*) from auth.users`                    | **1** (the internal account) |
+| `select count(*) from public.beta_signups`           | **0**                        |
+| `create-checkout-session` in deployed Edge Functions | **absent**                   |
+| `create-portal-session` in deployed Edge Functions   | **absent**                   |
+| `to_regclass('public.stripe_webhook_events')`        | **null**                     |
 
 ---
 
@@ -42,8 +51,8 @@ project — the deployed list contains `stripe-webhook`, `advisor-chat`, the
 support functions and others, but not these two.
 
 Every checkout attempt therefore resolves to a `FunctionsHttpError`, is caught
-at `:327`, and the customer sees *"Could not start checkout. Please try again or
-contact support@dutiva.ca."* There is no way to reach Stripe from the site.
+at `:327`, and the customer sees _"Could not start checkout. Please try again or
+contact support@dutiva.ca."_ There is no way to reach Stripe from the site.
 
 Fix: `supabase functions deploy create-checkout-session create-portal-session`,
 then set `STRIPE_SECRET_KEY`, `STRIPE_PRICE_{STARTER,GROWTH,PRO}_MONTHLY` and
@@ -60,7 +69,7 @@ session away from `/app` (`RequireAdminSession.tsx:42`).
 
 Because `handleCheckout` sends any signed-out visitor to `/app/welcome`
 (`PricingPage.tsx:288`), the funnel is closed at its first step: a prospect
-clicks *Start Growth*, lands on the sign-in gate, enters their address, and is
+clicks _Start Growth_, lands on the sign-in gate, enters their address, and is
 told the workspace is restricted. `auth.users` holding exactly one row is that
 outcome measured rather than inferred.
 
@@ -167,8 +176,8 @@ subscription event and treat the checkout event as customer-linking only.
 ## Smaller findings
 
 - **Annual billing is a dead end.** The toggle advertises "2 months free" and
-  renders annual pricing, then refuses at click time with *"Annual billing is
-  coming soon"* (`PricingPage.tsx:297`). A live pricing page quoting a price
+  renders annual pricing, then refuses at click time with _"Annual billing is
+  coming soon"_ (`PricingPage.tsx:297`). A live pricing page quoting a price
   that cannot be purchased. Either wire the annual price IDs or drop the toggle
   until they exist.
 - **Nothing handles the return from Stripe.** `success_url` is
@@ -226,3 +235,48 @@ Worth stating plainly, because it is the majority of the code:
 
 Steps 2 and 3 must land together: deploying the newer webhook against the
 current constraint converts B3 from a wrong-plan bug into a silent-failure bug.
+
+---
+
+## Remaining work
+
+Steps 1–3 are done (see the status note at the top). What is left:
+
+### Set the Stripe secrets on the Supabase project
+
+The three functions are deployed but fail closed until these exist as function
+secrets (Supabase dashboard → Edge Functions → Secrets, or
+`supabase secrets set`). Until then `create-checkout-session` answers 503
+`Payments not configured.` and the pricing page shows its generic error.
+
+| Secret                         | Used by           | Note                                                                                   |
+| ------------------------------ | ----------------- | -------------------------------------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`            | checkout, portal  |                                                                                        |
+| `STRIPE_WEBHOOK_SECRET`        | webhook           | the `whsec_…` for the endpoint below                                                   |
+| `STRIPE_PRICE_STARTER_MONTHLY` | checkout, webhook |                                                                                        |
+| `STRIPE_PRICE_GROWTH_MONTHLY`  | checkout, webhook |                                                                                        |
+| `STRIPE_PRICE_PRO_MONTHLY`     | checkout, webhook |                                                                                        |
+| `SITE_URL`                     | checkout, portal  | set to `https://dutiva.ca` — the default is the host `vercel.json` redirects away from |
+
+Point the Stripe webhook endpoint at
+`https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/stripe-webhook` and
+subscribe it to `checkout.session.completed`,
+`customer.subscription.created|updated|deleted`, and
+`invoice.payment_failed`. The function is deployed with `verify_jwt: false`,
+which is what lets Stripe reach it.
+
+Verify with a Stripe test-mode purchase: `profiles` should end up with the
+right `plan`, `subscription_status: active`, and a `stripe_subscription_id`,
+and `stripe_webhook_events` should gain one row per delivery.
+
+### Still open from the findings above
+
+- **B2 — invite-only sign-in.** Unchanged, and it still closes the funnel
+  ahead of everything else here: no visitor can create the account a
+  subscription would attach to. A product decision, not a bug.
+- **Annual billing** still advertises a price it refuses at click time.
+- **`?checkout=success`** is still unread, so there is no confirmation on
+  return from Stripe.
+- **`inferCheckoutPrice`** still reads `session.line_items`, which webhooks
+  never carry; the price-authoritative path remains the subscription events
+  only.
