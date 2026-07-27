@@ -475,14 +475,14 @@ const s5: AdvisorScenario = {
        (AGENT.md §7–8 — the disclaimer does not appear in wellbeing mode). */
     reply: bi(
       "I'm sorry you're carrying so much right now — that sounds genuinely exhausting, and it's okay to feel this way. A few things that can help in the moment: give yourself permission to step back and take a real break, and talk to someone you trust. If this has been building for a while, reaching out to your doctor or your EAP is a solid next step. And if you ever feel you might be in crisis, please contact 9-8-8 — the Suicide Crisis Helpline, available 24/7 by call or text. I'm here whenever you want to talk anything through.",
-      'Je suis désolé que vous portiez autant en ce moment — cela semble réellement épuisant, et c’est normal de se sentir ainsi. Quelques gestes qui peuvent aider : donnez-vous la permission de prendre un vrai recul, et parlez-en à une personne de confiance. Si cela dure depuis un moment, contacter votre médecin ou votre PAE est une bonne prochaine étape. Et si jamais vous sentez que vous pourriez être en crise, veuillez contacter le 9-8-8 — la Ligne d’aide en cas de crise suicidaire, offerte 24 h sur 24, 7 jours sur 7, par appel ou texto. Je suis là quand vous voulez en parler.',
+      'Je suis désolé que vous portiez autant en ce moment — cela semble réellement épuisant, et c’est normal de se sentir ainsi. Quelques gestes qui peuvent aider : donnez-vous la permission de prendre un vrai recul, et parlez-en à une personne de confiance. Si cela dure depuis un moment, contacter votre médecin ou votre PAE est une bonne prochaine étape. Et si jamais vous sentez que vous pourriez être en crise, veuillez contacter le 9-8-8 — la Ligne d’aide en cas de crise de suicide, offerte 24 h sur 24, 7 jours sur 7, par appel ou texto. Je suis là quand vous voulez en parler.',
     ),
     banner: {
       tone: 'support',
       title: bi('Support resource. ', 'Ressource de soutien. '),
       text: bi(
         '9-8-8 Suicide Crisis Helpline — call or text, 24/7. Maintained from public sources, never generated.',
-        '9-8-8 Ligne d’aide en cas de crise suicidaire — appel ou texto, 24/7. Tenue à jour à partir de sources publiques, jamais générée.',
+        '9-8-8 Ligne d’aide en cas de crise de suicide — appel ou texto, 24/7. Tenue à jour à partir de sources publiques, jamais générée.',
       ),
     },
     jurisdictionLine: bi(
