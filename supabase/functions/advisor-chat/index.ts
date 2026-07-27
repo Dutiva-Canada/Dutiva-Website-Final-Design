@@ -123,6 +123,56 @@ interface Completion {
   usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
 }
 
+interface GuidanceChunk {
+  title: string
+  content: string
+  source_url: string
+  source_name: string
+  jurisdiction: string
+  effective_note: string | null
+}
+
+/**
+ * Ranked full-text retrieval over the curated grounding corpus — the
+ * match_advisor_guidance RPC (migration 0023: OR-ed lexemes ordered by
+ * ts_rank; strict websearch matching returns zero rows on conversational
+ * questions). Additive: any failure returns no chunks and the reply
+ * proceeds under the prompt's statutory-precision fallback rules —
+ * retrieval must never take the Advisor down.
+ */
+async function retrieveGuidance(
+  adminClient: SupabaseClient,
+  message: string,
+): Promise<GuidanceChunk[]> {
+  try {
+    const { data, error } = await adminClient.rpc('match_advisor_guidance', {
+      q: message,
+      k: 4,
+    })
+    if (error) return []
+    return (data as GuidanceChunk[] | null) ?? []
+  } catch {
+    return []
+  }
+}
+
+function guidanceBlock(chunks: GuidanceChunk[]): string {
+  if (chunks.length === 0) return ''
+  const items = chunks
+    .map((c) => {
+      const effective = c.effective_note ? `; ${c.effective_note}` : ''
+      return `- [${c.jurisdiction}] ${c.title}: ${c.content} (Source: ${c.source_name}, ${c.source_url}${effective})`
+    })
+    .join('\n')
+  return (
+    "\n\nRetrieved guidance from Dutiva's curated corpus — each entry carries its official " +
+    'source. Treat these entries as the ONLY authoritative basis for statutory figures this ' +
+    'turn: when they cover the question, answer from them and name the source; when they do ' +
+    'not cover it, follow the statutory-precision rules above.\n' +
+    items
+  )
+}
+
 function serverConfig(): ServerConfig | Response {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
@@ -255,6 +305,7 @@ async function requestCompletion(
   provider: ModelProvider,
   history: ChatMessage[],
   userMessage: ChatMessage,
+  guidance: string,
 ): Promise<{ completion: Completion; latencyMs: number } | Response> {
   const apiKey = Deno.env.get(provider.secret_ref)
   if (!apiKey) return json({ error: `Missing secret ${provider.secret_ref}` }, 500)
@@ -269,7 +320,7 @@ async function requestCompletion(
         messages: [
           {
             role: 'system',
-            content: `${SYSTEM_PROMPT}\n\n${currentTimeLine(request.timezone)}`,
+            content: `${SYSTEM_PROMPT}\n\n${currentTimeLine(request.timezone)}${guidance}`,
           },
           ...history,
           userMessage,
@@ -313,6 +364,7 @@ async function recordCompletion(
   provider: ModelProvider,
   completion: Completion,
   latencyMs: number,
+  retrievedChunks: number,
 ) {
   const usage = completion.usage ?? {}
   await adminClient.from('ai_telemetry_events').insert({
@@ -326,6 +378,7 @@ async function recordCompletion(
     total_tokens: usage.total_tokens ?? null,
     latency_ms: latencyMs,
     status: 'completed',
+    metadata: { retrieved_chunks: retrievedChunks },
   })
 }
 
@@ -349,8 +402,14 @@ Deno.serve(async (req: Request) => {
   )
   if (conversation instanceof Response) return conversation
 
-  const history = Array.isArray(conversation.messages) ? conversation.messages : []
+  const fullHistory = Array.isArray(conversation.messages) ? conversation.messages : []
+  /* Cap what goes upstream: the full transcript persists in `conversations`,
+     but an unbounded prompt grows cost/latency every turn and eventually
+     overflows the context window. 20 messages = 10 user/assistant
+     exchanges — far beyond real usage. */
+  const history = fullHistory.slice(-20)
   const userMessage: ChatMessage = { role: 'user', content: request.message }
+  const guidanceChunks = await retrieveGuidance(authenticated.adminClient, request.message)
   const completionResult = await requestCompletion(
     authenticated.adminClient,
     request,
@@ -359,11 +418,16 @@ Deno.serve(async (req: Request) => {
     activeRoute.provider,
     history,
     userMessage,
+    guidanceBlock(guidanceChunks),
   )
   if (completionResult instanceof Response) return completionResult
 
   const reply = completionResult.completion.choices?.[0]?.message?.content ?? ''
-  const nextMessages = [...history, userMessage, { role: 'assistant' as const, content: reply }]
+  const nextMessages = [
+    ...fullHistory,
+    userMessage,
+    { role: 'assistant' as const, content: reply },
+  ]
   const updateResponse = await saveConversation(
     authenticated.adminClient,
     conversation,
@@ -378,6 +442,7 @@ Deno.serve(async (req: Request) => {
     activeRoute.provider,
     completionResult.completion,
     completionResult.latencyMs,
+    guidanceChunks.length,
   )
 
   return json({ data: { reply, conversation_id: conversation.id } })
