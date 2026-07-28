@@ -1,0 +1,179 @@
+/**
+ * Migration integrity + drift check.
+ *
+ * Three features have now shipped inert because nothing compared what the repo
+ * contains against what the project has actually applied:
+ *
+ *   - 0019_client_error_reports was never applied, so `report-error` posted
+ *     crash reports to a table and RPC that did not exist. The README
+ *     documented the feature as live.
+ *   - The CHECK constraints on ai_telemetry_events never learned the
+ *     vocabulary the edge functions write, so support-firstline's rate limit
+ *     counted rows Postgres refused to store and never fired once.
+ *   - advisor-safety-event returned 500 on every call for the same reason.
+ *
+ * Each was invisible: the code was merged, CI was green, and the failure only
+ * showed up as an absence. This script makes that class of failure loud.
+ *
+ * Two halves, deliberately separable:
+ *
+ *   1. LOCAL (always runs, no credentials) — filename discipline. Catches a
+ *      duplicated or malformed sequence number before it becomes an ordering
+ *      ambiguity between two developers' branches.
+ *   2. DRIFT (runs only when credentials are present) — every local migration
+ *      compared against supabase_migrations.schema_migrations on the real
+ *      project. Skips cleanly on forks and local checkouts rather than failing
+ *      them, so it is safe in `npm run check`.
+ *
+ * Drift needs SUPABASE_ACCESS_TOKEN (a personal access token) and
+ * SUPABASE_PROJECT_REF. In CI, add them as repository secrets and the step
+ * starts enforcing on its own — no code change needed.
+ *
+ * Dependency-free on purpose: Node's global fetch only, so this cannot rot
+ * behind a package upgrade.
+ */
+
+import { readdir } from 'node:fs/promises'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const migrationsDir = path.join(root, 'supabase', 'migrations')
+
+const FILENAME_RE = /^(\d{4})_([a-z0-9_]+)\.sql$/
+
+/**
+ * Sequence numbers that are knowingly duplicated because BOTH files are
+ * already applied on the live project. Renaming an applied migration is worse
+ * than the duplicate: `supabase db push` keys on the filename, so a rename
+ * reads as a brand-new migration and re-runs it. Left as history, guarded so
+ * no NEW collision can be added silently.
+ */
+const ACCEPTED_DUPLICATES = new Set(['0024'])
+
+/**
+ * Slugs present in the repo that are deliberately not applied under their own
+ * name on the live project. Keep this list short and justified — every entry
+ * is a place where the repo and the database disagree on purpose.
+ */
+const ACCEPTED_UNAPPLIED = new Map([
+  [
+    'add_billing_profiles',
+    'superseded by 0024_reconcile_billing_schema, which reconciled the live billing schema directly',
+  ],
+  [
+    'doclib_seed',
+    'applied as the split pair doclib_seed_window_open / doclib_seed_window_close (both present)',
+  ],
+  [
+    'drop_doclib_demo_schema',
+    'the demo objects are already absent from the project (verified via to_regclass)',
+  ],
+])
+
+const problems = []
+const notes = []
+
+/* ── 1. Local filename discipline ─────────────────────────────────────────── */
+
+const files = (await readdir(migrationsDir)).filter((f) => f.endsWith('.sql')).sort()
+
+if (files.length === 0) {
+  console.error('check-migrations: no .sql files under supabase/migrations')
+  process.exit(1)
+}
+
+const bySequence = new Map()
+const localSlugs = new Map()
+
+for (const file of files) {
+  const match = FILENAME_RE.exec(file)
+  if (!match) {
+    problems.push(`${file}: filename must match NNNN_lower_snake_case.sql`)
+    continue
+  }
+  const [, sequence, slug] = match
+  bySequence.set(sequence, [...(bySequence.get(sequence) ?? []), file])
+  if (localSlugs.has(slug)) {
+    problems.push(`${slug}: slug used by both ${localSlugs.get(slug)} and ${file}`)
+  }
+  localSlugs.set(slug, file)
+}
+
+for (const [sequence, owners] of bySequence) {
+  if (owners.length > 1 && !ACCEPTED_DUPLICATES.has(sequence)) {
+    problems.push(
+      `${sequence}: sequence number used by ${owners.length} files (${owners.join(', ')}) — ` +
+        'pick the next free number, or add it to ACCEPTED_DUPLICATES if both are already applied',
+    )
+  }
+}
+
+const filenameProblems = problems.length
+if (filenameProblems === 0) {
+  console.log(`check-migrations: ${files.length} local migrations, filenames OK`)
+}
+
+/* ── 2. Drift against the live project ────────────────────────────────────── */
+
+const token = process.env.SUPABASE_ACCESS_TOKEN
+const projectRef = process.env.SUPABASE_PROJECT_REF
+
+if (!token || !projectRef) {
+  console.log(
+    'check-migrations: drift check skipped — set SUPABASE_ACCESS_TOKEN and ' +
+      'SUPABASE_PROJECT_REF to compare the repo against the live project.',
+  )
+} else {
+  let applied
+  try {
+    const response = await fetch(
+      `https://api.supabase.com/v1/projects/${projectRef}/database/query`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: 'select name from supabase_migrations.schema_migrations',
+        }),
+      },
+    )
+    if (!response.ok) {
+      throw new Error(`${response.status} ${(await response.text()).slice(0, 200)}`)
+    }
+    applied = new Set((await response.json()).map((row) => row.name))
+  } catch (error) {
+    /* A credentials or network failure must not read as "no drift". */
+    console.error(`check-migrations: could not read applied migrations — ${error.message}`)
+    process.exit(1)
+  }
+
+  for (const [slug, file] of localSlugs) {
+    if (applied.has(slug)) continue
+    const reason = ACCEPTED_UNAPPLIED.get(slug)
+    if (reason) notes.push(`${file}: not applied — ${reason}`)
+    else problems.push(`${file}: present in the repo but NOT applied to ${projectRef}`)
+  }
+
+  console.log(
+    `check-migrations: ${applied.size} applied on ${projectRef}, ` +
+      `${localSlugs.size} in the repo, ${notes.length} accepted difference(s)`,
+  )
+}
+
+for (const note of notes) console.log(`  note: ${note}`)
+
+if (problems.length > 0) {
+  console.error('\ncheck-migrations: FAILED')
+  for (const problem of problems) console.error(`  - ${problem}`)
+  /* Only the drift failures carry this consequence; a malformed filename is
+     just a filename. */
+  if (problems.length > filenameProblems) {
+    console.error(
+      '\nA migration in the repo but not on the project means the feature that ' +
+        'depends on it is silently inert in production.',
+    )
+  }
+  process.exit(1)
+}
+
+console.log('check-migrations: OK')

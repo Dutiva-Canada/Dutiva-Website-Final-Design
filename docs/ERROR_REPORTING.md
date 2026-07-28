@@ -212,6 +212,29 @@ offline service worker (`scripts/generate-sw.mjs`) only handles same-origin GETs
 so the beacon is **never intercepted or cached**; `.map` files are also excluded
 from the precache defensively.
 
+## Deployment status
+
+**Live as of 2026-07-28 — and inert before that.** The client reporter shipped,
+but migration 0019 was never applied and `report-error` was never deployed, so
+every crash report since launch went to an endpoint with no function, no table
+and no RPC behind it. Nothing surfaced the gap: the code was merged and CI was
+green, because a missing migration is invisible to a test suite. That class of
+failure is now caught by `npm run check:migrations`
+(`scripts/check-migrations.mjs`), which compares the repo's migrations against
+the project's applied set.
+
+Now in place, verified against the live project: the two tables and both
+policies, `ingest_client_error_report()` (a synthetic report stored, and a
+second call over the limit correctly returned `rate_limited`),
+`purge_client_error_data()`, the hourly `purge-client-error-data` pg_cron job,
+and the function itself at `verify_jwt: false`. Synthetic rows were deleted.
+
+**One thing still to confirm:** the pepper. The function reads
+`ERROR_REPORT_SALT`, falling back to `SUPPORT_NOTIFY_SECRET`, and **fails closed
+(500, nothing stored) if neither is set** — function secrets are not readable
+through the tooling used here, so this was not verified. If no report ever
+appears, check the function logs for `report-error: missing configuration`.
+
 ## Deploying the endpoint
 
 - Deploy `supabase/functions/report-error` with **`verify_jwt` off** (as with
