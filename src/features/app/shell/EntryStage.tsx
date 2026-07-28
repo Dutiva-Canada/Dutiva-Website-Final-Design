@@ -8,7 +8,6 @@ import { usePublicPath } from '@/seo/usePublicPath'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuth } from '@/features/app/auth/authContext'
 import { AuthPanel } from '@/features/app/auth/AuthPanel'
-import { isAllowedSignInEmail } from '@/features/app/auth/allowedEmail'
 import { LangToggle, ThemeToggle } from './ShellControls'
 
 /** Where an unauthorized visit to /app/* wanted to end up (see RequireAdminSession). */
@@ -98,7 +97,10 @@ function BrandRail() {
         </p>
         <ul className="m-0 flex list-none flex-col gap-[14px] p-0">
           {points.map((point, i) => (
-            <li key={i} className="flex items-start gap-[11px] text-[13.5px] leading-[1.5] text-white/85">
+            <li
+              key={i}
+              className="flex items-start gap-[11px] text-[13.5px] leading-[1.5] text-white/85"
+            >
               <span className="mt-px flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[rgba(var(--dutiva-gold-rgb),0.16)] text-gold-on-dark">
                 <Check size={12} strokeWidth={2.5} aria-hidden="true" />
               </span>
@@ -179,20 +181,28 @@ function FormColumn({ children }: { readonly children: ReactNode }) {
 /**
  * App entry stage (/app/welcome) — the dedicated sign in / sign up page. A
  * two-panel layout: a dark navy brand rail (hidden below `lg`) beside the
- * auth form. With Supabase configured the workspace is gated (invite-only for
- * one account, see RequireAdminSession), so the form emails a passwordless
- * magic link via AuthPanel; without it, CTAs enter directly, matching every
- * feature's "degrade to signed-out" posture in local dev/tests. An already
- * authorized session is redirected straight into the workspace.
+ * auth form. With Supabase configured the workspace is gated — invite-only,
+ * for the admin account or anyone on the beta list (see
+ * RequireAdminSession) — so the form emails a passwordless magic link via
+ * AuthPanel; without it, CTAs enter directly, matching every feature's
+ * "degrade to signed-out" posture in local dev/tests. An already authorized
+ * session is redirected straight into the workspace; a signed-in session
+ * that isn't invited sees AuthPanel's own "not authorized" state instead of
+ * the form (the magic link is sent to any address — membership is checked
+ * only after sign-in, never as a pre-send guess at someone else's
+ * eligibility; see authContext's note on signInWithEmail).
  */
 export function EntryStage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { status, session } = useAuth()
+  const { status, authorized: membership } = useAuth()
 
   const gated = !!supabase
-  const email = session?.user.email
-  const authorized = status === 'signed-in' && !!email && isAllowedSignInEmail(email)
+  const authorized = status === 'signed-in' && membership === true
+  /* The membership RPC hasn't resolved yet — stay blank rather than
+     flashing AuthPanel's "not authorized" state for what may turn out to be
+     a perfectly good session. */
+  const pending = status === 'signed-in' && membership === null
 
   useEffect(() => {
     if (!authorized) return
@@ -205,7 +215,7 @@ export function EntryStage() {
       <div className="flex min-h-screen">
         <BrandRail />
         <FormColumn>
-          {gated ? !authorized && <AuthPanel /> : <EnterWorkspaceCard />}
+          {gated ? pending ? null : !authorized && <AuthPanel /> : <EnterWorkspaceCard />}
         </FormColumn>
       </div>
     </div>

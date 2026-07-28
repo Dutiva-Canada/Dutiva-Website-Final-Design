@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useState } from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 /**
@@ -51,7 +51,9 @@ describe('AuthProvider', () => {
     )
     expect(screen.getByTestId('status')).toHaveTextContent('signed-out')
     await user.click(screen.getByRole('button', { name: 'send' }))
-    expect(await screen.findByTestId('error')).toHaveTextContent(authMessages.auth_not_configured.en)
+    expect(await screen.findByTestId('error')).toHaveTextContent(
+      authMessages.auth_not_configured.en,
+    )
   })
 
   it('localizes the not-configured error in French (not a hard-coded English string)', async () => {
@@ -103,6 +105,7 @@ describe('AuthProvider', () => {
             stateChangeHandler?.('SIGNED_OUT', null)
           }),
         },
+        rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
       },
     }))
     vi.resetModules()
@@ -133,7 +136,13 @@ describe('AuthProvider', () => {
     expect(await screen.findByTestId('status')).toHaveTextContent('signed-out')
   })
 
-  it('rejects a non-allowed email without ever calling signInWithOtp', async () => {
+  it('sends the magic link to any syntactically valid address — membership is checked after sign-in, never as a pre-send guess', async () => {
+    /* No client-side eligibility gate anymore: pre-checking "is this address
+       on the beta list" before sending would mean answering that question
+       for an address that isn't necessarily the caller's own — the exact
+       oracle create-beta-signup's duplicate-signup handling avoids. The real
+       boundary is server-side (RLS, the edge-function checks) and, for the
+       signed-in UI, the `authorized` field this provider now exposes. */
     const signInWithOtp = vi.fn().mockResolvedValue({ error: null })
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
@@ -150,14 +159,13 @@ describe('AuthProvider', () => {
     const { LangProvider } = await import('@/i18n/LangProvider')
 
     function Probe() {
-      const { signInWithEmail } = useAuth()
-      const [error, setError] = useState<string>()
+      const { status, signInWithEmail } = useAuth()
       return (
         <div>
-          <button onClick={() => void signInWithEmail('someone@gmail.com').then(setError)}>
+          <span data-testid="status">{status}</span>
+          <button onClick={() => void signInWithEmail('someone-not-yet-invited@gmail.com')}>
             send
           </button>
-          {error && <span data-testid="error">{error}</span>}
         </div>
       )
     }
@@ -171,19 +179,25 @@ describe('AuthProvider', () => {
       </LangProvider>,
     )
     await user.click(screen.getByRole('button', { name: 'send' }))
-    expect(await screen.findByTestId('error')).toHaveTextContent('invite-only')
-    expect(signInWithOtp).not.toHaveBeenCalled()
+    expect(signInWithOtp).toHaveBeenCalledWith(
+      expect.objectContaining({ email: 'someone-not-yet-invited@gmail.com' }),
+    )
+    expect(await screen.findByTestId('status')).toHaveTextContent('sent-link')
   })
 
-  it('rejects a different @dutiva.ca email that is not the allowed account', async () => {
-    const signInWithOtp = vi.fn().mockResolvedValue({ error: null })
+  it('resolves authorized from the workspace-membership RPC once signed in, and resets it on sign-out', async () => {
+    let stateChangeHandler: ((event: string, session: unknown) => void) | undefined
+    const rpc = vi.fn(() => Promise.resolve({ data: true, error: null }))
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
         auth: {
           getSession: () => Promise.resolve({ data: { session: null } }),
-          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
-          signInWithOtp,
+          onAuthStateChange: (cb: (event: string, session: unknown) => void) => {
+            stateChangeHandler = cb
+            return { data: { subscription: { unsubscribe: vi.fn() } } }
+          },
         },
+        rpc,
       },
     }))
     vi.resetModules()
@@ -192,19 +206,15 @@ describe('AuthProvider', () => {
     const { LangProvider } = await import('@/i18n/LangProvider')
 
     function Probe() {
-      const { signInWithEmail } = useAuth()
-      const [error, setError] = useState<string>()
+      const { status, authorized } = useAuth()
       return (
         <div>
-          <button onClick={() => void signInWithEmail('riley@dutiva.ca').then(setError)}>
-            send
-          </button>
-          {error && <span data-testid="error">{error}</span>}
+          <span data-testid="status">{status}</span>
+          <span data-testid="authorized">{String(authorized)}</span>
         </div>
       )
     }
 
-    const user = userEvent.setup()
     render(
       <LangProvider>
         <AuthProvider>
@@ -212,9 +222,52 @@ describe('AuthProvider', () => {
         </AuthProvider>
       </LangProvider>,
     )
-    await user.click(screen.getByRole('button', { name: 'send' }))
-    expect(await screen.findByTestId('error')).toHaveTextContent('invite-only')
-    expect(signInWithOtp).not.toHaveBeenCalled()
+    /* Let the initial getSession() resolution (signed-out, no session) settle
+       before simulating a sign-in via onAuthStateChange — otherwise that
+       still-pending resolution can land after the manual sign-in below and
+       clobber it back to signed-out. */
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('signed-out'))
+    expect(screen.getByTestId('authorized')).toHaveTextContent('null')
+
+    stateChangeHandler?.('SIGNED_IN', { user: { id: 'u1', email: 'new@example.ca' } })
+    await waitFor(() => expect(screen.getByTestId('authorized')).toHaveTextContent('true'))
+    expect(rpc).toHaveBeenCalledWith('current_user_is_workspace_member')
+
+    stateChangeHandler?.('SIGNED_OUT', null)
+    await waitFor(() => expect(screen.getByTestId('authorized')).toHaveTextContent('null'))
+  })
+
+  it('fails closed to unauthorized when the membership RPC errors', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({ data: { session: { user: { id: 'u1', email: 'x@example.ca' } } } }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn(() => Promise.resolve({ data: null, error: { message: 'boom' } })),
+      },
+    }))
+    vi.resetModules()
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { AuthProvider } = await import('./AuthProvider')
+    const { useAuth } = await import('./authContext')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+
+    function Probe() {
+      const { authorized } = useAuth()
+      return <span data-testid="authorized">{String(authorized)}</span>
+    }
+
+    render(
+      <LangProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </LangProvider>,
+    )
+    await waitFor(() => expect(screen.getByTestId('authorized')).toHaveTextContent('false'))
+    errorSpy.mockRestore()
   })
 
   it('allows the allowed account through to signInWithOtp, case-insensitively', async () => {
