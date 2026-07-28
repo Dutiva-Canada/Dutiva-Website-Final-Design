@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 /**
@@ -95,14 +95,15 @@ describe('RequireAdminSession', () => {
     expect(screen.queryByText('workspace')).toBeNull()
   })
 
-  it('redirects to /app/welcome for a signed-in session that is not the allowed account', async () => {
+  it('redirects to /app/welcome for a signed-in session that is not on the beta list', async () => {
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
         auth: {
           getSession: () =>
-            Promise.resolve({ data: { session: { user: { email: 'riley@dutiva.ca' } } } }),
+            Promise.resolve({ data: { session: { user: { email: 'riley@example.com' } } } }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },
+        rpc: vi.fn(() => Promise.resolve({ data: false, error: null })),
       },
     }))
     vi.resetModules()
@@ -111,7 +112,7 @@ describe('RequireAdminSession', () => {
     expect(screen.queryByText('workspace')).toBeNull()
   })
 
-  it('renders children for a signed-in session matching the allowed account', async () => {
+  it('renders children for a signed-in, invited session', async () => {
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
         auth: {
@@ -121,10 +122,44 @@ describe('RequireAdminSession', () => {
             }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },
+        rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
       },
     }))
     vi.resetModules()
     await renderGuarded()
+    expect(await screen.findByText('workspace')).toBeInTheDocument()
+  })
+
+  it('shows neither screen while the membership check is still in flight', async () => {
+    let resolveRpc: ((value: { data: boolean; error: null }) => void) | undefined
+    const rpc = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveRpc = resolve
+        }),
+    )
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc,
+      },
+    }))
+    vi.resetModules()
+    await renderGuarded()
+    // Wait for the effect chain (session settles -> status signed-in -> membership
+    // RPC called) to actually reach the RPC before asserting the pending state —
+    // a fixed-delay wait can race ahead of it and leave resolveRpc unset.
+    await waitFor(() => expect(rpc).toHaveBeenCalledWith('current_user_is_workspace_member'))
+    expect(screen.queryByText('workspace')).toBeNull()
+    expect(screen.queryByText('welcome')).toBeNull()
+
+    resolveRpc?.({ data: true, error: null })
     expect(await screen.findByText('workspace')).toBeInTheDocument()
   })
 })

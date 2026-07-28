@@ -35,10 +35,6 @@ export const authMessages = defineMessages({
     en: 'Check your email for a sign-in link.',
     fr: 'Consultez votre courriel pour le lien de connexion.',
   },
-  auth_domain_restricted: {
-    en: 'Sign-in for this workspace is currently invite-only.',
-    fr: 'La connexion à cet espace de travail est actuellement sur invitation seulement.',
-  },
   /* Bilingual fallback for a provider/network failure, so the sign-in surfaces
      never surface Supabase's raw English error.message in French mode. The
      specific error is logged for diagnostics; the user sees this. */

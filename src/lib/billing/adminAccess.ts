@@ -1,11 +1,14 @@
 /**
  * Internal-account billing bypass — ported from the production dutiva-website
  * repo's `src/lib/enterpriseAccess.ts`, which gates its Stripe paywall the
- * same way. Kept as a small standalone module (rather than reusing
- * `features/app/auth/allowedEmail.ts`) because it answers a different
- * question: "does this account skip billing" vs. "may this account sign
- * into the workspace at all". Today both resolve to the same one person,
- * but they're independent enforcement points and shouldn't be conflated.
+ * same way. Kept as a small standalone module because it answers a
+ * different question than workspace sign-in access (AuthContext's
+ * `authorized`, backed by the `current_user_is_workspace_member` Postgres
+ * function): "does this account skip billing" vs. "may this account sign
+ * into the workspace at all". These have genuinely different criteria —
+ * bypassing billing is @dutiva.ca staff only; signing in is the admin
+ * account or anyone on the beta list — so they're independent enforcement
+ * points and shouldn't be conflated.
  */
 const ADMIN_EMAILS = ['martin.constantineau@dutiva.ca']
 

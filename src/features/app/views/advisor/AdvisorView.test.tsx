@@ -254,6 +254,7 @@ describe('AdvisorView', () => {
             getSession: () => Promise.resolve({ data: { session: fakeSession } }),
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
           },
+          rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
           functions: { invoke },
         },
       }))
@@ -298,6 +299,7 @@ describe('AdvisorView', () => {
             getSession: () => Promise.resolve({ data: { session: fakeSession } }),
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
           },
+          rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
           functions: { invoke },
         },
       }))

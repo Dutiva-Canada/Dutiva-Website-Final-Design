@@ -105,11 +105,14 @@ describe('WorkspaceModeProvider', () => {
           getSession: () => Promise.resolve({ data: { session } }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },
-        rpc: vi.fn((fn: string) =>
-          fn === 'is_admin_user'
-            ? Promise.resolve({ data: isAdmin ?? false, error: null })
-            : createOrganization(),
-        ),
+        rpc: vi.fn((fn: string) => {
+          if (fn === 'is_admin_user')
+            return Promise.resolve({ data: isAdmin ?? false, error: null })
+          if (fn === 'current_user_is_workspace_member') {
+            return Promise.resolve({ data: true, error: null })
+          }
+          return createOrganization()
+        }),
         from,
       },
     }))

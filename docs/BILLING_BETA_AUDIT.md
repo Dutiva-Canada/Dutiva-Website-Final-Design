@@ -1,13 +1,15 @@
 # Stripe billing & beta-signup audit
 
-> **Status (2026-07-27, after remediation).** Items 1–3 of "Suggested order of
+> **Status (2026-07-28, after remediation).** Items 1–3 of "Suggested order of
 > work" have been done: the beta form now posts to `create-beta-signup`,
 > migration `0024` reconciled the live billing schema, and all three Stripe
-> functions are deployed. **Checkout still needs its Stripe secrets set on the
-> Supabase project before a payment can complete** — see "Remaining work" at
-> the bottom. B2 (invite-only sign-in) is unchanged and still gates the whole
-> paid funnel. The findings below are kept as written, as the record of what
-> was found.
+> functions are deployed. `?checkout=success`/`cancelled` are now handled, and
+> the paywall-bypass check was de-duplicated. **B2 (invite-only sign-in) is
+> resolved** — sign-in now admits the admin account or anyone on the beta
+> list; see "B2 resolved" below. **Checkout still needs its Stripe secrets set
+> on the Supabase project before a payment can complete** — see "Remaining
+> work" at the bottom. The findings below are kept as written, as the record
+> of what was found.
 
 **Date:** 2026-07-27
 **Scope:** the paid-signup path (`/pricing` → Stripe Checkout → entitlement) and
@@ -269,14 +271,65 @@ Verify with a Stripe test-mode purchase: `profiles` should end up with the
 right `plan`, `subscription_status: active`, and a `stripe_subscription_id`,
 and `stripe_webhook_events` should gain one row per delivery.
 
+## B2 resolved — sign-in opens to the beta list
+
+B2 was a product decision, not a bug — resolved by asking, not by picking
+unilaterally. The chosen model: the admin account or anyone already invited
+signs in; nobody else does. "Already invited" turned out to be two sources,
+both additive to the admin account:
+
+- **`public.beta_signups`** — the landing-page form now writes here for real
+  (see B4 above); any row is an invite, no separate approval step.
+- **`public.admin_beta_access`** — a pre-existing admin-managed invite table
+  discovered while implementing this, left over from the predecessor repo
+  (`status`: `invited`/`active`/`paused`/`removed`, 4 rows already present,
+  including the admin's own QA test accounts from a prior launch). Folded in
+  as an additional eligible source so those existing invites aren't silently
+  revoked; `paused`/`removed` rows stay excluded, respecting that table's own
+  revoke lifecycle.
+
+Single source of truth: migration `0026_open_workspace_to_beta_list.sql`
+defines `public.current_user_is_workspace_member()` — a Postgres function
+with **no parameters**, always evaluated against the calling session's own
+`auth.jwt() ->> 'email'`. That's deliberate: a parameterized version would
+let any authenticated-but-unapproved caller ask "is address X invited?" for
+an address that isn't their own — the exact oracle `create-beta-signup`'s
+duplicate-signup handling was built to avoid. Four call sites now share this
+one function instead of hand-copying the check:
+
+- The RLS policies on `guidance_sources`/`guidance_chunks`/`law_updates`
+  (previously a hardcoded email literal, from `0011_...single_admin.sql`).
+- `AuthProvider.tsx`, client-side, via `supabase.rpc(...)` — exposed on
+  `useAuth().authorized: boolean | null` (null while pending or signed out).
+- `advisor-chat` and `advisor-safety-event`, via the caller's own JWT client
+  (`userClient.rpc(...)`) — both used a service-role client that bypasses
+  RLS, so each needed its own check regardless.
+
+`signInWithEmail` no longer pre-checks eligibility before sending a magic
+link — for the same oracle reason. Every syntactically valid address gets a
+link now; a signed-in session that isn't invited sees `AuthPanel`'s existing
+"not authorized, sign out" state (this branch existed already but was
+unreachable, since nothing before this could ever get a non-admin session
+signed in at all).
+
+`src/features/app/auth/allowedEmail.ts` — the single-hardcoded-email module
+— is deleted; nothing referenced it once the three call sites above moved to
+the shared RPC.
+
+**Found and fixed along the way:** `beta_signups` had no `language` column,
+but `create-beta-signup`'s insert has always included one — meaning every
+beta signup since the frontend was pointed at that function has been
+failing (migration `0025_add_beta_signups_language_column.sql`). Confirmed
+via the live schema and an empty table despite the earlier fix landing.
+
 ### Still open from the findings above
 
-- **B2 — invite-only sign-in.** Unchanged, and it still closes the funnel
-  ahead of everything else here: no visitor can create the account a
-  subscription would attach to. A product decision, not a bug.
 - **Annual billing** still advertises a price it refuses at click time.
-- **`?checkout=success`** is still unread, so there is no confirmation on
-  return from Stripe.
 - **`inferCheckoutPrice`** still reads `session.line_items`, which webhooks
-  never carry; the price-authoritative path remains the subscription events
-  only.
+  never carry. On reflection this is lower-priority than first framed: this
+  repo's own `create-checkout-session` always sets `metadata.plan` correctly
+  server-side, so the fallback path is what actually resolves the plan
+  today — not an active correctness bug, just short of the design's stated
+  intent. A real fix means an extra Stripe API call from inside the webhook
+  (retrieving the session with `expand[]=line_items`), which is more
+  complexity than the current gap justifies.

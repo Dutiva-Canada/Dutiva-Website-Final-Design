@@ -14,11 +14,11 @@ import { PricingPage } from './PricingPage'
  * so this test exercises the same provider composition /pricing actually
  * renders with.
  */
-function renderPricing() {
+function renderPricing(route = '/pricing') {
   return render(
     <ThemeProvider>
       <LangProvider>
-        <MemoryRouter initialEntries={['/pricing']}>
+        <MemoryRouter initialEntries={[route]}>
           <AuthProvider>
             <PlanProvider>
               <Routes>
@@ -84,5 +84,21 @@ describe('PricingPage', () => {
         name: 'Commencez de façon structurée. Évoluez à mesure que vos RH grandissent.',
       }),
     ).toBeInTheDocument()
+  })
+
+  it('reads "Sign in to continue" on paid plans when signed out, not the plan CTA', () => {
+    renderPricing()
+    expect(screen.getAllByRole('button', { name: /Sign in to continue/ }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: /Upgrade to Growth/i })).toBeNull()
+  })
+
+  it('shows a success notice for a Stripe return', () => {
+    renderPricing('/pricing?checkout=success&plan=growth')
+    expect(screen.getByText(/your subscription is being set up/i)).toBeInTheDocument()
+  })
+
+  it('shows a cancelled notice for a Stripe return', () => {
+    renderPricing('/pricing?checkout=cancelled')
+    expect(screen.getByText(/checkout was cancelled/i)).toBeInTheDocument()
   })
 })

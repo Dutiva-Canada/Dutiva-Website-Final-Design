@@ -6,7 +6,6 @@ import { authMessages as M } from '@/i18n/messages/auth'
 import { supabase } from '@/lib/supabaseClient'
 import { AuthContext } from './authContext'
 import type { AuthStatus } from './authContext'
-import { isAllowedSignInEmail } from './allowedEmail'
 
 /**
  * Tracks the Supabase auth session (magic-link only) and exposes it via
@@ -18,6 +17,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   const { x } = useI18n()
   const [session, setSession] = useState<Session | null>(null)
   const [status, setStatus] = useState<AuthStatus>(supabase ? 'loading' : 'signed-out')
+  const [authorized, setAuthorized] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (!supabase) return
@@ -37,18 +37,30 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  useEffect(() => {
+    if (!supabase || status !== 'signed-in') {
+      setAuthorized(null)
+      return
+    }
+    let cancelled = false
+    setAuthorized(null)
+    supabase.rpc('current_user_is_workspace_member').then(({ data, error }) => {
+      if (cancelled) return
+      if (error) {
+        console.error('auth: workspace membership check failed —', error)
+        setAuthorized(false)
+        return
+      }
+      setAuthorized(data === true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [status, session?.user.id])
+
   const signInWithEmail = useCallback(
     async (email: string, opts?: { name?: string }) => {
       if (!supabase) return x(M.auth_not_configured)
-      /* The whole workspace is invite-only, not just this feature. The real
-         boundary is enforced server-side (RLS on guidance_sources/
-         law_updates, an explicit check in the advisor-chat edge function,
-         and the route guard that keeps /app unreachable without a matching
-         session) — this check is just to avoid sending a magic-link email
-         that can't do anything useful, and to fail fast. */
-      if (!isAllowedSignInEmail(email)) {
-        return x(M.auth_domain_restricted)
-      }
       /* The sign-up tab collects a display name; carry it as user metadata on
          the same passwordless OTP call. signInWithOtp already creates the user
          on first sign-in, so "sign up" and "sign in" are the same magic-link
@@ -86,8 +98,8 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ status, session, signInWithEmail, signOut }),
-    [status, session, signInWithEmail, signOut],
+    () => ({ status, session, authorized, signInWithEmail, signOut }),
+    [status, session, authorized, signInWithEmail, signOut],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

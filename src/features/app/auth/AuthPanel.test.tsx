@@ -19,6 +19,7 @@ function renderPanel(overrides: Partial<AuthContextValue> = {}) {
   const value: AuthContextValue = {
     status: 'signed-out',
     session: null,
+    authorized: null,
     signInWithEmail: vi.fn(async () => undefined),
     signOut: vi.fn(async () => {}),
     ...overrides,

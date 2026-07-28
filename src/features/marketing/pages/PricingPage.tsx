@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ArrowRight, Ban, Check, Lock, Minus, ShieldCheck, Sparkles, Wallet } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useAuth } from '@/features/app/auth/authContext'
@@ -75,15 +76,22 @@ function PriceCard({
   period,
   onCheckout,
   isLoading,
+  signedIn,
 }: {
   readonly plan: PlanDefinition
   readonly period: BillingPeriod
   readonly onCheckout: (plan: PlanDefinition) => void
   readonly isLoading: boolean
+  /** Paid plans read "Sign in to continue" instead of their own CTA when
+   *  signed out — the click lands on the sign-in gate either way, and the
+   *  plan's own wording ("Start Growth") otherwise reads like it starts
+   *  checkout directly. */
+  readonly signedIn: boolean
 }) {
   const { t } = useI18n()
   const hasPrice = plan.monthlyPrice > 0
   const perMonth = period === 'annual' ? annualPerMonth(plan.monthlyPrice) : plan.monthlyPrice
+  const ctaLabel = hasPrice && !signedIn ? t('pricing_cta_signin_first') : t(plan.ctaKey)
 
   return (
     <div
@@ -140,7 +148,7 @@ function PriceCard({
           isLoading ? 'cursor-not-allowed opacity-60' : '',
         ].join(' ')}
       >
-        {isLoading ? t('pricing_cta_processing') : t(plan.ctaKey)}
+        {isLoading ? t('pricing_cta_processing') : ctaLabel}
         <ArrowRight size={16} className="shrink-0" />
       </button>
     </div>
@@ -281,6 +289,32 @@ export function PricingPage() {
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
   const [notice, setNotice] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  /* create-checkout-session's success_url/cancel_url land back here with
+     ?checkout=success|cancelled (see supabase/functions/create-checkout-session).
+     Show the matching notice once, then strip the param so a page refresh
+     doesn't re-show it. The webhook that actually grants the plan runs async
+     on Stripe's side, so "success" here means "checkout completed", not yet
+     "plan visible below" — the copy says so rather than implying it's instant. */
+  useEffect(() => {
+    const checkout = searchParams.get('checkout')
+    if (checkout !== 'success' && checkout !== 'cancelled') return
+
+    setNotice({
+      tone: checkout === 'success' ? 'success' : 'error',
+      text: t(
+        checkout === 'success'
+          ? 'pricing_checkout_return_success'
+          : 'pricing_checkout_return_cancelled',
+      ),
+    })
+
+    const next = new URLSearchParams(searchParams)
+    next.delete('checkout')
+    next.delete('plan')
+    setSearchParams(next, { replace: true })
+  }, [])
 
   async function handleCheckout(plan: PlanDefinition) {
     setNotice(null)
@@ -427,6 +461,7 @@ export function PricingPage() {
               period={period}
               onCheckout={handleCheckout}
               isLoading={checkoutPlanId === plan.id}
+              signedIn={status === 'signed-in'}
             />
           ))}
         </div>
@@ -446,7 +481,9 @@ export function PricingPage() {
           {t('pricing_compare_sub')}
         </p>
         <ComparisonTable priceFor={priceFor} />
-        <p className="mt-4 max-w-[68ch] text-xs leading-5 text-text-3">{t('pricing_compare_note')}</p>
+        <p className="mt-4 max-w-[68ch] text-xs leading-5 text-text-3">
+          {t('pricing_compare_note')}
+        </p>
       </PageSection>
 
       {/* ── FAQ ────────────────────────────────────────────────────────────── */}

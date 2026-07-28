@@ -30,7 +30,6 @@ function json(body: unknown, status = 200) {
 
 /** The only actions the client backstop can emit (safety/safetyBackstop.ts). */
 const ALLOWED_ACTIONS = new Set(['crisis-intercept', 'legal-basis-withheld'])
-const ALLOWED_EMAIL = 'martin.constantineau@dutiva.ca'
 
 type SupabaseClient = ReturnType<typeof createClient>
 
@@ -76,8 +75,12 @@ async function authenticateRequest(
   const user = userData?.user
   if (userError || !user) return json({ error: 'Invalid user token' }, 401)
 
-  // Invite-only, single account — same restriction as advisor-chat.
-  if (!user.email || user.email.trim().toLowerCase() !== ALLOWED_EMAIL) {
+  // Invite-only — the admin account, or anyone on the beta list. Same
+  // check as advisor-chat, via the caller's own JWT client.
+  const { data: isMember, error: membershipError } = await userClient.rpc(
+    'current_user_is_workspace_member',
+  )
+  if (membershipError || isMember !== true) {
     return json({ error: 'Access to this workspace is invite-only.' }, 403)
   }
 

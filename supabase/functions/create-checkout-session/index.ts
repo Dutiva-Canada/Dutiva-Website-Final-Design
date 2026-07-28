@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { bypassesPaywall } from '../_shared/adminAccess.ts'
 
 /**
  * Starts a Stripe Checkout subscription session for the signed-in account.
@@ -8,10 +9,11 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * see src/config/plans.ts) and adapted to the bearer-JWT + service-role
  * pattern the other dutiva-* functions use (see advisor-chat).
  *
- * An internal Dutiva account (src/lib/billing/adminAccess.ts, mirrored below
- * since Deno functions can't import from src/) never reaches Stripe — it
- * gets a `bypass: true` response instead, which is the actual "automatically
- * bypass the paywall" behavior PlanProvider also implements client-side.
+ * An internal Dutiva account (../_shared/adminAccess.ts, mirroring
+ * src/lib/billing/adminAccess.ts since Deno functions can't import from
+ * src/) never reaches Stripe — it gets a `bypass: true` response instead,
+ * which is the actual "automatically bypass the paywall" behavior
+ * PlanProvider also implements client-side.
  */
 
 const corsHeaders = {
@@ -25,18 +27,6 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
-}
-
-// Kept in sync with src/lib/billing/adminAccess.ts by hand — Deno edge
-// functions can't import from src/, and duplicating one short list here is
-// simpler than a build step that syncs it.
-const ADMIN_EMAILS = ['martin.constantineau@dutiva.ca']
-
-function bypassesPaywall(email: string | null | undefined): boolean {
-  const normalized = String(email ?? '')
-    .trim()
-    .toLowerCase()
-  return ADMIN_EMAILS.includes(normalized) || normalized.endsWith('@dutiva.ca')
 }
 
 const ALLOWED_PLANS = ['starter', 'growth', 'pro'] as const
