@@ -116,8 +116,10 @@ const freshResponseState = (scenarioId: ScenarioId | null): ThreadResponseState 
 
 /* Maintained supportive workspace payload for crisis turns — the s5 wellbeing
    scenario's (support notice on, every gate off), reused so the crisis
-   framing stays single-sourced rather than duplicated. */
+   framing stays single-sourced rather than duplicated. Same for the pill
+   line ("Supportive — not a compliance matter"). */
 const supportiveCrisisResponse = advisorScenarios.s5.turn.response
+const supportiveJurisdictionLine = advisorScenarios.s5.turn.jurisdictionLine
 
 /** Freeze in-flight turns when a thread is stashed (switching threads). */
 function settle(messages: ChatMessage[]): ChatMessage[] {
@@ -168,6 +170,12 @@ function resolveWorkspaceState(
   currentScenarioTurn: ScenarioTurn | undefined,
 ): WorkspaceState {
   if (authStatus !== 'signed-in') return { kind: 'locked' }
+  /* AGENT.md §8: while a supportive payload governs the thread (crisis
+     intercept, s5 wellbeing scenario), the workspace holds the support
+     notice — never the HR "routing · retrieving" running state. */
+  if (activeResponse?.supportNotice === true) {
+    return { kind: 'ready', response: activeResponse, provincePrompt: false }
+  }
   if (busy) return { kind: 'running' }
   if (activeResponse !== null && activeResponse !== undefined) {
     return {
@@ -576,9 +584,15 @@ export function AdvisorView() {
     pushUser(userText)
 
     /* Before flow routing: a crisis phrase containing a flow keyword (e.g.
-       "terminate") must not launch the termination quick-form. */
+       "terminate") must not launch the termination quick-form. The thread
+       sheds its flow framing too — it is a support thread now. */
     const raw = typeof userText === 'string' ? userText : `${userText.en}\n${userText.fr}`
-    if (interceptCrisis(raw, id)) return
+    if (interceptCrisis(raw, id)) {
+      updateSessionChats((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, title: M.advisorview_crisis_thread_title } : c)),
+      )
+      return
+    }
 
     if (flowKey === 'termination') {
       const turnId = pushAdvisor({
@@ -798,8 +812,16 @@ export function AdvisorView() {
   const activeResponseState = activeChatId !== null ? responseState[activeChatId] : undefined
   const activeScenario = scenarioForResponseState(activeResponseState)
   const currentScenarioTurn = resolveScenarioTurn(activeScenario, activeResponseState)
-  const jurisdictionLine = currentScenarioTurn?.jurisdictionLine ?? flowJurisdictions[activeFlowKey]
-  const jurisdictionTone = resolveJurisdictionTone(currentScenarioTurn)
+  /* Support mode wins the pill (AGENT.md §8): a crisis-patched supportive
+     payload must not leave compliance framing ("Ontario — ESA, 2000",
+     "Confirm jurisdiction before use") pinned over the crisis reply. */
+  const supportModeActive = activeResponseState?.response?.supportNotice === true
+  const jurisdictionLine = supportModeActive
+    ? (supportiveJurisdictionLine ?? flowJurisdictions[activeFlowKey])
+    : (currentScenarioTurn?.jurisdictionLine ?? flowJurisdictions[activeFlowKey])
+  const jurisdictionTone: JurisdictionPillTone = supportModeActive
+    ? 'support'
+    : resolveJurisdictionTone(currentScenarioTurn)
   const workspaceState = resolveWorkspaceState(
     authStatus,
     engine.busy || sendingReal,

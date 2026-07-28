@@ -129,6 +129,11 @@ describe('AdvisorView', () => {
         screen.queryByText(/To calculate this correctly and flag any risk/),
       ).not.toBeInTheDocument()
       expect(screen.queryByLabelText('Employment type')).not.toBeInTheDocument()
+      /* The thread sheds its flow framing: support pill instead of the flow
+         jurisdiction line, and a "Support" thread title (AGENT.md §8). */
+      expect(screen.getByText('Supportive — not a compliance matter')).toBeInTheDocument()
+      expect(screen.queryByText('Ontario — ESA, 2000')).not.toBeInTheDocument()
+      expect(screen.getAllByText('Support').length).toBeGreaterThan(0)
     })
 
     it('runs the termination intake: quick form → answer chips → assessment with docs and follow-ups', () => {

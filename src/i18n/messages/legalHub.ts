@@ -160,7 +160,10 @@ export const legalHubMessages = defineMessages({
     en: 'Refunds, cancellations, and how to reactivate',
     fr: 'Remboursements, annulations et réactivation',
   },
-  legalHub_row22_title: { en: 'Support Policy', fr: 'Politique de soutien' },
+  legalHub_row22_title: {
+    en: 'Customer Support Policy',
+    fr: 'Politique de soutien à la clientèle',
+  },
   legalHub_row22_desc: {
     en: 'Support channels, hours, and response targets',
     fr: 'Canaux de soutien, heures et cibles de réponse',
