@@ -72,6 +72,11 @@ export function Pricing() {
         title={lt('landing_price_title')}
         sub={lt('landing_price_sub')}
       />
+      {PAID_PLANS_DISABLED_DURING_BETA ? (
+        <p className="mb-6 max-w-[68ch] rounded-xl border border-gold-border bg-gold-subtle px-4 py-3 text-sm leading-6 text-text-2">
+          {t('pricing_beta_banner')}
+        </p>
+      ) : null}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-4">
         {PLANS.map((plan) => {
           const purchasable = isPurchasable(plan)

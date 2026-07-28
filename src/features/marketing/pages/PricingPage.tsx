@@ -6,7 +6,14 @@ import { useI18n } from '@/i18n/context'
 import { useAuth } from '@/features/app/auth/authContext'
 import { usePlan } from '@/features/app/billing/planContext'
 import { supabase } from '@/lib/supabaseClient'
-import { PLANS, annualPerMonth, annualTotal, getPlanById, isPurchasable } from '@/config/plans'
+import {
+  PAID_PLANS_DISABLED_DURING_BETA,
+  PLANS,
+  annualPerMonth,
+  annualTotal,
+  getPlanById,
+  isPurchasable,
+} from '@/config/plans'
 import type { BillingPeriod, PlanDefinition } from '@/config/plans'
 import { PLAN_COMPARISON } from '@/config/planComparison'
 import type { ComparisonCell } from '@/config/planComparison'
@@ -458,6 +465,17 @@ export function PricingPage() {
             </button>
           </div>
         </PageSection>
+      ) : null}
+
+      {PAID_PLANS_DISABLED_DURING_BETA ? (
+        <Band>
+          <div className="premium-card-soft flex flex-wrap items-center gap-4 border-gold-border p-5">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-subtle text-gold-strong">
+              <Sparkles size={18} />
+            </span>
+            <p className="text-sm leading-6 text-text-2">{t('pricing_beta_banner')}</p>
+          </div>
+        </Band>
       ) : null}
 
       {/* ── Plans (billing toggle + cards) ─────────────────────────────────── */}
