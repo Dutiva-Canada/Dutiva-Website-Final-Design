@@ -344,10 +344,30 @@ refused to store and **had never once fired**, and `advisor-safety-event` had
 been returning 500 on every call. Confirmed against the live project: the table
 held rows for `('chat','completed')` and nothing else.
 
-**Not yet applied to the live project.** 0027 is written and its RPC is
-syntax-checked against the live catalog, but the migration has not been run and
-the two edge functions have not been redeployed — until both happen, the
-guardrails are code only and the defects above are still live.
+**Live as of 2026-07-28.** Migration 0027 is applied and both functions are
+redeployed (`support-firstline` v10, `advisor-chat` v19, `verify_jwt` preserved
+on each). `advisor-safety-event` needed no redeploy — its code was already
+correct; the constraint was what rejected its writes.
+
+Verified against the live project after applying, by exercising
+`claim_ai_usage()` exactly as the edge functions call it:
+
+- a claim reserves a `status = 'started'` row with no tokens yet, and the
+  finalize update stamps it with tokens, latency and outcome — one row per call;
+- the burst ceiling refuses with `scope = burst` and a retry delay equal to the
+  remainder of the window; the platform ceiling refuses with
+  `scope = platform_daily` and ~24h;
+- all three writes the constraints used to reject (`safety_backstop`,
+  `support_firstline`, `status = 'failed'`) now insert cleanly.
+
+Test rows were deleted afterwards. `claim_ai_usage` does not appear in
+Supabase's "signed-in users can execute SECURITY DEFINER function" linter
+output, confirming the `anon`/`authenticated` revokes took effect.
+
+Not covered by that check: a real end-to-end Advisor turn, which needs a
+beta-list user's JWT. The first live turn is the remaining confirmation — expect
+exactly one telemetry row for it, `completed` with a token count. A row stranded
+at `started` would mean the claim landed but finalize did not.
 
 ### Still open from the findings above
 
