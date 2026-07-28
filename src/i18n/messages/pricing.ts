@@ -52,6 +52,14 @@ export const pricingMessages = defineMessages({
     en: 'Coming soon',
     fr: 'Bientôt disponible',
   },
+  /* Prominent, above-the-fold counterpart to pricing_compare_note (which stays
+     put as the detailed footnote under the comparison table) — surfaces the
+     same beta-access truth where a reader actually sees it: next to the
+     plan cards, not below them. Same PAID_PLANS_DISABLED_DURING_BETA gate. */
+  pricing_beta_banner: {
+    en: 'Beta access: every feature on every plan is unlocked for every account right now — the pricing and limits below describe what ships once the beta ends. AI Advisor usage carries fair-use limits so the service stays fast for everyone.',
+    fr: 'Accès bêta : toutes les fonctionnalités de tous les forfaits sont déjà débloquées pour chaque compte — les prix et limites ci-dessous décrivent ce qui sera offert une fois la bêta terminée. L’utilisation du Conseiller IA est soumise à des limites d’usage raisonnable afin que le service reste rapide pour tous.', // [FR self-authored]
+  },
   pricing_checkout_bypassed: {
     en: 'Internal account — no checkout needed. You already have full access.',
     fr: 'Compte interne — aucun paiement requis. Vous avez déjà un accès complet.',
