@@ -27,6 +27,20 @@ jobs:
       - name: Test with coverage
         run: npm run test:coverage
 
+      # Migration integrity, and drift between the repo and the live project.
+      # Filename discipline always runs; the drift half compares every local
+      # migration against supabase_migrations.schema_migrations and only runs
+      # once SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF exist as repository
+      # secrets — until then it skips rather than failing forks and PRs.
+      #
+      # This exists because three features shipped inert: a migration in the
+      # repo but not on the project is invisible to every other check here.
+      - name: Migration drift
+        run: npm run check:migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
       # Production build: client + SSR bundles, prerendering of every public
       # page (EN + FR), and the dist-level SEO crawl validation
       # (scripts/validate-seo.mjs) — fails on any metadata/sitemap/link drift.

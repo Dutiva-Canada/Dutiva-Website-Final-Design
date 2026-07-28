@@ -72,3 +72,18 @@ credentials/tokens before committing it.
 Run `npm run check`. If you add or change a route, update the route table in
 CONVENTIONS.md. If you touch anything user-facing, verify both languages and
 both themes (light/dark) render correctly.
+
+## Migrations ship in two halves — check both
+
+A migration merged is not a migration applied. Three features have shipped
+**inert** because the SQL sat in `supabase/migrations/` and never reached the
+project, and nothing in the test suite can see that: client error reporting
+(0019), `support-firstline`'s rate limit, and `advisor-safety-event`. Same for
+edge functions — merging one does not deploy it.
+
+`npm run check` runs `check:migrations`, which enforces filename discipline
+always and, when `SUPABASE_ACCESS_TOKEN` / `SUPABASE_PROJECT_REF` are set,
+fails on any migration present in the repo but not applied to the project.
+After merging anything that adds a migration or touches
+`supabase/functions/**`, apply and deploy it, then record what you verified —
+"tests pass" is not evidence that a server-side change is live.
