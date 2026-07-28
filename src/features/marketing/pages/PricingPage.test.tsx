@@ -47,7 +47,11 @@ describe('PricingPage', () => {
     for (const name of ['Free / Beta', 'Starter', 'Growth', 'Professional']) {
       expect(screen.getAllByText(name).length).toBeGreaterThan(0)
     }
-    expect(screen.getByText('Most popular')).toBeInTheDocument()
+    /* Paid plans are beta-disabled (PAID_PLANS_DISABLED_DURING_BETA), so every
+       paid tier (Starter, Growth, Pro) shows "Coming soon" instead of Growth's
+       usual "Most popular" badge. */
+    expect(screen.getAllByText('Coming soon').length).toBe(3)
+    expect(screen.queryByText('Most popular')).toBeNull()
   })
 
   it('switches plan prices when toggling to annual billing', async () => {
@@ -86,9 +90,14 @@ describe('PricingPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('reads "Sign in to continue" on paid plans when signed out, not the plan CTA', () => {
+  it('shows paid plans as disabled "Available after beta" while beta plan disabling is on', () => {
     renderPricing()
-    expect(screen.getAllByRole('button', { name: /Sign in to continue/ }).length).toBeGreaterThan(0)
+    const betaCtas = screen.getAllByRole('button', { name: /Available after beta/i })
+    expect(betaCtas.length).toBeGreaterThan(0)
+    for (const button of betaCtas) {
+      expect(button).toBeDisabled()
+    }
+    expect(screen.queryByRole('button', { name: /Sign in to continue/ })).toBeNull()
     expect(screen.queryByRole('button', { name: /Upgrade to Growth/i })).toBeNull()
   })
 

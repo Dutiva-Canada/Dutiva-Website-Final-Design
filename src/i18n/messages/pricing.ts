@@ -44,6 +44,14 @@ export const pricingMessages = defineMessages({
     en: 'Sign in to continue',
     fr: 'Connectez-vous pour continuer',
   },
+  pricing_cta_beta_only: {
+    en: 'Available after beta',
+    fr: 'Disponible après la bêta',
+  },
+  pricing_beta_only_badge: {
+    en: 'Coming soon',
+    fr: 'Bientôt disponible',
+  },
   pricing_checkout_bypassed: {
     en: 'Internal account — no checkout needed. You already have full access.',
     fr: 'Compte interne — aucun paiement requis. Vous avez déjà un accès complet.',

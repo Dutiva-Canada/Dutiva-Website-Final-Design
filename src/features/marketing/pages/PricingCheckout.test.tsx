@@ -49,12 +49,26 @@ function renderPage() {
 }
 
 describe('PricingPage — annual checkout guard', () => {
-  it('blocks paid annual checkout with a coming-soon notice and never calls checkout', async () => {
+  /* Skipped while PAID_PLANS_DISABLED_DURING_BETA (src/config/plans.ts) is on:
+     the Growth button is disabled and reads "Available after beta" before
+     annual billing even enters the picture, so this scenario is unreachable
+     via the UI. Re-enable once paid plans go live post-beta. */
+  it.skip('blocks paid annual checkout with a coming-soon notice and never calls checkout', async () => {
     const user = userEvent.setup()
     renderPage()
     await user.click(screen.getByRole('button', { name: /Annual/i }))
     await user.click(screen.getByRole('button', { name: /Upgrade to Growth/i }))
     expect(await screen.findByText(/Annual billing is coming soon/i)).toBeInTheDocument()
+    expect(invoke).not.toHaveBeenCalled()
+  })
+
+  it('shows paid plans as disabled "Available after beta" instead of an active checkout CTA', () => {
+    renderPage()
+    const buttons = screen.getAllByRole('button', { name: /Available after beta/i })
+    expect(buttons.length).toBeGreaterThan(0)
+    for (const button of buttons) {
+      expect(button).toBeDisabled()
+    }
     expect(invoke).not.toHaveBeenCalled()
   })
 })
