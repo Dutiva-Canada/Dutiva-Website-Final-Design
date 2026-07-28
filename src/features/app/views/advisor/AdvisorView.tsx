@@ -6,7 +6,8 @@ import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
 import { useAuth } from '@/features/app/auth/authContext'
-import { sendAdvisorMessage } from '@/features/app/advisor/chatApi'
+import { AdvisorUsageLimitError, sendAdvisorMessage } from '@/features/app/advisor/chatApi'
+import { usageLimitReply } from '@/features/app/advisor/usageLimit'
 import { detectCrisisSignal } from '@/features/app/advisor/safety'
 import { reportSafetyEvent } from '@/features/app/advisor/safetyTelemetry'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
@@ -571,6 +572,28 @@ export function AdvisorView() {
     return true
   }
 
+  /**
+   * Shared failure handling for the two real-backend send paths.
+   *
+   * A beta usage limit is not an outage: it answers as an ordinary Advisor
+   * turn explaining when the Advisor frees up and that the rest of the product
+   * is unaffected. The red error turn is reserved for things that are actually
+   * broken — its Retry button would only earn a second refusal here.
+   */
+  const handleRealChatFailure = (error: unknown) => {
+    if (error instanceof AdvisorUsageLimitError) {
+      pushAdvisor({ text: usageLimitReply(error) })
+      return
+    }
+    console.error('advisor: real chat request failed', error)
+    pushAdvisor({
+      text: '',
+      isError: true,
+      errorText: M.advisorview_real_chat_error,
+      retryText: M.advisorview_real_chat_retry_prompt,
+    })
+  }
+
   const startFlow = (flowKey: FlowKeyOrFallback, userText: LText) => {
     stashActive()
     const id = `session-${advisorSession.nextChatSeq++}`
@@ -616,15 +639,7 @@ export function AdvisorView() {
             pushAdvisor({ text: result.reply || genericAck })
             patchResponseState(id, { response: result.response })
           })
-          .catch((error: unknown) => {
-            console.error('advisor: real chat request failed', error)
-            pushAdvisor({
-              text: '',
-              isError: true,
-              errorText: M.advisorview_real_chat_error,
-              retryText: M.advisorview_real_chat_retry_prompt,
-            })
-          })
+          .catch(handleRealChatFailure)
           .finally(() => setSendingReal(false))
         return
       }
@@ -681,15 +696,7 @@ export function AdvisorView() {
         pushAdvisor({ text: result.reply || genericAck })
         if (chatId !== null) patchResponseState(chatId, { response: result.response })
       })
-      .catch((error: unknown) => {
-        console.error('advisor: real chat request failed', error)
-        pushAdvisor({
-          text: '',
-          isError: true,
-          errorText: M.advisorview_real_chat_error,
-          retryText: M.advisorview_real_chat_retry_prompt,
-        })
-      })
+      .catch(handleRealChatFailure)
       .finally(() => setSendingReal(false))
   }
 

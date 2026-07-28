@@ -292,10 +292,14 @@ questions).
 deployed) for a short answer **grounded only in the Help Centre excerpts the
 client sends** — the system prompt forbids legal advice, guessing, and inventing
 policies/citations, and tells the model to defer to a person when the answer
-isn't present. It's authenticated + per-user rate-limited (via
-`ai_telemetry_events`), reuses the active `advisor_chat` model route, and the
-answer is **advisory only**: labelled AI-generated / not legal advice, and the
-user still sends their request. The **public** Contact form never enables it —
+isn't present. It's authenticated and metered by the shared beta usage
+guardrails ([`_shared/aiUsage.ts`](../supabase/functions/_shared/aiUsage.ts),
+docs/AI_USAGE_STRATEGY.md §7) — drawing on the **same per-user daily budget as
+the Advisor**, since both bill to one provider account. It reuses the active
+`advisor_chat` model route, and the answer is **advisory only**: labelled
+AI-generated / not legal advice, and the user still sends their request. When
+the guardrail refuses (429), the form says so plainly and points at the path it
+already wanted — send it to a person. The **public** Contact form never enables it —
 that endpoint stays retrieval-only to avoid unauthenticated model cost/abuse.
 Both the client and the function enforce the `HUMAN_ONLY_CATEGORIES` gate.
 

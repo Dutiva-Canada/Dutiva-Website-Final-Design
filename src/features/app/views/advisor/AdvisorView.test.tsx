@@ -330,5 +330,60 @@ describe('AdvisorView', () => {
       })
       expect(screen.queryByLabelText('Employment type')).not.toBeInTheDocument()
     })
+
+    it('answers a beta usage limit as a reply, not as a failure to retry', async () => {
+      const fakeSession = { user: { id: 'u1' } }
+      /* What supabase-js hands back for the guardrail's 429. */
+      const invoke = vi.fn().mockResolvedValue({
+        data: null,
+        error: Object.assign(new Error('Edge Function returned a non-2xx status code'), {
+          context: {
+            status: 429,
+            json: () =>
+              Promise.resolve({
+                code: 'ai_usage_limit',
+                scope: 'daily',
+                retry_after_seconds: 7200,
+              }),
+          },
+        }),
+      })
+      vi.doMock('@/lib/supabaseClient', () => ({
+        supabase: {
+          auth: {
+            getSession: () => Promise.resolve({ data: { session: fakeSession } }),
+            onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+          },
+          rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
+          functions: { invoke },
+        },
+      }))
+      vi.resetModules()
+
+      const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+      const { AdvisorView: AdvisorViewFresh } = await import('./AdvisorView')
+      const { resetAdvisorSession: resetAdvisorSessionFresh } = await import('./advisorSession')
+      resetAdvisorSessionFresh()
+
+      renderAppFresh(<AdvisorViewFresh />, { route: '/app/advisor' })
+
+      const composer = await screen.findByPlaceholderText('Ask Advisor anything about your team…')
+      fireEvent.change(composer, { target: { value: 'What notice does a 3-year employee get?' } })
+      fireEvent.keyDown(composer, { key: 'Enter' })
+
+      /* The reply streams in, so wait on the tail of the sentence — the
+         reassurance that the rest of the product still works. */
+      expect(
+        await screen.findByText(/Every other part of Dutiva stays open/, {}, { timeout: 8000 }),
+      ).toBeInTheDocument()
+      expect(screen.getByText(/beta usage limit for the AI Advisor/)).toBeInTheDocument()
+      expect(screen.getByText(/about 2 hours/)).toBeInTheDocument()
+      /* Metered is not broken: no outage copy, and no Retry button that would
+         only earn a second refusal. */
+      expect(
+        screen.queryByText('The AI Advisor is temporarily unavailable.'),
+      ).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+    })
   })
 })

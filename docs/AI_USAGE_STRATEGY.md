@@ -35,7 +35,7 @@ public **AI & Technology Policy** / **AI Usage Disclosure**
 |---|---|:---:|---|---|
 | **Advisor chat** | Generative completion, server-side, model routed via DB | **Yes** | Open-ended, bilingual, jurisdiction-aware HR dialogue — open vocabulary; nothing deterministic can answer it | `supabase/functions/advisor-chat/index.ts` |
 | **Memory fact extraction** | Per-turn NL → structured facts, `Inferred` until confirmed | **Yes** | Messy prose → structure is the canonical LLM job; governance around it is deterministic | Engineering Roadmap §5; `Advisor Memory.dc.html` |
-| **Support first-line (in-app)** | Grounded short answer from Help Centre excerpts | **Yes\*** | A convenience *on top of* retrieval; heavily fenced (auth, rate limit, HUMAN_ONLY refusal, grounded-only) — not irreducible | `supabase/functions/support-firstline/index.ts` |
+| **Support first-line (in-app)** | Grounded short answer from Help Centre excerpts | **Yes\*** | A convenience *on top of* retrieval; heavily fenced (auth, metered usage §7, HUMAN_ONLY refusal, grounded-only) — not irreducible | `supabase/functions/support-firstline/index.ts` |
 | **Advisor routing / mode** | Intent → mode + gates | **Hybrid** | Model classifies; **gates, jurisdiction default, crisis intercept are enforced as a deterministic contract** | `AGENT.md` §2; Roadmap "Response contract" |
 | **Document generation** | `{{merge}}` tokens + `ClauseGate` conditional clauses | **No** | Legal docs must be exact, reproducible, versioned, auditable — never model-authored | `src/features/app/documents/data/types.ts` |
 | **Legal-basis citations** | Vetted rows, marked `Valid` / `Needs-review` | **No** | Prevents hallucinated statutes; retrieval grounds, humans vet | `AGENT.md` §9; `src/features/app/guidance/api.ts` |
@@ -66,7 +66,9 @@ The generative model is essential here and nowhere else at this level.
   `ai_model_providers` (currently `mistral-3-14B` via DigitalOcean Gradient AI,
   `route_key = advisor_chat`), so provider/model can change without a deploy.
 - Every call is logged to `ai_telemetry_events` (provider, model, tokens,
-  latency, status) — never message bodies or PII.
+  latency, status) — never message bodies or PII. The row is claimed *before*
+  the model call and stamped when it resolves, so it doubles as the beta usage
+  guardrail's ledger (§7).
 
 ### 2.2 Natural-language → structured fact extraction (memory)
 Turning "we let Marc go on the 5th, he'd been here about 7 years" into sourced,
@@ -232,12 +234,86 @@ add the model only where step 1 truly requires it.
 
 ---
 
-## 7. Current LLM surface (summary)
+## 7. Beta usage guardrails — the budget half of gate 5
+
+During the beta **every product feature is open to every beta account** and no
+plan is sold (`PAID_PLANS_DISABLED_DURING_BETA`, `src/config/plans.ts`;
+sign-in opened to the beta list in migration 0026). That makes the AI API the
+only surface where a signed-in user turns into a per-request bill, so it is the
+only surface that is metered. Everything else in the product is free to use as
+hard as you like — it costs the same either way.
+
+**Mechanism.** Limits live in `supabase/functions/_shared/aiUsage.ts`;
+enforcement is `claim_ai_usage()` in
+`supabase/migrations/0027_ai_usage_guardrails.sql` — the same split as
+`report-error` / `ingest_client_error_report`. Every metered call:
+
+1. **Claims** before the model request — one advisory-locked transaction
+   checks all four ceilings and inserts the turn's `ai_telemetry_events` row
+   with `status = 'started'`. Check-and-reserve together, so a concurrent burst
+   cannot race past the limit the way a plain `SELECT`-then-call can.
+2. **Finalizes** after it — the same row is stamped with tokens, latency and
+   outcome. One row per call, and the token ceiling reads the rows the claims
+   created.
+
+| Ceiling | Default | Scope | Guards against |
+|---|---|---|---|
+| Burst | 10 / 5 min (Advisor), 6 / 5 min (support helper) | per user, per surface | runaway retry loops, scripted hammering |
+| Daily requests | 120 / rolling 24h | per user, **shared across both AI surfaces** | one account's sustained cost |
+| Daily tokens | 250,000 / rolling 24h | per user, shared | long threads, which request count alone does not bound |
+| Platform daily | 2,000 / rolling 24h | whole project | a beta-wide cost surprise, whatever its shape |
+
+Every value is env-overridable (`AI_DAILY_REQUEST_LIMIT`, `AI_BURST_LIMIT_CHAT`,
+…), so tuning the beta is a secret change rather than a deploy. The daily
+budget is deliberately **one budget per person, not one per surface** — both
+functions bill to the same provider account, so per-surface budgets would just
+sum. `safety_backstop` events are excluded from every count: being kept safe by
+a deterministic gate is not usage and must never spend a user's budget.
+
+**Design choices worth keeping.**
+
+- **Fail closed.** A guardrail that cannot be evaluated (RPC error, DB blip)
+  refuses the call rather than waving it through. An unmetered call is the one
+  outcome the guardrail exists to prevent.
+- **A claim is never refunded**, including on upstream failure. A client
+  hammering a broken provider is exactly what the burst ceiling is for, and a
+  refund path is a way to spend the budget for free. A claim that is never
+  finalized (function timeout) keeps counting — the guardrail over-counts
+  rather than leaking.
+- **Denials are not stored**, only logged. A denial row would either count
+  against someone who has already hit a limit or need excluding from every
+  query, and under a hammering client it is unbounded write amplification.
+- **A limit is not an outage, and the UI must not say it is.** The Advisor
+  answers a 429 as an ordinary reply — when it frees up, and that the rest of
+  Dutiva is unaffected — never the red error turn, whose Retry button would
+  only earn a second refusal (`src/features/app/advisor/usageLimit.ts`). A
+  platform-wide ceiling gets its own wording: the user did nothing to hit it.
+
+**Prerequisite repair (0027).** The CHECK constraints on
+`ai_telemetry_events` predated the functions writing to it and rejected
+`operation IN ('support_firstline','safety_backstop')` and `status = 'error'`
+outright. Consequences, all confirmed against the live project (which held rows
+for `('chat','completed')` and nothing else):
+
+- `support-firstline`'s per-user hourly rate limit counted `support_firstline`
+  rows that could never be written — **it never fired**, and that endpoint was
+  effectively unlimited.
+- `advisor-safety-event` returned **500 on every call**, so §5.4's observability
+  recorded nothing.
+- Upstream failures in both functions went unlogged.
+
+0027 widens both constraints, adds the `(user_id, operation, created_at)` index
+the counts need, and the functions now write the canonical `failed` rather than
+`error`.
+
+---
+
+## 8. Current LLM surface (summary)
 
 | Route key | Function | Provider / model | Guardrails |
 |---|---|---|---|
-| `advisor_chat` | `advisor-chat` | DigitalOcean Gradient AI · `mistral-3-14B` | Server-side secret, invite-only auth, history-bounded, telemetry-logged |
-| `advisor_chat` (reused) | `support-firstline` | same route | Auth + per-user rate limit, HUMAN_ONLY refusal, grounded-only prompt, advisory-only UI |
+| `advisor_chat` | `advisor-chat` | DigitalOcean Gradient AI · `mistral-3-14B` | Server-side secret, invite-only auth, history-bounded, telemetry-logged, **beta usage guardrails (§7)** |
+| `advisor_chat` (reused) | `support-firstline` | same route | Auth + **beta usage guardrails (§7, shared budget)**, HUMAN_ONLY refusal, grounded-only prompt, advisory-only UI |
 
 Everything else in the product is retrieval, templates, rules, or algorithms.
 That is the intended steady state: a small, well-fenced generative core, and a

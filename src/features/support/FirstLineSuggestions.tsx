@@ -5,7 +5,7 @@ import { supportMessages as M } from '@/i18n/messages/support'
 import { helpDocPath } from '@/seo/routes'
 import type { SupportCategory } from '@/config/support'
 import { suggestFirstLine } from './firstLineAssist'
-import { getFirstLineAnswer } from './firstLineApi'
+import { FirstLineAnswerError, getFirstLineAnswer } from './firstLineApi'
 
 /**
  * First-line self-service hint shown inside the intake forms (public Contact
@@ -51,8 +51,11 @@ export function FirstLineSuggestions({
       const res = await getFirstLineAnswer(query, category, result.articles, lang)
       if (res.escalate || !res.answer.trim()) setAnswerError(x(M.support_firstline_answer_error))
       else setAnswer(res.answer)
-    } catch {
-      setAnswerError(x(M.support_firstline_answer_error))
+    } catch (error) {
+      const limited = error instanceof FirstLineAnswerError && error.code === 'rate_limited'
+      setAnswerError(
+        x(limited ? M.support_firstline_answer_limited : M.support_firstline_answer_error),
+      )
     } finally {
       setAsking(false)
     }

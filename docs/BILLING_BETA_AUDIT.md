@@ -322,6 +322,33 @@ beta signup since the frontend was pointed at that function has been
 failing (migration `0025_add_beta_signups_language_column.sql`). Confirmed
 via the live schema and an empty table despite the earlier fix landing.
 
+## B2's other half — an open beta needs a metered AI surface
+
+Opening sign-in to the beta list (B2) and disabling paid plans settled who
+gets in and what they pay. It left the cost side unaddressed: with every
+feature open and nothing sold, the AI API became the only place a signed-in
+account turns into a per-request bill, and it had **no usage limit at all**.
+
+`0027_ai_usage_guardrails.sql` and `supabase/functions/_shared/aiUsage.ts`
+close that — burst / daily-request / daily-token ceilings per user plus a
+platform-wide daily ceiling, claimed atomically before each model call. The
+numbers, the design choices, and the reasoning are in
+[docs/AI_USAGE_STRATEGY.md §7](AI_USAGE_STRATEGY.md).
+
+**Found and fixed along the way (same shape as the `beta_signups.language`
+finding above):** the CHECK constraints on `ai_telemetry_events` predated the
+functions writing to it and rejected `operation IN ('support_firstline',
+'safety_backstop')` and `status = 'error'`. So `support-firstline`'s per-user
+rate limit — the only guardrail on any AI endpoint — counted rows the database
+refused to store and **had never once fired**, and `advisor-safety-event` had
+been returning 500 on every call. Confirmed against the live project: the table
+held rows for `('chat','completed')` and nothing else.
+
+**Not yet applied to the live project.** 0027 is written and its RPC is
+syntax-checked against the live catalog, but the migration has not been run and
+the two edge functions have not been redeployed — until both happen, the
+guardrails are code only and the defects above are still live.
+
 ### Still open from the findings above
 
 - **Annual billing** still advertises a price it refuses at click time.

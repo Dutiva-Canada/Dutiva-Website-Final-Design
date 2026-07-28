@@ -1,6 +1,12 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { buildAdvisorResponse } from './responsePayload.ts'
+import {
+  advisorChatPolicy,
+  claimAiUsage,
+  finalizeAiUsage,
+  usageLimitBody,
+} from '../_shared/aiUsage.ts'
 
 /**
  * Real AI Advisor replies. Looks up the active `advisor_chat` route in
@@ -11,6 +17,12 @@ import { buildAdvisorResponse } from './responsePayload.ts'
  * The reply is grounded in the curated corpus (advisor_guidance_chunks) and
  * accompanied by a deterministic `advisor_response` payload for the
  * Compliance Workspace — see responsePayload.ts.
+ *
+ * Every turn is metered before the model is called (../_shared/aiUsage.ts):
+ * during the beta the workspace is open to the whole beta list and nothing is
+ * sold, so this endpoint is the one place a signed-in account becomes an
+ * upstream bill. The claim it takes is also the turn's telemetry row — it is
+ * stamped with tokens, latency and outcome when the call resolves.
  */
 
 const corsHeaders = {
@@ -19,10 +31,10 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-function json(body: unknown, status = 200) {
+function json(body: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json', ...extraHeaders },
   })
 }
 
@@ -279,24 +291,20 @@ async function loadConversation(
   return data as Conversation
 }
 
+/* Closes out the claimed telemetry row on an upstream failure. The claim is
+   deliberately NOT refunded: a client hammering a broken provider is exactly
+   what the burst ceiling is for, and a refund path is a way to spend the
+   budget for free. */
 async function recordUpstreamError(
   adminClient: SupabaseClient,
-  request: ChatRequest,
-  userId: string,
-  provider: ModelProvider,
-  route: ModelRoute,
+  claimId: string,
   started: number,
   error: unknown,
 ): Promise<Response> {
   const errorMessage = error instanceof Error ? error.message : String(error)
-  await adminClient.from('ai_telemetry_events').insert({
-    organization_id: request.organizationId,
-    user_id: userId,
-    provider: provider.provider_key,
-    model: route.model_name,
-    operation: 'chat',
-    status: 'error',
-    latency_ms: Date.now() - started,
+  await finalizeAiUsage(adminClient, claimId, {
+    status: 'failed',
+    latencyMs: Date.now() - started,
     metadata: { error: errorMessage },
   })
   return json({ error: 'The AI Advisor is temporarily unavailable. Try again shortly.' }, 502)
@@ -304,8 +312,8 @@ async function recordUpstreamError(
 
 async function requestCompletion(
   adminClient: SupabaseClient,
+  claimId: string,
   request: ChatRequest,
-  userId: string,
   route: ModelRoute,
   provider: ModelProvider,
   history: ChatMessage[],
@@ -313,7 +321,10 @@ async function requestCompletion(
   guidance: string,
 ): Promise<{ completion: Completion; latencyMs: number } | Response> {
   const apiKey = Deno.env.get(provider.secret_ref)
-  if (!apiKey) return json({ error: `Missing secret ${provider.secret_ref}` }, 500)
+  if (!apiKey) {
+    await finalizeAiUsage(adminClient, claimId, { status: 'failed', latencyMs: 0 })
+    return json({ error: `Missing secret ${provider.secret_ref}` }, 500)
+  }
 
   const started = Date.now()
   try {
@@ -345,7 +356,7 @@ async function requestCompletion(
     }
     return { completion: await upstream.json(), latencyMs: Date.now() - started }
   } catch (error) {
-    return recordUpstreamError(adminClient, request, userId, provider, route, started, error)
+    return recordUpstreamError(adminClient, claimId, started, error)
   }
 }
 
@@ -361,28 +372,23 @@ async function saveConversation(
   return error ? json({ error: error.message }, 500) : null
 }
 
+/* Same telemetry this function has always written — now an update of the row
+   the claim already reserved, so the token counts land on the row the daily
+   token ceiling reads. */
 async function recordCompletion(
   adminClient: SupabaseClient,
-  request: ChatRequest,
-  userId: string,
-  route: ModelRoute,
-  provider: ModelProvider,
+  claimId: string,
   completion: Completion,
   latencyMs: number,
   retrievedChunks: number,
 ) {
   const usage = completion.usage ?? {}
-  await adminClient.from('ai_telemetry_events').insert({
-    organization_id: request.organizationId,
-    user_id: userId,
-    provider: provider.provider_key,
-    model: route.model_name,
-    operation: 'chat',
-    prompt_tokens: usage.prompt_tokens ?? null,
-    completion_tokens: usage.completion_tokens ?? null,
-    total_tokens: usage.total_tokens ?? null,
-    latency_ms: latencyMs,
+  await finalizeAiUsage(adminClient, claimId, {
     status: 'completed',
+    latencyMs,
+    promptTokens: usage.prompt_tokens ?? null,
+    completionTokens: usage.completion_tokens ?? null,
+    totalTokens: usage.total_tokens ?? null,
     metadata: { retrieved_chunks: retrievedChunks },
   })
 }
@@ -415,10 +421,39 @@ Deno.serve(async (req: Request) => {
   const history = fullHistory.slice(-20)
   const userMessage: ChatMessage = { role: 'user', content: request.message }
   const guidanceChunks = await retrieveGuidance(authenticated.adminClient, request.message)
+
+  /* Meter as late as possible — right before the only step that costs money.
+     Everything above is Postgres work, and a turn that dies loading its own
+     conversation should not spend the caller's beta budget. */
+  const decision = await claimAiUsage(authenticated.adminClient, advisorChatPolicy(), {
+    userId: authenticated.user.id,
+    organizationId: request.organizationId,
+    provider: activeRoute.provider.provider_key,
+    model: activeRoute.route.model_name,
+  })
+  if (decision.kind === 'denied') {
+    /* Not stored as a row (see the migration): denials belong in the function
+       log, where tuning the beta ceilings can read them without them counting
+       against the person who hit one. */
+    console.warn(
+      `advisor-chat: usage limit reached (scope=${decision.scope}, used=${decision.used}/${decision.limit})`,
+    )
+    return json(usageLimitBody(decision), 429, {
+      'Retry-After': String(decision.retryAfterSeconds),
+    })
+  }
+  if (decision.kind === 'unavailable') {
+    /* Fail closed. An unmetered call is the one outcome the guardrail exists
+       to prevent, so a guardrail that cannot be evaluated stops the request
+       rather than waving it through. */
+    console.error('advisor-chat: usage guardrail unavailable —', decision.reason)
+    return json({ error: 'The AI Advisor is temporarily unavailable. Try again shortly.' }, 503)
+  }
+
   const completionResult = await requestCompletion(
     authenticated.adminClient,
+    decision.claimId,
     request,
-    authenticated.user.id,
     activeRoute.route,
     activeRoute.provider,
     history,
@@ -429,22 +464,21 @@ Deno.serve(async (req: Request) => {
 
   const reply = completionResult.completion.choices?.[0]?.message?.content ?? ''
   const nextMessages = [...fullHistory, userMessage, { role: 'assistant' as const, content: reply }]
+  /* Close the claim before persisting the turn: the tokens are already spent
+     upstream, so they must be recorded even if the conversation write fails. */
+  await recordCompletion(
+    authenticated.adminClient,
+    decision.claimId,
+    completionResult.completion,
+    completionResult.latencyMs,
+    guidanceChunks.length,
+  )
   const updateResponse = await saveConversation(
     authenticated.adminClient,
     conversation,
     nextMessages,
   )
   if (updateResponse) return updateResponse
-  await recordCompletion(
-    authenticated.adminClient,
-    request,
-    authenticated.user.id,
-    activeRoute.route,
-    activeRoute.provider,
-    completionResult.completion,
-    completionResult.latencyMs,
-    guidanceChunks.length,
-  )
 
   /* The structured contract the Compliance Workspace renders — computed
      deterministically from the message, the retrieved chunks and the reply
