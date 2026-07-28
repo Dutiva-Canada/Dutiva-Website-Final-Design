@@ -1,16 +1,16 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { buildAdvisorResponse } from './responsePayload.ts'
 
 /**
  * Real AI Advisor replies. Looks up the active `advisor_chat` route in
- * ai_model_routes/ai_model_providers (currently DigitalOcean Gradient AI /
- * mistral-3-14B — see the row inserted 2026-07-10), calls it, persists the
- * turn to `conversations`, and logs `ai_telemetry_events`. Auth follows the
- * same bearer-JWT pattern as the other dutiva-* functions.
+ * ai_model_routes/ai_model_providers, calls it, persists the turn to
+ * `conversations`, and logs `ai_telemetry_events`. Auth follows the same
+ * bearer-JWT pattern as the other dutiva-* functions.
  *
- * v1 is plain-text replies only — no tone cards / citations / reasoning
- * trace. The frontend's scripted demo turns keep that structured format;
- * this endpoint is additive, not a replacement for it yet.
+ * The reply is grounded in the curated corpus (advisor_guidance_chunks) and
+ * accompanied by a deterministic `advisor_response` payload for the
+ * Compliance Workspace — see responsePayload.ts.
  */
 
 const corsHeaders = {
@@ -130,6 +130,8 @@ interface GuidanceChunk {
   source_name: string
   jurisdiction: string
   effective_note: string | null
+  topic?: string
+  review_status?: string
 }
 
 /**
@@ -423,11 +425,7 @@ Deno.serve(async (req: Request) => {
   if (completionResult instanceof Response) return completionResult
 
   const reply = completionResult.completion.choices?.[0]?.message?.content ?? ''
-  const nextMessages = [
-    ...fullHistory,
-    userMessage,
-    { role: 'assistant' as const, content: reply },
-  ]
+  const nextMessages = [...fullHistory, userMessage, { role: 'assistant' as const, content: reply }]
   const updateResponse = await saveConversation(
     authenticated.adminClient,
     conversation,
@@ -445,5 +443,22 @@ Deno.serve(async (req: Request) => {
     guidanceChunks.length,
   )
 
-  return json({ data: { reply, conversation_id: conversation.id } })
+  /* The structured contract the Compliance Workspace renders — computed
+     deterministically from the message, the retrieved chunks and the reply
+     (responsePayload.ts); the model is never asked for it. Never let a
+     payload failure cost the user their reply. */
+  let advisorResponse: unknown = undefined
+  try {
+    advisorResponse = buildAdvisorResponse({
+      message: request.message,
+      reply,
+      chunks: guidanceChunks,
+    })
+  } catch (error) {
+    console.error('advisor-chat: response payload build failed', error)
+  }
+
+  return json({
+    data: { reply, conversation_id: conversation.id, advisor_response: advisorResponse },
+  })
 })
