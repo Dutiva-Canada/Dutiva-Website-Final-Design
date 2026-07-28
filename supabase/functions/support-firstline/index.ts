@@ -1,5 +1,11 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import {
+  claimAiUsage,
+  finalizeAiUsage,
+  supportFirstLinePolicy,
+  usageLimitBody,
+} from '../_shared/aiUsage.ts'
 
 /**
  * Generative first-line answer for the AUTHENTICATED in-app support form. Given
@@ -14,8 +20,10 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  *   • Grounded only in the provided public Help Centre excerpts; the system
  *     prompt forbids legal advice, guessing, and inventing policies/citations,
  *     and tells the model to defer to a person when the answer isn't present.
- *   • Authenticated + per-user rate limited (via ai_telemetry_events) to bound
- *     cost/abuse. Reuses the active advisor_chat model route.
+ *   • Authenticated + metered through the shared beta usage guardrails
+ *     (../_shared/aiUsage.ts) to bound cost/abuse. Reuses the active
+ *     advisor_chat model route, and draws on the same per-user daily budget
+ *     as the Advisor — one AI budget per person, not one per surface.
  *
  * The answer is advisory only: the UI always shows a not-legal-advice notice,
  * links the source articles, and lets the user send their request regardless.
@@ -27,10 +35,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
-function json(body: unknown, status = 200) {
+function json(body: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json', ...extraHeaders },
   })
 }
 
@@ -38,7 +46,6 @@ const HUMAN_ONLY = new Set([
   'privacy', 'security', 'accessibility', 'complaint', 'billing', 'account_access',
 ])
 
-const RATE_LIMIT = 15 // per user per hour
 const MAX_CONTEXT_ARTICLES = 3
 const MAX_CONTEXT_CHARS = 1500
 const MAX_QUESTION_CHARS = 2000
@@ -119,18 +126,6 @@ Deno.serve(async (req: Request) => {
     .join('\n\n')
   if (!context.trim()) return json({ data: { escalate: false, answer: '' } })
 
-  // Per-user hourly rate limit via the telemetry table.
-  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-  const { count } = await admin
-    .from('ai_telemetry_events')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('operation', 'support_firstline')
-    .gte('created_at', since)
-  if ((count ?? 0) >= RATE_LIMIT) {
-    return json({ error: 'You’ve used the instant-answer helper several times recently. Please send your request.' }, 429)
-  }
-
   // Reuse the active advisor_chat model route (same provider/model as the Advisor).
   const { data: route } = await admin
     .from('ai_model_routes')
@@ -146,6 +141,32 @@ Deno.serve(async (req: Request) => {
   }
   const apiKey = Deno.env.get(provider.secret_ref)
   if (!apiKey) return json({ error: 'The instant-answer helper is unavailable right now.' }, 503)
+
+  /* Meter the call and reserve its telemetry row in one atomic step. This
+     replaces a hand-rolled SELECT-then-call limit that never fired: it counted
+     rows with operation 'support_firstline', which the table's CHECK
+     constraint rejected on write until 0027_ai_usage_guardrails.sql. */
+  const decision = await claimAiUsage(admin, supportFirstLinePolicy(), {
+    userId: user.id,
+    organizationId: null,
+    provider: provider.provider_key,
+    model: route.model_name,
+  })
+  if (decision.kind === 'denied') {
+    console.warn(
+      `support-firstline: usage limit reached (scope=${decision.scope}, used=${decision.used}/${decision.limit})`,
+    )
+    return json(usageLimitBody(decision), 429, {
+      'Retry-After': String(decision.retryAfterSeconds),
+    })
+  }
+  if (decision.kind === 'unavailable') {
+    /* Fail closed — and cheaply: this helper is a convenience on top of
+       retrieval, so the user still gets the Help Centre articles and their
+       ticket either way. */
+    console.error('support-firstline: usage guardrail unavailable —', decision.reason)
+    return json({ error: 'The instant-answer helper is unavailable right now.' }, 503)
+  }
 
   const started = Date.now()
   let completion: {
@@ -172,13 +193,9 @@ Deno.serve(async (req: Request) => {
     }
     completion = await upstream.json()
   } catch (error) {
-    await admin.from('ai_telemetry_events').insert({
-      user_id: user.id,
-      provider: provider.provider_key,
-      model: route.model_name,
-      operation: 'support_firstline',
-      status: 'error',
-      latency_ms: Date.now() - started,
+    await finalizeAiUsage(admin, decision.claimId, {
+      status: 'failed',
+      latencyMs: Date.now() - started,
       metadata: { error: error instanceof Error ? error.message : String(error) },
     })
     return json({ error: 'The instant-answer helper is temporarily unavailable.' }, 502)
@@ -186,16 +203,12 @@ Deno.serve(async (req: Request) => {
 
   const answer = completion.choices?.[0]?.message?.content?.trim() ?? ''
   const usage = completion.usage ?? {}
-  await admin.from('ai_telemetry_events').insert({
-    user_id: user.id,
-    provider: provider.provider_key,
-    model: route.model_name,
-    operation: 'support_firstline',
-    prompt_tokens: usage.prompt_tokens ?? null,
-    completion_tokens: usage.completion_tokens ?? null,
-    total_tokens: usage.total_tokens ?? null,
-    latency_ms: Date.now() - started,
+  await finalizeAiUsage(admin, decision.claimId, {
     status: 'completed',
+    latencyMs: Date.now() - started,
+    promptTokens: usage.prompt_tokens ?? null,
+    completionTokens: usage.completion_tokens ?? null,
+    totalTokens: usage.total_tokens ?? null,
   })
 
   return json({ data: { escalate: false, answer } })

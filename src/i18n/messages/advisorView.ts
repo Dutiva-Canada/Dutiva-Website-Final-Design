@@ -65,6 +65,24 @@ export const advisorViewMessages = defineMessages({
     fr: 'Vous pouvez retaper votre question pour réessayer.',
   },
 
+  /* Beta AI usage guardrail (supabase/functions/_shared/aiUsage.ts). Shown as
+     an ordinary Advisor reply, not the red error turn: nothing is broken, the
+     answer is simply deferred, and the error turn's Retry button would only
+     invite a second refusal. `{wait}` is filled from the server's Retry-After
+     by usageLimitReply() in ../../features/app/advisor/usageLimit.ts. */
+  advisorview_usage_limit_personal: {
+    en: "You've reached the beta usage limit for the AI Advisor — it frees up in about {wait}. Every other part of Dutiva stays open in the meantime: documents, cases, policies and templates all work as usual.",
+    fr: 'Vous avez atteint la limite d’utilisation de l’Advisor IA pour la bêta — elle se libère dans environ {wait}. Tout le reste de Dutiva demeure accessible entre-temps : documents, dossiers, politiques et modèles fonctionnent comme d’habitude.', // [FR self-authored]
+  },
+  advisorview_usage_limit_platform: {
+    en: "Dutiva's AI Advisor has reached its beta-wide usage ceiling for now — it frees up in about {wait}. This one is on us, not on you. Every other part of Dutiva stays open in the meantime.",
+    fr: 'L’Advisor IA de Dutiva a atteint son plafond d’utilisation pour l’ensemble de la bêta — il se libère dans environ {wait}. Cela vient de nous, pas de vous. Tout le reste de Dutiva demeure accessible entre-temps.', // [FR self-authored]
+  },
+  advisorview_usage_wait_minute: { en: 'a minute', fr: 'une minute' }, // [FR self-authored]
+  advisorview_usage_wait_minutes: { en: '{count} minutes', fr: '{count} minutes' }, // [FR self-authored]
+  advisorview_usage_wait_hour: { en: 'an hour', fr: 'une heure' }, // [FR self-authored]
+  advisorview_usage_wait_hours: { en: '{count} hours', fr: '{count} heures' }, // [FR self-authored]
+
   /* Crisis intercept (AGENT.md §8) — deterministic, maintained copy shown
      instead of any model reply when the crisis pre-classifier fires. The
      9-8-8 sentence is the handoff's verbatim resource: maintained from

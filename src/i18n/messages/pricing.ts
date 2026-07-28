@@ -151,9 +151,13 @@ export const pricingMessages = defineMessages({
   pricing_feature_col: { en: 'Features', fr: 'Fonctionnalités' },
   pricing_included: { en: 'Included', fr: 'Inclus' },
   pricing_not_included: { en: 'Not included', fr: 'Non inclus' },
+  /* States the actual beta arrangement rather than deferring it: every feature
+     in the table is open to every beta account, and the single thing that is
+     metered is AI usage (supabase/functions/_shared/aiUsage.ts) — because it
+     is the one thing that costs per request. */
   pricing_compare_note: {
-    en: 'Plan limits are being finalized during beta. Reach out if you need specifics for your team.',
-    fr: 'Les limites des forfaits sont en cours de finalisation pendant la bêta. Écrivez-nous si vous avez besoin de précisions pour votre équipe.',
+    en: 'During the beta every feature below is open to all beta accounts, and per-plan limits are still being finalized. AI Advisor usage carries fair-use limits so the service stays fast and available for everyone — ordinary day-to-day use will not reach them. Reach out if you need specifics for your team.',
+    fr: 'Pendant la bêta, toutes les fonctionnalités ci-dessous sont accessibles à tous les comptes bêta, et les limites par forfait restent à finaliser. L’utilisation de l’Advisor IA est soumise à des limites d’usage raisonnable afin que le service demeure rapide et disponible pour tous — un usage quotidien normal ne les atteindra pas. Écrivez-nous si vous avez besoin de précisions pour votre équipe.', // [FR self-authored]
   },
   pricing_grp_advisor: { en: 'AI Advisor', fr: 'Conseiller IA' },
   pricing_grp_documents: { en: 'HR documents', fr: 'Documents RH' },

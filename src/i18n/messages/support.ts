@@ -195,6 +195,13 @@ export const supportMessages = defineMessages({
     en: 'We couldn’t generate an answer. Please send your request and we’ll reply.',
     fr: 'Nous n’avons pas pu générer de réponse. Veuillez envoyer votre demande et nous répondrons.',
   },
+  /* The beta AI usage guardrail refused this one (429). Distinct from the
+     failure above because nothing went wrong — and the next step is the same
+     one the form already wanted: send it to a person. */
+  support_firstline_answer_limited: {
+    en: 'Instant answers have hit their beta usage limit for now. Send your request and a person will reply.',
+    fr: 'Les réponses instantanées ont atteint leur limite d’utilisation pour la bêta. Envoyez votre demande et une personne vous répondra.', // [FR self-authored]
+  },
 
   /* ── Service status page + founder control ────────────────────────────── */
   status_eyebrow: { en: 'Status', fr: 'État' },
