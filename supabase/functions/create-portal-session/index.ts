@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { bypassesPaywall } from '../_shared/adminAccess.ts'
 
 /**
  * Opens a Stripe billing portal session for the signed-in account's Stripe
@@ -19,17 +20,6 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
-}
-
-// Kept in sync with src/lib/billing/adminAccess.ts by hand — see the note in
-// create-checkout-session/index.ts.
-const ADMIN_EMAILS = ['martin.constantineau@dutiva.ca']
-
-function bypassesPaywall(email: string | null | undefined): boolean {
-  const normalized = String(email ?? '')
-    .trim()
-    .toLowerCase()
-  return ADMIN_EMAILS.includes(normalized) || normalized.endsWith('@dutiva.ca')
 }
 
 async function stripePost(path: string, params: Record<string, string>, secretKey: string) {

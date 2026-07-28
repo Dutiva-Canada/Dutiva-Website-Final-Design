@@ -64,6 +64,14 @@ export const pricingMessages = defineMessages({
     en: 'Could not open the billing portal. Please try again or contact support@dutiva.ca.',
     fr: 'Impossible d’ouvrir le portail de facturation. Réessayez ou contactez support@dutiva.ca.',
   },
+  pricing_checkout_return_success: {
+    en: "Thanks — your subscription is being set up. This can take a few seconds; refresh if your plan doesn't show as updated yet.",
+    fr: 'Merci — votre abonnement est en cours de configuration. Cela peut prendre quelques secondes; actualisez si votre forfait ne s’affiche pas encore comme mis à jour.',
+  },
+  pricing_checkout_return_cancelled: {
+    en: 'Checkout was cancelled — no charge was made. You can try again anytime.',
+    fr: "Le paiement a été annulé — aucun montant n'a été prélevé. Vous pouvez réessayer en tout temps.",
+  },
   pricing_compare_title: {
     en: 'Compare what each plan includes.',
     fr: 'Comparez ce que chaque forfait comprend.',
