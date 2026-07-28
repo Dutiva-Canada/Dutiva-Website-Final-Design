@@ -6,7 +6,7 @@ import { useI18n } from '@/i18n/context'
 import { useAuth } from '@/features/app/auth/authContext'
 import { usePlan } from '@/features/app/billing/planContext'
 import { supabase } from '@/lib/supabaseClient'
-import { PLANS, annualPerMonth, annualTotal, getPlanById } from '@/config/plans'
+import { PLANS, annualPerMonth, annualTotal, getPlanById, isPurchasable } from '@/config/plans'
 import type { BillingPeriod, PlanDefinition } from '@/config/plans'
 import { PLAN_COMPARISON } from '@/config/planComparison'
 import type { ComparisonCell } from '@/config/planComparison'
@@ -91,17 +91,27 @@ function PriceCard({
   const { t } = useI18n()
   const hasPrice = plan.monthlyPrice > 0
   const perMonth = period === 'annual' ? annualPerMonth(plan.monthlyPrice) : plan.monthlyPrice
-  const ctaLabel = hasPrice && !signedIn ? t('pricing_cta_signin_first') : t(plan.ctaKey)
+  const purchasable = isPurchasable(plan)
+  const ctaLabel = !purchasable
+    ? t('pricing_cta_beta_only')
+    : hasPrice && !signedIn
+      ? t('pricing_cta_signin_first')
+      : t(plan.ctaKey)
 
   return (
     <div
-      className={
+      className={[
         plan.popular
           ? 'relative flex h-full flex-col rounded-2xl border border-gold-border bg-bg-soft p-6 shadow-[0_0_0_1px_rgba(var(--dutiva-gold-rgb),0.12)]'
-          : 'relative flex h-full flex-col rounded-2xl border border-border bg-bg-elevated p-6'
-      }
+          : 'relative flex h-full flex-col rounded-2xl border border-border bg-bg-elevated p-6',
+        purchasable ? '' : 'opacity-60',
+      ].join(' ')}
     >
-      {plan.popular ? (
+      {!purchasable ? (
+        <div className="absolute left-6 top-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-elevated px-2.5 py-0.5 text-[0.6875rem] font-semibold text-text-3">
+          {t('pricing_beta_only_badge')}
+        </div>
+      ) : plan.popular ? (
         <div className="absolute left-6 top-3 inline-flex items-center gap-1.5 rounded-full border border-gold-border bg-gold-subtle px-2.5 py-0.5 text-[0.6875rem] font-semibold text-gold-strong">
           <Sparkles size={12} />
           {t('landing_growth_popular')}
@@ -141,15 +151,15 @@ function PriceCard({
 
       <button
         onClick={() => onCheckout(plan)}
-        disabled={isLoading}
+        disabled={isLoading || !purchasable}
         className={[
           'mt-8 inline-flex w-full items-center justify-center gap-2 px-4 py-3 text-sm',
           plan.popular ? 'gold-button' : 'ghost-button',
-          isLoading ? 'cursor-not-allowed opacity-60' : '',
+          isLoading || !purchasable ? 'cursor-not-allowed opacity-60' : '',
         ].join(' ')}
       >
         {isLoading ? t('pricing_cta_processing') : ctaLabel}
-        <ArrowRight size={16} className="shrink-0" />
+        {purchasable ? <ArrowRight size={16} className="shrink-0" /> : null}
       </button>
     </div>
   )

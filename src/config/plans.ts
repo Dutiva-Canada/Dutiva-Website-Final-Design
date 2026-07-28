@@ -69,6 +69,20 @@ export function getPlanById(id?: string | null): PlanDefinition | undefined {
   return PLANS.find((plan) => plan.id === id)
 }
 
+/**
+ * True while the site is in beta (see docs/BILLING_BETA_AUDIT.md, B2) —
+ * paid plans are shown on /pricing but disabled with a "coming soon" state
+ * rather than sold, regardless of whether their Stripe price/secret is
+ * actually wired up server-side. Flip to `false` (or delete this flag and
+ * its one call site, `isPurchasable`) once paid signup opens.
+ */
+export const PAID_PLANS_DISABLED_DURING_BETA = true
+
+/** False for a paid plan while `PAID_PLANS_DISABLED_DURING_BETA` is set; the free plan is always "purchasable" (it just enters the app). */
+export function isPurchasable(plan: PlanDefinition): boolean {
+  return plan.monthlyPrice === 0 || !PAID_PLANS_DISABLED_DURING_BETA
+}
+
 export type BillingPeriod = 'monthly' | 'annual'
 
 /**
