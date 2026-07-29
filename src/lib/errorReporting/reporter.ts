@@ -16,7 +16,11 @@
 import { coarseUserAgent } from './coarseUserAgent'
 import { scrubRoutePattern } from './scrubRoute'
 
-export type ReportKind = 'route-boundary' | 'window-error' | 'unhandled-rejection'
+export type ReportKind =
+  | 'route-boundary'
+  | 'window-error'
+  | 'unhandled-rejection'
+  | 'recoverable-error'
 
 export interface ReportInput {
   /** The thrown value (Error, string, rejection reason, …). */
@@ -24,6 +28,14 @@ export interface ReportInput {
   kind: ReportKind
   /** Defaults to `window.location.pathname`. */
   pathname?: string
+  /**
+   * React's `errorInfo.componentStack` for a `recoverable-error` report (e.g.
+   * a hydration mismatch React silently patched by re-rendering from
+   * scratch). Appended to `stack` — this is the only way to tell *which*
+   * component tree disagreed between server and client, since the minified
+   * production error message itself never carries that detail.
+   */
+  componentStack?: string
 }
 
 /** The exact wire payload. Nothing is added to this without justification. */
@@ -169,7 +181,10 @@ export function createReporter(config: ReporterConfig): Reporter {
         input.pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '/')
       const route = scrubRoutePattern(pathname)
       const message = truncate(redact(messageOf(input.error)), MAX_MESSAGE)
-      const stack = truncate(redact(stackOf(input.error)), MAX_STACK)
+      const rawStack = input.componentStack
+        ? `${stackOf(input.error)}\ncomponent stack:${input.componentStack}`
+        : stackOf(input.error)
+      const stack = truncate(redact(rawStack), MAX_STACK)
       const fingerprint = `${input.kind}|${route}|${message}|${firstFrame(stack)}`
       const now = clock()
 

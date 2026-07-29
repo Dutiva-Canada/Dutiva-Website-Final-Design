@@ -87,6 +87,27 @@ export function reportRouteError(error: unknown): void {
   reporter?.report({ error, kind: 'route-boundary', pathname: currentPath() })
 }
 
+/**
+ * Report a React-recovered error — passed as `onRecoverableError` to
+ * `hydrateRoot`/`createRoot` (src/main.tsx). React already recovers from these
+ * on its own (most commonly a hydration mismatch: it discards the mismatched
+ * subtree and re-renders client-side, so the user never sees a broken page),
+ * but recovery is otherwise silent about *where* it happened — the minified
+ * production error message alone gives no clue. `errorInfo.componentStack`
+ * does, so it's threaded through here instead of relying on the generic
+ * `window.onerror` path (React's default `onRecoverableError` reports via the
+ * `reportError()` global, which is what `window-error` reports were already
+ * catching, just without this context).
+ */
+export function reportRecoverableError(error: unknown, errorInfo?: { componentStack?: string }): void {
+  reporter?.report({
+    error,
+    kind: 'recoverable-error',
+    pathname: currentPath(),
+    componentStack: errorInfo?.componentStack,
+  })
+}
+
 /** Test-only reset of the module singleton. */
 export function __resetErrorReportingForTest(): void {
   reporter = null

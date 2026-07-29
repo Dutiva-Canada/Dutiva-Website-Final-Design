@@ -132,6 +132,23 @@ describe('createReporter', () => {
     expect(sent).toHaveLength(2)
   })
 
+  it('appends componentStack to stack for a recoverable-error report', () => {
+    const reporter = makeReporter()
+    const err = new Error('Minified React error #418')
+    err.stack = 'Error: Minified React error #418\n    at hydrateRoot'
+    reporter.report({
+      error: err,
+      kind: 'recoverable-error',
+      pathname: '/',
+      componentStack: '\n    in Header\n    in LandingPage',
+    })
+    const { stack, kind } = sent[0]!.payload
+    expect(kind).toBe('recoverable-error')
+    expect(stack).toContain('at hydrateRoot')
+    expect(stack).toContain('component stack:')
+    expect(stack).toContain('in Header')
+  })
+
   it('handles non-Error rejection reasons', () => {
     const reporter = makeReporter()
     reporter.report({ error: 'string reason', kind: 'unhandled-rejection', pathname: '/' })
