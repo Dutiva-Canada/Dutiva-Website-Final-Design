@@ -122,9 +122,20 @@ risk below applies the same to both). The only cost is noise, mitigated by the
 ### Sources of errors
 
 - **`RouteErrorPage`** (the existing React error boundary) reports in an effect,
-  so never during SSR and never before first paint.
+  so never during SSR and never before first paint. `kind: 'route-boundary'`.
 - **`window.onerror` / `unhandledrejection`** handlers, installed from
   `src/main.tsx`, cover errors outside React's tree.
+  `kind: 'window-error'` / `'unhandled-rejection'`.
+- **`onRecoverableError`**, passed to `hydrateRoot`/`createRoot` in
+  `src/main.tsx`. React calls this whenever it recovers from an error on its
+  own — most commonly a hydration mismatch on the prerendered public pages,
+  where React discards the mismatched subtree and re-renders client-side
+  rather than crashing. The visitor never sees a broken page, but without this
+  hook production had zero visibility into *where* it happened (the minified
+  message alone gives no clue, and the fallback path — an uncaught `error`
+  event — reported it as an undifferentiated `window-error` with no component
+  stack). `kind: 'recoverable-error'`; `stack` has `errorInfo.componentStack`
+  appended when React provides one.
 
 ### Fail-safe behaviour
 

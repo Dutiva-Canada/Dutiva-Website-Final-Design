@@ -34,7 +34,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const KINDS = ['route-boundary', 'window-error', 'unhandled-rejection']
+const KINDS = ['route-boundary', 'window-error', 'unhandled-rejection', 'recoverable-error']
 const ENVS = ['production', 'preview']
 const LOCALES = ['en-CA', 'fr-CA']
 

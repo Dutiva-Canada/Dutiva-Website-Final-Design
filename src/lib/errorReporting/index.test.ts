@@ -3,6 +3,7 @@ import {
   __resetErrorReportingForTest,
   installErrorReporting,
   makeGlobalErrorHandlers,
+  reportRecoverableError,
   reportRouteError,
   reportingEndpoint,
 } from './index'
@@ -28,6 +29,10 @@ describe('reporting gate', () => {
 
   it('reportRouteError is a no-op when reporting was never installed', () => {
     expect(() => reportRouteError(new Error('x'))).not.toThrow()
+  })
+
+  it('reportRecoverableError is a no-op when reporting was never installed', () => {
+    expect(() => reportRecoverableError(new Error('x'), { componentStack: 'x' })).not.toThrow()
   })
 })
 
