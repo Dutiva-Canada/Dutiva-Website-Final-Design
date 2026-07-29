@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/brand/icon-app.svg" />
+    <link rel="apple-touch-icon" href="/brand/dutiva-leaf.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
       // Magic-link safety net. The sign-in email is meant to land on the app's
@@ -45,7 +46,10 @@
       rel="preload"
       as="style"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap"
-      onload="this.onload=null;this.rel='stylesheet'"
+      onload="
+        this.onload = null
+        this.rel = 'stylesheet'
+      "
     />
     <noscript>
       <link
@@ -69,7 +73,10 @@
         }
         var theme = storage && storage.getItem('dutiva-theme')
         if (theme !== 'light' && theme !== 'dark') {
-          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          theme =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light'
         }
         document.documentElement.dataset.theme = theme
         var path = window.location.pathname

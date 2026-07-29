@@ -19,12 +19,12 @@ const CHECK_KEYS: LandingMessageKey[] = [
 export function Hero() {
   const { lt } = useLanding()
   return (
-    <section id="top" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 pt-[72px] pb-10">
+    <section id="top" className="mx-auto max-w-300 scroll-mt-20 px-6 pt-18 pb-10">
       <div className="grid grid-cols-[repeat(auto-fit,minmax(360px,1fr))] items-center gap-12">
         {/* Left */}
         <div className="animate-fade-up">
           <span className="badge">{lt('landing_hero_badge')}</span>
-          <h1 className="mt-[22px] font-display text-[clamp(2.125rem,4vw,3.5rem)] leading-[1.08] font-semibold tracking-[-0.02em] text-text">
+          <h1 className="mt-5.5 font-display text-[clamp(2.125rem,4vw,3.5rem)] leading-[1.08] font-semibold tracking-[-0.02em] text-text">
             {lt('landing_h_dir_a')}
             <span className="gradient-text">{lt('landing_h_dir_b')}</span>
           </h1>
@@ -51,13 +51,13 @@ export function Hero() {
             </a>
           </div>
 
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-bg-elevated px-3.5 py-[7px] text-xs font-medium text-text-2">
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-bg-elevated px-3.5 py-1.75 text-xs font-medium text-text-2">
             <ShieldCheck size={14} className="text-gold-strong" />
             {lt('landing_hero_disclaimer')}
           </div>
 
           {/* Slim stat strip */}
-          <div className="mt-7 flex flex-wrap items-center gap-7 rounded-2xl border border-border bg-bg-elevated px-6 py-[18px]">
+          <div className="mt-7 flex flex-wrap items-center gap-7 rounded-2xl border border-border bg-bg-elevated px-6 py-4.5">
             <HeroStat value="16" label={lt('landing_stat_templates')} />
             <span className="w-px self-stretch bg-border" />
             <HeroStat value="4" label={lt('landing_stat_legal')} />

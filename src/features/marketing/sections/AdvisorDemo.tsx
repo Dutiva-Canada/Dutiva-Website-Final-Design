@@ -23,19 +23,19 @@ export function AdvisorDemo() {
           </span>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-ok-border bg-ok-bg px-2.5 py-1 text-xs font-semibold text-ok-fg">
-          <span className="h-[7px] w-[7px] rounded-full bg-ok-fg" />
+          <span className="h-1.75 w-1.75 rounded-full bg-ok-fg" />
           {lt('landing_adv_live')}
         </span>
       </div>
 
       {/* Transcript */}
       <div className="grid gap-3.5 bg-bg-soft p-5">
-        <div className="ml-auto max-w-[86%] rounded-[16px_16px_3px_16px] bg-navy px-4 py-[11px] text-[0.9375rem] leading-[1.55] text-white">
+        <div className="ml-auto max-w-[86%] rounded-[16px_16px_3px_16px] bg-navy px-4 py-2.75 text-[0.9375rem] leading-[1.55] text-white">
           {lt('landing_adv_user_q')}
         </div>
 
         <div className="max-w-[94%] rounded-[16px_16px_16px_3px] border border-border bg-bg-elevated px-4 py-3.5">
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-warn-border bg-warn-bg px-[9px] py-[3px] text-[0.6875rem] font-bold tracking-[0.06em] uppercase text-warn-fg">
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-warn-border bg-warn-bg px-2.25 py-0.75 text-[0.6875rem] font-bold tracking-[0.06em] uppercase text-warn-fg">
             <span className="h-1.5 w-1.5 rounded-full bg-warn-fg" />
             {lt('landing_adv_risk')}
           </div>
@@ -63,7 +63,7 @@ export function AdvisorDemo() {
 
         <div className="flex items-end gap-2.5 rounded-[14px] border border-border bg-bg-elevated p-2 pl-4 shadow-[0_10px_30px_-16px_rgba(0,0,0,0.35)]">
           <span className="flex-1 py-2 text-sm text-text-3">{lt('landing_adv_followup')}</span>
-          <span className="grid h-[34px] w-[34px] flex-none place-items-center rounded-[9px] bg-navy">
+          <span className="grid h-8.5 w-8.5 flex-none place-items-center rounded-[9px] bg-navy">
             <ArrowUp size={15} className="text-white" />
           </span>
         </div>
@@ -82,12 +82,12 @@ function DocChip({
   readonly action: string
 }) {
   return (
-    <span className="flex items-center gap-2 rounded-[10px] border border-border bg-bg-elevated py-[7px] pr-2 pl-[9px] text-[0.8125rem]">
+    <span className="flex items-center gap-2 rounded-[10px] border border-border bg-bg-elevated py-1.75 pr-2 pl-2.25 text-[0.8125rem]">
       <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-bg-soft">
         <Icon size={12} className="text-text-3" />
       </span>
       <span className="font-semibold text-text">{label}</span>
-      <span className="rounded-md bg-gold-subtle px-[9px] py-1 text-xs font-bold text-gold-strong">
+      <span className="rounded-md bg-gold-subtle px-2.25 py-1 text-xs font-bold text-gold-strong">
         {action}
       </span>
     </span>

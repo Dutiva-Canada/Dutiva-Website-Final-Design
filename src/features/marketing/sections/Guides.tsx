@@ -18,7 +18,7 @@ export function Guides() {
   const { lt } = useLanding()
   const { p } = usePublicPath()
   return (
-    <section id="guides" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 py-16">
+    <section id="guides" className="mx-auto max-w-300 scroll-mt-20 px-6 py-16">
       <SectionIntro
         badge={lt('landing_guides_badge')}
         title={lt('landing_guides_title')}
@@ -26,7 +26,7 @@ export function Guides() {
       />
       <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
         {GUIDES.map((guide) => (
-          <a key={guide.title} href={p('guides')} className="premium-card-soft block p-[22px]">
+          <a key={guide.title} href={p('guides')} className="premium-card-soft block p-5.5">
             <div className="flex items-start gap-3">
               <BookOpen size={16} className="mt-0.5 flex-none text-gold-strong" />
               <div>

@@ -114,14 +114,14 @@ export function Header() {
         {L('Skip to main content', 'Passer au contenu principal')}
       </a>
       <header className="sticky top-0 z-30 border-b border-border bg-(--topbar-bg) backdrop-blur-[18px]">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-3">
+        <div className="mx-auto flex max-w-300 items-center justify-between gap-4 px-6 py-3">
           <a href={home('top')} className="flex items-center gap-2.5">
             <LeafTile size={46} radius={13} leafHeight={32} shadow />
             <span className="leading-none">
               <span className="block">
                 <Wordmark />
               </span>
-              <span className="mt-[3px] block font-display text-[0.5rem] font-semibold tracking-[0.36em] text-text-3">
+              <span className="mt-0.75 block font-display text-[0.5rem] font-semibold tracking-[0.36em] text-text-3">
                 CANADA
               </span>
             </span>
@@ -232,7 +232,7 @@ export function Header() {
                 key={item.key}
                 item={item}
                 onClick={closeMenu}
-                className="flex items-center justify-between rounded-xl border-b border-border px-3 py-[15px] text-[1.0625rem] font-semibold text-text hover:bg-[rgba(127,127,127,0.06)]"
+                className="flex items-center justify-between rounded-xl border-b border-border px-3 py-3.75 text-[1.0625rem] font-semibold text-text hover:bg-[rgba(127,127,127,0.06)]"
               >
                 <ChevronRight size={16} className="text-text-3" />
               </NavLink>

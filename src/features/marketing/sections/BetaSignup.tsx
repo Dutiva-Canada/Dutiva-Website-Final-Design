@@ -79,7 +79,7 @@ export function BetaSignup() {
   }
 
   return (
-    <section id="start" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 pt-6 pb-[72px]">
+    <section id="start" className="mx-auto max-w-300 scroll-mt-20 px-6 pt-6 pb-18">
       <div className="premium-card grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] items-center gap-10 p-[clamp(28px,4vw,56px)]">
         <div>
           <span className="badge">{lt('landing_cta_badge')}</span>
@@ -93,7 +93,7 @@ export function BetaSignup() {
 
         <div>
           {status === 'done' ? (
-            <div className="flex items-center gap-3 rounded-[14px] border border-(--gold-border-soft) bg-gold-subtle px-5 py-[18px]">
+            <div className="flex items-center gap-3 rounded-[14px] border border-(--gold-border-soft) bg-gold-subtle px-5 py-4.5">
               <CircleCheck size={22} className="flex-none text-gold-strong" />
               <div>
                 <div className="font-semibold text-text">{lt('landing_cta_done_t')}</div>
@@ -103,7 +103,7 @@ export function BetaSignup() {
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
               {/* Honeypot: off-screen, not announced, never tab-focusable. */}
-              <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+              <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
                 <label htmlFor="beta-fax">Do not fill this field</label>
                 <input
                   id="beta-fax"
@@ -132,7 +132,7 @@ export function BetaSignup() {
                 />
               </div>
               <div className="flex flex-wrap gap-2.5">
-                <div className="flex min-w-[180px] flex-1 flex-col gap-1.5">
+                <div className="flex min-w-45 flex-1 flex-col gap-1.5">
                   <label htmlFor="beta-company" className={LABEL}>
                     {lt('landing_cta_company_label')}
                   </label>
@@ -147,7 +147,7 @@ export function BetaSignup() {
                     className={`min-h-11 text-sm ${INPUT}`}
                   />
                 </div>
-                <div className="flex min-w-[180px] flex-1 flex-col gap-1.5">
+                <div className="flex min-w-45 flex-1 flex-col gap-1.5">
                   <label htmlFor="beta-prov" className={LABEL}>
                     {lt('landing_cta_prov_label')}
                   </label>
@@ -179,7 +179,7 @@ export function BetaSignup() {
                   onChange={(e) => setConsent(e.target.checked)}
                   className="mt-0.5"
                 />
-                <span className="text-[0.8125rem] leading-[1.5] text-text-2">
+                <span className="text-[0.8125rem] leading-normal text-text-2">
                   {lt('landing_cta_consent_label')}
                 </span>
               </label>

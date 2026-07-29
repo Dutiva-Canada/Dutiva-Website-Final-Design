@@ -22,13 +22,13 @@ function AppWordmark() {
   return (
     <Link
       to={home('top')}
-      className="flex w-fit items-center gap-[10px] rounded-[8px] transition-opacity hover:opacity-80"
+      className="flex w-fit items-center gap-2.5 rounded-lg transition-opacity hover:opacity-80"
     >
       {/* Decorative: the adjacent wordmark text already names the brand. */}
       <img
         src="/brand/dutiva-leaf.png"
         alt=""
-        className="block h-[26px] w-auto"
+        className="block h-6.5 w-auto"
         style={{ filter: 'var(--logo-glow)' }}
       />
       <span className="font-display text-[17px] font-bold tracking-[-0.01em]">
@@ -50,7 +50,7 @@ function BrandRail() {
 
   return (
     <aside
-      className="relative hidden w-[45%] max-w-[600px] shrink-0 flex-col justify-between overflow-hidden px-[52px] py-[44px] lg:flex"
+      className="relative hidden w-[45%] max-w-150 shrink-0 flex-col justify-between overflow-hidden px-13 py-11 lg:flex"
       style={{
         background:
           'radial-gradient(130% 120% at 12% 8%, #1b3350 0%, var(--dutiva-navy) 46%, #081018 100%)',
@@ -59,24 +59,24 @@ function BrandRail() {
       {/* Gold glow accents */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-[130px] -right-[120px] h-[340px] w-[340px] rounded-full opacity-[0.18]"
+        className="pointer-events-none absolute -top-32.5 -right-30 h-85 w-85 rounded-full opacity-[0.18]"
         style={{ background: 'radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%)' }}
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-[150px] -left-[110px] h-[320px] w-[320px] rounded-full opacity-[0.12]"
+        className="pointer-events-none absolute -bottom-37.5 -left-27.5 h-80 w-80 rounded-full opacity-[0.12]"
         style={{ background: 'radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%)' }}
       />
 
       <Link
         to={home('top')}
-        className="relative flex w-fit items-center gap-[10px] transition-opacity hover:opacity-80"
+        className="relative flex w-fit items-center gap-2.5 transition-opacity hover:opacity-80"
       >
         {/* Decorative: the adjacent wordmark text already names the brand. */}
         <img
           src="/brand/dutiva-leaf.png"
           alt=""
-          className="block h-[28px] w-auto"
+          className="block h-7 w-auto"
           style={{ filter: 'drop-shadow(0 0 6px rgba(var(--dutiva-gold-rgb),0.35))' }}
         />
         <span className="font-display text-[18px] font-bold tracking-[-0.01em] text-white">
@@ -85,23 +85,23 @@ function BrandRail() {
       </Link>
 
       <div className="relative">
-        <div className="mb-[22px] inline-flex items-center gap-[8px] rounded-full border border-[rgba(var(--dutiva-gold-rgb),0.28)] bg-[rgba(var(--dutiva-gold-rgb),0.10)] px-[13px] py-[6px] text-[12px] font-semibold text-gold-on-dark">
+        <div className="mb-5.5 inline-flex items-center gap-2 rounded-full border border-[rgba(var(--dutiva-gold-rgb),0.28)] bg-[rgba(var(--dutiva-gold-rgb),0.10)] px-3.25 py-1.5 text-[12px] font-semibold text-gold-on-dark">
           <Sparkle size={12} fill="currentColor" strokeWidth={0} aria-hidden="true" />
           {x(M.auth_brand_badge)}
         </div>
-        <h2 className="m-0 mb-[16px] max-w-[460px] font-display text-[30px] leading-[1.15] font-semibold tracking-[-0.02em] text-white">
+        <h2 className="m-0 mb-4 max-w-115 font-display text-[30px] leading-[1.15] font-semibold tracking-[-0.02em] text-white">
           {x(M.auth_brand_headline)}
         </h2>
-        <p className="m-0 mb-[30px] max-w-[430px] text-[14.5px] leading-[1.6] text-white/70">
+        <p className="m-0 mb-7.5 max-w-107.5 text-[14.5px] leading-[1.6] text-white/70">
           {x(M.auth_brand_sub)}
         </p>
-        <ul className="m-0 flex list-none flex-col gap-[14px] p-0">
+        <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
           {points.map((point, i) => (
             <li
               key={i}
-              className="flex items-start gap-[11px] text-[13.5px] leading-[1.5] text-white/85"
+              className="flex items-start gap-2.75 text-[13.5px] leading-normal text-white/85"
             >
-              <span className="mt-px flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[rgba(var(--dutiva-gold-rgb),0.16)] text-gold-on-dark">
+              <span className="mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[rgba(var(--dutiva-gold-rgb),0.16)] text-gold-on-dark">
                 <Check size={12} strokeWidth={2.5} aria-hidden="true" />
               </span>
               {x(point)}
@@ -123,16 +123,16 @@ function BrandRail() {
 function EnterWorkspaceCard() {
   const { x } = useI18n()
   return (
-    <div className="rounded-[18px] border border-border bg-surface p-[28px] text-center shadow-[0_20px_50px_-24px_rgba(13,27,42,0.35)] min-[640px]:p-[32px]">
+    <div className="rounded-[18px] border border-border bg-surface p-7 text-center shadow-[0_20px_50px_-24px_rgba(13,27,42,0.35)] min-[640px]:p-8">
       <h1 className="m-0 font-display text-[22px] font-semibold tracking-[-0.01em] text-text">
         {x(M.auth_welcome_title)}
       </h1>
-      <p className="mx-auto mt-[8px] mb-[22px] max-w-[300px] text-[13.5px] leading-[1.5] text-text-3">
+      <p className="mx-auto mt-2 mb-5.5 max-w-75 text-[13.5px] leading-normal text-text-3">
         {x(M.auth_welcome_sub)}
       </p>
       <Link
         to="/app/home"
-        className="flex h-[46px] w-full items-center justify-center rounded-[11px] bg-navy text-[14px] font-semibold text-white"
+        className="flex h-11.5 w-full items-center justify-center rounded-[11px] bg-navy text-[14px] font-semibold text-white"
       >
         {x(M.auth_enter_workspace)}
       </Link>
@@ -146,27 +146,27 @@ function FormColumn({ children }: { readonly children: ReactNode }) {
 
   return (
     <main className="relative flex flex-1 flex-col">
-      <div className="flex items-center justify-between px-[24px] py-[20px] min-[640px]:px-[40px]">
+      <div className="flex items-center justify-between px-6 py-5 min-[640px]:px-10">
         <div className="lg:hidden">
           <AppWordmark />
         </div>
         {/* ml-auto keeps the controls right-aligned at lg+, where the wordmark
             above is display:none and would otherwise let justify-between pull
             this lone flex child to the left edge. */}
-        <div className="ml-auto flex items-center gap-[10px]">
+        <div className="ml-auto flex items-center gap-2.5">
           <LangToggle />
           <ThemeToggle
-            className="flex h-[34px] w-[34px] shrink-0 cursor-pointer items-center justify-center rounded-[8px] border-none bg-inset text-text-2"
+            className="flex h-8.5 w-8.5 shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-inset text-text-2"
             iconSize={17}
           />
         </div>
       </div>
 
-      <div className="flex flex-1 items-center justify-center px-[24px] pb-[40px] min-[640px]:px-[40px]">
-        <div className="w-full max-w-[400px] animate-[fadeInUp_.4s_ease]">{children}</div>
+      <div className="flex flex-1 items-center justify-center px-6 pb-10 min-[640px]:px-10">
+        <div className="w-full max-w-100 animate-[fadeInUp_.4s_ease]">{children}</div>
       </div>
 
-      <div className="px-[24px] pb-[26px] text-center min-[640px]:px-[40px]">
+      <div className="px-6 pb-6.5 text-center min-[640px]:px-10">
         <p className="m-0 text-[11.5px] text-text-faint">
           © Dutiva Canada Inc. ·{' '}
           <Link to={legalPath} className="hover:text-text-muted">
