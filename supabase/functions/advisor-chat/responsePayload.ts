@@ -64,7 +64,7 @@ export interface AdvisorResponsePayload {
  * phrase set below is stored pre-normalized against it, so the two must
  * normalize identically or the mirrored phrases stop matching.
  */
-function normalize(value: string): string {
+export function normalize(value: string): string {
   return value
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // strip combining diacritics
@@ -77,9 +77,11 @@ function normalize(value: string): string {
 /**
  * First-person crisis phrases — the server-side mirror of the client's
  * maintained set (src/features/app/advisor/safety/crisisSignals.ts). Both
- * run; the union wins (§5.1 fail-safe-on). Keep the two lists in sync.
+ * run; the union wins (§5.1 fail-safe-on). Keep the two lists in sync —
+ * enforced by the drift test in this file's `.test.ts`. Exported (only) for
+ * that test; nothing else should import the raw list, use `detectsCrisis`.
  */
-const CRISIS_PHRASES: readonly string[] = [
+export const CRISIS_PHRASES: readonly string[] = [
   'kill myself',
   'killing myself',
   'end my life',

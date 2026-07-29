@@ -22,7 +22,13 @@ import { normalizeText } from './text'
  * Phrases are stored already-normalized (lowercase, no accents, no
  * apostrophes) to match `normalizeText` output.
  */
-const CRISIS_PHRASES: readonly string[] = [
+/**
+ * Exported (only) so the drift test in crisisSignals.test.ts can compare this
+ * set against the server's mirror (supabase/functions/advisor-chat/
+ * responsePayload.ts) — nothing else should import the raw list; use
+ * `detectCrisisSignal`.
+ */
+export const CRISIS_PHRASES: readonly string[] = [
   // English
   'kill myself',
   'killing myself',
