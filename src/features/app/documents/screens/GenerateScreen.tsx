@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft } from 'lucide-react'
+import { AlertTriangle, ChevronLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { doclibMessages } from '@/i18n/messages/doclib'
@@ -19,6 +19,8 @@ import {
   StepDots,
 } from '../components'
 import { jurisdictionInfo, reviewStatusInfo, riskLevelInfo, sizeTiers } from '../data'
+import { appliesToNoticeField, assessNoticeFloor } from '../statutoryFloor'
+import type { NoticeFloorVerdict } from '../statutoryFloor'
 import type {
   DocCase,
   DocChipTone,
@@ -100,11 +102,14 @@ function QuestionField({
   question,
   value,
   autofilled,
+  noticeFloor,
   onChange,
 }: {
   readonly question: TemplateQuestion
   readonly value: string
   readonly autofilled: boolean
+  /** Statutory-floor check for this field, when one applies (statutoryFloor.ts). */
+  readonly noticeFloor?: NoticeFloorVerdict
   readonly onChange: (value: string) => void
 }) {
   const { t, x } = useI18n()
@@ -183,6 +188,50 @@ function QuestionField({
       {control}
       {autofilled && <div className="mt-1 text-[11px] text-accent">{t('doclib_gen_autofill')}</div>}
       {question.hint && <div className="mt-1 text-[11px] text-text-faint">{x(question.hint)}</div>}
+      {noticeFloor && <NoticeFloorNote verdict={noticeFloor} />}
+    </div>
+  )
+}
+
+/**
+ * The statutory-floor readout under the notice field.
+ *
+ * Advisory, never prescriptive: it reports the floor and says plainly when the
+ * entered figure is under it, but the "statutory floor only" line rides along
+ * with every grounded verdict so the number is never mistaken for a
+ * recommended amount. Common-law reasonable notice is routinely much higher.
+ */
+function NoticeFloorNote({ verdict }: { readonly verdict: NoticeFloorVerdict }) {
+  const { t, x } = useI18n()
+
+  if (verdict.kind === 'unknown-tenure') return null
+
+  if (verdict.kind === 'unavailable') {
+    return (
+      <div className="mt-1 text-[11px] text-text-faint">{t('doclib_gen_floor_unavailable')}</div>
+    )
+  }
+
+  const weeks = String(verdict.floorWeeks)
+  const below = verdict.kind === 'below'
+  const message =
+    verdict.kind === 'below'
+      ? doclibMessages.doclib_gen_floor_below
+      : verdict.kind === 'meets'
+        ? doclibMessages.doclib_gen_floor_meets
+        : doclibMessages.doclib_gen_floor_info
+
+  return (
+    <div
+      className={`mt-1 flex items-start gap-[6px] text-[11px] ${below ? 'font-semibold text-risk-fg' : 'text-text-faint'}`}
+      role={below ? 'alert' : undefined}
+    >
+      {below && (
+        <AlertTriangle size={12} strokeWidth={2} className="mt-px shrink-0" aria-hidden="true" />
+      )}
+      <span>
+        {x(message).replace('{weeks}', weeks)} {t('doclib_gen_floor_common_law')}
+      </span>
     </div>
   )
 }
@@ -427,6 +476,8 @@ function QuestionsStep({
   answers,
   selectedEmployee,
   nameQuestion,
+  jurisdiction,
+  fieldIds,
   setAnswer,
   x,
 }: {
@@ -434,6 +485,10 @@ function QuestionsStep({
   readonly answers: WizardState['answers']
   readonly selectedEmployee: DocEmployee | undefined
   readonly nameQuestion: TemplateQuestion | undefined
+  /** Drives the statutory floor — the schedule is jurisdiction-specific. */
+  readonly jurisdiction: Jurisdiction
+  /** Every field on this template; distinguishes individual from group notice. */
+  readonly fieldIds: readonly string[]
   readonly setAnswer: (id: string, value: string) => void
   readonly x: ReturnType<typeof useI18n>['x']
 }) {
@@ -450,6 +505,15 @@ function QuestionsStep({
               question === nameQuestion &&
               selectedEmployee !== undefined &&
               answers[question.id] === selectedEmployee.name
+            }
+            noticeFloor={
+              appliesToNoticeField(question.id, fieldIds)
+                ? assessNoticeFloor(
+                    jurisdiction,
+                    answers.tenure_years,
+                    answers[question.id],
+                  )
+                : undefined
             }
             onChange={(value) => setAnswer(question.id, value)}
           />
@@ -591,6 +655,13 @@ function GenerateWizard({
   )
 
   const sections = useMemo(() => groupQuestions(template), [template])
+  /* Which fields this template collects — `tenure_years` is what separates an
+     individual termination (ESA s.57, tenure-based) from a group one
+     (s.58, headcount-based). See statutoryFloor.ts. */
+  const templateFieldIds = useMemo(
+    () => sections.flatMap((group) => group.questions.map((question) => question.id)),
+    [sections],
+  )
   const blocks = useMemo(
     () =>
       resolveBlocks(template, {
@@ -719,6 +790,8 @@ function GenerateWizard({
               answers={wiz.answers}
               selectedEmployee={selectedEmployee}
               nameQuestion={nameQuestion}
+              jurisdiction={wiz.jurisdiction}
+              fieldIds={templateFieldIds}
               setAnswer={setAnswer}
               x={x}
             />
