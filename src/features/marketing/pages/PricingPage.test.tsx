@@ -6,6 +6,7 @@ import { LangProvider } from '@/i18n/LangProvider'
 import { ThemeProvider } from '@/lib/theme'
 import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { PlanProvider } from '@/features/app/billing/PlanProvider'
+import { PAID_PLANS_DISABLED_DURING_BETA } from '@/config/plans'
 import { PricingPage } from './PricingPage'
 
 /**
@@ -54,15 +55,28 @@ describe('PricingPage', () => {
     expect(screen.queryByText('Most popular')).toBeNull()
   })
 
-  it('switches plan prices when toggling to annual billing', async () => {
-    const user = userEvent.setup()
+  /* The billing toggle is hidden while PAID_PLANS_DISABLED_DURING_BETA is on
+     (no path should advertise a price nobody can buy). The annual-price
+     calculation (annualPerMonth / annualTotal) is still unit-tested in
+     plans.test.ts — this test only covers the toggle interaction itself. */
+  it.skipIf(PAID_PLANS_DISABLED_DURING_BETA)(
+    'switches plan prices when toggling to annual billing',
+    async () => {
+      const user = userEvent.setup()
+      renderPricing()
+      expect(screen.getByText('$49')).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: /Annual/i }))
+      expect(screen.getByText('$41')).toBeInTheDocument()
+      expect(screen.queryByText('$49')).not.toBeInTheDocument()
+    },
+  )
+
+  it('hides the annual billing toggle while paid plans are beta-disabled', () => {
+    if (!PAID_PLANS_DISABLED_DURING_BETA) return
     renderPricing()
-    // Growth is $49/mo on monthly billing.
+    expect(screen.queryByRole('button', { name: /Annual/i })).toBeNull()
+    // Only monthly prices are shown — Growth at $49.
     expect(screen.getByText('$49')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: /Annual/i }))
-    // Annual = two months free → $41/mo effective for Growth.
-    expect(screen.getByText('$41')).toBeInTheDocument()
-    expect(screen.queryByText('$49')).not.toBeInTheDocument()
   })
 
   it('renders the feature comparison table', () => {
