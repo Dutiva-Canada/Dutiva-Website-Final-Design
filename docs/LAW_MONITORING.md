@@ -33,6 +33,37 @@ Monitoring is deliberately wider than coverage. Dutiva supports ON, QC and FED
 history ahead of the AB/BC expansion. **The panel is what filters, not the
 monitor** — do not let a monitored jurisdiction imply supported coverage.
 
+## How change is detected
+
+Two strategies, chosen per source by `PageConfig.source`:
+
+| Strategy | Used for | How it decides "changed" |
+| --- | --- | --- |
+| `html` | Everything except federal | SHA-256 over the extracted page text, gated by the content-sanity check. |
+| `justice-xml` | Canada Labour Code, Canadian Human Rights Act | Reads `lims:lastAmendedDate` from the root `<Statute>` element. |
+
+**Prefer `justice-xml` wherever a jurisdiction offers equivalent data.** Hashing
+asks "did these bytes move?", which is a proxy for the real question and wrong
+in both directions: a publisher reformats and the hash cries wolf; a page turns
+into a JavaScript shell and the hash goes quiet forever. Reading a stated
+amendment date asks the real question directly.
+
+Three details worth knowing:
+
+- **Range requests.** Only the `<Identification>` block at the top is needed,
+  so each check asks for the first 16 KB rather than a multi-megabyte Act. A
+  server that ignores `Range` returns the whole file, which still parses.
+- **Identity is verified.** `<ConsolidatedNumber>` is checked against the
+  expected code, so a URL that starts serving a different Act is reported
+  rather than silently tracked. This is not hypothetical — the Saskatchewan
+  fallback pointed at a 2015 Gazette issue for months because nothing checked.
+- **`content_hash` holds `amended:YYYY-MM-DD`** for these rows rather than a
+  SHA-256, deliberately prefixed so the column is self-describing when read by
+  hand.
+
+Only the English file is monitored; the French text is published alongside it
+and carries the same amendment date, so watching one detects changes to both.
+
 ## How it is scheduled
 
 A `pg_cron` job in the database, `monitor-law-changes-daily`, runs at **07:00
@@ -174,7 +205,7 @@ jurisdictions publish legislation in a form *meant* to be consumed by software.
 Scraping rendered HTML is the worst available option; an official feed is more
 accurate, cheaper, and cannot be bot-blocked because consumption is the point.
 
-**Federal: solved, free, and better than what we had.** The Department of
+**Federal: solved, and now shipped** — see "How change is detected" below. The Department of
 Justice publishes every consolidated Act and regulation as XML at
 [github.com/justicecanada/laws-lois-xml](https://github.com/justicecanada/laws-lois-xml),
 bilingual (`eng/` and `fra/`), under the
