@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import { CUSTOMER_FACING_EVENT_TYPE, MONITOR_JURISDICTION_NAMES } from './monitoringCoverage'
 
 /**
  * Read-only access to the real backend's legal-guidance tables
@@ -76,6 +77,14 @@ export async function fetchRecentLawUpdates(limit = 10): Promise<LawUpdate[]> {
   const { data, error } = await supabase
     .from('law_updates')
     .select('id, jurisdiction, law_name, url, change_summary, detected_at, event_type')
+    /* Only real amendments, only in jurisdictions Dutiva supports. Unfiltered,
+       this panel showed customers URL-move notices for provinces the product
+       does not cover — of the ten newest rows on 2026-07-30, none were from a
+       supported jurisdiction and six were `redirect` plumbing. It would also
+       have surfaced `broken` events, which report that Dutiva's own scraper
+       failed. See monitoringCoverage.ts. */
+    .eq('event_type', CUSTOMER_FACING_EVENT_TYPE)
+    .in('jurisdiction', MONITOR_JURISDICTION_NAMES)
     .order('detected_at', { ascending: false })
     .limit(limit)
   if (error) throw error

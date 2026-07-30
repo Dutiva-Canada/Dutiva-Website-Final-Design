@@ -5,11 +5,24 @@ interface FakeResult {
   error: unknown
 }
 
+/** Filters applied to a query, so tests can assert them. */
+interface RecordedFilters {
+  eq: [string, unknown][]
+  in: [string, readonly unknown[]][]
+}
+
 /** Chainable, thenable stand-in for a supabase-js PostgrestFilterBuilder. */
-function chain(result: FakeResult) {
+function chain(result: FakeResult, filters?: RecordedFilters) {
   const builder = {
     select: () => builder,
-    eq: () => builder,
+    eq: (column: string, value: unknown) => {
+      filters?.eq.push([column, value])
+      return builder
+    },
+    in: (column: string, values: readonly unknown[]) => {
+      filters?.in.push([column, values])
+      return builder
+    },
     order: () => builder,
     limit: () => builder,
     then: (onfulfilled: (value: FakeResult) => unknown) =>
@@ -106,5 +119,63 @@ describe('guidance api', () => {
       chain({ data: null, error: new Error('RLS denied') }),
     )
     await expect(fetchGuidanceSources()).rejects.toThrow('RLS denied')
+  })
+
+  /**
+   * Unfiltered, this panel showed customers the monitor's operational log for
+   * provinces Dutiva does not support. On 2026-07-30 the ten newest rows
+   * contained no supported jurisdiction at all, and six were `redirect`
+   * notices — "the Act has permanently moved, old URL to new URL" — rendered
+   * under the heading "Recent law changes", directly below a block stating
+   * that Ontario and Québec are not monitored.
+   */
+  describe('fetchRecentLawUpdates filtering', () => {
+    const filtersFor = async () => {
+      const filters: RecordedFilters = { eq: [], in: [] }
+      const { fetchRecentLawUpdates } = await loadApiWithFakeClient(() =>
+        chain({ data: [], error: null }, filters),
+      )
+      await fetchRecentLawUpdates()
+      return filters
+    }
+
+    it('asks only for real amendments', async () => {
+      const filters = await filtersFor()
+      expect(filters.eq).toContainEqual(['event_type', 'change'])
+    })
+
+    it('never surfaces operational events to a customer', async () => {
+      /* first_seen / redirect / broken are records about Dutiva's own
+         monitoring. `broken` matters most: after the content-sanity guard
+         ships, a sweep produces a burst of them, and they say a Dutiva
+         scraper failed — alarming and useless in a customer's panel. */
+      const filters = await filtersFor()
+      const eventFilter = filters.eq.find(([column]) => column === 'event_type')
+      expect(eventFilter?.[1]).toBe('change')
+      for (const operational of ['first_seen', 'redirect', 'broken']) {
+        expect(eventFilter?.[1]).not.toBe(operational)
+      }
+    })
+
+    it('asks only for jurisdictions Dutiva supports', async () => {
+      const filters = await filtersFor()
+      const jurisdictionFilter = filters.in.find(([column]) => column === 'jurisdiction')
+      expect(jurisdictionFilter).toBeDefined()
+      expect([...(jurisdictionFilter?.[1] ?? [])].sort()).toEqual([
+        'Federal',
+        'Ontario',
+        'Quebec',
+      ])
+    })
+
+    it('uses the monitor spellings, not the product codes', async () => {
+      /* law_updates stores display names; filtering on 'ON'/'QC'/'FED' would
+         silently match nothing and empty the panel. */
+      const filters = await filtersFor()
+      const values = filters.in.find(([column]) => column === 'jurisdiction')?.[1] ?? []
+      for (const code of ['ON', 'QC', 'FED']) {
+        expect(values).not.toContain(code)
+      }
+    })
   })
 })
