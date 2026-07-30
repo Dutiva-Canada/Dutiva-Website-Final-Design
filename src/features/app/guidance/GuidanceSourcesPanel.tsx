@@ -3,10 +3,18 @@ import { AlertTriangle, ExternalLink, Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { guidanceMessages as M } from '@/i18n/messages/guidance'
 import { authMessages as A } from '@/i18n/messages/auth'
+import { statusChipClass } from '@/components/chips'
 import { useAuth } from '../auth/authContext'
 import { AuthSignInForm } from '../auth/AuthSignInForm'
 import { fetchGuidanceSources, fetchRecentLawUpdates } from './api'
 import type { GuidanceSource, LawUpdate } from './api'
+import {
+  COVERAGE_AUDITED_ON,
+  COVERAGE_STATUS_LABEL,
+  MONITORING_COVERAGE,
+  coverageTone,
+  noSupportedJurisdictionCovered,
+} from './monitoringCoverage'
 
 type LoadState =
   | { status: 'idle' }
@@ -20,6 +28,16 @@ function formatDate(iso: string, lang: 'en' | 'fr'): string {
     month: 'short',
     day: 'numeric',
   })
+}
+
+/**
+ * Same rendering for a date-only string (`YYYY-MM-DD`). Parsed at local noon
+ * rather than through `new Date('2026-07-30')`, which JS reads as UTC midnight
+ * and would render as the previous day for every user west of Greenwich —
+ * i.e. all of Canada.
+ */
+function formatPlainDate(ymd: string, lang: 'en' | 'fr'): string {
+  return formatDate(`${ymd}T12:00:00`, lang)
 }
 
 /**
@@ -88,6 +106,48 @@ export function GuidanceSourcesPanel() {
           </button>
         )}
       </div>
+
+      {/* Monitoring coverage — shown to everyone, signed in or not. Sweeping a
+          page is not the same as being able to detect an amendment on it, and
+          a compliance product must not let a customer infer otherwise. */}
+      <section className="mt-[16px] rounded-[10px] border border-inset px-[14px] py-[12px]">
+        <div className="flex flex-wrap items-baseline justify-between gap-[8px]">
+          <div className="text-[12px] font-bold text-text-3">
+            {x(M.guidance_coverage_heading)}
+          </div>
+          <div className="text-[11.5px] text-text-muted">
+            {x(M.guidance_coverage_audited)} {formatPlainDate(COVERAGE_AUDITED_ON, lang)}
+          </div>
+        </div>
+
+        <ul className="mt-[10px] flex flex-col gap-[9px]">
+          {MONITORING_COVERAGE.map((entry) => (
+            <li key={entry.jurisdiction} className="flex items-start gap-[10px]">
+              <span className={`${statusChipClass(coverageTone(entry.status))} shrink-0`}>
+                {x(COVERAGE_STATUS_LABEL[entry.status])}
+              </span>
+              <div className="min-w-0">
+                <div className="text-[13px] font-semibold text-text">{x(entry.label)}</div>
+                <p className="mt-[2px] text-[12px] leading-[1.5] text-text-2">{x(entry.detail)}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        {noSupportedJurisdictionCovered() && (
+          <div className="mt-[11px] flex items-start gap-[8px] rounded-[8px] border border-risk-border bg-risk-bg px-[11px] py-[9px]">
+            <AlertTriangle
+              size={14}
+              strokeWidth={1.8}
+              className="mt-px shrink-0 text-risk-fg"
+              aria-hidden="true"
+            />
+            <span className="text-[12px] leading-[1.55] font-semibold text-risk-fg">
+              {x(M.guidance_coverage_none_active)}
+            </span>
+          </div>
+        )}
+      </section>
 
       {authStatus === 'signed-out' && (
         <div className="mt-[16px] flex flex-col gap-[10px]">

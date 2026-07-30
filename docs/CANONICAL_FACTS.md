@@ -25,6 +25,7 @@ people who don't read the repo. Re-export it when this file changes.
 | Annual billing | 10 of 12 months charged (two months free) | `ANNUAL_MONTHS_BILLED` |
 | Beta state | Paid plans **shown but not sold** | `PAID_PLANS_DISABLED_DURING_BETA` |
 | Rings live | **Ring 1 only.** Rings 2–4 are roadmap. | `src/features/app/` |
+| Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30) | `src/features/app/guidance/monitoringCoverage.ts` |
 | Contact address | **support@dutiva.ca** | 76 occurrences site-wide |
 | Languages | EN + FR, both surfaces, prerendered per locale | `src/i18n/` — EN unprefixed, FR under `/fr` |
 | Brand gold | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877` | `src/styles/tokens.css` |
@@ -88,7 +89,27 @@ jurisdiction. Alberta and BC stay labelled roadmap.
 
 Only Ring 1 exists. Present the rest as roadmap.
 
-### 5. Contact and brand
+### 5. "Dutiva monitors the law and tells you when it changes"
+
+**By severity this belongs second, right after the privacy claim** — it is kept
+here only so the §2 cross-reference in Open items stays valid.
+
+The monitoring exists and now runs on a schedule, but a 2026-07-30 audit found
+that **no supported jurisdiction has confirmed working change detection**.
+Ontario's source serves a JavaScript shell whose statute text never reaches a
+server-side fetch; Québec's refuses automated requests; Federal is unconfirmed.
+The monitor sweeps 19 pages, but sweeping a page is not detecting an amendment
+on it — and until 2026-07-30 the health data could not tell the difference,
+because a blocked page answering HTTP 200 recorded as healthy.
+
+Say what is true: Dutiva tracks official sources and surfaces changes **where
+detection is confirmed**, and the product names which jurisdictions those are.
+Do not say Dutiva will notify anyone of a change — nothing notifies; entries
+land in a panel and wait to be read. Coverage is stated in
+`monitoringCoverage.ts` and the audit is in `docs/LAW_MONITORING.md`; update
+both in the same change when a source strategy lands.
+
+### 6. Contact and brand
 
 Publish **support@dutiva.ca** only; retire `info@`, `hello@`, `DutivaCanada@`. The
 accent is **gold `#d4af37`**, not amber `#E8A020` — the Drive logo kit is already

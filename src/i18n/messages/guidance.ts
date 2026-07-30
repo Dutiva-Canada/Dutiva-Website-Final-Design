@@ -48,6 +48,22 @@ export const guidanceMessages = defineMessages({
     en: 'Detected',
     fr: 'Détecté le',
   },
+  /* Monitoring coverage. A 2026-07-30 audit found Ontario and Québec sources
+     unusable for change detection (docs/LAW_MONITORING.md). The panel states
+     that rather than letting "law-change tracking" imply it covers everywhere.
+     [FR self-authored] */
+  guidance_coverage_heading: {
+    en: 'Monitoring coverage',
+    fr: 'Portée de la surveillance',
+  },
+  guidance_coverage_audited: {
+    en: 'Last reviewed',
+    fr: 'Dernière révision',
+  },
+  guidance_coverage_none_active: {
+    en: 'Automated law-change detection is not currently confirmed for any supported jurisdiction. Keep verifying legislation against the official source — do not rely on this panel to tell you an amendment has happened.',
+    fr: "La détection automatisée des changements législatifs n'est actuellement confirmée pour aucune juridiction prise en charge. Continuez de vérifier la législation auprès de la source officielle — ne comptez pas sur ce panneau pour vous signaler une modification.",
+  },
   guidance_updates_stale: {
     en: 'Law-change monitoring has not reported in over a week. These entries may not reflect the current state of the legislation — check the official source before relying on them.',
     fr: "La surveillance des changements législatifs n'a rien signalé depuis plus d'une semaine. Ces entrées peuvent ne pas refléter l'état actuel de la législation — vérifiez la source officielle avant de vous y fier.",

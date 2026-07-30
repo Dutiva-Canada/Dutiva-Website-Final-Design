@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
 import { authMessages } from '@/i18n/messages/auth'
+import { guidanceMessages } from '@/i18n/messages/guidance'
 import { GuidanceSourcesPanel, updatesAreStale } from './GuidanceSourcesPanel'
 import type { LawUpdate } from './api'
 
@@ -17,6 +18,22 @@ describe('GuidanceSourcesPanel', () => {
     renderApp(<GuidanceSourcesPanel />)
     expect(screen.getByText('Sign in to see real legal guidance sources and recent law changes.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send sign-in link' })).toBeInTheDocument()
+  })
+
+  it('states monitoring coverage without requiring sign-in', () => {
+    /* The honesty about what is not monitored must not sit behind auth — a
+       reader should not have to sign in to learn the panel cannot tell them
+       about an Ontario amendment. */
+    renderApp(<GuidanceSourcesPanel />)
+    expect(screen.getByText(guidanceMessages.guidance_coverage_heading.en)).toBeInTheDocument()
+    expect(screen.getByText('Ontario')).toBeInTheDocument()
+    expect(screen.getByText('Quebec')).toBeInTheDocument()
+    expect(screen.getByText('Federal')).toBeInTheDocument()
+    expect(screen.getAllByText('Not monitored')).toHaveLength(2)
+    expect(screen.getByText('Unconfirmed')).toBeInTheDocument()
+    expect(
+      screen.getByText(guidanceMessages.guidance_coverage_none_active.en),
+    ).toBeInTheDocument()
   })
 
   it('reports the not-configured error when submitting without Supabase configured', async () => {

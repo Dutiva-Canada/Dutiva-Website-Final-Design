@@ -90,6 +90,15 @@ shows its detection date, and stale results carry a warning instead of reading
 as current. Setup, verification and the deploy checklist are in
 [docs/LAW_MONITORING.md](docs/LAW_MONITORING.md).
 
+**Sweeping a page is not the same as detecting an amendment on it.** A
+2026-07-30 audit found no supported jurisdiction with confirmed working
+detection: Ontario's source serves a JavaScript shell whose statute text never
+reaches a server-side fetch, Québec's refuses automated requests, and Federal
+is unconfirmed. The product says so rather than implying coverage — see
+`src/features/app/guidance/monitoringCoverage.ts`, which the Knowledge panel
+renders for signed-out readers too. Update it and the audit date together when
+a source strategy lands.
+
 ## Dev Annotations (AI-assisted editing)
 
 Running in dev or on a Vercel preview, an in-app **Dev Annotations** overlay
