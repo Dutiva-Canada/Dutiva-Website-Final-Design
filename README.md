@@ -70,6 +70,26 @@ back to who exported it and when. This is deterrence + attribution, not DRM
 — the threat model and the runbook for tracing a leak are in
 [docs/EXPORT_PROTECTION.md](docs/EXPORT_PROTECTION.md).
 
+## Law-change monitoring
+
+A daily sweep of **19 legislation pages across all 14 Canadian jurisdictions**
+detects amendments, moved pages and dead links, and writes them to
+`law_updates` — surfaced in the Knowledge view's "Live legal sources" panel.
+
+Scheduling lives in the **database** (`pg_cron` → `pg_net` → the
+`monitor-law-changes` edge function), not in the host. It used to be a Vercel
+cron defined in the retired `Dutiva-Website` repo; when the Vercel project was
+re-pointed at this repo the schedule silently ceased to exist and the monitor
+stopped for 52 days without anything failing or alerting. Scheduling in
+Postgres keeps it beside the data it writes, where a hosting or repo move
+can't take it away.
+
+Check it in one query — `select * from public.law_monitor_status();` — and
+watch `hours_since_check`. The panel also states its own currency: every entry
+shows its detection date, and stale results carry a warning instead of reading
+as current. Setup, verification and the deploy checklist are in
+[docs/LAW_MONITORING.md](docs/LAW_MONITORING.md).
+
 ## Dev Annotations (AI-assisted editing)
 
 Running in dev or on a Vercel preview, an in-app **Dev Annotations** overlay

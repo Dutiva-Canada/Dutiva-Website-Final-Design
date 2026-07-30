@@ -41,4 +41,15 @@ export const guidanceMessages = defineMessages({
     en: 'Could not load live legal sources. Try again shortly.',
     fr: 'Impossible de charger les sources juridiques. Réessayez sous peu.',
   },
+  /* Freshness. The monitor writing these rows once stopped for 52 days without
+     anything surfacing it, so the panel states its own currency rather than
+     letting undated rows imply they are current. [FR self-authored] */
+  guidance_detected_on: {
+    en: 'Detected',
+    fr: 'Détecté le',
+  },
+  guidance_updates_stale: {
+    en: 'Law-change monitoring has not reported in over a week. These entries may not reflect the current state of the legislation — check the official source before relying on them.',
+    fr: "La surveillance des changements législatifs n'a rien signalé depuis plus d'une semaine. Ces entrées peuvent ne pas refléter l'état actuel de la législation — vérifiez la source officielle avant de vous y fier.",
+  },
 })
