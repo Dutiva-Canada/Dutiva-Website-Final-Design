@@ -131,6 +131,63 @@ changes here, confirm all four:
 3. `monitor-law-changes` edge function deployed (deploying a function is separate from merging it).
 4. `law_monitor_service_key` present in Vault — `secret_configured` is `true`.
 
+## Source health — audit of 2026-07-30
+
+After restoring the schedule, all 19 primary URLs were probed from Supabase
+infrastructure (roughly the same network position as the edge function). The
+result is materially worse than `law_page_hashes` reported, because the old
+success test was "HTTP 200" and that test cannot see three of the four failure
+modes below.
+
+**`is_broken` said 5 of 19. The real number of pages returning usable
+legislation was far lower.**
+
+| Jurisdiction | Observed | Why it matters |
+| --- | --- | --- |
+| **Ontario** (ESA, HRC, WSIA) | HTTP 200, JavaScript app shell | **The worst case.** After tag-stripping, all three statutes reduce to the *same* 422 characters of boilerplate with no statute text. The hash is stable, so an ESA amendment can never trigger a change — while a routine redeploy of ontario.ca would fire a false one. Ontario detection was structurally non-functional and reporting "no change" the whole time. |
+| **Quebec** (LNT, Charter) | HTTP 403, CloudFront | Datacenter IPs are blocked. Verified that User-Agent makes no difference — the honest bot UA, a `Mozilla/5.0 (compatible; …)` UA and a full browser UA all return the identical 919-byte block. |
+| **Nova Scotia** | **HTTP 200** + 244-byte F5 "Request Rejected" body | Served the WAF rejection *with a success status*, so it recorded as healthy. |
+| **Yukon, Nunavut** | HTTP 403, Cloudflare "Just a moment…" | A JS challenge; no server-side fetch can solve it. |
+| **Saskatchewan** | DNS failure — `qp.gov.sk.ca` no longer resolves | Worse, the documented fallback (`publications.saskatchewan.ca` product 73330) resolves to **"Gazette Part II, June 5, 2015"** — the wrong document entirely, not the Employment Act. |
+| **PEI / NL / Alberta** | 404 / 500 / 400 | Ordinary URL rot. |
+| **Manitoba, New Brunswick, NWT** | HTTP 200, real content | Genuinely working. |
+| **Federal, BC** | Connection-level error from the probe client | **Inconclusive.** `pg_net` is not the edge function's `fetch`, and both were succeeding as of 2026-06-08. Re-verify from a real sweep before drawing a conclusion. |
+
+Status codes and response bodies above are reliable; connection-level failures
+are not, for the reason in the last row.
+
+### What was done about it
+
+The success test is no longer "HTTP 200". `contentSanity.ts` requires the
+extracted text to be long enough to be a statute and free of block-page
+signatures; anything else records as broken with a reason. This does not make
+the blocked sources reachable — it makes their failure **visible** instead of
+silent, which is the part that was dangerous.
+
+Expect a burst of `broken` events on the first sweep after this ships. That is
+the correction, not a regression.
+
+### What still needs a decision
+
+Most of these are not URL rot — they are provincial sites refusing cloud
+traffic outright, which no URL or User-Agent change fixes. The realistic
+options each carry a trade-off worth a deliberate choice:
+
+1. **Fetch through a residential/commercial proxy.** Works against IP blocks,
+   but check each site's terms first — deliberately evading a block is a
+   different posture from being politely refused.
+2. **Licensed data source.** CanLII has an API with terms permitting
+   programmatic use (their public web front end blocks bots — verified 403).
+   Costs money; solves Ontario, Quebec, Nova Scotia and Yukon at once.
+3. **Headless browser** for the JS-rendered and challenge-protected sites.
+   Solves Ontario and possibly Cloudflare; heavier to run and to keep working.
+4. **Narrow the promise.** Monitor only what is reliably reachable and say so.
+   Cheapest and most honest, but Ontario and Quebec are two of the three
+   supported jurisdictions, so it materially narrows what the feature claims.
+
+Until one is chosen, **treat Ontario and Quebec law-change detection as not
+working**, regardless of what the panel shows.
+
 ## Known gaps
 
 - **Nobody is told.** Events land in `law_updates` and wait to be read. There is

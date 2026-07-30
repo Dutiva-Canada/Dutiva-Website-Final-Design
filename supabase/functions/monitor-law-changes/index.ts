@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { assessLegislationText } from './contentSanity.ts'
 
 /**
  * monitor-law-changes — the law-change watcher behind the Knowledge view's
@@ -606,8 +607,56 @@ Deno.serve(async (req) => {
         continue
       }
 
-      // ── Case 3: fetched — did the content change? ───────────────────────
+      // ── Case 3: fetched — but is it actually legislation? ───────────────
       const text = extractText(fetchResult.text ?? '')
+
+      /* A 200 is not proof of a real check. WAF pages served as 200, bot
+         interstitials and JavaScript app shells all sail through the status
+         check and then hash to something stable, so the page reports "no
+         change" forever while detecting nothing. Treat those as failures so
+         they surface instead of masquerading as health. See contentSanity.ts.
+
+         No LLM URL recovery on this path, unlike a hard failure: the URL
+         resolved fine, so "find a different URL" is not the remedy — a human
+         needs to pick a different source format (or a route that isn't
+         IP-blocked). Guessing here would burn model calls on a working URL. */
+      const verdict = assessLegislationText(text)
+      if (!verdict.ok) {
+        const failures = (record?.failures ?? 0) + 1
+
+        await db.from('law_page_hashes').upsert({
+          url: page.url,
+          jurisdiction: page.jurisdiction,
+          law_name: page.law_name,
+          content_hash: record?.hash ?? '',
+          is_broken: true,
+          consecutive_failures: failures,
+          last_broken_at: new Date().toISOString(),
+          last_checked: new Date().toISOString(),
+        })
+
+        if (failures === BROKEN_ALERT_THRESHOLD) {
+          await db.from('law_updates').insert({
+            jurisdiction: page.jurisdiction,
+            law_name: page.law_name,
+            url: page.url,
+            change_summary:
+              `The "${page.law_name}" (${page.jurisdiction}) page returned HTTP 200 but did not contain legislation ` +
+              `for ${failures} consecutive checks. ${verdict.detail} ` +
+              'Monitoring for this law is not effective until the source is changed — this page cannot detect an amendment.',
+            raw_diff: `Sanity check: ${verdict.reason} · Failures: ${failures} · Extracted ${text.trim().length} chars`,
+            detected_at: new Date().toISOString(),
+            is_new: false,
+            event_type: 'broken',
+          })
+        }
+
+        results.push(
+          `NOT-LAW   ${page.jurisdiction}/${page.law_name}: ${verdict.reason} (failure #${failures})`,
+        )
+        continue
+      }
+
       const hash = await sha256(text)
       const changed = isNew || record?.hash !== hash
 
