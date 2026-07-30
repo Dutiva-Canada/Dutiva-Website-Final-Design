@@ -167,10 +167,55 @@ silent, which is the part that was dangerous.
 Expect a burst of `broken` events on the first sweep after this ships. That is
 the correction, not a regression.
 
+### Official feeds — investigated 2026-07-30
+
+Before spending anything on a proxy or a licence, we checked whether these
+jurisdictions publish legislation in a form *meant* to be consumed by software.
+Scraping rendered HTML is the worst available option; an official feed is more
+accurate, cheaper, and cannot be bot-blocked because consumption is the point.
+
+**Federal: solved, free, and better than what we had.** The Department of
+Justice publishes every consolidated Act and regulation as XML at
+[github.com/justicecanada/laws-lois-xml](https://github.com/justicecanada/laws-lois-xml),
+bilingual (`eng/` and `fra/`), under the
+[Open Government Licence – Canada](https://open.canada.ca/en/open-government-licence-canada),
+mirrored on the Open Government Portal as a bulk dataset. Verified by direct
+fetch:
+
+| File | Act | Last amended (in the document) |
+| --- | --- | --- |
+| `eng/acts/L-2.xml` | Canada Labour Code | 2025-12-12 |
+| `eng/acts/H-6.xml` | Canadian Human Rights Act | 2024-08-19 |
+
+Three things make this strictly better than hashing HTML:
+
+1. **No blocking.** `raw.githubusercontent.com` serves plain files — no WAF, no
+   JS shell, no IP reputation check.
+2. **The amendment date is *in the document*.** We can read "last amended"
+   directly instead of inferring change from a hash diff, which removes both
+   false positives (site redesigns) and false negatives entirely.
+3. **Git history is amendment history.** The commit that touched `L-2.xml` *is*
+   the amendment event, with a date and a diff of the actual legal text.
+
+**Ontario: no official machine-readable feed found.** e-Laws publishes currency
+dates and sitemap files, but no documented XML export, bulk download or API.
+The site refused every client we tried, from two different networks. Absence of
+evidence here is not proof — worth one direct question to Ontario's legislative
+services before concluding it doesn't exist.
+
+**Québec: no free feed found; a paid official one exists.** LégisQuébec refused
+requests from both networks tried. The *Gazette officielle du Québec* Part 2
+(laws and regulations) publishes every Wednesday and is the official channel
+for enacted legislation; Publications du Québec sells a subscription — reported
+around $685/yr for Part 2, which should be confirmed directly rather than taken
+from a search result. That is a legitimate, purchasable, official feed rather
+than a way around a block.
+
 ### What still needs a decision
 
-Most of these are not URL rot — they are provincial sites refusing cloud
-traffic outright, which no URL or User-Agent change fixes. The realistic
+Federal is now answerable for free (above), so what remains is **Ontario and
+Québec** — and these are not URL rot. They are sites refusing non-browser
+clients outright, which no URL or User-Agent change fixes. The realistic
 options each carry a trade-off worth a deliberate choice:
 
 1. **Fetch through a residential/commercial proxy.** Works against IP blocks,
