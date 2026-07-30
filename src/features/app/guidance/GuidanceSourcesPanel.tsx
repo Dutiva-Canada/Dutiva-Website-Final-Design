@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ExternalLink, Loader2 } from 'lucide-react'
+import { AlertTriangle, ExternalLink, Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { guidanceMessages as M } from '@/i18n/messages/guidance'
 import { authMessages as A } from '@/i18n/messages/auth'
@@ -14,13 +14,40 @@ type LoadState =
   | { status: 'error' }
   | { status: 'ready'; sources: GuidanceSource[]; updates: LawUpdate[] }
 
+function formatDate(iso: string, lang: 'en' | 'fr'): string {
+  return new Date(iso).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+/**
+ * Days without a monitor report before the panel says so. The monitor sweeps
+ * daily (0035_schedule_law_monitor.sql), so a week of silence means it is not
+ * running — the exact state that went unnoticed between June and July 2026.
+ */
+const STALE_AFTER_DAYS = 7
+
+/** True when the newest update is old enough that it should not read as current. */
+export function updatesAreStale(updates: readonly LawUpdate[]): boolean {
+  const newest = updates.reduce<number | null>((max, u) => {
+    if (!u.detectedAt) return max
+    const t = new Date(u.detectedAt).getTime()
+    if (Number.isNaN(t)) return max
+    return max === null || t > max ? t : max
+  }, null)
+  if (newest === null) return false
+  return Date.now() - newest > STALE_AFTER_DAYS * 24 * 60 * 60 * 1000
+}
+
 /**
  * Real backend data — no prototype counterpart. Signed out: a magic-link
  * sign-in form. Signed in: guidance_sources + recent law_updates, read
  * directly from Supabase (RLS requires an authenticated session for both).
  */
 export function GuidanceSourcesPanel() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const { status: authStatus, signOut } = useAuth()
   const [load, setLoad] = useState<LoadState>({ status: 'idle' })
 
@@ -138,21 +165,44 @@ export function GuidanceSourcesPanel() {
             {load.updates.length === 0 ? (
               <p className="text-[12.5px] text-text-muted">{x(M.guidance_empty_updates)}</p>
             ) : (
-              <ul className="flex flex-col gap-[8px]">
-                {load.updates.map((update) => (
-                  <li key={update.id} className="rounded-[10px] border border-inset px-[14px] py-[10px]">
-                    <div className="text-[13px] font-semibold text-text">
-                      {update.lawName}
-                      <span className="ml-[6px] font-normal text-text-muted">
-                        · {update.jurisdiction}
-                      </span>
-                    </div>
-                    {update.changeSummary && (
-                      <p className="mt-[3px] text-[12.5px] text-text-2">{update.changeSummary}</p>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <>
+                {updatesAreStale(load.updates) && (
+                  <div className="mb-[10px] flex items-start gap-[8px] rounded-[10px] border border-gold-border bg-gold-bg px-[12px] py-[10px]">
+                    <AlertTriangle
+                      size={14}
+                      strokeWidth={1.8}
+                      className="mt-px shrink-0 text-gold-fg"
+                      aria-hidden="true"
+                    />
+                    <span className="text-[12px] leading-[1.55] font-semibold text-gold-fg">
+                      {x(M.guidance_updates_stale)}
+                    </span>
+                  </div>
+                )}
+                <ul className="flex flex-col gap-[8px]">
+                  {load.updates.map((update) => (
+                    <li
+                      key={update.id}
+                      className="rounded-[10px] border border-inset px-[14px] py-[10px]"
+                    >
+                      <div className="text-[13px] font-semibold text-text">
+                        {update.lawName}
+                        <span className="ml-[6px] font-normal text-text-muted">
+                          · {update.jurisdiction}
+                        </span>
+                      </div>
+                      {update.changeSummary && (
+                        <p className="mt-[3px] text-[12.5px] text-text-2">{update.changeSummary}</p>
+                      )}
+                      {update.detectedAt && (
+                        <p className="mt-[4px] text-[11.5px] text-text-muted">
+                          {x(M.guidance_detected_on)} {formatDate(update.detectedAt, lang)}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </section>
         </div>
