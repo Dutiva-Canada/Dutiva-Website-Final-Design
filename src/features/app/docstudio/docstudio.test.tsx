@@ -2,9 +2,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { LangProvider } from '@/i18n/LangProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
+import { ToastHost } from '@/features/app/toasts/ToastHost'
+import { appendExportAudit, clearExportAudit, decodeInvisibleTag } from '@/lib/exportProtection'
 import { DocStudioProvider } from './DocStudioProvider'
 import { DocStudioOverlay } from './DocStudioOverlay'
 import { useDocStudio } from './docStudioContext'
+
+/* Downloads: jsdom implements createObjectURL but not anchor navigation, so
+   the delivery step is stubbed — captured here so tests can assert on the
+   artifact that would have been saved. */
+const downloads = vi.hoisted(() => ({ list: [] as { filename: string; blob: Blob }[] }))
+vi.mock('@/lib/exportProtection/artifacts/download', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/exportProtection/artifacts/download')>()
+  return {
+    ...actual,
+    triggerDownload: (filename: string, blob: Blob) => {
+      downloads.list.push({ filename, blob })
+      return true
+    },
+  }
+})
 
 function Opener() {
   const { openDocStudio } = useDocStudio()
@@ -16,13 +33,14 @@ function Opener() {
   )
 }
 
-function renderStudio() {
+function renderStudio({ withToastHost = false } = {}) {
   return render(
     <LangProvider>
       <ToastsProvider>
         <DocStudioProvider>
           <Opener />
           <DocStudioOverlay />
+          {withToastHost && <ToastHost />}
         </DocStudioProvider>
       </ToastsProvider>
     </LangProvider>,
@@ -41,10 +59,17 @@ function openTemplate(name: string) {
 
 describe('Document Studio', () => {
   beforeEach(() => {
-    vi.useFakeTimers()
+    /* shouldAdvanceTime: the export pipeline is genuinely async (WebCrypto
+       digest, React 19's timer-driven async act). Frozen fake timers deadlock
+       it; advancing ones keep `advanceTimersByTime(750)` for the generation
+       shimmer while letting the pipeline's own microtasks/timers run. */
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    clearExportAudit()
+    downloads.list.length = 0
   })
   afterEach(() => {
     vi.useRealTimers()
+    clearExportAudit()
   })
 
   it('renders nothing until opened, then shows the fixture sections after generation', () => {
@@ -95,7 +120,7 @@ describe('Document Studio', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('gates exports on high-risk templates and proceeds after confirmation', () => {
+  it('gates exports on high-risk templates and proceeds after confirmation', async () => {
     renderStudio()
     openTemplate('open-termination')
 
@@ -109,15 +134,20 @@ describe('Document Studio', () => {
     expect(gate).toBeInTheDocument()
     expect(gate).toHaveTextContent('This document involves a high-risk HR decision.')
 
-    /* Confirm — the gate closes and the deferred export completes. */
-    act(() => {
+    /* Confirm — the gate closes and the deferred export completes (the
+       pipeline is async now: authorize → watermark → deliver). */
+    await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Confirm and continue' }))
     })
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     act(() => {
       fireEvent.click(screen.getByRole('button', { name: 'Document details' }))
     })
-    expect(screen.getByText('Exported as PDF')).toBeInTheDocument()
+    expect(await screen.findByText('Exported as PDF')).toBeInTheDocument()
+
+    /* The confirmed export produced a real watermarked PDF download. */
+    expect(downloads.list).toHaveLength(1)
+    expect(downloads.list[0]?.filename).toMatch(/^dutiva-termination-letter.*\.pdf$/)
 
     /* Once confirmed, the gate is not shown again (e-signature goes straight through). */
     act(() => {
@@ -146,11 +176,11 @@ describe('Document Studio', () => {
     expect(screen.getByText('Not exported')).toBeInTheDocument()
   })
 
-  it('exports directly (setting export status) on standard templates', () => {
+  it('exports directly (setting export status) on standard templates', async () => {
     renderStudio()
     openTemplate('open-checklist')
 
-    act(() => {
+    await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Export Word' }))
     })
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
@@ -158,6 +188,59 @@ describe('Document Studio', () => {
     act(() => {
       fireEvent.click(screen.getByRole('button', { name: 'Document details' }))
     })
-    expect(screen.getByText('Exported as Word')).toBeInTheDocument()
+    expect(await screen.findByText('Exported as Word')).toBeInTheDocument()
+  })
+
+  it('Word exports carry the watermark: decodable invisible tag + visible notice', async () => {
+    renderStudio()
+    openTemplate('open-checklist')
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Export Word' }))
+    })
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Document details' }))
+    })
+    await screen.findByText('Exported as Word')
+
+    expect(downloads.list).toHaveLength(1)
+    const download = downloads.list[0]!
+    expect(download.filename).toMatch(/\.doc$/)
+    const html = await download.blob.text()
+    expect(decodeInvisibleTag(html)).toMatch(/^[0-9a-f-]{36}$/)
+    expect(html).toContain('Exported from Dutiva')
+    expect(html).toContain('Demo session')
+  })
+
+  it('refuses a bulk-export burst, leaves the document unexported, and says when to retry', async () => {
+    /* 12 exports already recorded on this device inside the burst window —
+       the scripted "walk out with the library" shape the guard exists for. */
+    for (let i = 0; i < 12; i += 1) {
+      appendExportAudit({
+        exportId: `seed-${i}`,
+        surface: 'docstudio',
+        kind: 'pdf',
+        title: 'Seed',
+        contentSha256: 'a'.repeat(64),
+        contentChars: 10,
+        lang: 'en',
+        actorLabel: 'seed',
+        at: new Date().toISOString(),
+        recordedRemotely: false,
+      })
+    }
+    renderStudio({ withToastHost: true })
+    openTemplate('open-checklist')
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Export PDF' }))
+    })
+    expect(await screen.findByText(/Export limit reached/)).toBeInTheDocument()
+    expect(downloads.list).toHaveLength(0)
+
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Document details' }))
+    })
+    expect(screen.getByText('Not exported')).toBeInTheDocument()
   })
 })

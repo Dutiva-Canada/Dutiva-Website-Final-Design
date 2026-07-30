@@ -113,7 +113,6 @@ export const securityRows: { t: Bi; v: Bi }[] = [
 
 export type ChipTone = 'risk' | 'warning' | 'success' | 'info'
 
-
 export const auditEvents: { kind: Bi; tone: ChipTone; text: Bi; when: Bi }[] = [
   {
     kind: M.settings_audit_kind_restricted,

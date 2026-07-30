@@ -236,6 +236,11 @@ export const memoryMessages = defineMessages({
   memory_mgr_audit_forget: { en: 'forgot', fr: 'a oublié' },
   memory_mgr_audit_today: { en: 'Today', fr: 'Aujourd’hui' },
   memory_mgr_export: { en: 'Export memory record', fr: 'Exporter le registre de mémoire' },
+  /* Document title stamped on the exported JSON (filename + audit trail). */
+  memory_mgr_export_title: {
+    en: 'Advisor memory record',
+    fr: 'Registre de mémoire du Conseiller',
+  }, // FR self-authored
   memory_mgr_export_toast: {
     en: 'Memory record exported.',
     fr: 'Registre de mémoire exporté.',

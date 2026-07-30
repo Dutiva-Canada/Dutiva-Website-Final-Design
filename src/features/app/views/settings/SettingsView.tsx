@@ -6,8 +6,10 @@ import type { Bi } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { formatStampTime, readExportAudit } from '@/lib/exportProtection'
 import { common } from '@/i18n/messages/common'
 import { settingsMessages as M } from '@/i18n/messages/settings'
+import { exportProtectionMessages as XP } from '@/i18n/messages/exportProtection'
 import {
   aiToggles,
   auditEvents,
@@ -42,6 +44,9 @@ export function SettingsView() {
 
   const [prefs, setPrefs] = useState<Record<PrefKey, boolean>>(initialPrefs)
   const [integrationError, setIntegrationError] = useState(true)
+  /* Device-local export audit trail (src/lib/exportProtection) — read once
+     per mount; the workspace-wide copy lives in export_events server-side. */
+  const [exportTrail] = useState(() => readExportAudit().slice(0, 8))
 
   const toggleSetting = (key: PrefKey) => {
     setPrefs((s) => ({ ...s, [key]: !s[key] }))
@@ -386,6 +391,36 @@ export function SettingsView() {
             </Card>
           </Section>
         )}
+
+        {/* Export activity — the real device-local export trail, both modes
+            (unlike the fixture audit log below: these are actual events). */}
+        <Section label={x(XP.exportprot_audit_section)}>
+          <Card>
+            {exportTrail.length === 0 && (
+              <div className="px-[18px] py-[13px] text-[12.5px] text-text-muted">
+                {x(XP.exportprot_audit_empty)}
+              </div>
+            )}
+            {exportTrail.map((entry) => (
+              <div
+                key={`${entry.exportId}-${entry.at}`}
+                className="flex items-start gap-[12px] border-t border-inset px-[18px] py-[11px] first:border-t-0"
+              >
+                <StatusChip tone="info">{x(M.settings_audit_kind_export)}</StatusChip>
+                <div className="min-w-0 flex-1 text-[12.5px] leading-normal text-text-2">
+                  {entry.title} · {entry.kind.toUpperCase()} · {x(XP.exportprot_audit_row_by)}{' '}
+                  {entry.actorLabel}
+                </div>
+                <span className="shrink-0 text-[11.5px] text-text-faint">
+                  {formatStampTime(new Date(entry.at))}
+                </span>
+              </div>
+            ))}
+            <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
+              {x(XP.exportprot_audit_device_note)}
+            </div>
+          </Card>
+        </Section>
 
         {/* Audit log — fixture events; production starts with an empty log. */}
         {workspaceMode !== 'production' && (

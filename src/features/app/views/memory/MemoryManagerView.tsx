@@ -16,6 +16,16 @@ import { pick, pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useAuth } from '@/features/app/auth/authContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import {
+  authorizeExport,
+  encodeInvisibleTag,
+  exportDenialMessage,
+  exportFilename,
+  triggerDownload,
+  watermarkNotice,
+} from '@/lib/exportProtection'
 import { cases, employees, memoryThreads } from '@/data'
 import type { MemoryFact, MemoryScope } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
@@ -39,6 +49,8 @@ const FILTER_SCOPE: Partial<Record<ManagerFilter, MemoryScope>> = {
 export function MemoryManagerView() {
   const { x, lang } = useI18n()
   const { showToast } = useToasts()
+  const { session } = useAuth()
+  const { identity } = useWorkspaceMode()
   const { facts, audit } = useMemoryStore()
   const [filter, setFilter] = useState<ManagerFilter>('all')
   const [query, setQuery] = useState('')
@@ -92,15 +104,44 @@ export function MemoryManagerView() {
     }
   }
 
-  /* Export the governed record as JSON (access/portability request). */
-  const exportRecord = () => {
-    const blob = new Blob([JSON.stringify(facts, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'dutiva-advisor-memory.json'
-    a.click()
-    URL.revokeObjectURL(url)
+  /* Export the governed record as JSON (access/portability request) —
+     through the export-protection pipeline like every other export: velocity
+     guard + audit trail, and an `_export` provenance manifest in the file
+     itself (the JSON equivalent of the document watermark; the invisible tag
+     rides inside the notice string, where it survives re-serialization). */
+  const exportRecord = async () => {
+    const content = JSON.stringify(facts, null, 2)
+    const title = pick(M.memory_mgr_export_title, lang)
+    const decision = await authorizeExport({
+      surface: 'memory',
+      kind: 'json',
+      title,
+      content,
+      lang,
+      actorLabel: `${identity.user.name} (${identity.user.email})`,
+      workspaceLabel: identity.companyName,
+      session,
+    })
+    if (!decision.allowed) {
+      showToast(exportDenialMessage(decision), 'info')
+      return
+    }
+    const { stamp } = decision
+    const payload = {
+      _export: {
+        export_id: stamp.exportId,
+        exported_by: stamp.actorLabel,
+        workspace: stamp.workspaceLabel,
+        exported_at: stamp.exportedAt.toISOString(),
+        content_sha256: decision.contentSha256,
+        notice: pick(watermarkNotice(stamp), lang) + encodeInvisibleTag(stamp.exportId),
+      },
+      facts,
+    }
+    triggerDownload(
+      exportFilename(title, 'json', stamp.exportedAt),
+      new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
+    )
     showToast(M.memory_mgr_export_toast, 'ok')
   }
 
@@ -271,7 +312,7 @@ export function MemoryManagerView() {
             <div className="flex flex-col gap-[8px]">
               <button
                 type="button"
-                onClick={exportRecord}
+                onClick={() => void exportRecord()}
                 className="flex cursor-pointer items-center justify-center gap-[7px] rounded-[10px] border border-border bg-surface p-[10px] font-sans text-[12.5px] font-bold text-text-2"
               >
                 <FileText size={14} strokeWidth={1.7} aria-hidden="true" />
