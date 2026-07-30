@@ -1,0 +1,220 @@
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import { createClient } from 'npm:@supabase/supabase-js@2'
+import { buildConsentRecord } from '../_shared/caslConsent.ts'
+
+/**
+ * PUBLIC (unauthenticated) beta waiting-list intake for the landing page's
+ * #start form and the /beta page.
+ *
+ * Anti-abuse mirrors create-public-support-ticket, deliberately — this is the
+ * other unauthenticated write path on the site, and having the two behave the
+ * same way is what makes either of them reviewable:
+ *   • a honeypot field real users never see;
+ *   • per-IP and per-email rate limits backed by beta_signup_intake, which
+ *     stores ONLY salted hashes (never a raw IP or email);
+ *   • strict validation and length caps.
+ *
+ * All writes use the service role; there is no anon INSERT policy on
+ * beta_signups.
+ *
+ * A repeat address is answered exactly like a new one. The unique index on
+ * lower(email) makes the second insert fail, and that failure is reported as
+ * success on purpose: a distinguishable "already signed up" response turns this
+ * endpoint into an oracle for whether a given person is on the list.
+ *
+ * NOTE: this function ran deployed-only for months, with no copy in any repo.
+ * It is committed here so it can be reviewed and changed like everything else
+ * — see AGENTS.md on the two halves of a server-side change.
+ */
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+}
+
+const PROVINCES = ['on', 'qc', 'fed', 'other'] as const
+const LANGUAGES = ['en', 'fr'] as const
+const SOURCES = ['landing', 'beta_page', 'campaign'] as const
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/** Postgres unique-violation; the repeat-signup path. */
+const UNIQUE_VIOLATION = '23505'
+
+function oneOf<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
+  return typeof value === 'string' && (allowed as readonly string[]).includes(value)
+    ? (value as T)
+    : fallback
+}
+
+/** Optional free text: trimmed, capped, empty becomes null rather than ''. */
+function optionalStr(value: unknown, max: number): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (trimmed.length === 0) return null
+  return trimmed.slice(0, max)
+}
+
+async function sha256hex(input: string): Promise<string> {
+  const bytes = new TextEncoder().encode(input)
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+/** Best-effort client IP from the usual proxy headers. */
+function clientIp(req: Request): string {
+  const fwd = req.headers.get('x-forwarded-for')
+  if (fwd) return fwd.split(',')[0]!.trim()
+  return req.headers.get('cf-connecting-ip') ?? req.headers.get('x-real-ip') ?? 'unknown'
+}
+
+/* Looser than the support intake: signing up is a lighter action than opening a
+   ticket, and a shared office NAT should not lock colleagues out. Still tight
+   enough that scripted list-stuffing is not worth the effort. */
+const IP_WINDOW_MIN = 60
+const IP_LIMIT = 5
+const EMAIL_WINDOW_MIN = 60
+const EMAIL_LIMIT = 3
+
+const OPERATOR_EMAIL = Deno.env.get('SUPPORT_OPERATOR_EMAIL') ?? 'support@dutiva.ca'
+
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!supabaseUrl || !serviceRoleKey) return json({ error: 'Server configuration missing' }, 500)
+
+  let body: Record<string, unknown> = {}
+  try {
+    body = await req.json()
+  } catch {
+    body = {}
+  }
+
+  /* Honeypot: pretend success so bots do not learn they were caught. */
+  if (typeof body.contact_fax === 'string' && body.contact_fax.trim() !== '') {
+    return json({ data: { ok: true } })
+  }
+
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
+  if (!EMAIL_RE.test(email) || email.length > 254) {
+    return json({ error: 'A valid email address is required.', field: 'email' }, 422)
+  }
+
+  /* The form states the visitor will receive product updates; CASL makes that a
+     consent event, so it has to be affirmative rather than implied by posting. */
+  if (body.consent !== true) {
+    return json({ error: 'Please confirm to continue.', field: 'consent' }, 422)
+  }
+
+  const company = optionalStr(body.company, 200)
+  const province = typeof body.province === 'string' && body.province.trim() !== ''
+    ? oneOf(body.province, PROVINCES, 'other')
+    : null
+  const language = oneOf(body.language, LANGUAGES, 'en')
+  const source = oneOf(body.source, SOURCES, 'landing')
+
+  /* The wording comes from the server's own copy, never from the request:
+     evidence a sender was handed by the party it is evidence about is not
+     evidence. `language` selects which version was on screen. */
+  const consent = buildConsentRecord(language, new Date().toISOString())
+
+  const admin = createClient(supabaseUrl, serviceRoleKey)
+
+  const salt =
+    Deno.env.get('PUBLIC_INTAKE_SALT') ?? Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? 'dutiva-intake'
+  const ipHash = await sha256hex(`${salt}:ip:${clientIp(req)}`)
+  const emailHash = await sha256hex(`${salt}:email:${email}`)
+
+  const ipSince = new Date(Date.now() - IP_WINDOW_MIN * 60 * 1000).toISOString()
+  const emailSince = new Date(Date.now() - EMAIL_WINDOW_MIN * 60 * 1000).toISOString()
+  const [{ count: ipCount }, { count: emailCount }] = await Promise.all([
+    admin
+      .from('beta_signup_intake')
+      .select('id', { count: 'exact', head: true })
+      .eq('ip_hash', ipHash)
+      .gte('created_at', ipSince),
+    admin
+      .from('beta_signup_intake')
+      .select('id', { count: 'exact', head: true })
+      .eq('email_hash', emailHash)
+      .gte('created_at', emailSince),
+  ])
+  if ((ipCount ?? 0) >= IP_LIMIT || (emailCount ?? 0) >= EMAIL_LIMIT) {
+    return json(
+      { error: 'Too many requests in a short time. Please try again later, or email support@dutiva.ca.' },
+      429,
+    )
+  }
+
+  const { error: insertError } = await admin.from('beta_signups').insert({
+    email,
+    company,
+    province,
+    language,
+    source,
+    /* Recorded, not just checked (0037_beta_signups_consent_record.sql). CASL
+       puts the burden of proof on the sender, so the answer has to outlive the
+       request that carried it. */
+    ...consent,
+  })
+
+  /* A repeat address is a success from the visitor's point of view, and saying
+     so plainly would leak list membership. Anything else is a real failure. */
+  const isDuplicate = insertError?.code === UNIQUE_VIOLATION
+  if (insertError && !isDuplicate) {
+    return json({ error: insertError.message ?? 'Could not record the signup.' }, 500)
+  }
+
+  /* Recorded after acceptance, so a rejected submission does not consume the
+     visitor's own rate-limit budget. */
+  await admin.from('beta_signup_intake').insert({ ip_hash: ipHash, email_hash: emailHash })
+
+  /* Alert the operator through the existing outbox (support-notify drains it).
+     Only for genuinely new signups — a repeat submission is not news, and
+     alerting on it would leak that the address was already on the list to
+     anyone watching the operator's inbox.
+
+     ticket_id is null: a beta signup is not a support ticket. The payload
+     carries jurisdiction and source only; the address stays in beta_signups.
+     A failure here must not fail the signup — the row is already saved, and the
+     visitor's confirmation should not depend on the operator's mail. */
+  if (!isDuplicate) {
+    const { error: notifyError } = await admin.from('support_notifications').insert([
+      {
+        ticket_id: null,
+        kind: 'beta_signup',
+        audience: 'operator',
+        recipient: OPERATOR_EMAIL,
+        language: 'en',
+        payload: { province: province ?? undefined, source },
+      },
+      {
+        /* Confirmation to the signer, in the language they used. Empty payload:
+           the address is the recipient and nothing else is needed, so nothing
+           else is stored. */
+        ticket_id: null,
+        kind: 'beta_confirmation',
+        audience: 'customer',
+        recipient: email,
+        language,
+        payload: {},
+      },
+    ])
+    if (notifyError) console.error('create-beta-signup: could not enqueue alert', notifyError.message)
+  }
+
+  return json({ data: { ok: true } })
+})
