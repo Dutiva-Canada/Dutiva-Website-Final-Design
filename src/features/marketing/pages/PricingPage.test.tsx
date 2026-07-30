@@ -115,9 +115,25 @@ describe('PricingPage', () => {
     expect(screen.queryByRole('button', { name: /Upgrade to Growth/i })).toBeNull()
   })
 
-  it('shows a success notice for a Stripe return', () => {
+  it('shows a success card with plan name and workspace link for a Stripe return', () => {
     renderPricing('/pricing?checkout=success&plan=growth')
+    expect(screen.getByText('Payment received')).toBeInTheDocument()
     expect(screen.getByText(/your subscription is being set up/i)).toBeInTheDocument()
+    /* The purchased plan name appears as a badge inside the success card
+       (and elsewhere on the page — plan cards + comparison table). */
+    const heading = screen.getByText('Payment received')
+    const card = heading.closest('[role="status"]')!
+    expect(card.querySelector('.badge')!.textContent).toBe('Growth')
+    /* A CTA links the user back to their workspace. */
+    const workspaceLink = screen.getByRole('link', { name: /go to your workspace/i })
+    expect(workspaceLink).toHaveAttribute('href', '/app/welcome')
+  })
+
+  it('shows a plain success notice when no plan param is present', () => {
+    renderPricing('/pricing?checkout=success')
+    /* Falls back to the simpler gold banner without the card layout. */
+    expect(screen.getByText(/your subscription is being set up/i)).toBeInTheDocument()
+    expect(screen.queryByText('Payment received')).toBeNull()
   })
 
   it('shows a cancelled notice for a Stripe return', () => {
