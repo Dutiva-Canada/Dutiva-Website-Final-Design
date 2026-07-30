@@ -1,14 +1,28 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { bi } from '@/i18n/core'
+import { bi, pick, pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
+import { useI18n } from '@/i18n/context'
 import { docMetaDefaults, documentTemplatesByKey } from '@/data'
 import type { DocMeta } from '@/data'
 import { templateByTid, templateCategories } from '@/features/app/documents/data'
 import type { DocTemplate, PreviewBlock } from '@/features/app/documents/data'
 import { customTemplateByTid } from '@/features/app/documents/customTemplates'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { AuthContext } from '@/features/app/auth/authContext'
+import { WorkspaceModeContext } from '@/features/app/workspaceMode/workspaceModeContext'
+import {
+  authorizeExport,
+  buildTextPdf,
+  buildWordDoc,
+  encodeInvisibleTag,
+  exportDenialMessage,
+  exportFilename,
+  triggerDownload,
+  watermarkFooterLines,
+} from '@/lib/exportProtection'
 import { docstudioMessages as M } from '@/i18n/messages/docstudio'
+import { exportProtectionMessages as XP } from '@/i18n/messages/exportProtection'
 import { DocStudioContext } from './docStudioContext'
 import type {
   DocExportKind,
@@ -127,6 +141,12 @@ function resolveTemplate(templateKey: string, fromLibrary: boolean): ResolvedTem
 export function DocStudioProvider({ children }: { readonly children: ReactNode }) {
   const [studio, setStudio] = useState<DocStudioState>(CLOSED)
   const { showToast } = useToasts()
+  const { lang } = useI18n()
+  /* Read, not required: the overlay also mounts in narrow contexts (tests,
+     previews) without the auth/workspace providers, where exports degrade to
+     the demo identity + device-local audit. */
+  const auth = useContext(AuthContext)
+  const workspaceMode = useContext(WorkspaceModeContext)
   const genTimer = useRef<number | null>(null)
   const lastFocused = useRef<HTMLElement | null>(null)
 
@@ -232,12 +252,81 @@ export function DocStudioProvider({ children }: { readonly children: ReactNode }
     [showToast],
   )
 
+  /**
+   * The real export pipeline (src/lib/exportProtection, docs/EXPORT_PROTECTION.md):
+   * authorize (velocity guard + audit trail, server-side when signed in) →
+   * build the watermarked artifact → deliver → then the prototype's
+   * exportStatus/toast contract, unchanged. A refused export changes nothing
+   * and says when to retry.
+   */
   const doExport = useCallback(
-    (kind: DocExportKind) => {
+    async (kind: DocExportKind) => {
+      const identity = workspaceMode?.identity
+      const actorLabel = identity
+        ? `${identity.user.name} (${identity.user.email})`
+        : pick(XP.exportprot_demo_actor, lang)
+      const workspaceLabel = identity?.companyName ?? pick(XP.exportprot_demo_workspace, lang)
+      const title = pick(studio.title, lang)
+      const paragraphs = studio.sections.map((section) => pickL(section, lang))
+
+      const decision = await authorizeExport({
+        surface: 'docstudio',
+        kind: kind === 'PDF' ? 'pdf' : kind === 'Word' ? 'word' : 'link',
+        title,
+        content: [title, ...paragraphs].join('\n\n'),
+        lang,
+        actorLabel,
+        workspaceLabel,
+        session: auth?.session ?? null,
+      })
+      if (!decision.allowed) {
+        showToast(exportDenialMessage(decision), 'info')
+        return
+      }
+
+      const { stamp } = decision
+      const footerLines = watermarkFooterLines(stamp, lang)
+      if (kind === 'PDF') {
+        const bytes = buildTextPdf({
+          title,
+          paragraphs,
+          footerLines,
+          exportId: stamp.exportId,
+          author: stamp.actorLabel,
+          workspaceLabel: stamp.workspaceLabel,
+          createdAt: stamp.exportedAt,
+        })
+        triggerDownload(
+          exportFilename(title, 'pdf', stamp.exportedAt),
+          new Blob([bytes.buffer as ArrayBuffer], { type: 'application/pdf' }),
+        )
+      } else if (kind === 'Word') {
+        const html = buildWordDoc({
+          title,
+          paragraphs,
+          footerLines,
+          invisibleTag: encodeInvisibleTag(stamp.exportId),
+          exportId: stamp.exportId,
+          author: stamp.actorLabel,
+          workspaceLabel: stamp.workspaceLabel,
+          lang,
+        })
+        triggerDownload(
+          exportFilename(title, 'doc', stamp.exportedAt),
+          new Blob([html], { type: 'application/msword' }),
+        )
+      } else {
+        /* "Copy link" — a reference URL carrying the export id, so even the
+           lightest share is traceable. Clipboard is absent in some contexts
+           (tests, insecure origins); the export is still recorded. */
+        const url = `${window.location.origin}/app/documents?export-ref=${stamp.exportId}`
+        navigator.clipboard?.writeText(url).catch(() => {})
+      }
+
       setStudio((prev) => ({ ...prev, exportStatus: kind }))
       showToast(bi(M.docstudio_exported_as.en + kind, M.docstudio_exported_as.fr + kind), 'ok')
     },
-    [showToast],
+    [showToast, lang, auth, workspaceMode, studio.title, studio.sections],
   )
 
   const doSendForSignature = useCallback(() => {
@@ -251,7 +340,7 @@ export function DocStudioProvider({ children }: { readonly children: ReactNode }
         setStudio((prev) => ({ ...prev, gate: { action: kind } }))
         return
       }
-      doExport(kind)
+      void doExport(kind)
     },
     [studio.highRisk, studio.gateConfirmed, doExport],
   )
@@ -271,10 +360,12 @@ export function DocStudioProvider({ children }: { readonly children: ReactNode }
       setStudio((prev) => ({ ...prev, gate: null, gateConfirmed: true, signatureSent: true }))
       showToast(M.docstudio_toast_esign, 'ok')
     } else {
-      setStudio((prev) => ({ ...prev, gate: null, gateConfirmed: true, exportStatus: action }))
-      showToast(bi(M.docstudio_exported_as.en + action, M.docstudio_exported_as.fr + action), 'ok')
+      /* The confirmed export runs the same protected pipeline as a direct
+         one — the gate only ever deferred it. */
+      setStudio((prev) => ({ ...prev, gate: null, gateConfirmed: true }))
+      void doExport(action)
     }
-  }, [studio.gate, showToast])
+  }, [studio.gate, showToast, doExport])
 
   const cancelGate = useCallback(() => {
     setStudio((prev) => ({ ...prev, gate: null }))

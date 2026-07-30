@@ -58,6 +58,18 @@ no DOM/input/token/storage capture, no persistent id. Inert in dev and tests.
 Full privacy rationale and source-map handling in
 [docs/ERROR_REPORTING.md](docs/ERROR_REPORTING.md).
 
+## Export protection
+
+Every export (Document Studio PDF/Word, "Copy link", the Advisor memory
+JSON) is watermarked — visible identity line, invisible zero-width
+fingerprint, and file metadata all carrying a unique export ID — velocity
+rate-limited against bulk exfiltration, and recorded in an audit trail
+(server-side `export_events` when signed in, plus a device trail surfaced in
+Settings → Export activity). A leaked copy, even a pasted excerpt, resolves
+back to who exported it and when. This is deterrence + attribution, not DRM
+— the threat model and the runbook for tracing a leak are in
+[docs/EXPORT_PROTECTION.md](docs/EXPORT_PROTECTION.md).
+
 ## Dev Annotations (AI-assisted editing)
 
 Running in dev or on a Vercel preview, an in-app **Dev Annotations** overlay

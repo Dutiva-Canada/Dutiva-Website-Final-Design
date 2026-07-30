@@ -2,6 +2,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
+import { appendExportAudit, clearExportAudit } from '@/lib/exportProtection'
 import { SettingsView } from './SettingsView'
 
 describe('SettingsView', () => {
@@ -31,6 +32,35 @@ describe('SettingsView', () => {
     expect(
       screen.getByText('Riley Summers viewed compensation — Jordan Mensah'),
     ).toBeInTheDocument()
+  })
+
+  it('shows the device export trail: empty state, then real recorded exports', () => {
+    clearExportAudit()
+    const { unmount } = renderApp(<SettingsView />, {
+      route: '/app/settings',
+      path: '/app/settings',
+    })
+    expect(screen.getByText('No exports recorded on this device yet.')).toBeInTheDocument()
+    unmount()
+
+    appendExportAudit({
+      exportId: 'de305d54-75b4-431b-adb2-eb6b9e546014',
+      surface: 'docstudio',
+      kind: 'pdf',
+      title: 'Termination Letter',
+      contentSha256: 'a'.repeat(64),
+      contentChars: 1200,
+      lang: 'en',
+      actorLabel: 'Amara Osei (amara@northgate.ca)',
+      at: '2026-07-30T18:04:30Z',
+      recordedRemotely: false,
+    })
+    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    expect(
+      screen.getByText(/Termination Letter · PDF · by Amara Osei \(amara@northgate\.ca\)/),
+    ).toBeInTheDocument()
+    expect(screen.getByText('2026-07-30 18:04')).toBeInTheDocument()
+    clearExportAudit()
   })
 
   it('flips a preference toggle on click (autoEscalate starts off)', async () => {
