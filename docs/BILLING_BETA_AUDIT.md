@@ -372,6 +372,9 @@ at `started` would mean the claim landed but finalize did not.
 ### Still open from the findings above
 
 - **Annual billing** still advertises a price it refuses at click time.
+  **UPDATE 2026-07-30:** resolved — the toggle is now hidden while
+  `PAID_PLANS_DISABLED_DURING_BETA` is on (PR #96). No path on `/pricing`
+  or `/fr/tarifs` displays a price that cannot be purchased.
 - **`inferCheckoutPrice`** still reads `session.line_items`, which webhooks
   never carry. On reflection this is lower-priority than first framed: this
   repo's own `create-checkout-session` always sets `metadata.plan` correctly
@@ -380,3 +383,47 @@ at `started` would mean the claim landed but finalize did not.
   intent. A real fix means an extra Stripe API call from inside the webhook
   (retrieving the session with `expand[]=line_items`), which is more
   complexity than the current gap justifies.
+
+---
+
+## Re-verification against the live project (2026-07-30)
+
+Checked the three findings from the original audit (S1, S2, S3) against the
+live Supabase project `khtwpxnvziiyplaflwru` to assess current state:
+
+### S1 — Deployed webhook vs. repo code
+
+- `profiles_plan_check` constraint now accepts `free | starter | growth | pro
+  | advanced | enterprise` — `pro` is present, confirming the schema
+  reconciliation migration was applied.
+- `stripe_webhook_events` table exists with the correct schema (`event_id`,
+  `event_type`, `received_at`).
+- 3 profiles exist, 0 have a `stripe_customer_id` — consistent with no real
+  Stripe purchases having occurred.
+- **Cannot directly diff the deployed function source** via the available
+  tooling. The audit's "Remaining work" section records that the webhook was
+  deployed from `main` as step 3. The schema's alignment with the repo's
+  expectations (particularly the `pro` plan in the constraint and the
+  existence of `stripe_webhook_events`) is strong evidence the redeployment
+  happened, but the source diff remains unverified. **Owner should confirm
+  the deployed version matches `main`** (Supabase dashboard → Edge Functions
+  → stripe-webhook → source, or `supabase functions download stripe-webhook`
+  and diff).
+
+### S2 — Webhook idempotency
+
+- `stripe_webhook_events` table exists (was `null` at audit time).
+- 0 rows — expected: Stripe secrets are not yet set, so no webhook traffic
+  has reached the function.
+- **Structurally resolved.** The dedup guard will activate the moment the
+  Stripe endpoint and secrets are configured. Cannot be end-to-end tested
+  until then.
+
+### S3 — `inferCheckoutPrice` reads `session.line_items`
+
+- Still present at `billing-event.ts:65-68`.
+- **Unchanged, documented, low priority.** The fallback to `metadata.plan`
+  is what actually resolves the plan on the checkout path. The subscription
+  events (`customer.subscription.created/updated`) do carry
+  `items.data[0].price`, so the price-authoritative design works there.
+- No action taken; the existing assessment stands.
