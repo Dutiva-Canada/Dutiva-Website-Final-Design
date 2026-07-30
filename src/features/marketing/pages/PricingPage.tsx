@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { ArrowRight, Ban, Check, Lock, Minus, ShieldCheck, Sparkles, Wallet } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { ArrowRight, Ban, Check, CircleCheck, Lock, Minus, ShieldCheck, Sparkles, Wallet } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useAuth } from '@/features/app/auth/authContext'
 import { usePlan } from '@/features/app/billing/planContext'
@@ -309,7 +309,11 @@ export function PricingPage() {
   const effectivePeriod: BillingPeriod = PAID_PLANS_DISABLED_DURING_BETA ? 'monthly' : period
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
-  const [notice, setNotice] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
+  const [notice, setNotice] = useState<{
+    tone: 'success' | 'error'
+    text: string
+    planId?: string | null
+  } | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
 
   /* create-checkout-session's success_url/cancel_url land back here with
@@ -329,6 +333,7 @@ export function PricingPage() {
           ? 'pricing_checkout_return_success'
           : 'pricing_checkout_return_cancelled',
       ),
+      planId: checkout === 'success' ? searchParams.get('plan') : null,
     })
 
     const next = new URLSearchParams(searchParams)
@@ -442,16 +447,45 @@ export function PricingPage() {
 
       {notice ? (
         <Band>
-          <div
-            role="status"
-            className={
-              notice.tone === 'success'
-                ? 'rounded-xl border border-gold-border bg-gold-subtle px-4 py-3 text-sm text-gold-strong'
-                : 'rounded-xl border border-border bg-bg-elevated px-4 py-3 text-sm text-text'
-            }
-          >
-            {notice.text}
-          </div>
+          {notice.tone === 'success' && notice.planId ? (
+            <div
+              role="status"
+              className="premium-card-soft flex flex-wrap items-center gap-4 border-gold-border p-5"
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-subtle text-gold-strong">
+                <CircleCheck size={18} />
+              </span>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-text">
+                    {t('pricing_checkout_return_success_heading')}
+                  </span>
+                  {getPlanById(notice.planId) && (
+                    <span className="badge">{t(getPlanById(notice.planId)!.nameKey)}</span>
+                  )}
+                </div>
+                <p className="mt-1.5 text-sm leading-6 text-text-2">{notice.text}</p>
+              </div>
+              <Link
+                to="/app/welcome"
+                className="gold-button inline-flex items-center gap-2 px-5 py-3 text-sm"
+              >
+                {t('pricing_checkout_return_go')}
+                <ArrowRight size={16} className="shrink-0" />
+              </Link>
+            </div>
+          ) : (
+            <div
+              role="status"
+              className={
+                notice.tone === 'success'
+                  ? 'rounded-xl border border-gold-border bg-gold-subtle px-4 py-3 text-sm text-gold-strong'
+                  : 'rounded-xl border border-border bg-bg-elevated px-4 py-3 text-sm text-text'
+              }
+            >
+              {notice.text}
+            </div>
+          )}
         </Band>
       ) : null}
 
