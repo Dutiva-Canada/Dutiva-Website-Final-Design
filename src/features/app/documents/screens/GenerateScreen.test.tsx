@@ -105,4 +105,76 @@ describe('GenerateScreen', () => {
     expect(screen.getByPlaceholderText('Full legal name')).toHaveValue('Jordan Mensah')
     expect(screen.getByText('Auto-filled from context')).toBeInTheDocument()
   })
+
+  /**
+   * The statutory-notice floor, wired end to end (statutoryFloor.ts). The
+   * letter tells the employee the figure "meets or exceeds" the ESA minimum,
+   * so a number below it ships a letter asserting compliance while
+   * under-providing. Unit tests cover the arithmetic; these cover the wiring.
+   */
+  describe('statutory notice floor (T03, Ontario)', () => {
+    /* Jurisdiction is chosen on the context step, so it has to be set before
+       advancing to the questions. */
+    const openQuestions = async (jurisdiction?: 'QC' | 'FED') => {
+      renderWizard('tpl_t03')
+      await screen.findByText('Generate · Termination letter (without cause)')
+      fireEvent.change(screen.getByRole('combobox', { name: 'Employee' }), {
+        target: { value: 'emp_jm' },
+      })
+      if (jurisdiction) fireEvent.click(screen.getByRole('button', { name: jurisdiction }))
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    }
+
+    const setField = (label: string, value: string) =>
+      fireEvent.change(screen.getByLabelText(new RegExp(label)), { target: { value } })
+
+    it('warns when the entered notice is below the statutory minimum', async () => {
+      await openQuestions()
+      setField('Years of continuous service', '6')
+      setField('Notice / pay in lieu', '2')
+
+      /* 6 completed years → 6 weeks under ESA s.57. */
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        /Below the statutory minimum of 6 weeks/,
+      )
+    })
+
+    it('confirms a figure that meets the minimum, without alarm', async () => {
+      await openQuestions()
+      setField('Years of continuous service', '6')
+      setField('Notice / pay in lieu', '6')
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(screen.getByText(/At or above the statutory minimum of 6 weeks/)).toBeInTheDocument()
+    })
+
+    it('always says the floor is only a floor', async () => {
+      /* The figure must never read as a recommended amount — common-law
+         reasonable notice is frequently far higher. */
+      await openQuestions()
+      setField('Years of continuous service', '6')
+      setField('Notice / pay in lieu', '6')
+
+      expect(
+        screen.getByText(/common-law reasonable notice is often considerably higher/),
+      ).toBeInTheDocument()
+    })
+
+    it('shows the floor as guidance before a figure is entered', async () => {
+      await openQuestions()
+      setField('Years of continuous service', '3')
+
+      expect(screen.getByText(/Statutory minimum for this tenure: 3 weeks/)).toBeInTheDocument()
+    })
+
+    it('hedges for a jurisdiction with no reviewed schedule', async () => {
+      /* QC and FED bands are deliberately null pending legal review. */
+      await openQuestions('QC')
+      setField('Years of continuous service', '6')
+      setField('Notice / pay in lieu', '1')
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(screen.getByText(/No verified minimum is available/)).toBeInTheDocument()
+    })
+  })
 })

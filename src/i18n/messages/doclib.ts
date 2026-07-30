@@ -119,6 +119,31 @@ export const doclibMessages = defineMessages({
   doclib_gen_mergeFilled: { en: 'fields filled', fr: 'champs remplis' },
   doclib_gen_mergeRemaining: { en: 'to fill', fr: 'à remplir' },
   doclib_gen_autofill: { en: 'Auto-filled from context', fr: 'Rempli à partir du contexte' },
+  /* Statutory notice floor (statutoryFloor.ts). The letter tells the employee
+     the figure "meets or exceeds" the ESA minimum, so a number below it is a
+     letter asserting compliance while under-providing. Advisory only — the
+     minimum is a floor, and common-law notice is often far higher, so the copy
+     must never read as a recommended amount. [FR self-authored] */
+  doclib_gen_floor_below: {
+    en: 'Below the statutory minimum of {weeks} weeks for this tenure. The letter states the figure meets or exceeds the minimum — check before generating.',
+    fr: 'Inférieur au minimum légal de {weeks} semaines pour cette ancienneté. La lettre affirme que le montant respecte ou dépasse le minimum — vérifiez avant de générer.',
+  },
+  doclib_gen_floor_meets: {
+    en: 'At or above the statutory minimum of {weeks} weeks.',
+    fr: 'Égal ou supérieur au minimum légal de {weeks} semaines.',
+  },
+  doclib_gen_floor_info: {
+    en: 'Statutory minimum for this tenure: {weeks} weeks.',
+    fr: 'Minimum légal pour cette ancienneté : {weeks} semaines.',
+  },
+  doclib_gen_floor_common_law: {
+    en: 'Statutory floor only — common-law reasonable notice is often considerably higher.',
+    fr: 'Minimum légal seulement — le préavis raisonnable en common law est souvent bien supérieur.',
+  },
+  doclib_gen_floor_unavailable: {
+    en: 'No verified minimum is available for this jurisdiction yet — confirm against the governing statute.',
+    fr: 'Aucun minimum vérifié n’est disponible pour cette juridiction — vérifiez auprès de la loi applicable.',
+  },
   doclib_gen_lawyerWarn: {
     en: 'This is a high-risk document. Lawyer review is recommended before it is sent or signed.',
     fr: 'Document à risque élevé. Une révision juridique est recommandée avant l’envoi ou la signature.',
