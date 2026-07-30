@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { assessLegislationText } from './contentSanity.ts'
+import { amendmentFingerprint, assessJusticeStatute } from './justiceXml.ts'
 
 /**
  * monitor-law-changes — the law-change watcher behind the Knowledge view's
@@ -41,17 +42,24 @@ import { assessLegislationText } from './contentSanity.ts'
 // Stable / canonical URLs are preferred; avoid deep-linked PDFs where possible.
 const MONITORED_PAGES: PageConfig[] = [
   // ── Federal ──────────────────────────────────────────────────────────────
+  /* Federal law comes from Justice Canada's own XML publication rather than
+     the Justice Laws website's HTML. Same authority, published under the Open
+     Government Licence – Canada, and it states its own amendment date — so
+     federal change detection reads a fact instead of inferring one from a
+     hash. See docs/LAW_MONITORING.md. */
   {
     jurisdiction: 'Federal',
     law_name: 'Canada Labour Code',
-    url: 'https://laws-lois.justice.gc.ca/eng/acts/L-2/',
-    fallbacks: ['https://laws-lois.justice.gc.ca/eng/acts/l-2/'],
+    url: 'https://raw.githubusercontent.com/justicecanada/laws-lois-xml/main/eng/acts/L-2.xml',
+    fallbacks: [],
+    source: { kind: 'justice-xml', consolidatedNumber: 'L-2' },
   },
   {
     jurisdiction: 'Federal',
     law_name: 'Canadian Human Rights Act',
-    url: 'https://laws-lois.justice.gc.ca/eng/acts/H-6/',
+    url: 'https://raw.githubusercontent.com/justicecanada/laws-lois-xml/main/eng/acts/H-6.xml',
     fallbacks: [],
+    source: { kind: 'justice-xml', consolidatedNumber: 'H-6' },
   },
   // ── Ontario ───────────────────────────────────────────────────────────────
   {
@@ -170,11 +178,28 @@ const MONITORED_PAGES: PageConfig[] = [
   },
 ]
 
+/**
+ * How a page's "has it changed?" question gets answered.
+ *
+ * `html` hashes the extracted text — the original strategy, and the only one
+ * available for sources that publish nothing machine-readable.
+ *
+ * `justice-xml` reads `lims:lastAmendedDate` straight out of Justice Canada's
+ * consolidated XML. Strictly better where it applies: no hashing, so a
+ * publisher reformatting cannot fake a change and a JavaScript shell cannot
+ * hide one. Only federal law is published this way today.
+ */
+type PageSource =
+  | { kind: 'html' }
+  | { kind: 'justice-xml'; consolidatedNumber: string }
+
 interface PageConfig {
   jurisdiction: string
   law_name: string
   url: string
   fallbacks: string[]
+  /** Defaults to `html` when omitted. */
+  source?: PageSource
 }
 
 interface FetchResult {
@@ -206,7 +231,19 @@ async function sha256(text: string): Promise<string> {
     .join('')
 }
 
-async function fetchWithTimeout(url: string, timeoutMs = 18000): Promise<FetchResult> {
+/**
+ * Bytes requested from an XML statute. Everything read from those documents
+ * lives in the `<Identification>` block at the very top, and the Acts run to
+ * megabytes, so a Range request turns each check into a couple of KB. A server
+ * that ignores `Range` simply returns the whole file, which still parses.
+ */
+const XML_HEAD_BYTES = 16384
+
+async function fetchWithTimeout(
+  url: string,
+  timeoutMs = 18000,
+  rangeBytes?: number,
+): Promise<FetchResult> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
@@ -217,6 +254,7 @@ async function fetchWithTimeout(url: string, timeoutMs = 18000): Promise<FetchRe
         'User-Agent':
           'Dutiva-LawMonitor/2.0 (compliance@dutiva.ca; Canadian employment law compliance platform)',
         Accept: 'text/html,application/xhtml+xml,application/pdf,*/*',
+        ...(rangeBytes === undefined ? {} : { Range: `bytes=0-${rangeBytes - 1}` }),
       },
     })
     clearTimeout(timer)
@@ -237,6 +275,7 @@ async function fetchWithTimeout(url: string, timeoutMs = 18000): Promise<FetchRe
 /** Try the primary URL, then each fallback in order. First success wins. */
 async function fetchWithFallbacks(page: PageConfig): Promise<FetchResult & { usedUrl: string }> {
   const urls = [page.url, ...page.fallbacks]
+  const rangeBytes = page.source?.kind === 'justice-xml' ? XML_HEAD_BYTES : undefined
   let lastResult: FetchResult = {
     ok: false,
     text: null,
@@ -245,7 +284,7 @@ async function fetchWithFallbacks(page: PageConfig): Promise<FetchResult & { use
     statusCode: 0,
   }
   for (const url of urls) {
-    const result = await fetchWithTimeout(url)
+    const result = await fetchWithTimeout(url, 18000, rangeBytes)
     if (result.ok) return { ...result, usedUrl: url }
     lastResult = result
   }
@@ -478,7 +517,15 @@ Deno.serve(async (req) => {
       const isNew = !record
 
       // ── Case 1: permanent redirect ──────────────────────────────────────
-      if (fetchResult.ok && fetchResult.wasRedirected && fetchResult.finalUrl !== page.url) {
+      /* HTML sources only: a redirect on an XML source is not a "the page
+         moved" event to record and follow — the file path is the identity of
+         the Act, and the XML branch below verifies that identity directly. */
+      if (
+        (page.source?.kind ?? 'html') === 'html' &&
+        fetchResult.ok &&
+        fetchResult.wasRedirected &&
+        fetchResult.finalUrl !== page.url
+      ) {
         const newUrl = fetchResult.finalUrl
 
         await db.from('law_page_hashes').upsert({
@@ -607,7 +654,99 @@ Deno.serve(async (req) => {
         continue
       }
 
-      // ── Case 3: fetched — but is it actually legislation? ───────────────
+      // ── Case 3a: XML-sourced law — read the stated amendment date ──────
+      /* No hashing: the document says when it was last amended, so we compare
+         that. Nothing here can be fooled by a reformat or hidden by a shell. */
+      if (page.source?.kind === 'justice-xml') {
+        const verdict = assessJusticeStatute(
+          fetchResult.text ?? '',
+          page.source.consolidatedNumber,
+        )
+
+        if (!verdict.ok) {
+          const failures = (record?.failures ?? 0) + 1
+
+          await db.from('law_page_hashes').upsert({
+            url: page.url,
+            jurisdiction: page.jurisdiction,
+            law_name: page.law_name,
+            content_hash: record?.hash ?? '',
+            is_broken: true,
+            consecutive_failures: failures,
+            last_broken_at: new Date().toISOString(),
+            last_checked: new Date().toISOString(),
+          })
+
+          if (failures === BROKEN_ALERT_THRESHOLD) {
+            await db.from('law_updates').insert({
+              jurisdiction: page.jurisdiction,
+              law_name: page.law_name,
+              url: page.url,
+              change_summary:
+                `The XML source for "${page.law_name}" (${page.jurisdiction}) could not be read as ` +
+                `the expected Act for ${failures} consecutive checks. ${verdict.detail} ` +
+                'Federal change detection is not effective until this is resolved.',
+              raw_diff: `Justice XML check: ${verdict.reason} · Failures: ${failures}`,
+              detected_at: new Date().toISOString(),
+              is_new: false,
+              event_type: 'broken',
+            })
+          }
+
+          results.push(
+            `XML-BAD   ${page.jurisdiction}/${page.law_name}: ${verdict.reason} (failure #${failures})`,
+          )
+          continue
+        }
+
+        const fingerprint = amendmentFingerprint(verdict.facts.lastAmendedDate)
+        const changed = isNew || record?.hash !== fingerprint
+
+        await db.from('law_page_hashes').upsert({
+          url: page.url,
+          jurisdiction: page.jurisdiction,
+          law_name: page.law_name,
+          content_hash: fingerprint,
+          is_broken: false,
+          consecutive_failures: 0,
+          last_checked: new Date().toISOString(),
+        })
+
+        if (!changed) {
+          results.push(
+            `OK        ${page.jurisdiction}/${page.law_name}: unchanged since ${verdict.facts.lastAmendedDate}`,
+          )
+          continue
+        }
+
+        await db.from('law_updates').insert({
+          jurisdiction: page.jurisdiction,
+          law_name: page.law_name,
+          url: page.url,
+          content_hash: fingerprint,
+          change_summary: isNew
+            ? `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring, ` +
+              `sourced from Justice Canada's consolidated XML. It was last amended on ` +
+              `${verdict.facts.lastAmendedDate}.`
+            : `"${page.law_name}" (${page.jurisdiction}) has been amended. Justice Canada now reports ` +
+              `a last-amended date of ${verdict.facts.lastAmendedDate}` +
+              `${record?.hash ? ` (previously ${record.hash.replace('amended:', '')})` : ''}. ` +
+              'Review the consolidated Act for what changed and what it means for employers.',
+          raw_diff:
+            `lastAmendedDate: ${verdict.facts.lastAmendedDate}` +
+            `${verdict.facts.currentDate ? ` · consolidation current to ${verdict.facts.currentDate}` : ''}`,
+          detected_at: new Date().toISOString(),
+          is_new: isNew,
+          event_type: isNew ? 'first_seen' : 'change',
+        })
+
+        results.push(
+          `${isNew ? 'FIRST_SEEN' : 'AMENDED  '} ${page.jurisdiction}/${page.law_name}: ${verdict.facts.lastAmendedDate}`,
+        )
+        continue
+      }
+
+      // ── Case 3b: HTML-sourced law — but is it actually legislation? ─────
       const text = extractText(fetchResult.text ?? '')
 
       /* A 200 is not proof of a real check. WAF pages served as 200, bot

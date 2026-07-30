@@ -72,8 +72,8 @@ export const MONITORING_COVERAGE: readonly JurisdictionCoverage[] = [
     label: { en: 'Federal', fr: 'Fédéral' },
     status: 'unverified',
     detail: {
-      en: 'Not confirmed since the last audit. Treat federal change detection as unconfirmed rather than working.',
-      fr: "Non confirmée depuis la dernière vérification. Considérez la détection fédérale comme non confirmée plutôt que fonctionnelle.",
+      en: 'Now sourced from the federal government’s own published legislation data, which states when each Act was last amended. Awaiting the first completed check before this is reported as working.',
+      fr: "Provient désormais des données législatives publiées par le gouvernement fédéral, qui indiquent la date de la dernière modification de chaque loi. En attente d'une première vérification complète avant d'être signalée comme fonctionnelle.",
     },
   },
 ]
