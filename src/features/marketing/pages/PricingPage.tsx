@@ -303,6 +303,10 @@ export function PricingPage() {
   const { status } = useAuth()
   const { isAdmin, plan: currentPlan, stripeCustomerId, loading: planLoading } = usePlan()
   const [period, setPeriod] = useState<BillingPeriod>('monthly')
+  /* While paid plans are disabled during the beta, the annual toggle is hidden
+     (no path should advertise a price nobody can buy). Force monthly so the
+     rest of the page stays consistent even if state somehow drifts. */
+  const effectivePeriod: BillingPeriod = PAID_PLANS_DISABLED_DURING_BETA ? 'monthly' : period
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
   const [notice, setNotice] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
@@ -345,7 +349,7 @@ export function PricingPage() {
        has monthly Stripe prices. Rather than silently bill a monthly plan to a
        customer who picked Annual, stop here with a "coming soon" notice until
        the annual price ids + webhook/schema support land. */
-    if (period === 'annual') {
+    if (effectivePeriod === 'annual') {
       setNotice({ tone: 'error', text: t('pricing_annual_soon') })
       return
     }
@@ -362,7 +366,7 @@ export function PricingPage() {
          annual checkout settles (see ANNUAL_MONTHS_BILLED in config/plans). */
       const { data, error } = await supabase.functions.invoke<CheckoutResponse>(
         'create-checkout-session',
-        { body: { plan: plan.id, billingPeriod: period } },
+        { body: { plan: plan.id, billingPeriod: effectivePeriod } },
       )
       if (error) throw error
 
@@ -409,7 +413,8 @@ export function PricingPage() {
 
   const priceFor = (plan: PlanDefinition): string => {
     if (plan.monthlyPrice === 0) return t('landing_free_amt')
-    const perMonth = period === 'annual' ? annualPerMonth(plan.monthlyPrice) : plan.monthlyPrice
+    const perMonth =
+      effectivePeriod === 'annual' ? annualPerMonth(plan.monthlyPrice) : plan.monthlyPrice
     return `$${perMonth}${t('pricing_mo')}`
   }
 
@@ -480,13 +485,15 @@ export function PricingPage() {
 
       {/* ── Plans (billing toggle + cards) ─────────────────────────────────── */}
       <section className="mx-auto max-w-[1200px] px-6 pt-4 pb-2">
-        <BillingToggle period={period} onChange={setPeriod} />
+        {!PAID_PLANS_DISABLED_DURING_BETA && (
+          <BillingToggle period={effectivePeriod} onChange={setPeriod} />
+        )}
         <div className="mt-8 grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((plan) => (
             <PriceCard
               key={plan.id}
               plan={plan}
-              period={period}
+              period={effectivePeriod}
               onCheckout={handleCheckout}
               isLoading={checkoutPlanId === plan.id}
               signedIn={status === 'signed-in'}
