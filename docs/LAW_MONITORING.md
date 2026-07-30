@@ -267,7 +267,10 @@ working**, regardless of what the panel shows.
 ## Known gaps
 
 - **Nobody is told.** Events land in `law_updates` and wait to be read. There is
-  no email or in-app notification when a change lands in ON/QC/FED.
+  no email or in-app notification when a change lands in ON/QC/FED. Groundwork,
+  the CASL analysis and the open decisions are in
+  [docs/LAW_CHANGE_NOTIFICATIONS.md](LAW_CHANGE_NOTIFICATIONS.md); the relevance
+  filter it depends on is built and tested.
 - **Detection is page-level.** A hash change says *something* on the page moved,
   not which section. `raw_diff` holds the first 2000 characters for triage.
 - **Summaries are model-generated** and unreviewed. They orient a reader; they
