@@ -66,6 +66,22 @@ describe('toSupportedJurisdiction', () => {
     expect(toSupportedJurisdiction('Onterio')).toBeNull()
   })
 
+  it('agrees with the client-side filter the Knowledge panel uses', async () => {
+    /* The panel filters `law_updates` by monitor display name, and this module
+       maps those names to codes. They are separate copies because an edge
+       function and the client cannot share a module — so if one gains a
+       jurisdiction and the other does not, the product would notify about a
+       jurisdiction it does not display, or vice versa. */
+    const { MONITOR_JURISDICTION_NAMES, CUSTOMER_FACING_EVENT_TYPE } = await import(
+      '@/features/app/guidance/monitoringCoverage'
+    )
+    for (const name of MONITOR_JURISDICTION_NAMES) {
+      expect(toSupportedJurisdiction(name)).not.toBeNull()
+    }
+    expect(CUSTOMER_FACING_EVENT_TYPES).toContain(CUSTOMER_FACING_EVENT_TYPE)
+    expect(CUSTOMER_FACING_EVENT_TYPES).toHaveLength(1)
+  })
+
   it('covers exactly the product Jurisdiction union', () => {
     /* Pinned against src/features/app/documents/data/types.ts. The type is
        duplicated because edge functions cannot import from src/, so this test

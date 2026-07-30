@@ -78,6 +78,31 @@ export const MONITORING_COVERAGE: readonly JurisdictionCoverage[] = [
   },
 ]
 
+/**
+ * How the monitor spells the supported jurisdictions in
+ * `law_updates.jurisdiction` — display names, not the product's codes.
+ *
+ * Used to filter what the panel shows. Monitoring covers 14 jurisdictions and
+ * Dutiva supports three, so an unfiltered read puts Alberta and PEI notices in
+ * front of an Ontario employer — under a heading that just told them Ontario
+ * is not monitored.
+ *
+ * Mirrors the server-side map in
+ * `supabase/functions/_shared/lawUpdateRelevance.ts`; duplicated because edge
+ * functions and the client cannot share a module, and pinned by a test.
+ */
+export const MONITOR_JURISDICTION_NAMES: readonly string[] = ['Ontario', 'Quebec', 'Federal']
+
+/**
+ * The only `law_updates.event_type` a customer should ever see.
+ *
+ * `first_seen` means Dutiva started watching a page, `redirect` means a
+ * government moved a URL, and `broken` means Dutiva's own scraper failed.
+ * All three are operational records about this product, not legal news — and
+ * `redirect` rows alone currently outnumber real changes in the table.
+ */
+export const CUSTOMER_FACING_EVENT_TYPE = 'change'
+
 const STATUS_TONE: Record<CoverageStatus, ChipTone> = {
   active: 'success',
   unavailable: 'risk',

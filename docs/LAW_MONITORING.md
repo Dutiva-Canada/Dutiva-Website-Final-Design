@@ -139,6 +139,25 @@ Trigger a sweep by hand:
 select public.trigger_law_monitor();
 ```
 
+## What the panel shows
+
+The Knowledge panel reads `law_updates` through two filters, both in
+`fetchRecentLawUpdates()`:
+
+- **`event_type = 'change'` only.** `first_seen`, `redirect` and `broken` are
+  records about *Dutiva's own monitoring*, not legal news. `broken` matters
+  most: a sweep after the content-sanity guard produces a burst of them, and
+  "a Dutiva scraper failed" is alarming and useless in a customer's panel.
+- **Supported jurisdictions only** (ON/QC/FED, by the monitor's display names).
+
+Both were added on 2026-07-31 after an audit of what the panel actually
+rendered. Of the ten newest rows at that moment, **none** were from a supported
+jurisdiction and **six were `redirect` notices** — "the Act has permanently
+moved, old URL to new URL" — shown under the heading "Recent law changes",
+directly beneath the block stating that Ontario and Québec are not monitored.
+
+Monitoring stays wider than coverage on purpose; **the panel is what filters.**
+
 ## In-product freshness
 
 The panel states its own currency rather than letting undated rows imply they
