@@ -25,7 +25,12 @@ client-rendered. `npm run build` runs four stages:
 4. `node scripts/validate-seo.mjs` — crawls `dist/` and **fails the build**
    on duplicate titles/canonicals, missing or non-reciprocal hreflang,
    invalid JSON-LD, private URLs in the sitemap or llms.txt, broken internal
-   links, missing H1/`<main>`, placeholder values, and more.
+   links, missing H1/`<main>`, placeholder values, and more. It also
+   re-derives the route registry from the SSR bundle and checks **exact
+   coverage** in both directions: every registry page exists in `dist/` and
+   is in `sitemap.xml`, and `dist/` contains no page the registry doesn't
+   declare. A page that silently stops being prerendered fails the build
+   rather than quietly dropping out of search.
 
 `src/main.tsx` hydrates prerendered pages (`hydrateRoot`) and client-renders
 the app shell (`createRoot`). Suspense boundaries keep server HTML visible
@@ -122,15 +127,17 @@ built by `src/seo/jsonld.ts`. Every graph contains `Organization`
 (legal name _Dutiva Canada Inc._, brand _Dutiva_, logo, support email,
 areaServed Canada) and `WebSite`, plus a page node:
 
-| Page                                  | Node types                                                                                       |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Home                                  | `WebPage` + `SoftwareApplication`/`WebApplication`                                               |
-| Pricing                               | `WebPage` + `WebApplication` with `Offer`s mirroring the visible CAD plan cards                  |
-| About                                 | `AboutPage`                                                                                      |
-| FAQ                                   | `FAQPage` with `mainEntity` built from the _same_ GROUPS constant the page renders               |
-| Blog / Guides / Templates / Legal hub | `CollectionPage`                                                                                 |
-| Policy documents                      | `WebPage` with real `datePublished`/`dateModified` (from the displayed dates) + `BreadcrumbList` |
-| Guides → Template usage               | `WebPage` + `BreadcrumbList` (visible trail)                                                     |
+| Page                                                | Node types                                                                                       |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Home                                                | `WebPage` + `SoftwareApplication`/`WebApplication`                                               |
+| Pricing                                             | `WebPage` + `WebApplication` with `Offer`s mirroring the visible CAD plan cards                  |
+| About                                               | `AboutPage`                                                                                      |
+| FAQ                                                 | `FAQPage` with `mainEntity` built from the _same_ GROUPS constant the page renders               |
+| Blog / Guides / Templates / Legal hub / Help Centre | `CollectionPage`                                                                                 |
+| Policy documents                                    | `WebPage` with real `datePublished`/`dateModified` (from the displayed dates) + `BreadcrumbList` |
+| Help Centre articles                                | `WebPage` + `BreadcrumbList` (visible trail)                                                     |
+| Guides → Template usage                             | `WebPage` + `BreadcrumbList` (visible trail)                                                     |
+| Known limitations / Contact / Status                | `WebPage`                                                                                        |
 
 Hard rules: only verified, visible facts — no ratings, reviews, awards,
 addresses, founding dates, social profiles, or invented pricing. Offers
@@ -143,6 +150,10 @@ placeholder values.
 - `sitemap.xml`: every indexable URL (both locales) with reciprocal
   `xhtml:link` alternates; `lastmod` **only** for policy documents (parsed
   from their real displayed dates) — never the build date. Deterministic.
+  Element order inside `<url>` is `loc` → `lastmod` → the `xhtml:link`
+  alternates: the sitemaps.org 0.9 schema declares the sitemap-namespace
+  children as an ordered sequence, so a `lastmod` trailing the extension
+  elements trips strict validators. `validate-seo.mjs` enforces the order.
 - `llms.txt`: a machine-readable orientation file generated from the same
   registry — identity, audience, jurisdictions, languages, the legal-advice
   limitation, major public pages, and a statement that `/app` is private.
@@ -186,11 +197,11 @@ change the default in `src/seo/site.ts`).
 
 ## Commands
 
-| Command                         | What it does                                                             |
-| ------------------------------- | ------------------------------------------------------------------------ |
-| `npm run check`                 | typecheck + lint + tests (includes the SEO registry/head/JSON-LD suites) |
-| `npm run build`                 | full production build + prerender + SEO crawl validation                 |
-| `node scripts/validate-seo.mjs` | re-run the dist validation alone                                         |
+| Command                         | What it does                                                                                   |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `npm run check`                 | typecheck + lint + tests (includes the SEO registry/head/JSON-LD suites)                       |
+| `npm run build`                 | full production build + prerender + SEO crawl validation                                       |
+| `node scripts/validate-seo.mjs` | re-run the dist validation alone (needs an existing `dist/` + `dist-ssr/`, i.e. after a build) |
 
 ## Post-deployment actions (not automatable from the repo)
 

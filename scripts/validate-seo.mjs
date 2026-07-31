@@ -5,19 +5,33 @@
  * robots policy, correct <html lang>, reciprocal hreflang (including
  * x-default and self), parseable JSON-LD on the canonical origin, exactly
  * one H1, a <main> landmark, substantive visible text, and no placeholder
- * junk. Site-wide: sitemap ↔ file ↔ canonical consistency, no private or
- * noindex URL in the sitemap or llms.txt, robots.txt policy, resolvable
- * internal links, and a noindex app shell + 404.
+ * junk. Site-wide: **exact coverage** of the route registry (every public
+ * page prerendered, every indexable one in the sitemap, and nothing extra),
+ * sitemap ↔ file ↔ canonical consistency, no private or noindex URL in the
+ * sitemap or llms.txt, robots.txt policy, resolvable internal links, and a
+ * noindex app shell + 404.
  */
+
+process.env.NODE_ENV = 'production'
 
 import { readFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(root, 'dist')
 const ORIGIN = (process.env.VITE_SITE_ORIGIN || 'https://dutiva.ca').replace(/\/+$/, '')
+
+/* The route registry, read back through the same SSR bundle the prerenderer
+   used. Comparing dist/ against it (rather than against a hard-coded page
+   count) is what makes "every public page is indexable" an enforced
+   invariant instead of a smoke test: a registry entry that stops being
+   rendered, or a stale directory left in dist/, fails the build. */
+const { buildPrerenderManifest } = await import(
+  pathToFileURL(path.join(root, 'dist-ssr', 'entry-server.js')).href
+)
+const manifest = await buildPrerenderManifest()
 
 const errors = []
 const fail = (msg) => errors.push(msg)
@@ -39,7 +53,17 @@ async function collectPages(dir, base = '') {
 }
 
 const pages = await collectPages(dist)
-if (pages.length < 70) fail(`expected ≥70 prerendered pages, found ${pages.length}`)
+
+/* ---------- coverage: dist/ is exactly the route registry ---------- */
+
+const expectedRoutes = new Set(manifest.map((entry) => entry.path))
+const builtRoutes = new Set(pages.map((p) => p.route))
+for (const route of expectedRoutes) {
+  if (!builtRoutes.has(route)) fail(`registry page ${route} was not prerendered into dist/`)
+}
+for (const route of builtRoutes) {
+  if (!expectedRoutes.has(route)) fail(`prerendered page ${route} is not in the route registry`)
+}
 
 const one = (doc, re, what, route) => {
   const matches = [...doc.matchAll(re)]
@@ -217,6 +241,26 @@ for (const url of sitemapUrls) {
 for (const [route] of canonicalByRoute) {
   const url = `${ORIGIN}${route === '/' ? '/' : route}`
   if (!sitemapUrls.includes(url)) fail(`indexable page ${route} missing from sitemap.xml`)
+}
+/* Same check from the registry side, so a page that is indexable on paper but
+   never reached dist/ (and therefore has no canonical to iterate) still
+   fails, instead of quietly disappearing from search. */
+for (const entry of manifest) {
+  if (!entry.indexable) continue
+  const url = `${ORIGIN}${entry.path === '/' ? '/' : entry.path}`
+  if (!sitemapUrls.includes(url))
+    fail(`indexable registry page ${entry.path} missing from sitemap.xml`)
+}
+
+/* <lastmod> must follow <loc> directly: the sitemaps.org 0.9 schema declares
+   the sitemap-namespace children of <url> as an ordered sequence, so a
+   lastmod trailing the xhtml:link alternates trips strict validators. */
+for (const [, block] of sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)) {
+  const order = [...block.matchAll(/<(lastmod|xhtml:link)\b/g)].map((m) => m[1])
+  if (order.indexOf('lastmod') > order.indexOf('xhtml:link') && order.includes('lastmod')) {
+    const loc = /<loc>([^<]+)<\/loc>/.exec(block)?.[1]
+    fail(`sitemap.xml: ${loc} has <lastmod> after the hreflang alternates`)
+  }
 }
 
 /* ---------- robots.txt ---------- */

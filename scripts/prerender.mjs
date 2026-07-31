@@ -128,15 +128,18 @@ await writeFile(
 const indexable = manifest.filter((entry) => entry.indexable)
 const sitemapUrls = indexable
   .map((entry) => {
-    const lines = [
-      '  <url>',
-      `    <loc>${SITE_ORIGIN}${entry.path}</loc>`,
+    /* Element order matters: the sitemaps.org 0.9 schema declares the
+       sitemap-namespace children of <url> as an ordered sequence (loc,
+       lastmod, …), so lastmod goes immediately after loc and the xhtml
+       extension elements trail it. */
+    const lines = ['  <url>', `    <loc>${SITE_ORIGIN}${entry.path}</loc>`]
+    if (entry.lastmod) lines.push(`    <lastmod>${entry.lastmod}</lastmod>`)
+    lines.push(
       `    <xhtml:link rel="alternate" hreflang="en-CA" href="${SITE_ORIGIN}${entry.alternates.en}"/>`,
       `    <xhtml:link rel="alternate" hreflang="fr-CA" href="${SITE_ORIGIN}${entry.alternates.fr}"/>`,
       `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${entry.alternates.en}"/>`,
-    ]
-    if (entry.lastmod) lines.push(`    <lastmod>${entry.lastmod}</lastmod>`)
-    lines.push('  </url>')
+      '  </url>',
+    )
     return lines.join('\n')
   })
   .join('\n')
