@@ -70,7 +70,12 @@ export function AdvisorRail() {
               </div>
             ) : (
               <div className="flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-[7px] bg-navy">
-                <Sparkle size={12} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
+                <Sparkle
+                  size={12}
+                  className="fill-gold-on-navy"
+                  strokeWidth={0}
+                  aria-hidden="true"
+                />
               </div>
             )}
             <div className="min-w-0">
@@ -123,7 +128,11 @@ export function AdvisorRail() {
                   <TypingDots size="sm" label={x(M.advisor_thinking_short)} />
                 ) : (
                   <>
-                    <div className="text-[13.5px] leading-[1.55] whitespace-pre-wrap text-text">
+                    {/* No `whitespace-pre-wrap`: ChatMarkdown owns block flow.
+                        The `--cm-*` overrides tie its accent and opaque
+                        backdrop (sticky table headers, scroll fades) to this
+                        panel's own tokens. */}
+                    <div className="text-[13.5px] leading-[1.55] text-text [--cm-accent:var(--accent)] [--cm-surface-solid:var(--surface-2)]">
                       <StreamedText
                         text={message.text}
                         status={message.status}

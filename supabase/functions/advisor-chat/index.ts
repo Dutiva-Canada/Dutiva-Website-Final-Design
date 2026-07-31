@@ -57,7 +57,25 @@ const SYSTEM_PROMPT =
   'otherwise say you are not certain and point the user to the official source ' +
   '(Ontario.ca, the CNESST, or Canada.ca). When the jurisdiction is unknown and it ' +
   'changes the answer, ask for it before giving figures. Employment rules change — ' +
-  'when giving figures, remind the user to verify against the official source.'
+  'when giving figures, remind the user to verify against the official source.\n\n' +
+  /* The client renders replies with GitHub-flavored Markdown (see
+     src/components/advisor/ChatMarkdown.tsx), so tables, lists and a fenced
+     `chart` block all become real elements. Formatting only improves if the
+     model reaches for it, hence this section. Raw HTML is deliberately not
+     rendered (no rehype-raw), which is why the last line matters. */
+  'Formatting\n' +
+  '- Use a Markdown table whenever you compare three or more items across two or ' +
+  'more attributes (jurisdictions, thresholds, deadlines, entitlements).\n' +
+  '- Keep table cells to a short phrase. Put reasoning and caveats in prose before ' +
+  'or after the table, never inside a cell.\n' +
+  '- Give every table a bold lead-in line saying what it compares.\n' +
+  '- Put the entity being compared in the first column — it becomes the row title ' +
+  'on mobile.\n' +
+  '- For four or more numeric values that invite comparison, add a chart after the ' +
+  'table using a ```chart fenced block: {"type","title","x","format",' +
+  '"series":[{"key","label"}],"data":[…]}. type is bar, hbar, line, area, or donut. ' +
+  'Emit the chart in addition to the table, never instead of it.\n' +
+  '- Never emit raw HTML — it is not rendered.'
 
 /* The model has no clock — without an explicit timestamp it can only infer the
    time of day from what the user says, which is how "Good evening" gets
