@@ -1,0 +1,101 @@
+import { bi } from '@/i18n/core'
+import type { Bi, Lang } from '@/i18n/core'
+
+/**
+ * Content model for Dutiva's public editorial pages — the `/guides` and
+ * `/blog` article collections.
+ *
+ * This module is pure data (no React), so the SEO registry (`src/seo/routes.ts`)
+ * can consume it directly the way it consumes `legalHubData` and
+ * `helpCenterData`. Adding an article here gives it a prerendered, indexable
+ * URL in both locales automatically — the registry, sitemap, and prerender
+ * manifest all derive from `ALL_ARTICLES`.
+ *
+ * Editorial rules (docs/SEO_GEO_IMPLEMENTATION.md, docs/CANONICAL_FACTS.md):
+ *
+ *   - Articles explain concepts, decision points, and what to document. They
+ *     deliberately do **not** publish statutory figures — notice-week tables,
+ *     dollar thresholds, or deadline counts — because those go stale, vary by
+ *     jurisdiction and fact pattern, and become compliance representations the
+ *     moment they are wrong. Name the statute, describe the shape of the rule,
+ *     and send the reader to the official text and to a professional.
+ *   - Nothing here is legal advice, and every article says so through the
+ *     shared disclaimer the page renders.
+ *   - Product claims must match `docs/CANONICAL_FACTS.md`: 16 templates, three
+ *     jurisdictions (ON / QC / FED), beta with paid plans not yet sold.
+ *
+ * Slugs are public URLs and must stay stable. They must also be unique across
+ * both locale slug spaces within a collection — `src/seo/seo.test.ts` enforces
+ * this, the same way it does for policy documents.
+ */
+
+export type ArticleCollection = 'guide' | 'blog'
+
+export type ArticleBlock = { type: 'p'; text: Bi } | { type: 'li'; text: Bi }
+
+export interface ArticleSection {
+  /** Optional H2 within the article. */
+  heading?: Bi
+  blocks: ArticleBlock[]
+}
+
+export interface Article {
+  /** English slug — also the article's stable id. */
+  slug: string
+  /** Localized French slug; unique across both slug spaces in its collection. */
+  frSlug: string
+  collection: ArticleCollection
+  /** Short topic label shown above the title and on index cards. */
+  topic: Bi
+  /** Approximate reading time in minutes, shown on index cards. */
+  readingMinutes: number
+  title: Bi
+  /** One-line blurb for cards and the SEO meta description. */
+  summary: Bi
+  sections: ArticleSection[]
+}
+
+export const p = (en: string, fr: string): ArticleBlock => ({ type: 'p', text: bi(en, fr) })
+export const li = (en: string, fr: string): ArticleBlock => ({ type: 'li', text: bi(en, fr) })
+
+/* ------------------------------------------------------------------ */
+/* Rendering helpers                                                   */
+/* ------------------------------------------------------------------ */
+
+export type ArticleBlockGroup = { kind: 'p'; text: Bi } | { kind: 'list'; items: Bi[] }
+
+/**
+ * Collapses a flat block list into renderable groups so consecutive `li`
+ * blocks become one semantic `<ul>` rather than a run of single-item lists.
+ * Mirrors `groupHelpBlocks` in the Help Centre.
+ */
+export function groupArticleBlocks(blocks: ArticleBlock[]): ArticleBlockGroup[] {
+  const groups: ArticleBlockGroup[] = []
+  for (const block of blocks) {
+    const last = groups.at(-1)
+    if (block.type === 'li') {
+      if (last?.kind === 'list') last.items.push(block.text)
+      else groups.push({ kind: 'list', items: [block.text] })
+    } else {
+      groups.push({ kind: 'p', text: block.text })
+    }
+  }
+  return groups
+}
+
+/* ------------------------------------------------------------------ */
+/* Locale-aware paths                                                  */
+/* ------------------------------------------------------------------ */
+
+/** Index pathname for a collection, per locale. Kept in one place so the
+    article paths below and the SEO registry cannot disagree. */
+export const COLLECTION_INDEX: Record<ArticleCollection, Record<Lang, string>> = {
+  guide: { en: '/guides', fr: '/fr/guides' },
+  blog: { en: '/blog', fr: '/fr/blogue' },
+}
+
+/** Canonical pathname of an article in a locale. */
+export function articlePath(article: Article, lang: Lang): string {
+  const base = COLLECTION_INDEX[article.collection][lang]
+  return `${base}/${lang === 'fr' ? article.frSlug : article.slug}`
+}

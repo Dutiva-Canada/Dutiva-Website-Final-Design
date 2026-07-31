@@ -1,21 +1,14 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { SectionIntro } from '../SectionIntro'
+import { useI18n } from '@/i18n/context'
 import { usePublicPath } from '@/seo/usePublicPath'
+import { GUIDE_ARTICLES, articlePath } from '../articles'
 import { useLanding } from '../useLanding'
-import type { LandingMessageKey } from '../useLanding'
-
-const GUIDES: { title: LandingMessageKey; body: LandingMessageKey }[] = [
-  { title: 'landing_g1_t', body: 'landing_g1_p' },
-  { title: 'landing_g2_t', body: 'landing_g2_p' },
-  { title: 'landing_g3_t', body: 'landing_g3_p' },
-  { title: 'landing_g4_t', body: 'landing_g4_p' },
-  { title: 'landing_g5_t', body: 'landing_g5_p' },
-  { title: 'landing_g6_t', body: 'landing_g6_p' },
-]
 
 export function Guides() {
   const { lt } = useLanding()
+  const { x, lang } = useI18n()
   const { p } = usePublicPath()
   return (
     <section id="guides" className="mx-auto max-w-300 scroll-mt-20 px-6 py-16">
@@ -24,17 +17,24 @@ export function Guides() {
         title={lt('landing_guides_title')}
         sub={lt('landing_guides_sub')}
       />
+      {/* Cards link to the guide itself. The teaser copy is the article's own
+          title/summary from the article registry, so the landing page, the
+          /guides index, and the article can never drift apart. */}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
-        {GUIDES.map((guide) => (
-          <a key={guide.title} href={p('guides')} className="premium-card-soft block p-5.5">
+        {GUIDE_ARTICLES.map((guide) => (
+          <Link
+            key={guide.slug}
+            to={articlePath(guide, lang)}
+            className="premium-card-soft block p-5.5"
+          >
             <div className="flex items-start gap-3">
               <BookOpen size={16} className="mt-0.5 flex-none text-gold-strong" />
               <div>
-                <div className="text-[0.9375rem] font-semibold text-text">{lt(guide.title)}</div>
-                <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{lt(guide.body)}</p>
+                <div className="text-[0.9375rem] font-semibold text-text">{x(guide.title)}</div>
+                <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{x(guide.summary)}</p>
               </div>
             </div>
-          </a>
+          </Link>
         ))}
       </div>
       <div className="mt-6 flex flex-wrap gap-5">

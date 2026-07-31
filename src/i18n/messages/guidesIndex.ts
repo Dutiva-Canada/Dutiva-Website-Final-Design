@@ -2,9 +2,10 @@ import { defineMessages } from '../core'
 
 /**
  * /guides — index of HR guides, linked from the landing page's Guides
- * section ("Browse all guides"). Card copy reuses the landing section's
- * `landing_g1_t` … `landing_g6_t` keys; this module only carries the page
- * hero and CTA framing.
+ * section ("Browse all guides"). Card copy comes from the article registry
+ * (`src/features/marketing/articles`), which the landing teaser and each
+ * guide page also render; this module only carries the page hero and CTA
+ * framing.
  */
 export const guidesIndexMessages = defineMessages({
   guidesIdx_eyebrow: {

@@ -11,37 +11,47 @@ Classifications: `PUBLIC_INDEXABLE` · `PUBLIC_NOINDEX` ·
 `AUTHENTICATION_NOINDEX` · `PRIVATE_APPLICATION_NOINDEX` ·
 `ADMIN_INTERNAL_NOINDEX` · `API_NON_DOCUMENT` · `REDIRECT` · `NOT_FOUND`.
 
-## Public marketing surface — PUBLIC_INDEXABLE (102 URLs)
+## Public marketing surface — PUBLIC_INDEXABLE (126 URLs)
 
 Prerendered, self-canonical, reciprocal en-CA/fr-CA/x-default hreflang, in
 sitemap.xml. Purpose/intent notes double as the content matrix.
 
-51 pages × 2 locales: 13 static routes, the 26 policy documents, and the 12
-Help Centre articles. `scripts/validate-seo.mjs` compares `dist/` against the
-route registry entry by entry, so this count cannot drift from the build.
+63 pages × 2 locales: 13 static routes, the 26 policy documents, the 12 Help
+Centre articles, and the 12 editorial articles (6 guides + 6 blog posts).
+`scripts/validate-seo.mjs` compares `dist/` against the route registry entry
+by entry, so this count cannot drift from the build.
 
-| EN path                  | FR path                              | Purpose / primary intent                                                         | Schema                                   | Conversion                  |
-| ------------------------ | ------------------------------------ | -------------------------------------------------------------------------------- | ---------------------------------------- | --------------------------- |
-| `/`                      | `/fr`                                | What Dutiva is: AI-assisted HR compliance software for Canadian employers        | WebPage + WebApplication                 | Start free → `/app/welcome` |
-| `/about`                 | `/fr/a-propos`                       | Who builds Dutiva; mission; built in Canada                                      | AboutPage                                | Start free                  |
-| `/faq`                   | `/fr/faq`                            | Common questions: legal-advice limits, jurisdictions, data, pricing              | FAQPage (12 visible Q&A)                 | Contact support             |
-| `/blog`                  | `/fr/blogue`                         | HR-compliance-in-practice article listing (cards; detail routes are future work) | CollectionPage                           | Start free                  |
-| `/pricing`               | `/fr/tarifs`                         | Plans + visible CAD prices; Stripe checkout                                      | WebPage + WebApplication w/ Offers       | Checkout / start free       |
-| `/templates`             | `/fr/modeles`                        | Catalogue of the real HR document templates (ON/QC/FED badges)                   | CollectionPage                           | Start free                  |
-| `/guides`                | `/fr/guides`                         | Practical guidance index for Canadian employers                                  | CollectionPage                           | Start free                  |
-| `/guides/template-usage` | `/fr/guides/utilisation-des-modeles` | How template generation works; best practices                                    | WebPage + BreadcrumbList (visible trail) | Start free                  |
-| `/known-limitations`     | `/fr/limites-connues`                | Transparency: what Dutiva is not; AI limits                                      | WebPage                                  | Contact support             |
-| `/legal`                 | `/fr/juridique`                      | Index of the 26 policy documents                                                 | CollectionPage                           | —                           |
-| `/legal/:slug` (×26)     | `/fr/juridique/:frSlug` (×26)        | One policy document; visible last-updated/effective dates                        | WebPage w/ dates + BreadcrumbList        | —                           |
-| `/help`                  | `/fr/aide`                           | Help Centre index; articles grouped by category                                  | CollectionPage                           | Contact support             |
-| `/help/:slug` (×12)      | `/fr/aide/:frSlug` (×12)             | One self-service help article; related articles in the same category             | WebPage + BreadcrumbList (visible trail) | Contact support             |
-| `/contact`               | `/fr/contact`                        | Account-free support request form (product, privacy, security, accessibility)    | WebPage                                  | Submit request              |
-| `/status`                | `/fr/etat`                           | Self-reported service status: platform, Advisor, documents, support              | WebPage                                  | Contact support             |
+| EN path                  | FR path                              | Purpose / primary intent                                                      | Schema                                   | Conversion                  |
+| ------------------------ | ------------------------------------ | ----------------------------------------------------------------------------- | ---------------------------------------- | --------------------------- |
+| `/`                      | `/fr`                                | What Dutiva is: AI-assisted HR compliance software for Canadian employers     | WebPage + WebApplication                 | Start free → `/app/welcome` |
+| `/about`                 | `/fr/a-propos`                       | Who builds Dutiva; mission; built in Canada                                   | AboutPage                                | Start free                  |
+| `/faq`                   | `/fr/faq`                            | Common questions: legal-advice limits, jurisdictions, data, pricing           | FAQPage (12 visible Q&A)                 | Contact support             |
+| `/blog`                  | `/fr/blogue`                         | HR-compliance-in-practice article listing                                     | CollectionPage                           | Start free                  |
+| `/blog/:slug` (×6)       | `/fr/blogue/:frSlug` (×6)            | One blog article — jurisdiction scope, policies, records, leaves, harassment  | WebPage + BreadcrumbList (visible trail) | Start free                  |
+| `/pricing`               | `/fr/tarifs`                         | Plans + visible CAD prices; Stripe checkout                                   | WebPage + WebApplication w/ Offers       | Checkout / start free       |
+| `/templates`             | `/fr/modeles`                        | Catalogue of the real HR document templates (ON/QC/FED badges)                | CollectionPage                           | Start free                  |
+| `/guides`                | `/fr/guides`                         | Practical guidance index for Canadian employers                               | CollectionPage                           | Start free                  |
+| `/guides/template-usage` | `/fr/guides/utilisation-des-modeles` | How template generation works; best practices                                 | WebPage + BreadcrumbList (visible trail) | Start free                  |
+| `/guides/:slug` (×6)     | `/fr/guides/:frSlug` (×6)            | One evergreen guide — notice, probation, documents, contracts, accommodation  | WebPage + BreadcrumbList (visible trail) | Start free                  |
+| `/known-limitations`     | `/fr/limites-connues`                | Transparency: what Dutiva is not; AI limits                                   | WebPage                                  | Contact support             |
+| `/legal`                 | `/fr/juridique`                      | Index of the 26 policy documents                                              | CollectionPage                           | —                           |
+| `/legal/:slug` (×26)     | `/fr/juridique/:frSlug` (×26)        | One policy document; visible last-updated/effective dates                     | WebPage w/ dates + BreadcrumbList        | —                           |
+| `/help`                  | `/fr/aide`                           | Help Centre index; articles grouped by category                               | CollectionPage                           | Contact support             |
+| `/help/:slug` (×12)      | `/fr/aide/:frSlug` (×12)             | One self-service help article; related articles in the same category          | WebPage + BreadcrumbList (visible trail) | Contact support             |
+| `/contact`               | `/fr/contact`                        | Account-free support request form (product, privacy, security, accessibility) | WebPage                                  | Submit request              |
+| `/status`                | `/fr/etat`                           | Self-reported service status: platform, Advisor, documents, support           | WebPage                                  | Contact support             |
 
 The 26 policy slugs and their French equivalents live in
 `src/features/marketing/legal/legalHubData.ts` (`slug` / `frSlug` per row);
 the 12 Help Centre articles live in
-`src/features/support/help/helpCenterData.ts` (`slug` / `frSlug` per article).
+`src/features/support/help/helpCenterData.ts` (`slug` / `frSlug` per article);
+the 12 editorial articles live in `src/features/marketing/articles/`
+(`guideArticles.ts` and `blogArticles.ts`).
+
+The guides and blog collections must stay **disjoint in topic**. Both indexes
+previously listed the same six titles, so giving each a URL under both
+prefixes would have shipped duplicate pages competing with one another in
+search. `src/seo/seo.test.ts` asserts the collections never converge again.
 
 ## Authentication — AUTHENTICATION_NOINDEX
 

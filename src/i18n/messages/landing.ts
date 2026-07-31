@@ -726,54 +726,6 @@ export const landing = defineMessages({
     en: 'Practical resources for Canadian employers navigating employment standards, termination, and documentation workflows.',
     fr: "Ressources pratiques pour les employeurs canadiens qui composent avec les normes du travail, la cessation d'emploi et la documentation.",
   },
-  landing_g1_t: {
-    en: 'Ontario termination notice requirements',
-    fr: "Exigences de préavis de cessation d'emploi en Ontario",
-  },
-  landing_g1_p: {
-    en: 'ESA notice periods, pay in lieu, and severance considerations for Ontario employers.',
-    fr: "Délais de préavis de la LNE, indemnité en tenant lieu et considérations d'indemnité de licenciement pour les employeurs ontariens.",
-  },
-  landing_g2_t: {
-    en: 'Probation clauses in Ontario',
-    fr: 'Clauses de probation en Ontario',
-  },
-  landing_g2_p: {
-    en: "What a valid probation clause needs to do under Ontario's ESA — and what makes one unenforceable.",
-    fr: "Ce qu'une clause de probation valide doit prévoir sous la LNE de l'Ontario — et ce qui la rend inapplicable.",
-  },
-  landing_g3_t: {
-    en: 'Canadian employer document checklist',
-    fr: 'Liste de documents pour les employeurs canadiens',
-  },
-  landing_g3_p: {
-    en: "Core HR documents Canadian employers should have before an employee's first day.",
-    fr: "Documents RH essentiels que les employeurs canadiens devraient avoir avant la première journée d'un employé.",
-  },
-  landing_g4_t: {
-    en: 'Employment contract clauses in Canada',
-    fr: "Clauses contractuelles d'emploi au Canada",
-  },
-  landing_g4_p: {
-    en: 'Key clauses, enforceability considerations, and drafting risks under Canadian employment law.',
-    fr: "Clauses clés, questions d'applicabilité et risques de rédaction en droit du travail canadien.",
-  },
-  landing_g5_t: {
-    en: 'Duty to accommodate in Canada',
-    fr: "Obligation d'accommodement au Canada",
-  },
-  landing_g5_p: {
-    en: 'Employer obligations, undue hardship, and practical accommodation workflows under federal and provincial law.',
-    fr: "Obligations de l'employeur, contrainte excessive et démarches pratiques d'accommodement selon le droit fédéral et provincial.",
-  },
-  landing_g6_t: {
-    en: 'Termination documentation in Canada',
-    fr: "Documentation de cessation d'emploi au Canada",
-  },
-  landing_g6_p: {
-    en: 'What to prepare, what to document, and what to avoid when ending employment across Canadian jurisdictions.',
-    fr: "Ce qu'il faut préparer, documenter et éviter en mettant fin à un emploi dans les différentes compétences canadiennes.",
-  },
   landing_guides_browse: {
     en: 'Browse all guides',
     fr: 'Parcourir tous les guides',

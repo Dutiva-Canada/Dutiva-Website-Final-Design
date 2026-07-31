@@ -1,36 +1,54 @@
+import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import type { MessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
+import { BLOG_ARTICLES, articlePath } from '../articles'
 import { MarketingPageShell, PageCta, PageHero } from './MarketingPage'
 
-const POSTS: { metaKey: MessageKey; titleKey: MessageKey; excerptKey: MessageKey }[] = [
-  { metaKey: 'blog_p1_meta', titleKey: 'blog_p1_t', excerptKey: 'blog_p1_x' },
-  { metaKey: 'blog_p2_meta', titleKey: 'blog_p2_t', excerptKey: 'blog_p2_x' },
-  { metaKey: 'blog_p3_meta', titleKey: 'blog_p3_t', excerptKey: 'blog_p3_x' },
-  { metaKey: 'blog_p4_meta', titleKey: 'blog_p4_t', excerptKey: 'blog_p4_x' },
-  { metaKey: 'blog_p5_meta', titleKey: 'blog_p5_t', excerptKey: 'blog_p5_x' },
-  { metaKey: 'blog_p6_meta', titleKey: 'blog_p6_t', excerptKey: 'blog_p6_x' },
-]
-
-/** /blog — article index cards (blog_* strings). */
+/**
+ * /blog — article index. Cards render from the article registry
+ * (src/features/marketing/articles) and link to each post's own page.
+ *
+ * The blog topics are deliberately disjoint from the /guides collection:
+ * both indexes previously listed the same six topics, and giving each of
+ * those a URL under both prefixes would have shipped duplicate pages
+ * competing with one another in search.
+ */
 export function BlogIndexPage() {
-  const { t } = useI18n()
+  const { t, x, lang } = useI18n()
   return (
     <MarketingPageShell>
       <Seo route="blog" pageType="CollectionPage" />
       <PageHero eyebrow={t('blog_eyebrow')} title={t('blog_h1')} intro={t('blog_intro')} />
 
       <section className="mx-auto max-w-[1200px] px-6 py-8">
-        {/* Article detail pages don't exist yet (the prototype's cards link to
-            '#'), so these are plain cards — article routes are a future addition. */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
-          {POSTS.map((post) => (
-            <article key={post.titleKey} className="premium-card-soft p-[22px]">
-              <div className="text-xs font-medium text-gold-strong">{t(post.metaKey)}</div>
+          {BLOG_ARTICLES.map((post) => (
+            <article key={post.slug} className="premium-card-soft group p-[22px]">
+              <div className="text-xs font-medium text-gold-strong">
+                {x(post.topic)} ·{' '}
+                {x({
+                  en: `${post.readingMinutes} min read`,
+                  fr: `${post.readingMinutes} min de lecture`,
+                })}
+              </div>
               <h2 className="mt-2.5 text-[0.9375rem] font-semibold text-text">
-                {t(post.titleKey)}
+                <Link to={articlePath(post, lang)} className="transition-opacity hover:opacity-80">
+                  {x(post.title)}
+                </Link>
               </h2>
-              <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{t(post.excerptKey)}</p>
+              <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{x(post.summary)}</p>
+              <Link
+                to={articlePath(post, lang)}
+                className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong"
+              >
+                {x({ en: 'Read the article', fr: 'Lire l’article' })}
+                <ArrowRight
+                  size={14}
+                  aria-hidden="true"
+                  className="transition-transform group-hover:translate-x-0.5"
+                />
+              </Link>
             </article>
           ))}
         </div>
