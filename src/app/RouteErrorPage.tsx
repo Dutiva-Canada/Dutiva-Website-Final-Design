@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 import { useLocation, useRouteError } from 'react-router-dom'
 import { langOfPath } from '@/seo/routes'
 import { reportRouteError } from '@/lib/errorReporting'
+import { supportChannel } from '@/config/support'
 
 const PILL_STYLE = { minHeight: 44, padding: '0 20px' } as const
+
+const SUPPORT_EMAIL = supportChannel('support').email
 
 function messageOf(error: unknown): string {
   if (error instanceof Error) return error.message
@@ -26,6 +29,12 @@ function messageOf(error: unknown): string {
  * The site ships a service worker, so a stale mix of cached assets is one
  * plausible way to get here: "Clear the offline cache" is the self-serve
  * escape hatch — it unregisters the worker, drops every cache, and reloads.
+ *
+ * The support address comes from `src/config/support.ts` like everywhere else
+ * (it is pure bilingual data — no context and no lazy chunk, so it respects the
+ * self-contained rule above). The Contact link is a plain anchor for the same
+ * reason the others are: routing through the router that just threw is not a
+ * bet worth making on an error page.
  */
 export function RouteErrorPage() {
   const error = useRouteError()
@@ -92,6 +101,13 @@ export function RouteErrorPage() {
           <a href={lang === 'fr' ? '/fr' : '/'} className="ghost-button" style={PILL_STYLE}>
             {L('Go to the homepage', 'Aller à la page d’accueil')}
           </a>
+          <a
+            href={lang === 'fr' ? '/fr/contact' : '/contact'}
+            className="ghost-button"
+            style={PILL_STYLE}
+          >
+            {L('Contact support', 'Contacter le soutien')}
+          </a>
         </div>
         <p className="mx-auto mt-8 max-w-[52ch] text-sm text-text-3">
           {L('Technical detail: ', 'Détail technique : ')}
@@ -99,8 +115,8 @@ export function RouteErrorPage() {
         </p>
         <p className="mx-auto mt-2 max-w-[52ch] text-sm text-text-3">
           {L('Still stuck? Write to ', 'Toujours bloqué? Écrivez à ')}
-          <a href="mailto:support@dutiva.ca" className="underline">
-            support@dutiva.ca
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">
+            {SUPPORT_EMAIL}
           </a>
         </p>
       </section>

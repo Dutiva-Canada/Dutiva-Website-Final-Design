@@ -5,9 +5,12 @@ import { ArrowLeft, Loader2, MailCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { authMessages as M } from '@/i18n/messages/auth'
 import { usePublicPath } from '@/seo/usePublicPath'
+import { supportChannel } from '@/config/support'
 import { useAuth } from './authContext'
 
 type Mode = 'signin' | 'signup'
+
+const SUPPORT_EMAIL = supportChannel('support').email
 
 /** Shared card chrome so every state (form / sent / signed-in) reads as one panel. */
 const cardClass =
@@ -67,12 +70,25 @@ export function AuthPanel() {
     send(email.trim(), mode === 'signup')
   }
 
+  /* Two exits, because the article does not always resolve it. The second is
+     deliberately email and not the public Contact form: `account_access` is not
+     an `allowPublic` category (create-public-support-ticket rejects it), and a
+     locked-out person cannot reach the in-app form — so an address is the only
+     route that actually works from here. It comes from the support config like
+     every other address on the site. */
   const helpFooter = (
-    <p className="mt-[18px] text-center text-[12.5px] text-text-muted">
+    <p className="mt-[18px] text-center text-[12.5px] leading-[1.6] text-text-muted">
       {L('Trouble signing in?', 'Un problème de connexion?')}{' '}
       <Link to={helpPath} className="font-semibold text-text-2 hover:text-text">
         {L('Get help', 'Obtenir de l’aide')}
       </Link>
+      {' · '}
+      <a
+        href={`mailto:${SUPPORT_EMAIL}`}
+        className="font-semibold text-text-2 hover:text-text"
+      >
+        {SUPPORT_EMAIL}
+      </a>
     </p>
   )
 

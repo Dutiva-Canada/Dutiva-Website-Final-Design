@@ -271,4 +271,22 @@ export const settingsMessages = defineMessages({
     en: 'Immutable log — every sensitive view, document action, permission change, and retention change is recorded with actor and timestamp.',
     fr: 'Journal immuable — chaque consultation sensible, action documentaire, changement de permission et changement de conservation est consigné avec l’acteur et l’horodatage.',
   },
+
+  /* ── Help & support (account-surface entry point) ───────────────────────── */
+  settings_support: { en: 'Help and support', fr: 'Aide et soutien' },
+  settings_support_help_centre: { en: 'Help Centre', fr: 'Centre d’aide' },
+  settings_support_help_centre_note: {
+    en: 'Guides and answers to common questions — the fastest route for most issues.',
+    fr: 'Guides et réponses aux questions courantes — la voie la plus rapide pour la plupart des situations.',
+  },
+  settings_support_request: { en: 'Send a support request', fr: 'Envoyer une demande de soutien' },
+  settings_support_request_note: {
+    en: 'Opens a written ticket you can track here, with a reference and a response target.',
+    fr: 'Ouvre un billet écrit que vous pouvez suivre ici, avec une référence et une cible de réponse.',
+  },
+  settings_support_open: { en: 'Open', fr: 'Ouvrir' },
+  settings_support_email_note: {
+    en: 'If you cannot sign in, write to',
+    fr: 'Si vous ne pouvez pas vous connecter, écrivez à',
+  },
 })
