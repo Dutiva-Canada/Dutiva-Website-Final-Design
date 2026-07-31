@@ -317,7 +317,12 @@ for (const { route, file } of pages) {
   const doc = await readFile(file, 'utf8')
   const body = doc.split('<div id="root">')[1] ?? ''
   for (const m of body.matchAll(/href="(\/[^"#]*)(#[^"]*)?"/g)) {
-    const target = m[1].replace(/\/$/, '') || '/'
+    /* Drop the query before resolving, the same way the hash is already
+       dropped: neither is part of route identity. `/contact?topic=sales`
+       is the Contact page with a category preselected (ContactPage reads
+       the param), not a route of its own — matching the raw href would
+       report every deep link as a broken one. */
+    const target = m[1].split('?')[0].replace(/\/$/, '') || '/'
     if (target.startsWith('/app')) continue // client-rendered surface
     if (target.startsWith('/assets') || target.startsWith('/brand')) {
       if (!existsSync(path.join(dist, target))) fail(`${route}: broken asset link ${target}`)
