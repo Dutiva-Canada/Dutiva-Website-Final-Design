@@ -9,8 +9,10 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * unauthenticated: it accepts only the `allowPublic` categories, has its own
  * anti-abuse controls, and never touches workspace or diagnostic context.
  *
- * Anti-abuse (no third-party CAPTCHA yet — that's the documented next hardening):
+ * Anti-abuse:
  *   • a honeypot field that real users never see;
+ *   • a CAPTCHA (Turnstile/hCaptcha) once CAPTCHA_SECRET_KEY is set — inert
+ *     until then, so merging this did not change the live endpoint;
  *   • per-IP and per-email rate limits backed by support_public_intake, which
  *     stores ONLY salted hashes (never the raw IP or email);
  *   • strict field validation and length caps.
@@ -19,8 +21,9 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * support_tickets). A public ticket has no requester_user_id and no workspace,
  * so under RLS it is visible to admins only — the requester is updated by email.
  *
- * Mirrors src/config/support.ts (public categories, restricted set) and
- * src/features/support/triage.ts (suggestPriority) — keep in sync.
+ * Mirrors src/config/support.ts (public categories, restricted set),
+ * src/features/support/triage.ts (suggestPriority), and
+ * src/features/support/captcha.ts (siteverify handling) — keep in sync.
  */
 
 const corsHeaders = {
@@ -113,6 +116,62 @@ const IP_LIMIT = 3
 const EMAIL_WINDOW_MIN = 60
 const EMAIL_LIMIT = 3
 
+// ── CAPTCHA (mirror of src/features/support/captcha.ts) ──────────────────
+// Turnstile and hCaptcha share one siteverify request/response shape, so the
+// provider is a config value rather than a second code path.
+
+const CAPTCHA_VERIFY_ENDPOINTS: Record<string, string> = {
+  turnstile: 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+  hcaptcha: 'https://api.hcaptcha.com/siteverify',
+}
+
+const CAPTCHA_SECRET = Deno.env.get('CAPTCHA_SECRET_KEY') ?? ''
+const CAPTCHA_PROVIDER = (() => {
+  const raw = (Deno.env.get('CAPTCHA_PROVIDER') ?? '').trim().toLowerCase()
+  return raw === 'hcaptcha' ? 'hcaptcha' : 'turnstile'
+})()
+
+type CaptchaResult = { ok: true } | { ok: false; reason: string }
+
+function interpretSiteverify(payload: unknown): CaptchaResult {
+  if (typeof payload !== 'object' || payload === null) return { ok: false, reason: 'provider_error' }
+  const record = payload as { success?: unknown; 'error-codes'?: unknown }
+  if (record.success === true) return { ok: true }
+  const codes = Array.isArray(record['error-codes'])
+    ? record['error-codes'].filter((c): c is string => typeof c === 'string')
+    : []
+  // Our own misconfiguration ranks above the caller's token — a wrong secret
+  // makes every token "fail", and blaming the token hides the real cause.
+  if (codes.includes('missing-input-secret') || codes.includes('invalid-input-secret')) {
+    return { ok: false, reason: 'bad_secret' }
+  }
+  if (codes.includes('missing-input-response')) return { ok: false, reason: 'missing_token' }
+  if (codes.includes('timeout-or-duplicate')) return { ok: false, reason: 'duplicate_token' }
+  if (codes.includes('invalid-input-response')) return { ok: false, reason: 'invalid_token' }
+  if (codes.includes('bad-request') || codes.includes('internal-error')) {
+    return { ok: false, reason: 'provider_error' }
+  }
+  return { ok: false, reason: 'invalid_token' }
+}
+
+async function verifyCaptcha(token: string, remoteIp: string): Promise<CaptchaResult> {
+  if (!CAPTCHA_SECRET) return { ok: false, reason: 'bad_secret' }
+  if (!token) return { ok: false, reason: 'missing_token' }
+  const form = new URLSearchParams({ secret: CAPTCHA_SECRET, response: token })
+  if (remoteIp && remoteIp !== 'unknown') form.set('remoteip', remoteIp)
+  try {
+    const response = await fetch(CAPTCHA_VERIFY_ENDPOINTS[CAPTCHA_PROVIDER]!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form.toString(),
+    })
+    if (!response.ok) return { ok: false, reason: 'provider_error' }
+    return interpretSiteverify(await response.json())
+  } catch {
+    return { ok: false, reason: 'provider_error' }
+  }
+}
+
 const OPERATOR_EMAIL = Deno.env.get('SUPPORT_OPERATOR_EMAIL') ?? 'support@dutiva.ca'
 
 Deno.serve(async (req: Request) => {
@@ -160,7 +219,8 @@ Deno.serve(async (req: Request) => {
 
   // Rate limiting on salted hashes (never the raw IP/email).
   const salt = Deno.env.get('PUBLIC_INTAKE_SALT') ?? Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? 'dutiva-intake'
-  const ipHash = await sha256hex(`${salt}:ip:${clientIp(req)}`)
+  const ip = clientIp(req)
+  const ipHash = await sha256hex(`${salt}:ip:${ip}`)
   const emailHash = await sha256hex(`${salt}:email:${email}`)
 
   const ipSince = new Date(Date.now() - IP_WINDOW_MIN * 60 * 1000).toISOString()
@@ -173,6 +233,32 @@ Deno.serve(async (req: Request) => {
   ])
   if ((ipCount ?? 0) >= IP_LIMIT || (emailCount ?? 0) >= EMAIL_LIMIT) {
     return json({ error: 'Too many requests in a short time. Please try again later, or email support@dutiva.ca.' }, 429)
+  }
+
+  // CAPTCHA last among the gates, because it is the only one that costs a
+  // network round-trip: anyone already over the per-IP/per-email limit is
+  // turned away above without us calling the provider. Note this does not bound
+  // *failed* attempts — support_public_intake only records accepted ones — so a
+  // script can still burn siteverify calls. That is acceptable (siteverify is
+  // free and unmetered) and no worse than the validation failures that were
+  // already unlimited; it is not a claim that this endpoint is flood-proof.
+  //
+  // Skipped entirely when no secret is configured — that is how this shipped,
+  // and the honeypot + rate limits remain in force. Once the secret IS set it
+  // is a hard gate: a configured CAPTCHA that quietly passes traffic is worse
+  // than none, because the operator believes they are protected.
+  if (CAPTCHA_SECRET) {
+    const token = typeof body.captcha_token === 'string' ? body.captcha_token : ''
+    const verdict = await verifyCaptcha(token, ip)
+    if (!verdict.ok) {
+      // 403 is reserved for exactly this, so the client can tell the customer
+      // to redo the check rather than showing a generic failure.
+      console.error('public intake captcha rejected', { reason: verdict.reason })
+      return json(
+        { error: 'Human verification failed. Please complete the check and try again.', code: verdict.reason },
+        403,
+      )
+    }
   }
 
   const priority = suggestPriority(category, impact, urgency)
