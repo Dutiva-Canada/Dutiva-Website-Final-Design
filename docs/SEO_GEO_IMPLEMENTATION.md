@@ -136,6 +136,7 @@ areaServed Canada) and `WebSite`, plus a page node:
 | Blog / Guides / Templates / Legal hub / Help Centre | `CollectionPage`                                                                                 |
 | Policy documents                                    | `WebPage` with real `datePublished`/`dateModified` (from the displayed dates) + `BreadcrumbList` |
 | Help Centre articles                                | `WebPage` + `BreadcrumbList` (visible trail)                                                     |
+| Guide / blog articles                               | `WebPage` + `BreadcrumbList` (visible trail)                                                     |
 | Guides → Template usage                             | `WebPage` + `BreadcrumbList` (visible trail)                                                     |
 | Known limitations / Contact / Status                | `WebPage`                                                                                        |
 
@@ -178,6 +179,16 @@ injected as meta tags by the prerender script — no tokens live in the repo.
    `pageType`, `breadcrumb`, `faq`, or `extraNodes` as appropriate).
 4. `npm run build` — the prerenderer picks it up automatically; the
    validator fails if metadata is missing or duplicated.
+
+**Add a guide or blog article** — add an entry to `GUIDE_ARTICLES`
+(`src/features/marketing/articles/guideArticles.ts`) or `BLOG_ARTICLES`
+(`blogArticles.ts`) with a `slug`, a localized `frSlug`, and bilingual body
+blocks. The route, metadata, breadcrumb, sitemap entry, and index card are all
+derived — no other file needs editing. Keep the two collections disjoint in
+topic: a title appearing in both would mint duplicate competing pages, and
+`seo.test.ts` fails the build if they converge. Articles follow the editorial
+rules in `articleModel.ts` — concepts and decision points, no published
+statutory figures, never legal advice.
 
 **Add a policy document** — add the content files
 (`src/features/marketing/legal/content/<slug>.{en,fr}.ts`), a row (with

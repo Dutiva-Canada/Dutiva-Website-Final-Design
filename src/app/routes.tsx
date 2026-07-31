@@ -31,6 +31,8 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const PricingShell = lazy(() => import('@/features/marketing/pages/PricingShell').then((m) => ({ default: m.PricingShell })))
 /* prettier-ignore */ const TemplatesPage = lazy(() => import('@/features/marketing/pages/TemplatesPage').then((m) => ({ default: m.TemplatesPage })))
 /* prettier-ignore */ const GuidesIndexPage = lazy(() => import('@/features/marketing/pages/GuidesIndexPage').then((m) => ({ default: m.GuidesIndexPage })))
+/* prettier-ignore */ const GuideArticlePage = lazy(() => import('@/features/marketing/pages/ArticlePage').then((m) => ({ default: m.GuideArticlePage })))
+/* prettier-ignore */ const BlogArticlePage = lazy(() => import('@/features/marketing/pages/ArticlePage').then((m) => ({ default: m.BlogArticlePage })))
 /* prettier-ignore */ const NotFoundPage = lazy(() => import('@/features/marketing/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 /* App surface (providers + shell) — one lazy chunk, see appSurface.tsx. */
 /* prettier-ignore */ const AppWelcome = lazy(() => import('./appSurface').then((m) => ({ default: m.AppWelcome })))
@@ -66,10 +68,15 @@ function publicRoutes(lang: Lang): RouteObject {
       { path: p('about'), element: <AboutPage /> },
       { path: p('faq'), element: <FaqPage /> },
       { path: p('blog'), element: <BlogIndexPage /> },
+      /* :slug is the locale's own slug (FR uses the localized frSlug). */
+      { path: `${p('blog')}/:slug`, element: <BlogArticlePage /> },
       { path: p('pricing'), element: <PricingShell /> },
       { path: p('templates'), element: <TemplatesPage /> },
       { path: p('guides'), element: <GuidesIndexPage /> },
+      /* Ranked above `${p('guides')}/:slug` by React Router's static-segment
+         precedence, so the product how-to keeps its dedicated page. */
       { path: p('templateUsage'), element: <TemplateUsagePage /> },
+      { path: `${p('guides')}/:slug`, element: <GuideArticlePage /> },
       { path: p('knownLimitations'), element: <KnownLimitationsPage /> },
       { path: p('legal'), element: <LegalHubPage /> },
       /* :slug is the locale's own slug (FR uses the localized frSlug). */

@@ -4,6 +4,8 @@ import { LEGAL_HUB_GROUPS } from '@/features/marketing/legal/legalHubData'
 import type { LegalHubRow } from '@/features/marketing/legal/legalHubData'
 import { HELP_ARTICLES } from '@/features/support/help/helpCenterData'
 import type { HelpArticle } from '@/features/support/help/helpCenterData'
+import { ALL_ARTICLES, articlePath } from '@/features/marketing/articles'
+import type { Article } from '@/features/marketing/articles'
 import { messages } from '@/i18n/messages'
 
 /**
@@ -271,6 +273,18 @@ export function helpDocDescription(article: HelpArticle, lang: Lang): string {
 }
 
 /* ------------------------------------------------------------------ */
+/* Editorial articles (/guides/:slug and /blog/:slug)                  */
+/* ------------------------------------------------------------------ */
+
+export function articleTitle(article: Article, lang: Lang): string {
+  return pick(article.title, lang)
+}
+
+export function articleDescription(article: Article, lang: Lang): string {
+  return pick(article.summary, lang)
+}
+
+/* ------------------------------------------------------------------ */
 /* Locale path mapping (language toggle + hreflang)                    */
 /* ------------------------------------------------------------------ */
 
@@ -319,7 +333,22 @@ export function allPublicPages(): PublicPage[] {
     },
     indexable: true,
   }))
-  return [...staticPages, ...legalPages, ...helpPages]
+  /* Editorial articles — `/guides/<slug>` and `/blog/<slug>`, keyed by
+     collection so the two never collide even if a slug were ever reused. */
+  const articlePages: PublicPage[] = ALL_ARTICLES.map((article) => ({
+    key: `${article.collection}Doc:${article.slug}`,
+    path: { en: articlePath(article, 'en'), fr: articlePath(article, 'fr') },
+    title: {
+      en: `${articleTitle(article, 'en')} | Dutiva`,
+      fr: `${articleTitle(article, 'fr')} | Dutiva`,
+    },
+    description: {
+      en: articleDescription(article, 'en'),
+      fr: articleDescription(article, 'fr'),
+    },
+    indexable: true,
+  }))
+  return [...staticPages, ...legalPages, ...helpPages, ...articlePages]
 }
 
 /**

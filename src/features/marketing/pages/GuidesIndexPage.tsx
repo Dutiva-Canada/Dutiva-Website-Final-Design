@@ -1,26 +1,21 @@
-import { BookOpen } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowRight, BookOpen } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import type { MessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
+import { usePublicPath } from '@/seo/usePublicPath'
+import { GUIDE_ARTICLES, articlePath } from '../articles'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
-/** Reuses the landing page's Guides section copy (landing_g1_t … landing_g6_t/p). */
-const GUIDES: { title: MessageKey; body: MessageKey }[] = [
-  { title: 'landing_g1_t', body: 'landing_g1_p' },
-  { title: 'landing_g2_t', body: 'landing_g2_p' },
-  { title: 'landing_g3_t', body: 'landing_g3_p' },
-  { title: 'landing_g4_t', body: 'landing_g4_p' },
-  { title: 'landing_g5_t', body: 'landing_g5_p' },
-  { title: 'landing_g6_t', body: 'landing_g6_p' },
-]
-
 /**
- * /guides — index of HR guides linked from the landing page's Guides
- * section ("Browse all guides"). Card copy is the same landing_g* strings
- * shown in the teaser; this page just gives them a permanent home.
+ * /guides — index of the evergreen employment-law guides. Cards render from
+ * the article registry (src/features/marketing/articles) and link to each
+ * guide's own page, so this index and the landing teaser share one source.
+ * `/guides/template-usage` is listed separately: it is a product how-to with
+ * its own registry route rather than an article in the collection.
  */
 export function GuidesIndexPage() {
-  const { t } = useI18n()
+  const { t, x, lang } = useI18n()
+  const { p } = usePublicPath()
 
   return (
     <MarketingPageShell>
@@ -33,18 +28,47 @@ export function GuidesIndexPage() {
 
       <PageSection title={t('guidesIdx_section_title')}>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
-          {GUIDES.map((guide) => (
-            <div key={guide.title} className="premium-card-soft p-[22px]">
+          {GUIDE_ARTICLES.map((guide) => (
+            <Link
+              key={guide.slug}
+              to={articlePath(guide, lang)}
+              className="premium-card-soft group block p-[22px]"
+            >
               <div className="flex items-start gap-3">
                 <BookOpen size={16} className="mt-0.5 flex-none text-gold-strong" />
                 <div>
-                  <div className="text-[0.9375rem] font-semibold text-text">{t(guide.title)}</div>
-                  <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{t(guide.body)}</p>
+                  <div className="text-xs font-medium text-gold-strong">
+                    {x(guide.topic)} ·{' '}
+                    {x({
+                      en: `${guide.readingMinutes} min read`,
+                      fr: `${guide.readingMinutes} min de lecture`,
+                    })}
+                  </div>
+                  <h3 className="mt-1.5 text-[0.9375rem] font-semibold text-text">
+                    {x(guide.title)}
+                  </h3>
+                  <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{x(guide.summary)}</p>
+                  <span className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong">
+                    {x({ en: 'Read the guide', fr: 'Lire le guide' })}
+                    <ArrowRight
+                      size={14}
+                      aria-hidden="true"
+                      className="transition-transform group-hover:translate-x-0.5"
+                    />
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
+
+        <Link
+          to={p('templateUsage')}
+          className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+        >
+          {t('tmplGuide_h1')}
+          <ArrowRight size={15} aria-hidden="true" />
+        </Link>
       </PageSection>
 
       <PageCta

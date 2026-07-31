@@ -20,16 +20,30 @@ import {
   legalDocPath,
 } from './routes'
 import { HELP_ARTICLES } from '@/features/support/help/helpCenterData'
+import { ALL_ARTICLES, BLOG_ARTICLES, GUIDE_ARTICLES } from '@/features/marketing/articles'
 import { ORG, SITE_ORIGIN, absoluteUrl } from './site'
 
 describe('SEO route registry', () => {
   const pages = allPublicPages()
 
-  it('covers the static routes plus the policy documents and help articles', () => {
+  it('covers the static routes, policy documents, help articles, and editorial articles', () => {
     expect(SEO_ROUTES.length).toBeGreaterThanOrEqual(10)
     expect(LEGAL_ROWS).toHaveLength(26)
     expect(HELP_ARTICLES.length).toBeGreaterThan(0)
-    expect(pages).toHaveLength(SEO_ROUTES.length + 26 + HELP_ARTICLES.length)
+    expect(ALL_ARTICLES.length).toBeGreaterThan(0)
+    expect(pages).toHaveLength(SEO_ROUTES.length + 26 + HELP_ARTICLES.length + ALL_ARTICLES.length)
+  })
+
+  it('keeps the guides and blog collections disjoint', () => {
+    /* Both indexes once listed the same six topics. Giving each a URL under
+       both prefixes would ship duplicate pages competing in search, so the
+       collections must never converge again. */
+    const guideTitles = new Set(GUIDE_ARTICLES.map((a) => a.title.en))
+    for (const post of BLOG_ARTICLES) {
+      expect(guideTitles.has(post.title.en)).toBe(false)
+    }
+    const slugs = ALL_ARTICLES.flatMap((a) => [a.slug, a.frSlug])
+    expect(new Set(slugs).size).toBe(slugs.length)
   })
 
   it('gives every page a distinct pathname per locale, FR under /fr', () => {
@@ -115,9 +129,7 @@ describe('buildHead', () => {
   it('emits self-canonical, reciprocal hreflang, and social tags', () => {
     const head = buildHead(input)
     const byRel = (rel: string, hreflang?: string) =>
-      head.tags.filter(
-        (t) => t.attrs.rel === rel && (!hreflang || t.attrs.hreflang === hreflang),
-      )
+      head.tags.filter((t) => t.attrs.rel === rel && (!hreflang || t.attrs.hreflang === hreflang))
     expect(byRel('canonical')[0]!.attrs.href).toBe(`${SITE_ORIGIN}/about`)
     expect(byRel('alternate', 'en-CA')[0]!.attrs.href).toBe(`${SITE_ORIGIN}/about`)
     expect(byRel('alternate', 'fr-CA')[0]!.attrs.href).toBe(`${SITE_ORIGIN}/fr/a-propos`)
