@@ -11,10 +11,14 @@ Classifications: `PUBLIC_INDEXABLE` · `PUBLIC_NOINDEX` ·
 `AUTHENTICATION_NOINDEX` · `PRIVATE_APPLICATION_NOINDEX` ·
 `ADMIN_INTERNAL_NOINDEX` · `API_NON_DOCUMENT` · `REDIRECT` · `NOT_FOUND`.
 
-## Public marketing surface — PUBLIC_INDEXABLE (72 URLs)
+## Public marketing surface — PUBLIC_INDEXABLE (102 URLs)
 
 Prerendered, self-canonical, reciprocal en-CA/fr-CA/x-default hreflang, in
 sitemap.xml. Purpose/intent notes double as the content matrix.
+
+51 pages × 2 locales: 13 static routes, the 26 policy documents, and the 12
+Help Centre articles. `scripts/validate-seo.mjs` compares `dist/` against the
+route registry entry by entry, so this count cannot drift from the build.
 
 | EN path                  | FR path                              | Purpose / primary intent                                                         | Schema                                   | Conversion                  |
 | ------------------------ | ------------------------------------ | -------------------------------------------------------------------------------- | ---------------------------------------- | --------------------------- |
@@ -29,9 +33,15 @@ sitemap.xml. Purpose/intent notes double as the content matrix.
 | `/known-limitations`     | `/fr/limites-connues`                | Transparency: what Dutiva is not; AI limits                                      | WebPage                                  | Contact support             |
 | `/legal`                 | `/fr/juridique`                      | Index of the 26 policy documents                                                 | CollectionPage                           | —                           |
 | `/legal/:slug` (×26)     | `/fr/juridique/:frSlug` (×26)        | One policy document; visible last-updated/effective dates                        | WebPage w/ dates + BreadcrumbList        | —                           |
+| `/help`                  | `/fr/aide`                           | Help Centre index; articles grouped by category                                  | CollectionPage                           | Contact support             |
+| `/help/:slug` (×12)      | `/fr/aide/:frSlug` (×12)             | One self-service help article; related articles in the same category             | WebPage + BreadcrumbList (visible trail) | Contact support             |
+| `/contact`               | `/fr/contact`                        | Account-free support request form (product, privacy, security, accessibility)    | WebPage                                  | Submit request              |
+| `/status`                | `/fr/etat`                           | Self-reported service status: platform, Advisor, documents, support              | WebPage                                  | Contact support             |
 
 The 26 policy slugs and their French equivalents live in
-`src/features/marketing/legal/legalHubData.ts` (`slug` / `frSlug` per row).
+`src/features/marketing/legal/legalHubData.ts` (`slug` / `frSlug` per row);
+the 12 Help Centre articles live in
+`src/features/support/help/helpCenterData.ts` (`slug` / `frSlug` per article).
 
 ## Authentication — AUTHENTICATION_NOINDEX
 
