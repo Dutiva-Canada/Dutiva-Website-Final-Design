@@ -13,6 +13,7 @@ vi.mock('./attachmentsApi', async (importOriginal) => {
 })
 
 import { SupportAttachments } from './SupportAttachments'
+import { AttachmentBlockedError } from './attachmentsApi'
 
 const existing = {
   id: 'att-1',
@@ -77,5 +78,32 @@ describe('SupportAttachments', () => {
     await user.upload(input, file)
     expect(uploadAttachment).toHaveBeenCalledWith('t1', file)
     expect(await screen.findByText('notes.pdf')).toBeInTheDocument()
+  })
+
+  it('marks a flagged file and refuses to offer it for download', async () => {
+    listAttachments.mockResolvedValue([{ ...existing, scanStatus: 'flagged' }])
+    renderApp(<SupportAttachments ticketId="t1" canUpload={false} />)
+    expect(await screen.findByText('Blocked')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Download/ })).toBeDisabled()
+  })
+
+  it('explains a scan-blocked download instead of a generic failure', async () => {
+    const user = userEvent.setup()
+    // The server is the real gate: a file the list still shows as pending can
+    // come back 423 because the scan has not cleared it yet.
+    getAttachmentDownloadUrl.mockRejectedValue(new AttachmentBlockedError('unscanned'))
+    listAttachments.mockResolvedValue([existing])
+    renderApp(<SupportAttachments ticketId="t1" canUpload={false} />)
+    await user.click(await screen.findByRole('button', { name: /Download/ }))
+    expect(screen.getByRole('alert')).toHaveTextContent(/still being scanned for malware/)
+  })
+
+  it('names malware plainly when that is why the download was refused', async () => {
+    const user = userEvent.setup()
+    getAttachmentDownloadUrl.mockRejectedValue(new AttachmentBlockedError('infected'))
+    listAttachments.mockResolvedValue([existing])
+    renderApp(<SupportAttachments ticketId="t1" canUpload={false} />)
+    await user.click(await screen.findByRole('button', { name: /Download/ }))
+    expect(screen.getByRole('alert')).toHaveTextContent(/flagged by our malware scan/)
   })
 })

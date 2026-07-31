@@ -14,7 +14,13 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  *
  * The metadata row never holds file bytes; the object key is
  * `<uid>/<ticket>/<file>` (matching the storage policies in migration 0014).
- * `scan_status` starts `pending`; a malware-scan worker (future) flips it.
+ * `scan_status` starts `pending`; the `support-attachment-scan` worker flips it.
+ *
+ * `sign` enforces the scan verdict — mirroring `canReleaseAttachment` in
+ * src/features/support/attachmentScan.ts. A `flagged` file is refused outright,
+ * for admins too; anything not yet `clean` is refused only while a scanner is
+ * actually configured, so with no scanner the download path behaves exactly as
+ * it always has.
  */
 
 const corsHeaders = {
@@ -31,6 +37,21 @@ function json(body: unknown, status = 200) {
 
 const BUCKET = 'support-attachments'
 const SIGNED_URL_TTL = 60 // seconds
+
+/** Scanning is "on" exactly when the worker has somewhere to send files. */
+const SCANNING_ENABLED = (Deno.env.get('SUPPORT_ATTACHMENT_SCAN_URL') ?? '') !== ''
+
+/** Mirror of canReleaseAttachment (src/features/support/attachmentScan.ts). */
+function canRelease(
+  scanStatus: string,
+): { allowed: true } | { allowed: false; reason: 'infected' | 'unscanned' } {
+  // Unconditional: a known-bad file does not become releasable because the
+  // operator later removed the scan URL.
+  if (scanStatus === 'flagged') return { allowed: false, reason: 'infected' }
+  if (!SCANNING_ENABLED) return { allowed: true }
+  if (scanStatus === 'clean') return { allowed: true }
+  return { allowed: false, reason: 'unscanned' }
+}
 const MAX_SIZE = 26214400 // 25 MB (matches the bucket limit)
 const ALLOWED_MIME = new Set([
   'image/png', 'image/jpeg', 'image/gif', 'image/webp',
@@ -155,7 +176,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: attachment, error: attachError } = await admin
       .from('support_attachments')
-      .select('id, ticket_id, storage_path, file_name')
+      .select('id, ticket_id, storage_path, file_name, scan_status')
       .eq('id', attachmentId)
       .maybeSingle()
     if (attachError) return json({ error: attachError.message }, 500)
@@ -168,6 +189,21 @@ Deno.serve(async (req: Request) => {
       .maybeSingle()
     if (!ticket || !(await canAccessTicket(ticket))) {
       return json({ error: 'Not allowed' }, 403)
+    }
+
+    // Access is not the same question as safety — check both.
+    const release = canRelease(attachment.scan_status ?? 'pending')
+    if (!release.allowed) {
+      return json(
+        {
+          error:
+            release.reason === 'infected'
+              ? 'This file was flagged by the malware scan and cannot be downloaded.'
+              : 'This file has not finished the malware scan yet. Please try again shortly.',
+          code: release.reason,
+        },
+        423,
+      )
     }
 
     const { data: signed, error: signError } = await admin.storage
