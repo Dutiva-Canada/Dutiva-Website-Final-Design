@@ -212,7 +212,10 @@ export function Header() {
         />
         <aside
           inert={!menuOpen}
-          className={`pointer-events-auto absolute top-0 right-0 bottom-0 flex w-[min(84vw,340px)] flex-col border-l border-border bg-bg-elevated p-5 shadow-[-20px_0_60px_rgba(0,0,0,0.5)] transition-transform duration-240 ease-in-out motion-reduce:transition-none ${
+          /* Inside a `fixed` wrapper, so this panel is viewport-positioned and
+             escapes body's safe-area padding — it pays its own insets on top
+             of the base p-5. Right, not left: it is flush to the right edge. */
+          className={`pointer-events-auto absolute top-0 right-0 bottom-0 flex w-[min(84vw,340px)] flex-col border-l border-border bg-bg-elevated p-5 pt-[calc(1.25rem_+_env(safe-area-inset-top))] pr-[calc(1.25rem_+_env(safe-area-inset-right))] pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] shadow-[-20px_0_60px_rgba(0,0,0,0.5)] transition-transform duration-240 ease-in-out motion-reduce:transition-none ${
             menuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >

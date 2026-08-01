@@ -73,8 +73,11 @@ function sidebarClasses(mode: SidebarMode, drawerEntered: boolean) {
     'flex h-full shrink-0 flex-col border-r border-border bg-inset',
     expanded ? EXPANDED_WIDTH : COMPACT_WIDTH,
     mode === 'compact' && 'relative z-1',
+    /* The drawer is viewport-positioned, so it escapes the safe-area padding
+       body and AppShell apply to the in-flow tree and has to pay its own
+       insets. Left, not right: it is flush to the left edge. */
     mode === 'drawer' &&
-      'fixed top-0 bottom-0 left-0 z-70 shadow-[8px_0_30px_rgba(0,0,0,0.15)] transition-transform duration-220 ease-in-out',
+      'fixed top-0 bottom-0 left-0 z-70 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] shadow-[8px_0_30px_rgba(0,0,0,0.15)] transition-transform duration-220 ease-in-out',
     mode === 'drawer' && (drawerEntered ? 'translate-x-0' : '-translate-x-full'),
   )
 }

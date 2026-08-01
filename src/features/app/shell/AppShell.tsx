@@ -142,9 +142,18 @@ export function AppShell() {
      topbar and the sidebar clear of it together. Only non-zero in an installed
      PWA (the manifest is `display: standalone`); Safari's own chrome already
      reserves that space when browsing normally. The bottom inset is paid by
-     MobileNav, and the horizontal ones by body in base.css. */
+     MobileNav, and the horizontal ones by body in base.css — except that
+     MobileNav only renders below 768px, so above that the frame pays the
+     bottom inset itself. That covers standalone iPads and, more to the point,
+     a landscape iPhone: rotating one takes it past 768px, out of `isMobile`
+     and away from the nav that would otherwise have paid it. */
   return (
-    <div className="surface-app landscape-compact flex h-dvh flex-col overflow-hidden bg-bg pt-[env(safe-area-inset-top)] font-sans text-text">
+    <div
+      className={cx(
+        'surface-app landscape-compact flex h-dvh flex-col overflow-hidden bg-bg pt-[env(safe-area-inset-top)] font-sans text-text',
+        !isMobile && 'pb-[env(safe-area-inset-bottom)]',
+      )}
+    >
       {isMobile && (
         <MobileTopbar
           title={title}

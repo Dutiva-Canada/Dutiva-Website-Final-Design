@@ -148,7 +148,10 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-border">
-        <div className="mx-auto max-w-[1200px] px-6 py-4 text-xs text-text-3">
+        {/* Last row on the page, so it pays the bottom inset — body can't:
+            padding there would push the app's 100dvh frame past the viewport
+            and leave the workspace scrolling. */}
+        <div className="mx-auto max-w-[1200px] px-6 py-4 pb-[calc(1rem_+_env(safe-area-inset-bottom))] text-xs text-text-3">
           {lt('landing_foot_copyright')}
         </div>
       </div>
