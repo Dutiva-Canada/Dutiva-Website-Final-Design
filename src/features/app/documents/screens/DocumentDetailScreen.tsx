@@ -13,7 +13,13 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { ToastTone } from '@/features/app/toasts/toastsContext'
 import { useDoclib } from '../doclibContext'
 import { ActBtn, DocChip, DocPaper, JurisdictionPill, Skel } from '../components'
-import { computedTokens, docActionsFor, resolveBlocks, templateTokens } from '../engine'
+import {
+  answerLabels,
+  computedTokens,
+  docActionsFor,
+  resolveBlocks,
+  templateTokens,
+} from '../engine'
 import type { DocAction } from '../engine'
 import {
   documentStatusInfo,
@@ -299,24 +305,26 @@ function ReviewBanner({
   )
 }
 
+/* No `lang` parameter: everything in the preview follows `doc.language`, the
+   language the document was written in, rather than the workspace's locale. */
 function previewData(
   doc: GeneratedDoc,
   template: DocTemplate | undefined,
   org: OrgProfile,
-  lang: Lang,
 ): { blocks: PreviewBlock[]; values: Record<string, string>; tokens: string[] } {
   const blocks = template
     ? resolveBlocks(template, {
         jurisdiction: doc.jurisdiction,
         headcount: org.headcount,
         unionized: org.unionized,
+        answers: doc.answers,
       })
     : []
   return {
     blocks,
     values: {
-      ...computedTokens(doc.jurisdiction, lang, fmtDate(doc.updatedAt, lang)),
-      ...doc.answers,
+      ...computedTokens(doc.jurisdiction, doc.language, fmtDate(doc.updatedAt, doc.language)),
+      ...(template ? answerLabels(template, doc.answers, doc.language) : doc.answers),
     },
     tokens: template ? templateTokens(template) : Object.keys(doc.answers),
   }
@@ -327,16 +335,18 @@ function DocumentPreview({
   template,
   blocks,
   values,
+  docLang,
 }: {
   readonly active: boolean
   readonly template: DocTemplate | undefined
   readonly blocks: PreviewBlock[]
   readonly values: Record<string, string>
+  readonly docLang: 'en' | 'fr'
 }) {
   if (!active || !template) return null
   return (
     <div className="max-h-[70vh] overflow-y-auto rounded-[14px]">
-      <DocPaper blocks={blocks} values={values} />
+      <DocPaper blocks={blocks} values={values} docLang={docLang} />
     </div>
   )
 }
@@ -364,7 +374,7 @@ export function DocumentDetailScreen() {
 
   /* Preview: conditional clauses resolved against the live org profile; merge
      values = computed tokens under the wizard answers. */
-  const { blocks, values, tokens } = previewData(doc, template, org, lang)
+  const { blocks, values, tokens } = previewData(doc, template, org)
   const versions = [...doc.versions].sort((a, b) => b.n - a.n)
   const recipients = [...doc.recipients].sort((a, b) => a.order - b.order)
   const audit = [...doc.audit].reverse()
@@ -501,6 +511,7 @@ export function DocumentDetailScreen() {
               template={template}
               blocks={blocks}
               values={values}
+              docLang={doc.language}
             />
 
             <div

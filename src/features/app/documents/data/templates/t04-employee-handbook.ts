@@ -1,5 +1,11 @@
-/* GENERATED from the HR Documents Library handoff (dutiva-data.js) — do not
-   hand-edit. Regenerate with scripts/generate-doclib.mjs (see repo docs). */
+/* Originally GENERATED from the HR Documents Library handoff (dutiva-data.js)
+   by scripts/generate-doclib.mjs. **That generator is retired** — its own
+   header says so, its source JSON was never committed, and it fails at the
+   first read. The "regenerate rather than edit" instruction it left here
+   pointed at a process that no longer exists, so this file is hand-maintained
+   like the rest of the catalogue. Edit it deliberately and keep the FR in
+   step; docs/FOUR_RING_FRAMEWORK.md records why. */
+import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
 export const tplT04: DocTemplate = {
@@ -161,11 +167,16 @@ export const tplT04: DocTemplate = {
     },
     {
       type: 'note',
-      text: {
-        en: 'Generated from your answers as a starting point. Review before use — Dutiva provides compliance-oriented HR guidance, not legal advice.',
-        fr: 'Généré à partir de vos réponses comme point de départ. À réviser avant usage — Dutiva offre un accompagnement RH axé sur la conformité, non des conseils juridiques.',
-      },
       tone: 'info',
+      text: {
+        en: 'Generated from your answers as a starting point.',
+        fr: 'Généré à partir de vos réponses comme point de départ.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'org',

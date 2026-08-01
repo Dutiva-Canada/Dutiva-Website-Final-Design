@@ -5,6 +5,7 @@
    this tool is "gather information without requesting a medical diagnosis" —
    that constraint is the whole point of the document, so the prompts are
    written to make asking for a diagnosis the harder thing to do. */
+import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
 export const tplT21: DocTemplate = {
@@ -282,11 +283,16 @@ export const tplT21: DocTemplate = {
     },
     {
       type: 'note',
-      text: {
-        en: 'Generated from your answers as a starting point. Review before use — Dutiva provides compliance-oriented HR guidance, not legal advice.',
-        fr: 'Généré à partir de vos réponses comme point de départ. À réviser avant usage — Dutiva offre un accompagnement RH axé sur la conformité, non des conseils juridiques.',
-      },
       tone: 'info',
+      text: {
+        en: 'Generated from your answers as a starting point.',
+        fr: 'Généré à partir de vos réponses comme point de départ.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',

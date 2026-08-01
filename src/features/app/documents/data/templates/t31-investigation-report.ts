@@ -9,6 +9,7 @@
    — is captured rather than assumed. Both are what a report is tested on
    when the investigation is later challenged, and both are what a report
    written as a narrative leaves out. */
+import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
 export const tplT31: DocTemplate = {
@@ -440,11 +441,16 @@ export const tplT31: DocTemplate = {
     },
     {
       type: 'note',
-      text: {
-        en: 'Higher-risk document. Written in contemplation of a complaint, it may be producible in a proceeding — and where legal privilege is intended over an investigation, that has to be structured before the investigation starts, not claimed afterwards. Lawyer review is recommended. Dutiva does not provide legal advice.',
-        fr: 'Document à risque élevé. Rédigé en prévision d’une plainte, il peut être communicable dans une instance — et lorsqu’un privilège juridique est recherché sur une enquête, cela doit être structuré avant son début et non invoqué après coup. Une révision juridique est recommandée. Dutiva ne fournit pas de conseils juridiques.',
-      },
       tone: 'risk',
+      text: {
+        en: 'Higher-risk document. Written in contemplation of a complaint, it may be producible in a proceeding — and where legal privilege is intended over an investigation, that has to be structured before the investigation starts, not claimed afterwards. Lawyer review is recommended.',
+        fr: 'Document à risque élevé. Rédigé en prévision d’une plainte, il peut être communicable dans une instance — et lorsqu’un privilège juridique est recherché sur une enquête, cela doit être structuré avant son début et non invoqué après coup. Une révision juridique est recommandée.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',

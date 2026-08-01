@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useI18n } from '@/i18n/context'
+import type { Bi } from '@/i18n/core'
 import { chipToneClasses, statusChipBaseClass } from '@/components/chips'
 import { mergeSegments } from './engine'
 import type { MergeSegment } from './engine'
@@ -184,12 +185,26 @@ export function DocPaper({
   blocks,
   values,
   className,
+  docLang,
 }: {
   readonly blocks: PreviewBlock[]
   readonly values: Record<string, string>
   readonly className?: string
+  /**
+   * The language the *document* is written in, which is not the UI locale —
+   * a workspace in English can generate a French letter. Pass it wherever a
+   * document has one, so block copy and merged answers agree; omit it on the
+   * template detail preview, which has no document and follows the UI.
+   */
+  readonly docLang?: 'en' | 'fr'
 }) {
-  const { lang, x } = useI18n()
+  const { lang: uiLang } = useI18n()
+  const lang = docLang ?? uiLang
+  /* Everything inside the paper is the document, so it all follows the
+     document's language — headings and signature roles included. Resolving
+     those through the UI's `x()` was how a French document came to render
+     French paragraphs under English headings. */
+  const d = (value: Bi): string => value[lang]
   return (
     <div
       className={`rounded-[12px] border border-border bg-surface p-[clamp(18px,2.5vw,28px)] font-serif text-[12.5px] leading-[1.7] text-text shadow-sm ${className ?? ''}`}
@@ -219,7 +234,7 @@ export function DocPaper({
                 {block.heading && (
                   <div className="text-[12px] font-bold">
                     {block.n !== undefined ? `${block.n}. ` : ''}
-                    {x(block.heading)}
+                    {d(block.heading)}
                   </div>
                 )}
                 <p className="mt-0.5">
@@ -255,7 +270,7 @@ export function DocPaper({
                 {(block.roles ?? []).map((role) => (
                   <div key={role.en}>
                     <div className="border-b border-text/60 pb-6" aria-hidden="true" />
-                    <div className="mt-1 text-[11px] text-text-muted">{x(role)}</div>
+                    <div className="mt-1 text-[11px] text-text-muted">{d(role)}</div>
                   </div>
                 ))}
               </div>

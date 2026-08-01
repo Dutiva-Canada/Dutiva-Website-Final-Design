@@ -1,3 +1,4 @@
+import { DOC_DISCLAIMER_NOTE } from './data/meta'
 import type { DocTemplate } from './data/types'
 
 /**
@@ -61,7 +62,10 @@ export const tplT17: DocTemplate = {
   estMinutes: 8,
   usageCount: 0,
   statutory: [
-    { en: 'ESA, 2000 — statutory rights cannot be waived', fr: 'LNE, 2000 — les droits légaux ne peuvent être levés' },
+    {
+      en: 'ESA, 2000 — statutory rights cannot be waived',
+      fr: 'LNE, 2000 — les droits légaux ne peuvent être levés',
+    },
   ],
   jurisdictionNotes: {
     ON: {
@@ -72,8 +76,14 @@ export const tplT17: DocTemplate = {
   includes: [
     { en: 'Consideration (enhanced payment)', fr: 'Contrepartie (indemnité bonifiée)' },
     { en: 'Scope of release', fr: 'Portée de la quittance' },
-    { en: 'Non-waivable claims carve-out', fr: 'Exclusion des réclamations non susceptibles de renonciation' },
-    { en: 'Independent legal advice acknowledgment', fr: 'Attestation de conseil juridique indépendant' },
+    {
+      en: 'Non-waivable claims carve-out',
+      fr: 'Exclusion des réclamations non susceptibles de renonciation',
+    },
+    {
+      en: 'Independent legal advice acknowledgment',
+      fr: 'Attestation de conseil juridique indépendant',
+    },
   ],
   questions: [
     {
@@ -93,7 +103,13 @@ export const tplT17: DocTemplate = {
   ],
   preview: [
     { type: 'title', text: { en: 'Release of Claims', fr: 'Quittance de réclamations' } },
-    { type: 'meta', text: { en: '{{org}} · {{today}} · {{jurisdiction}}', fr: '{{org}} · {{today}} · {{jurisdiction}}' } },
+    {
+      type: 'meta',
+      text: {
+        en: '{{org}} · {{today}} · {{jurisdiction}}',
+        fr: '{{org}} · {{today}} · {{jurisdiction}}',
+      },
+    },
     {
       type: 'para',
       text: {
@@ -104,7 +120,10 @@ export const tplT17: DocTemplate = {
     {
       type: 'clause',
       n: 1,
-      heading: { en: 'Claims that cannot be released', fr: 'Réclamations ne pouvant faire l’objet d’une quittance' },
+      heading: {
+        en: 'Claims that cannot be released',
+        fr: 'Réclamations ne pouvant faire l’objet d’une quittance',
+      },
       text: {
         en: 'This release does not affect any claim that cannot be waived by law, including certain human rights or workers’ compensation claims.',
         fr: 'Cette quittance n’affecte aucune réclamation qui ne peut être levée par la loi, y compris certaines réclamations relatives aux droits de la personne ou à l’indemnisation des accidents du travail.',
@@ -119,14 +138,25 @@ export const tplT17: DocTemplate = {
         fr: 'L’employé devrait obtenir un avis juridique indépendant avant de signer. Une clause de reconnaissance standard confirmant cela est incluse ci-dessous.',
       },
     },
-    { type: 'sig', roles: [{ en: 'Employer representative', fr: 'Représentant de l’employeur' }, { en: 'Employee', fr: 'Employé(e)' }] },
+    {
+      type: 'sig',
+      roles: [
+        { en: 'Employer representative', fr: 'Représentant de l’employeur' },
+        { en: 'Employee', fr: 'Employé(e)' },
+      ],
+    },
     {
       type: 'note',
       tone: 'risk',
       text: {
-        en: 'Higher-risk document. Lawyer review is recommended before this is sent or signed. Dutiva does not provide legal advice.',
-        fr: 'Document à risque élevé. Une révision juridique est recommandée avant l’envoi ou la signature. Dutiva ne fournit pas de conseils juridiques.',
+        en: 'Higher-risk document. Lawyer review is recommended before this is sent or signed.',
+        fr: 'Document à risque élevé. Une révision juridique est recommandée avant l’envoi ou la signature.',
       },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',
@@ -190,7 +220,10 @@ export const tplT18: DocTemplate = {
     { type: 'title', text: { en: 'Offboarding Checklist', fr: 'Liste de vérification de départ' } },
     {
       type: 'meta',
-      text: { en: '{{employee_name}} · last day {{last_day}}', fr: '{{employee_name}} · dernier jour {{last_day}}' },
+      text: {
+        en: '{{employee_name}} · last day {{last_day}}',
+        fr: '{{employee_name}} · dernier jour {{last_day}}',
+      },
     },
     {
       type: 'para',
@@ -222,7 +255,17 @@ export const tplT18: DocTemplate = {
     },
     {
       type: 'para',
-      text: { en: 'Exit interview scheduled; reference contact designated.', fr: 'Entrevue de départ planifiée; personne-ressource de référence désignée.' },
+      text: {
+        en: 'Exit interview scheduled; reference contact designated.',
+        fr: 'Entrevue de départ planifiée; personne-ressource de référence désignée.',
+      },
+    },
+    /* Added when the disclaimer guard was extended to the whole catalogue: this
+       was the one shipped template carrying no disclaimer at all. */
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',
@@ -251,9 +294,18 @@ export const tplT19: DocTemplate = {
   estMinutes: 8,
   usageCount: 0,
   statutory: [
-    { en: 'Human Rights Code (Ontario) — duty to accommodate to the point of undue hardship', fr: 'Code des droits de la personne (Ontario) — obligation d’accommodement jusqu’au point de préjudice injustifié' },
-    { en: 'Charte des droits et libertés de la personne (Quebec), art. 10', fr: 'Charte des droits et libertés de la personne (Québec), art. 10' },
-    { en: 'Canadian Human Rights Act — federally regulated employers', fr: 'Loi canadienne sur les droits de la personne — employeurs sous réglementation fédérale' },
+    {
+      en: 'Human Rights Code (Ontario) — duty to accommodate to the point of undue hardship',
+      fr: 'Code des droits de la personne (Ontario) — obligation d’accommodement jusqu’au point de préjudice injustifié',
+    },
+    {
+      en: 'Charte des droits et libertés de la personne (Quebec), art. 10',
+      fr: 'Charte des droits et libertés de la personne (Québec), art. 10',
+    },
+    {
+      en: 'Canadian Human Rights Act — federally regulated employers',
+      fr: 'Loi canadienne sur les droits de la personne — employeurs sous réglementation fédérale',
+    },
   ],
   jurisdictionNotes: {
     ON: {
@@ -270,7 +322,10 @@ export const tplT19: DocTemplate = {
     },
   },
   includes: [
-    { en: 'Functional limitations (not diagnosis)', fr: 'Limitations fonctionnelles (sans diagnostic)' },
+    {
+      en: 'Functional limitations (not diagnosis)',
+      fr: 'Limitations fonctionnelles (sans diagnostic)',
+    },
     { en: 'Accommodation plan', fr: 'Plan d’accommodement' },
     { en: 'Next review date', fr: 'Prochaine date d’examen' },
   ],
@@ -285,14 +340,26 @@ export const tplT19: DocTemplate = {
     {
       id: 'review_date',
       section: { en: 'Timing', fr: 'Échéancier' },
-      label: { en: 'Next accommodation review date', fr: 'Prochaine date d’examen de l’accommodement' },
+      label: {
+        en: 'Next accommodation review date',
+        fr: 'Prochaine date d’examen de l’accommodement',
+      },
       type: 'date',
       required: true,
     },
   ],
   preview: [
-    { type: 'title', text: { en: 'Accommodation Record — Confidential', fr: 'Dossier d’accommodement — Confidentiel' } },
-    { type: 'meta', text: { en: '{{employee_name}} · {{today}}', fr: '{{employee_name}} · {{today}}' } },
+    {
+      type: 'title',
+      text: {
+        en: 'Accommodation Record — Confidential',
+        fr: 'Dossier d’accommodement — Confidentiel',
+      },
+    },
+    {
+      type: 'meta',
+      text: { en: '{{employee_name}} · {{today}}', fr: '{{employee_name}} · {{today}}' },
+    },
     {
       type: 'para',
       text: {
@@ -313,9 +380,14 @@ export const tplT19: DocTemplate = {
       type: 'note',
       tone: 'risk',
       text: {
-        en: 'Higher-risk, privacy-sensitive document. Lawyer review is recommended before this is placed on file. Dutiva does not provide legal advice.',
-        fr: 'Document à risque élevé et de nature confidentielle. Une révision juridique est recommandée avant de le verser au dossier. Dutiva ne fournit pas de conseils juridiques.',
+        en: 'Higher-risk, privacy-sensitive document. Lawyer review is recommended before this is placed on file.',
+        fr: 'Document à risque élevé et de nature confidentielle. Une révision juridique est recommandée avant de le verser au dossier.',
       },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',
@@ -328,7 +400,10 @@ export const tplT20: DocTemplate = {
   kind: 'letter',
   category: 'accommodation',
   core: false,
-  name: { en: 'Medical information request letter', fr: 'Lettre de demande de renseignements médicaux' },
+  name: {
+    en: 'Medical information request letter',
+    fr: 'Lettre de demande de renseignements médicaux',
+  },
   desc: {
     en: 'Requests functional-limitation information from a treating provider to support an accommodation — never a diagnosis.',
     fr: 'Demande des renseignements sur les limitations fonctionnelles à un professionnel traitant pour appuyer un accommodement — jamais un diagnostic.',
@@ -344,9 +419,18 @@ export const tplT20: DocTemplate = {
   estMinutes: 6,
   usageCount: 0,
   statutory: [
-    { en: 'Human Rights Code (Ontario) — duty to accommodate to the point of undue hardship', fr: 'Code des droits de la personne (Ontario) — obligation d’accommodement jusqu’au point de préjudice injustifié' },
-    { en: 'Charte des droits et libertés de la personne (Quebec), art. 10', fr: 'Charte des droits et libertés de la personne (Québec), art. 10' },
-    { en: 'Canadian Human Rights Act — federally regulated employers', fr: 'Loi canadienne sur les droits de la personne — employeurs sous réglementation fédérale' },
+    {
+      en: 'Human Rights Code (Ontario) — duty to accommodate to the point of undue hardship',
+      fr: 'Code des droits de la personne (Ontario) — obligation d’accommodement jusqu’au point de préjudice injustifié',
+    },
+    {
+      en: 'Charte des droits et libertés de la personne (Quebec), art. 10',
+      fr: 'Charte des droits et libertés de la personne (Québec), art. 10',
+    },
+    {
+      en: 'Canadian Human Rights Act — federally regulated employers',
+      fr: 'Loi canadienne sur les droits de la personne — employeurs sous réglementation fédérale',
+    },
   ],
   jurisdictionNotes: {
     ON: {
@@ -363,7 +447,10 @@ export const tplT20: DocTemplate = {
     },
   },
   includes: [
-    { en: 'Scope limited to functional limitations', fr: 'Portée limitée aux limitations fonctionnelles' },
+    {
+      en: 'Scope limited to functional limitations',
+      fr: 'Portée limitée aux limitations fonctionnelles',
+    },
     { en: 'Confidentiality commitment', fr: 'Engagement de confidentialité' },
     { en: 'Reply-by date', fr: 'Date limite de réponse' },
   ],
@@ -391,8 +478,17 @@ export const tplT20: DocTemplate = {
     },
   ],
   preview: [
-    { type: 'title', text: { en: 'Request for Functional Abilities Information', fr: 'Demande de renseignements sur les capacités fonctionnelles' } },
-    { type: 'meta', text: { en: '{{employee_name}} · {{today}}', fr: '{{employee_name}} · {{today}}' } },
+    {
+      type: 'title',
+      text: {
+        en: 'Request for Functional Abilities Information',
+        fr: 'Demande de renseignements sur les capacités fonctionnelles',
+      },
+    },
+    {
+      type: 'meta',
+      text: { en: '{{employee_name}} · {{today}}', fr: '{{employee_name}} · {{today}}' },
+    },
     {
       type: 'para',
       text: {
@@ -413,9 +509,14 @@ export const tplT20: DocTemplate = {
       type: 'note',
       tone: 'risk',
       text: {
-        en: 'Higher-risk, privacy-sensitive document. Lawyer review is recommended before this is sent. Dutiva does not provide legal advice.',
-        fr: 'Document à risque élevé et de nature confidentielle. Une révision juridique est recommandée avant l’envoi. Dutiva ne fournit pas de conseils juridiques.',
+        en: 'Higher-risk, privacy-sensitive document. Lawyer review is recommended before this is sent.',
+        fr: 'Document à risque élevé et de nature confidentielle. Une révision juridique est recommandée avant l’envoi.',
       },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { allTemplates } from '../../catalogue'
 import { computedTokens, mergeSegments, resolveBlocks } from '../../engine'
-import { templateCategories } from '../meta'
+import { common } from '@/i18n/messages/common'
+import { DOC_DISCLAIMER_NOTE, templateCategories } from '../meta'
 import type { DocTemplate, Jurisdiction } from '../types'
 
 /**
@@ -101,6 +102,11 @@ describe.each(TIDS)('%s', (tid) => {
       if (bi.en.split(/\s+/).length > 3 && !bi.en.startsWith('{{')) {
         expect(bi.fr, `${tid} ${path} is untranslated`).not.toBe(bi.en)
       }
+      /* Template copy renders as text, not markdown, so `**emphasis**` reaches
+         the reader as asterisks — in a document they keep. The same guard the
+         guides and flows carry. */
+      expect(bi.en, `${tid} ${path}.en carries markdown`).not.toMatch(/\*\*/)
+      expect(bi.fr, `${tid} ${path}.fr carries markdown`).not.toMatch(/\*\*/)
     }
   })
 
@@ -136,15 +142,34 @@ describe.each(TIDS)('%s', (tid) => {
       }
     }
   })
+})
 
-  it('carries the not-legal-advice note', () => {
-    const notes = template(tid)
-      .preview.filter((b) => b.type === 'note')
-      .map((b) => `${b.text?.en ?? ''} ${b.text?.fr ?? ''}`.toLowerCase())
-    expect(notes.length).toBeGreaterThan(0)
-    expect(notes.some((n) => n.includes('legal advice') && n.includes('conseils juridiques'))).toBe(
-      true,
+/* The whole catalogue, not just the authored half. A guard that covered T21 up
+   would have left 16 shipped documents free to drift — which is exactly how
+   three different disclaimer wordings got into the catalogue unnoticed. */
+describe.each(allTemplates.map((t) => t.tid))('%s disclaimer', (tid) => {
+  it('carries the standing disclaimer verbatim, in a note of its own', () => {
+    /* CONVENTIONS.md says never retype it. A template carries it as a `note`
+       block rather than through the shared `Disclaimer` component, so "never
+       retyped" has to mean referencing `DOC_DISCLAIMER_NOTE` — and a note that
+       is the disclaimer *plus* the template's own guidance is how the wording
+       drifted apart in the first place. Say your own thing in your own note. */
+    const notes = template(tid).preview.filter((b) => b.type === 'note')
+    const disclaimers = notes.filter(
+      (b) => b.text?.en.includes('legal advice') || b.text?.fr.includes('conseils juridiques'),
     )
+    expect(disclaimers, `${tid} has no disclaimer note`).toHaveLength(1)
+    expect(disclaimers[0]?.text, `${tid} disclaimer is not DOC_DISCLAIMER_NOTE`).toEqual(
+      DOC_DISCLAIMER_NOTE,
+    )
+  })
+
+  it('uses the repository’s disclaimer sentence, not one of its own', () => {
+    /* The sentence itself is `common.disclaimer` — the string CONVENTIONS.md
+       names. Centralizing on a fourth wording would have replaced three
+       variants with one wrong one. */
+    expect(DOC_DISCLAIMER_NOTE.en).toContain(common.disclaimer.en)
+    expect(DOC_DISCLAIMER_NOTE.fr).toContain(common.disclaimer.fr)
   })
 })
 

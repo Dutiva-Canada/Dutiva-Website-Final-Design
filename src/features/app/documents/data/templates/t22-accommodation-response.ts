@@ -5,6 +5,7 @@
    Ring 1 tools and calls it the document the whole Ring 2 accommodation
    process produces; it was missing from the shipped catalogue, which left
    Pillar B with nothing to hand off to. */
+import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
 export const tplT22: DocTemplate = {
@@ -359,11 +360,16 @@ export const tplT22: DocTemplate = {
     },
     {
       type: 'note',
-      text: {
-        en: 'Higher-risk document. A refusal, or an accommodation that falls short of what was asked for, is the decision most often challenged — lawyer review is recommended before this is sent. Dutiva does not provide legal advice.',
-        fr: 'Document à risque élevé. Un refus, ou un accommodement en deçà de ce qui était demandé, est la décision la plus souvent contestée — une révision juridique est recommandée avant l’envoi. Dutiva ne fournit pas de conseils juridiques.',
-      },
       tone: 'risk',
+      text: {
+        en: 'Higher-risk document. A refusal, or an accommodation that falls short of what was asked for, is the decision most often challenged — lawyer review is recommended before this is sent.',
+        fr: 'Document à risque élevé. Un refus, ou un accommodement en deçà de ce qui était demandé, est la décision la plus souvent contestée — une révision juridique est recommandée avant l’envoi.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',

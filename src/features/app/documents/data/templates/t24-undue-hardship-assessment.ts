@@ -6,6 +6,7 @@
    options canvassed come before the conclusion, because a conclusion with no
    record of the options is the failure this document exists to prevent. It
    is not sent to the employee — T22 is. */
+import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
 export const tplT24: DocTemplate = {
@@ -461,11 +462,16 @@ export const tplT24: DocTemplate = {
     },
     {
       type: 'note',
-      text: {
-        en: 'Higher-risk document. This is the record an employer is asked to produce when a refusal is challenged — lawyer review is recommended before relying on it. Dutiva does not provide legal advice.',
-        fr: 'Document à risque élevé. Il s’agit du dossier qu’un employeur doit produire lorsqu’un refus est contesté — une révision juridique est recommandée avant de s’y fier. Dutiva ne fournit pas de conseils juridiques.',
-      },
       tone: 'risk',
+      text: {
+        en: 'Higher-risk document. This is the record an employer is asked to produce when a refusal is challenged — lawyer review is recommended before relying on it.',
+        fr: 'Document à risque élevé. Il s’agit du dossier qu’un employeur doit produire lorsqu’un refus est contesté — une révision juridique est recommandée avant de s’y fier.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',

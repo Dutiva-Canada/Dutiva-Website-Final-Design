@@ -7,7 +7,14 @@ import type { Bi } from '@/i18n/core'
 import { doclibMessages } from '@/i18n/messages/doclib'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDoclib } from '../doclibContext'
-import { applicability, can, computedTokens, fillProgress, resolveBlocks } from '../engine'
+import {
+  answerLabels,
+  applicability,
+  can,
+  computedTokens,
+  fillProgress,
+  resolveBlocks,
+} from '../engine'
 import type { ApplicabilityKind } from '../engine'
 import {
   ActBtn,
@@ -508,11 +515,7 @@ function QuestionsStep({
             }
             noticeFloor={
               appliesToNoticeField(question.id, fieldIds)
-                ? assessNoticeFloor(
-                    jurisdiction,
-                    answers.tenure_years,
-                    answers[question.id],
-                  )
+                ? assessNoticeFloor(jurisdiction, answers.tenure_years, answers[question.id])
                 : undefined
             }
             onChange={(value) => setAnswer(question.id, value)}
@@ -668,8 +671,9 @@ function GenerateWizard({
         jurisdiction: wiz.jurisdiction,
         headcount: org.headcount,
         unionized: org.unionized,
+        answers: wiz.answers,
       }),
-    [template, wiz.jurisdiction, org.headcount, org.unionized],
+    [template, wiz.jurisdiction, org.headcount, org.unionized, wiz.answers],
   )
   /* Merge values: computed tokens (in the chosen DOCUMENT language) under the
      wizard answers. Caveat: DocPaper renders block copy in the UI language, so
@@ -685,8 +689,11 @@ function GenerateWizard({
     [wiz.language],
   )
   const values = useMemo(
-    () => ({ ...computedTokens(wiz.jurisdiction, wiz.language, todayString), ...wiz.answers }),
-    [wiz.jurisdiction, wiz.language, todayString, wiz.answers],
+    () => ({
+      ...computedTokens(wiz.jurisdiction, wiz.language, todayString),
+      ...answerLabels(template, wiz.answers, wiz.language),
+    }),
+    [template, wiz.jurisdiction, wiz.language, todayString, wiz.answers],
   )
 
   const progress = fillProgress(template, wiz.answers)
@@ -848,7 +855,7 @@ function GenerateWizard({
               </span>
             </div>
           </div>
-          <DocPaper blocks={blocks} values={values} />
+          <DocPaper blocks={blocks} values={values} docLang={wiz.language} />
           <p className="mt-2 text-[11px] text-text-faint">{t('doclib_disc_short')}</p>
         </aside>
       </div>

@@ -31,6 +31,12 @@ export interface ClauseContext {
   jurisdiction: Jurisdiction
   headcount: number
   unionized: boolean
+  /**
+   * Wizard answers, where the caller has them. Omit on a surface with no
+   * filled-in document — an `answer` gate then passes, so the template detail
+   * preview shows every clause the template can produce.
+   */
+  answers?: Record<string, string>
 }
 
 /** A gated block renders only when every present test passes. */
@@ -39,6 +45,12 @@ export function gatePasses(gate: ClauseGate | undefined, ctx: ClauseContext): bo
   if (gate.juris && gate.juris !== ctx.jurisdiction) return false
   if (gate.min_headcount !== undefined && ctx.headcount < gate.min_headcount) return false
   if (gate.union !== undefined && ctx.unionized !== gate.union) return false
+  if (gate.answer && ctx.answers) {
+    const value = ctx.answers[gate.answer.id]
+    /* Unanswered reads as "not yet decided" rather than "no": the clause stays
+       visible in the live preview while the wizard is still being filled in. */
+    if (value !== undefined && value !== '' && !gate.answer.equals.includes(value)) return false
+  }
   return true
 }
 
@@ -70,6 +82,38 @@ export function computedTokens(
     jurisdiction: info ? pick(info.name, lang) : jurisdiction,
     statute: info ? pick(info.statute, lang) : '',
   }
+}
+
+/**
+ * Wizard answers with every `select` answer replaced by that option's label in
+ * the document's language.
+ *
+ * A select stores `option.value`, and `mergeSegments` inserts whatever it is
+ * given verbatim — so without this, a merged select renders its stored value
+ * into the finished document. That is wrong twice over. The value can be an
+ * internal key (`no_plans`), and even where it is prose it is one language's
+ * prose, so a French document renders "2 weeks" where the option's own French
+ * label says "2 semaines".
+ *
+ * Both were live before Ring 3 — T01, T08, T10, T11, T16, T22 and T23 all
+ * merge a select — which is why this is fixed here rather than worked around
+ * in the new templates. Apply it wherever answers meet `mergeSegments`;
+ * computed tokens are already localized by `computedTokens`.
+ */
+export function answerLabels(
+  template: DocTemplate,
+  answers: Record<string, string>,
+  lang: Lang,
+): Record<string, string> {
+  const resolved: Record<string, string> = { ...answers }
+  for (const question of template.questions) {
+    if (!question.options) continue
+    const answer = answers[question.id]
+    if (answer === undefined) continue
+    const option = question.options.find((o) => o.value === answer)
+    if (option) resolved[question.id] = pick(option.label, lang)
+  }
+  return resolved
 }
 
 /**

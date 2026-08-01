@@ -9,6 +9,7 @@
    employer either counts protected leave against attendance — the most
    common reprisal exposure there is — or has no written sick-leave terms at
    all. Both policies state the boundary so neither is read alone. */
+import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
 export const tplT34: DocTemplate = {
@@ -286,11 +287,16 @@ export const tplT34: DocTemplate = {
     },
     {
       type: 'note',
-      text: {
-        en: 'Generated from your answers as a starting point. Review before use — Dutiva provides compliance-oriented HR guidance, not legal advice.',
-        fr: 'Généré à partir de vos réponses comme point de départ. À réviser avant usage — Dutiva offre un accompagnement RH axé sur la conformité, non des conseils juridiques.',
-      },
       tone: 'info',
+      text: {
+        en: 'Generated from your answers as a starting point.',
+        fr: 'Généré à partir de vos réponses comme point de départ.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'org',

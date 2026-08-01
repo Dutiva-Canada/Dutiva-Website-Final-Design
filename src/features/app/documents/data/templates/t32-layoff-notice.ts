@@ -13,6 +13,7 @@
    the statutory limit allows. Deadlines are described by shape, not by
    number, because the limits differ by jurisdiction and by whether benefits
    continue. */
+import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
 export const tplT32: DocTemplate = {
@@ -330,11 +331,16 @@ export const tplT32: DocTemplate = {
     },
     {
       type: 'note',
-      text: {
-        en: 'Higher-risk document. If this layoff is one of several within a short window, check whether the group termination rules are engaged and use the group termination notice (T15) instead. Lawyer review is recommended before this is sent. Dutiva does not provide legal advice.',
-        fr: 'Document à risque élevé. Si cette mise à pied s’inscrit parmi plusieurs sur une courte période, vérifiez si les règles de licenciement collectif s’appliquent et utilisez plutôt l’avis de licenciement collectif (T15). Une révision juridique est recommandée avant l’envoi. Dutiva ne fournit pas de conseils juridiques.',
-      },
       tone: 'risk',
+      text: {
+        en: 'Higher-risk document. If this layoff is one of several within a short window, check whether the group termination rules are engaged and use the group termination notice (T15) instead. Lawyer review is recommended before this is sent.',
+        fr: 'Document à risque élevé. Si cette mise à pied s’inscrit parmi plusieurs sur une courte période, vérifiez si les règles de licenciement collectif s’appliquent et utilisez plutôt l’avis de licenciement collectif (T15). Une révision juridique est recommandée avant l’envoi.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',

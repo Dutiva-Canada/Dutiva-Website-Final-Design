@@ -4,6 +4,7 @@
    authored here by hand and marked AUTHORED IN-REPO. Leave the handoff-derived
    entries alone; append new ones. */
 import type { Bi } from '@/i18n/core'
+import { common } from '@/i18n/messages/common'
 import type {
   CapabilityMatrix,
   DocRiskLevel,
@@ -20,6 +21,31 @@ import type {
   StatusInfo,
   TemplateCategory,
 } from './types'
+
+/**
+ * The standing disclaimer, as it ships inside a generated document.
+ *
+ * CONVENTIONS.md requires the disclaimer near CTAs, generated documents and
+ * Advisor output, and says never to retype it — but a Document Studio template
+ * carries it as a `note` block rather than through the shared `Disclaimer`
+ * component, so until review on #128 all 31 templates each held their own copy
+ * of the sentence. They happened to agree; nothing made them.
+ *
+ * They reference this now instead. A template that wants to say something of
+ * its own puts it in **its own note block** and leaves this one alone —
+ * appending to it is how the wording starts drifting again, and
+ * `authoredTemplates.test.ts` fails a note that contains this text plus more.
+ *
+ * The disclaimer sentence itself is not written here: it is `common.disclaimer`,
+ * the string CONVENTIONS.md names. Centralizing on a wording of its own would
+ * have made a fourth variant authoritative instead of removing the other
+ * three. What this adds is the one thing specific to a generated document —
+ * "review before use" — as its own sentence in front.
+ */
+export const DOC_DISCLAIMER_NOTE: Bi = {
+  en: `Review before use. ${common.disclaimer.en}`,
+  fr: `À réviser avant usage. ${common.disclaimer.fr}`,
+}
 
 /**
  * `order` is the employment lifecycle, not the order the categories were
@@ -124,6 +150,25 @@ export const templateCategories: TemplateCategory[] = [
     desc: {
       en: 'The duty-to-accommodate process, from request to documented plan.',
       fr: 'Le processus d’obligation d’accommodement, de la demande au plan documenté.',
+    },
+  },
+  /* AUTHORED IN-REPO (not from the handoff) — Ring 3, see
+     docs/FOUR_RING_FRAMEWORK.md. Last in the order because it cuts across the
+     lifecycle rather than sitting at a point in it: every other category is
+     addressed to one person and goes on their file, and everything here is
+     addressed to people who are not the subject of it. That is the difference
+     to hold on to when adding one. */
+  {
+    id: 'communications',
+    order: 8,
+    icon: 'megaphone',
+    name: {
+      en: 'Internal communications',
+      fr: 'Communications internes',
+    },
+    desc: {
+      en: 'What the rest of the team is told, and when — announcements, memos and notices.',
+      fr: 'Ce que le reste de l’équipe apprend, et quand — annonces, notes de service et avis.',
     },
   },
 ]
