@@ -74,6 +74,23 @@ describe('FlowRunner', () => {
     )
   })
 
+  it('says why an ending produces no document, instead of showing nothing', async () => {
+    /* The one ending allowed to name no template. Leading it with a document
+       prompt would ask for exactly the health record the outcome just said
+       not to create — so the absence is the instruction, and it has to be
+       visible rather than a blank space where the handoff would be. */
+    const user = userEvent.setup()
+    renderFlow('mental-health-response')
+    await user.click(screen.getByRole('button', { name: /noticed a change/ }))
+    await user.click(screen.getByRole('button', { name: 'Continue' })) // observe
+    await user.click(screen.getByRole('button', { name: /everything is fine/ }))
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Take the answer' })).toBeVisible()
+    expect(screen.getByText('Nothing to file here')).toBeVisible()
+    expect(screen.getByText(/Nothing goes on file/)).toBeVisible()
+    expect(screen.queryAllByRole('link', { name: /Open$/ })).toHaveLength(0)
+  })
+
   it('shows the path taken once complete', async () => {
     const user = userEvent.setup()
     renderFlow()

@@ -28,6 +28,10 @@ export const flowsMessages = defineMessages({
     fr: 'Documentez-le dans le Studio de documents',
   },
   flows_open_template: { en: 'Open', fr: 'Ouvrir' },
+  flows_no_document: {
+    en: 'Nothing to file here',
+    fr: 'Rien à consigner ici',
+  },
   flows_not_found: {
     en: 'That process does not exist.',
     fr: 'Ce processus n’existe pas.',

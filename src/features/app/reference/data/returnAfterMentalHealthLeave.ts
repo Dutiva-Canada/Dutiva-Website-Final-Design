@@ -172,16 +172,24 @@ export const returnAfterMentalHealthLeaveGuide: ReferenceGuide = {
           'Désignez une personne-ressource, et assurez-vous qu’elle sait qu’elle l’est.',
         ),
         li(
-          'Establish that pausing the ramp is a normal step and not a new leave. Most recurrences need a fortnight of the earlier schedule, not a return to absence.',
-          'Établissez que suspendre la progression est une étape normale et non un nouveau congé. La plupart des rechutes demandent deux semaines de l’horaire antérieur, non un retour à l’absence.',
+          'Establish that stepping the ramp back is a normal adjustment and not a new leave. How far back, and for how long, comes from what the person can currently do — the same functional information the ramp was set from — and not from a rule of thumb.',
+          'Établissez que revenir à une étape antérieure de la progression est un ajustement normal et non un nouveau congé. Jusqu’où et pour combien de temps découle de ce que la personne peut faire à ce moment — la même information fonctionnelle qui a servi à établir la progression — et non d’une règle générale.',
         ),
         li(
-          'If a further leave is needed, it is a leave — the same statutory entitlement as any other, not a discretionary allowance running out.',
-          'Si un nouveau congé est nécessaire, c’est un congé — le même droit prévu par la loi que tout autre, et non une tolérance discrétionnaire qui s’épuise.',
+          'If time away is needed again, work out what it rests on before you name it. A statutory leave is an entitlement with its own eligibility and its own remaining duration, and it may already be spent; where it is, time away can still be required as an accommodation, which is a separate analysis with a separate limit. What you must not do is promise a protection you have not checked applies.',
+          'Si un nouvel arrêt est nécessaire, déterminez sur quoi il repose avant de le qualifier. Un congé prévu par la loi est un droit assorti de ses propres conditions d’admissibilité et de sa propre durée résiduelle, qui peut déjà être épuisée; le cas échéant, l’absence peut tout de même s’imposer à titre d’accommodement, ce qui constitue une analyse distincte assortie de sa propre limite. Ce qu’il ne faut pas faire, c’est promettre une protection dont vous n’avez pas vérifié l’applicabilité.',
         ),
         p(
-          'One thing to be plain about with yourself: absences connected to a disability cannot be counted against the employee in an attendance process, and a graduated return is not a probationary period with a pass mark. If the arrangement is being administered as though either were true, the problem is the arrangement.',
-          'Une chose à vous dire clairement : les absences liées à un handicap ne peuvent être retenues contre la personne dans un processus de gestion de la présence, et un retour progressif n’est pas une période probatoire assortie d’une note de passage. Si l’arrangement est administré comme si l’un ou l’autre était vrai, c’est l’arrangement qui pose problème.',
+          'One thing to be plain about with yourself: absence connected to a disability is never a discipline matter, because there is no misconduct in it, and a graduated return is not a probationary period with a pass mark. If the arrangement is being administered as though either were true, the problem is the arrangement.',
+          'Une chose à vous dire clairement : une absence liée à un handicap ne relève jamais de la discipline, faute d’inconduite, et un retour progressif n’est pas une période probatoire assortie d’une note de passage. Si l’arrangement est administré comme si l’un ou l’autre était vrai, c’est l’arrangement qui pose problème.',
+        ),
+        p(
+          'That is not the same as saying attendance can never be looked at, and an employer told the stronger version will eventually discover it was not true. Where an employee cannot attend at a workable level for the foreseeable future, the employment relationship can be brought to an end — but only on the non-culpable footing, only after the accommodation has genuinely been worked through to the point of undue hardship, and on evidence of the prognosis rather than on a count of days. Nothing about that resembles a warning, a final warning, or a threshold in an attendance policy.',
+          'Cela ne revient pas à dire que la présence au travail ne peut jamais être examinée, et l’employeur à qui l’on a présenté la version forte finira par découvrir qu’elle était inexacte. Lorsqu’une personne ne peut se présenter au travail à un niveau viable dans un avenir prévisible, il est possible de mettre fin à la relation d’emploi — mais uniquement sur un fondement non disciplinaire, uniquement après que l’accommodement a véritablement été mené jusqu’à la contrainte excessive, et sur la foi du pronostic plutôt que d’un décompte de journées. Rien là-dedans ne ressemble à un avertissement, à un avertissement final ou à un seuil inscrit dans une politique de présence.',
+        ),
+        p(
+          'This is the point at which to take advice rather than to rely on a guide. It is the single most litigated decision in this area, the record you built along the way is what it turns on, and a step taken early is not recoverable later.',
+          'C’est ici qu’il faut prendre conseil plutôt que de s’en remettre à un guide. Il s’agit de la décision la plus contestée en la matière, tout repose sur le dossier constitué en cours de route, et une étape franchie trop tôt ne se rattrape pas.',
         ),
       ],
     },

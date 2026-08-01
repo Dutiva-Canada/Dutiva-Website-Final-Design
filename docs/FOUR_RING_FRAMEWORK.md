@@ -121,10 +121,21 @@ mixes them — which is why there is one engine and not three.
 
 Two decisions worth keeping. **Flows loop** — "check for funding, then re-test
 hardship" is a real step, so the graph is not a tree and `longestPath` walks
-with a visited set. **Every outcome hands off to a document**: a flow that
-ends in advice leaves nothing on the file, and the file is what an employer is
-asked to produce. `flowEngine.test.ts` enforces both, plus bilingual copy and
-reachability, for every shipped flow.
+with a visited set. **Every outcome hands off to a document, or says why it
+does not**: a flow that ends in advice leaves nothing on the file, and the
+file is what an employer is asked to produce. `flowEngine.test.ts` enforces
+both, plus bilingual copy and reachability, for every shipped flow.
+
+The second half of that rule was added in review on #127, and the exception is
+narrow. Pillar A's flow has an ending whose entire content is "nothing changes,
+and record nothing about their health" — leading it with a document prompt
+asks for exactly the record it just said not to create, and the record in
+question is a health record created for someone who requested nothing. So an
+outcome may set `noDocument` instead, which renders where the handoff list
+would be. It is **exclusive-or**: an outcome carrying both, or neither, fails
+the test, so an author still cannot quietly skip the handoff — they have to
+write down why there is none, and the reader sees it. Reach for it only when
+producing a document would be the wrong instruction.
 
 Nothing is persisted. A run is a thinking tool; the record it produces is
 meant to be carried into the template the outcome names.

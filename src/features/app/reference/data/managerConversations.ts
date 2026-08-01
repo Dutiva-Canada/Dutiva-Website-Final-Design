@@ -195,8 +195,8 @@ export const managerConversationsGuide: ReferenceGuide = {
           'Faites ce que vous avez annoncé, le jour annoncé. Le suivi constitue tout le message; la conversation n’en était que l’emballage.',
         ),
         li(
-          'Tell only the people who must act, and tell them only what they must act on. "Priya is working reduced hours until March" is what a colleague needs. Nothing before "until" is theirs to know.',
-          'N’informez que les personnes qui doivent agir, et uniquement de ce sur quoi elles doivent agir. « Priya travaille selon un horaire réduit jusqu’en mars » est ce qu’un collègue a besoin de savoir. Rien de ce qui précède « jusqu’en » ne le regarde.',
+          'Tell only the people who must act, and tell them only what they must act on. "Priya is working reduced hours until March" is what a colleague needs. Why she is is not theirs to know, and it is not a detail you have been asked to withhold — it is one you must.',
+          'N’informez que les personnes qui doivent agir, et uniquement de ce sur quoi elles doivent agir. « Priya travaille selon un horaire réduit jusqu’en mars » est ce qu’un collègue a besoin de savoir. La raison ne le regarde pas — et ce n’est pas un détail qu’on vous demande de taire, c’en est un que vous devez taire.',
         ),
         li(
           'Keep any health information out of the personnel file and store it separately, with access limited to whoever administers it.',

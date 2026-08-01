@@ -71,10 +71,14 @@ export const eapReferralGuide: ReferenceGuide = {
         ),
         contrast(
           bi(
-            'It is completely confidential. I will not know whether you contact them, and I am not going to ask.',
-            'C’est entièrement confidentiel. Je ne saurai pas si vous les contactez, et je ne le demanderai pas.',
+            'I will not know whether you contact them, and I am not going to ask. They will tell you what they keep private and where the limits are — that part is between you and them.',
+            'Je ne saurai pas si vous les contactez, et je ne le demanderai pas. Ils vous expliqueront ce qui demeure confidentiel et où se situent les limites — cela relève de vous et d’eux.',
           ),
           bi('Let me know how it goes.', 'Tenez-moi au courant de la suite.'),
+        ),
+        p(
+          'Note what the first one does not say. "It is completely confidential" is not yours to promise: the provider sets its own terms, and most carry exceptions — an imminent risk of harm, a mandatory reporting obligation, a court order. Promise the part you control, which is that the employer does not ask and is not told, and let the provider state its own limits. The alternative is the failure this pillar warns about everywhere else: a promise made in good faith by someone with no power to keep it.',
+          'Remarquez ce que la première formule ne dit pas. « C’est entièrement confidentiel » ne vous appartient pas : le fournisseur fixe ses propres conditions et la plupart comportent des exceptions — un risque imminent de préjudice, une obligation de signalement, une ordonnance judiciaire. Promettez ce que vous maîtrisez — que l’employeur ne demande rien et n’est pas informé — et laissez le fournisseur énoncer ses propres limites. À défaut, c’est l’échec contre lequel ce pilier met en garde partout ailleurs : une promesse faite de bonne foi par une personne qui n’a pas le pouvoir de la tenir.',
         ),
         p(
           'The second one sounds like warmth and lands as surveillance. It also creates an expectation you are not entitled to hold, and the employee now has to decide whether declining to report back will be held against them.',
@@ -93,8 +97,8 @@ export const eapReferralGuide: ReferenceGuide = {
           'Une orientation est une offre. Dès qu’elle devient une condition — pour conserver un poste, éviter une sanction ou obtenir un ajustement —, elle cesse d’être un soutien et devient une décision d’emploi fondée sur un état de santé perçu, soit précisément ce que la législation en matière de droits de la personne interdit dans chacune des juridictions couvertes par Dutiva.',
         ),
         li(
-          'Say it exists, say how to reach it, say it is voluntary and confidential. That is a referral.',
-          'Dites qu’il existe, comment y accéder, et qu’il est volontaire et confidentiel. Voilà une orientation.',
+          'Say it exists, say how to reach it, say it is voluntary, and say you are not told who uses it. That is a referral.',
+          'Dites qu’il existe, comment y accéder, qu’il est volontaire et que vous n’êtes pas informé de qui y a recours. Voilà une orientation.',
         ),
         li(
           'Put it in a performance document, make it a step in a corrective process, or ask for confirmation of attendance. That is a requirement wearing a referral’s clothes.',

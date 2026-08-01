@@ -100,8 +100,8 @@ export const mentalHealthResponseFlow: Flow = {
       tone: 'caution',
       title: bi('This is not an HR process yet', 'Il ne s’agit pas encore d’un processus RH'),
       body: bi(
-        'Call emergency services, or the crisis line that covers your area, and stay with the person if you are with them. Do not investigate, do not ask what is wrong, and do not wait to find out whether it is serious enough — that judgement is not yours to make and making it costs time. Tell one other person in the organisation who needs to know, and no one who does not.',
-        'Appelez les services d’urgence ou la ligne de crise de votre région, et restez auprès de la personne si vous êtes avec elle. N’enquêtez pas, ne demandez pas ce qui ne va pas et n’attendez pas de savoir si c’est assez grave — ce jugement ne vous appartient pas et le poser prend du temps. Informez une seule autre personne de l’organisation qui doit le savoir, et personne d’autre.',
+        'Call emergency services. Not the employee assistance programme, not HR, not a crisis line — those are for a concern that is not immediate, and this route is for danger that is. Stay with the person if you are with them. Do not investigate, do not ask what is wrong, and do not wait to find out whether it is serious enough — that judgement is not yours to make and making it costs time. Once help is on the way, tell one other person in the organisation who needs to know, and no one who does not.',
+        'Appelez les services d’urgence. Ni le programme d’aide aux employés, ni les RH, ni une ligne de crise — ceux-ci s’adressent à une préoccupation qui n’est pas immédiate, alors que ce parcours vise un danger qui l’est. Restez auprès de la personne si vous êtes avec elle. N’enquêtez pas, ne demandez pas ce qui ne va pas et n’attendez pas de savoir si c’est assez grave — ce jugement ne vous appartient pas et le poser prend du temps. Une fois les secours en route, informez une seule autre personne de l’organisation qui doit le savoir, et personne d’autre.',
       ),
       caution: bi(
         'Afterwards, the employment side resumes and it is ordinary: most often a leave, and a return that is planned rather than assumed. What must not happen is the incident becoming a performance record, or a story anyone else in the workplace is told.',
@@ -212,7 +212,46 @@ export const mentalHealthResponseFlow: Flow = {
           'Ne vous adressez pas d’abord à quelqu’un d’autre. Demander à un collègue s’il a remarqué quelque chose transforme une difficulté privée en information de travail, et c’est l’étape que l’on regrette le plus souvent.',
         ),
       ],
-      to: 'offer',
+      to: 'opened',
+    },
+    {
+      id: 'opened',
+      kind: 'choice',
+      title: bi('What came back?', 'Qu’est-ce qui est ressorti?'),
+      body: bi(
+        'The last step said to accept "everything is fine" if that is the answer, so this is where accepting it actually happens. There is nothing further to ask on that route.',
+        'L’étape précédente indiquait d’accepter un « tout va bien » si telle est la réponse; c’est donc ici que cette acceptation prend effet. Il n’y a rien de plus à demander sur ce parcours.',
+      ),
+      options: [
+        {
+          id: 'spoke',
+          label: bi('They told me something', 'La personne m’a dit quelque chose'),
+          detail: bi(
+            'Anything at all about what is going on, however partial.',
+            'Quoi que ce soit sur ce qui se passe, même partiellement.',
+          ),
+          to: 'listen',
+        },
+        {
+          id: 'declined',
+          label: bi('They said everything is fine', 'La personne a répondu que tout allait bien'),
+          to: 'declined',
+        },
+      ],
+    },
+    {
+      id: 'declined',
+      kind: 'outcome',
+      tone: 'ok',
+      title: bi('Take the answer', 'Prenez la réponse pour ce qu’elle est'),
+      body: bi(
+        'You asked, you said what support exists, and they said no. That is a complete and correct ending, and pressing further from here is the thing that guarantees you are not told next time either. Carry on managing the work as you would for anyone, and if the pattern you noticed continues, address it as work — which is a conversation you are entitled to have and one this flow can be run again from.',
+        'Vous avez demandé, vous avez indiqué le soutien offert, et la personne a dit non. Il s’agit d’une conclusion complète et correcte, et insister davantage est précisément ce qui garantit qu’on ne vous dira rien la prochaine fois non plus. Continuez de gérer le travail comme pour quiconque et, si la tendance observée persiste, abordez-la comme un enjeu de travail — une conversation à laquelle vous avez droit et à partir de laquelle ce parcours peut être repris.',
+      ),
+      noDocument: bi(
+        'Nothing goes on file. You have no health information, you were not given any, and a note recording that you suspected something is the one artifact this conversation must not produce. Keep your own note of what you observed about the work, where you already keep those.',
+        'Rien n’est versé au dossier. Vous ne détenez aucune information de santé, on ne vous en a confié aucune, et une note consignant vos soupçons est le seul document que cette conversation ne doit pas produire. Conservez votre propre note de ce que vous avez observé du travail, là où vous consignez déjà ce type d’observation.',
+      ),
     },
     {
       id: 'offer',
@@ -320,7 +359,10 @@ export const mentalHealthResponseFlow: Flow = {
         'If they come back later and ask for a change, that is where the accommodation process starts — and the fact that you offered first is what makes asking possible.',
         'Si la personne revient plus tard demander un changement, c’est là que débute le processus d’accommodement — et c’est le fait d’avoir offert en premier qui rend la demande possible.',
       ),
-      documents: ['T21'],
+      noDocument: bi(
+        'Nothing to open, and that is the instruction rather than an omission. An accommodation record started for someone who asked for no accommodation is a health record you created without cause and now have to justify holding. If they come back and ask for something, the accommodation request form is where that begins — on that day, not this one.',
+        'Rien à ouvrir, et il s’agit d’une consigne et non d’un oubli. Un dossier d’accommodement ouvert pour une personne qui n’a rien demandé est un dossier de santé que vous avez créé sans motif et dont vous devrez justifier la conservation. Si la personne revient demander quelque chose, le formulaire de demande d’accommodement est le point de départ — ce jour-là, pas aujourd’hui.',
+      ),
     },
   ],
 }
