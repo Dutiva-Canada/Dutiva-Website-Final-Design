@@ -38,12 +38,12 @@ people who don't read the repo. Re-export it when this file changes.
 
 | Fact                  | Value                                                                       | Source of truth                                                         |
 | --------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Templates shipped     | **32** — T01…T32                                                            | `src/features/app/documents/catalogue.ts`                               |
+| Templates shipped     | **34** — T01…T34                                                            | `src/features/app/documents/catalogue.ts`                               |
 | Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)          | jurisdiction codes `ON`, `QC`, `FED`                                    |
 | Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                | `src/config/plans.ts` → `PLANS`                                         |
 | Annual billing        | 10 of 12 months charged (two months free)                                   | `ANNUAL_MONTHS_BILLED`                                                  |
 | Beta state            | Paid plans **shown but not sold**                                           | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
-| Rings live            | **Ring 1, plus Ring 2 Pillar B in part.** Rings 3–4 are roadmap.            | `docs/FOUR_RING_FRAMEWORK.md`                                           |
+| Rings live            | **Ring 1; Ring 2 Pillars B and D, and part of C.** Rings 3–4 are roadmap.   | `docs/FOUR_RING_FRAMEWORK.md`                                           |
 | Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30) | `src/features/app/guidance/monitoringCoverage.ts`                       |
 | Contact address       | **support@dutiva.ca**                                                       | the published support address; retired ones stay retired (§6, enforced) |
 | Languages             | EN + FR, both surfaces, prerendered per locale                              | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
@@ -100,7 +100,7 @@ not the outcome, until that resolves.
 
 ### 3. Counts
 
-**32** templates — not 47, and no longer 16 either: the count has moved, so state
+**34** templates — not 47, and no longer 16 either: the count has moved, so state
 it from `catalogue.ts` rather than from memory or from any Drive document. **3**
 jurisdictions — not 4 or 14. Federally regulated remote work is a supported
 _scenario_ under `FED`, not a fourth jurisdiction. Alberta and BC stay labelled
@@ -110,11 +110,18 @@ roadmap.
 
 Ring 1 exists, and as of August 2026 covers every tool the April framework
 listed for it (T25–T32 closed the last eight gaps). Of Rings 2–4 the shipped
-work is Ring 2's **Pillar B, which is complete** — the accommodation documents
-(T21–T24, plus the ported T19/T20) in Document Studio's Accommodation
-category, the duty-to-accommodate flow at `/app/workflows/duty-to-accommodate`,
-and the functional limitations guide at `/app/knowledge/functional-limitations`
-— **plus one tool of Pillar C**, the psychological safety self-check at
+work is two complete pillars of Ring 2:
+
+- **Pillar B, Accommodation** — the accommodation documents (T21–T24, plus the
+  ported T19/T20) in Document Studio's Accommodation category, the
+  duty-to-accommodate flow at `/app/workflows/duty-to-accommodate`, and the
+  functional limitations guide at `/app/knowledge/functional-limitations`.
+- **Pillar D, Leave Management** — the leave request form (T33) and sick leave
+  policy (T34), the leave of absence checklist at
+  `/app/workflows/leave-of-absence`, and the parental leave guide at
+  `/app/knowledge/parental-leave`.
+
+Plus **one tool of Pillar C**, the psychological safety self-check at
 `/app/workflows/psychological-safety-check`.
 
 That self-check is **not** an audit against CSA Z1003-13 and not a measure of
@@ -122,8 +129,11 @@ conformance with it. It is an original self-assessment organised around the
 thirteen psychosocial factors the Standard names. Never describe it as
 CSA-certified, CSA-compliant, or an assessment against the Standard.
 
-Pillars A and D do not exist, and the rest of Pillar C does not either. Rings 3
-and 4 are untouched.
+The parental leave guide states no durations, notice periods or benefit
+amounts, by design (§6). Do not add figures to it.
+
+Pillar A does not exist, and the rest of Pillar C does not either. Rings 3 and
+4 are untouched.
 
 Rings 3 and 4 are roadmap. The Compensation, Communications and Wellbeing
 modules in the app are prototype surfaces on demo fixtures, gated off in a

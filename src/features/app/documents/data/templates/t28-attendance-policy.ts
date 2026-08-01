@@ -213,8 +213,8 @@ export const tplT28: DocTemplate = {
     {
       type: 'clause',
       text: {
-        en: 'Leaves you are entitled to under {{statute}} are not absences under this policy. They are not counted, not recorded against you, and taking one will never be held against you in any decision {{org}} makes. That includes sick leave, family and bereavement leaves, and every other statutory leave.',
-        fr: 'Les congés auxquels vous avez droit en vertu de {{statute}} ne constituent pas des absences au sens de la présente politique. Ils ne sont pas comptabilisés, ne sont pas consignés à votre dossier, et leur utilisation ne vous sera jamais reprochée dans quelque décision que ce soit de {{org}}. Cela vise le congé de maladie, les congés pour obligations familiales et pour décès, ainsi que tout autre congé prévu par la loi.',
+        en: 'Leaves you are entitled to under {{statute}} are not absences under this policy. They are not counted, not recorded against you, and taking one will never be held against you in any decision {{org}} makes. That includes sick leave, family and bereavement leaves, and every other statutory leave. Sick leave has its own policy, and that is where its terms live.',
+        fr: 'Les congés auxquels vous avez droit en vertu de {{statute}} ne constituent pas des absences au sens de la présente politique. Ils ne sont pas comptabilisés, ne sont pas consignés à votre dossier, et leur utilisation ne vous sera jamais reprochée dans quelque décision que ce soit de {{org}}. Cela vise le congé de maladie, les congés pour obligations familiales et pour décès, ainsi que tout autre congé prévu par la loi. Le congé de maladie fait l’objet de sa propre politique, où se trouvent ses modalités.',
       },
       n: 3,
       heading: {

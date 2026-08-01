@@ -1,5 +1,6 @@
 import type { Flow } from '../flowModel'
 import { dutyToAccommodateFlow } from './dutyToAccommodate'
+import { leaveOfAbsenceFlow } from './leaveOfAbsence'
 import { psychologicalSafetyFlow } from './psychologicalSafety'
 
 /**
@@ -7,6 +8,6 @@ import { psychologicalSafetyFlow } from './psychologicalSafety'
  * `/app/workflows/<slug>` and a card on the Workflows view — see
  * docs/FOUR_RING_FRAMEWORK.md before authoring.
  */
-export const flows: Flow[] = [dutyToAccommodateFlow, psychologicalSafetyFlow]
+export const flows: Flow[] = [dutyToAccommodateFlow, psychologicalSafetyFlow, leaveOfAbsenceFlow]
 
 export const flowBySlug = new Map(flows.map((f) => [f.slug, f]))

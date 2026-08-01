@@ -38,6 +38,8 @@ import { tplT29 } from './t29-roe-preparation-guide'
 import { tplT30 } from './t30-reference-letter'
 import { tplT31 } from './t31-investigation-report'
 import { tplT32 } from './t32-layoff-notice'
+import { tplT33 } from './t33-leave-request-form'
+import { tplT34 } from './t34-sick-leave-policy'
 import type { DocTemplate } from '../types'
 
 export const docTemplates: DocTemplate[] = [
@@ -69,6 +71,8 @@ export const docTemplates: DocTemplate[] = [
   tplT30,
   tplT31,
   tplT32,
+  tplT33,
+  tplT34,
 ]
 
 export const templateByTid = new Map(docTemplates.map((t) => [t.tid, t]))

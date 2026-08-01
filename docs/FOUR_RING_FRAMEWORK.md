@@ -32,15 +32,16 @@ previous rings more useful. They are not tiers of a price list, and no plan in
 
 ## What is built
 
-**Ring 1 — the document catalogue, 32 templates** (`catalogue.ts`, T01…T32),
+**Ring 1 — the document catalogue, 34 templates** (`catalogue.ts`, T01…T34),
 now covering every tool the April framework listed for it. Plus the Advisor,
 the compliance register, cases, employees, policies and tasks. This is the
 product.
 
-**Ring 2 — Pillar B complete, plus one tool of Pillar C.** Six accommodation
-tools (four Document Studio templates, a guided flow, a reference guide) and
-the psychological safety self-check. Pillars A and D do not exist, and the
-rest of C does not either.
+**Ring 2 — Pillars B and D complete, plus one tool of Pillar C.** Six
+accommodation tools (four Document Studio templates, a guided flow, a
+reference guide), four leave-management tools (two templates, a flow, a
+guide), and the psychological safety self-check. Pillar A does not exist, and
+two tools of C remain.
 
 **Rings 3 and 4 — nothing.**
 
@@ -176,13 +177,66 @@ text.
 
 Nothing below is built. Counts are the framework's own.
 
-**Ring 2, remaining pillars — 11 tools.** Pillar A, Mental Health & EAP
+**Ring 2, remaining pillars — 7 tools.** Pillar A, Mental Health & EAP
 readiness (4): support checklist, EAP referral guide, return-to-work after
 mental health leave, manager conversation guide. Pillar C, Psychological
 Safety (3 of 4): respectful workplace policy, bystander intervention guide,
-wellness action plan — the self-check is built, see below. Pillar D, Leave
-Management (4): leave of absence checklist, leave request form, parental leave
-guide, sick day policy.
+wellness action plan — the self-check is built, and the policy is a special
+case, see below. Pillar D is complete.
+
+### Pillar C's respectful workplace policy overlaps T13 — build it by widening T13
+
+The framework lists it as "comprehensive policy covering harassment,
+discrimination, and inclusion". Most of that is the harassment, discrimination
+& violence policy already in the catalogue as **T13** — same subject, same
+audience, and a policy every jurisdiction Dutiva covers requires by statute.
+Not all of it: T13 carries no inclusion content, so the framework's third
+dimension is genuinely unbuilt, which is why this stays counted as remaining
+rather than done.
+
+**When it is built, widen T13. Do not mint a companion policy.** Two
+overlapping conduct policies in front of the same employer is the
+near-duplicate problem the accommodation category already had once (T19 beside
+T23), and an inclusion clause that lives apart from the harassment policy is
+the clause nobody reads.
+
+That is more than an authoring job, and worth knowing before it is picked up.
+T13 is a **generated** file — `t13-harassment-policy.ts` carries the
+`do not hand-edit / regenerate with scripts/generate-doclib.mjs` header — and
+the generator does not run: dead Windows paths, and its source JSON was never
+committed. It is also thin, two clauses against the eight or nine the authored
+templates carry. So widening it means first deciding whether T13 moves to
+hand-maintained the way `data/templates/` already is, or the generator is
+repaired. Take that decision deliberately; do not resolve it by quietly editing
+a file that says not to.
+
+### Ring 2, Pillar D — Leave management
+
+Complete. The two policies are written as a pair and should be read as one:
+the attendance policy (T28) says statutory leave is never an absence and hands
+the subject off; the sick leave policy (T34) is where it lands. Splitting them
+is what stops an employer either counting protected leave against attendance —
+the most common reprisal exposure there is — or having no written sick-leave
+terms at all. Each names the other.
+
+| Tool                       | Where                             | State     |
+| -------------------------- | --------------------------------- | --------- |
+| Leave request form         | T33                               | **Built** |
+| Sick leave policy          | T34                               | **Built** |
+| Leave of absence checklist | `/app/workflows/leave-of-absence` | **Built** |
+| Parental leave guide       | `/app/knowledge/parental-leave`   | **Built** |
+
+**The parental leave guide states no figures, and that is the decision this
+doc said to make first.** Durations, notice periods and benefit amounts differ
+across the three jurisdictions, differ again between the leave and the benefit
+that funds it, and move. The guide teaches the structure instead — that job
+protection and income replacement are separate systems with separate
+administrators, which is the part that does not go stale — and sends the
+reader to the ministry and to Service Canada or QPIP for anything numeric.
+
+Apply the same rule to Ring 4's pay-stub and RRSP/TFSA guides when they are
+written. A figure in a guide is a figure someone has to re-audit annually, and
+the year nobody does is the year it misleads.
 
 **Ring 3, Internal Communications — 9 tools.** Layoff & restructuring (3):
 announcement script, team restructuring announcement, employee FAQ. Policy
@@ -220,14 +274,15 @@ the sake of a round number.
 
 ### Grouped by what they cost to build
 
-The ring split describes the product; this split describes the work. 24 tools
-remain.
+The ring split describes the product; this split describes the work. 20 tools
+remain — the same 20 as above, counted the other way: Ring 2's 7 + Ring 3's 9 +
+Ring 4's 4. **Change one of these tables and check the other still adds up.**
 
 | Shape                             | Count | Where it goes                                                  |
 | --------------------------------- | ----- | -------------------------------------------------------------- |
-| Generated templates               | 15    | `data/templates/`, the shape T21–T32 established               |
-| Reference guides / guidance notes | 7     | `reference/data/`, the shape the limitations guide established |
-| Checklists and decision flows     | 2     | `flows/data/`, the shape the accommodation flow established    |
+| Generated templates               | 13    | `data/templates/`, the shape T21–T34 established               |
+| Reference guides / guidance notes | 6     | `reference/data/`, the shape the limitations guide established |
+| Checklists and decision flows     | 1     | `flows/data/`, the shape the accommodation flow established    |
 
 **Every remaining tool now has a home and a worked example.** No machinery is
 outstanding: templates, reference guides, decision flows and scored
@@ -291,7 +346,7 @@ four places. Treat the Drive document as superseded on all four.
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | All 14 jurisdictions, every ring                | Three — ON, QC, FED                                                                                                                    |
 | $39/month flat                                  | Free · Starter $24 · Growth $49 · Pro $99, and paid plans are not sold during beta                                                     |
-| 47 tools at launch                              | 32 templates ship; the 47 counted a launch state that did not happen                                                                   |
+| 47 tools at launch                              | 34 templates ship; the 47 counted a launch state that did not happen                                                                   |
 | Month-numbered build schedule off a launch date | Both published launch dates have passed. Tie sequencing to product state, never a calendar date (`CANONICAL_FACTS.md` § Launch status) |
 
 Its Ring 1 inventory did not match what shipped either. Of the 18 tools it
@@ -329,7 +384,7 @@ Drive document undercounts the product, not the other way round.
 
 1. Check this file and `CANONICAL_FACTS.md` first.
 2. Pick the surface by shape, and follow the worked example already there:
-   - **a document** → `data/templates/`, following T21–T32. Numbering
+   - **a document** → `data/templates/`, following T21–T34. Numbering
      continues from the highest tid in `catalogue.ts` — **check both
      sources**, because `data/templates/` and `customTemplates.ts` share one
      tid space and doclib silently wins the lookup in `DocStudioProvider`.
