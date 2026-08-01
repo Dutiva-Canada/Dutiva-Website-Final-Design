@@ -124,12 +124,19 @@ export function AppShell() {
   if (isMobile) sidebarMode = 'drawer'
   else if (layout !== 'tablet' && sidebarExpanded) sidebarMode = 'expanded'
 
+  /* h-dvh, not h-screen: iOS Safari resolves 100vh against the *large*
+     viewport — the page as it would be with the browser chrome retracted — so a
+     100vh frame with the bottom nav as its last child parks that nav roughly
+     100px below the real fold, behind Safari's toolbar. 100dvh tracks the
+     visible viewport instead.
+
+     `.landscape-compact` is applied unconditionally: base.css already gates its
+     rules behind the matching media query, so CSS decides when it takes effect.
+     Deriving it here from a window.innerHeight read during render both went
+     stale on rotation and never matched a phone in landscape (which is wide
+     enough to leave `isMobile`). */
   return (
-    <div
-      className={`surface-app flex h-screen flex-col overflow-hidden bg-bg font-sans text-text ${
-        isMobile && window.innerHeight < 500 ? 'landscape-compact' : ''
-      }`}
-    >
+    <div className="surface-app landscape-compact flex h-dvh flex-col overflow-hidden bg-bg font-sans text-text">
       {isMobile && (
         <MobileTopbar
           title={title}
@@ -170,11 +177,11 @@ export function AppShell() {
           </>
         )}
 
-        <main
-          className={`relative flex min-w-0 flex-1 flex-col bg-bg transition-[padding-bottom] duration-300 ease-out ${
-            isMobile ? 'pb-[60px]' : 'pb-0'
-          }`}
-        >
+        {/* No bottom padding to clear the mobile nav: that nav is a sibling
+            flex child of the same column, so it already claims its own height
+            in normal flow. Reserving 60px here too left a dead band of
+            unusable background above it on every app screen. */}
+        <main className="relative flex min-w-0 flex-1 flex-col bg-bg">
           {!isMobile && <Topbar title={title} />}
           <WorkspaceContextBanner />
           <ModuleContextBanner />

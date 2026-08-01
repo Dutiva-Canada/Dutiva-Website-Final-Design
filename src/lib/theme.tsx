@@ -11,6 +11,22 @@ function readTheme(): Theme {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+/** Safari's status/toolbar tint per theme. Mirrors the `<meta name="theme-color">
+ *  pair in index.html — keep the two in step. */
+const CHROME_TINT: Record<Theme, string> = { dark: '#081019', light: '#f3f5fa' }
+
+/**
+ * Stamp the resolved theme onto the document. `data-theme` drives every token;
+ * the `theme-color` tags drive the browser chrome around the page, which iOS
+ * Safari paints from — without this the toolbar keeps the pre-toggle color.
+ */
+function applyThemeToDocument(next: Theme): void {
+  document.documentElement.dataset.theme = next
+  document.querySelectorAll('meta[name="theme-color"]').forEach((tag) => {
+    tag.setAttribute('content', CHROME_TINT[next])
+  })
+}
+
 /**
  * Theme state must be hydration-safe: public pages are prerendered with the
  * default ('dark'), so the first client render has to match it — the stored
@@ -26,12 +42,12 @@ export function ThemeProvider({ children }: { readonly children: ReactNode }) {
 
   useEffect(() => {
     const stored = readTheme()
-    document.documentElement.dataset.theme = stored
+    applyThemeToDocument(stored)
     setTheme(stored)
   }, [])
 
   const applyTheme = useCallback((next: Theme) => {
-    document.documentElement.dataset.theme = next
+    applyThemeToDocument(next)
     writePref(THEME_KEY, next)
     setTheme(next)
   }, [])
@@ -39,7 +55,7 @@ export function ThemeProvider({ children }: { readonly children: ReactNode }) {
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark'
-      document.documentElement.dataset.theme = next
+      applyThemeToDocument(next)
       writePref(THEME_KEY, next)
       return next
     })
