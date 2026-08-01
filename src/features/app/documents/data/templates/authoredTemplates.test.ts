@@ -173,14 +173,29 @@ describe('jurisdiction-specific rules stay in jurisdiction notes', () => {
      into copy that renders for all three.
      `jurisdictionNotes` are the only place the reader sees a rule attributed
      to a jurisdiction, so anything jurisdictional has to live there. */
-  const universalProse = (tid: string): string => {
+  /**
+   * Every `Bi` on the template that is NOT scoped to a jurisdiction — both
+   * languages, and every field, via the same walker the bilingual test uses.
+   * Anything reachable from here reaches a reader who may be in any of the
+   * three jurisdictions.
+   *
+   * Jurisdiction-gated preview blocks are excluded too: a block carrying
+   * `when.juris` resolves only for that jurisdiction, so it is as scoped as a
+   * note is.
+   */
+  const universalStrings = (tid: string): string => {
     const tpl = template(tid)
-    return [
-      ...tpl.preview.flatMap((b) => [b.text?.en ?? '', b.heading?.en ?? '']),
-      ...tpl.questions.flatMap((q) => [q.label.en, q.placeholder?.en ?? '', q.hint?.en ?? '']),
-      ...tpl.includes.map((i) => i.en),
-      ...tpl.statutory.map((s) => s.en),
-    ].join('\n')
+    const gatedBlockIndexes = new Set(
+      tpl.preview.flatMap((b, i) => (b.when?.juris !== undefined ? [i] : [])),
+    )
+    return biStrings(tpl)
+      .filter(([path]) => !path.startsWith('jurisdictionNotes.'))
+      .filter(([path]) => {
+        const match = /^preview\[(\d+)\]/.exec(path)
+        return match === null || !gatedBlockIndexes.has(Number(match[1]))
+      })
+      .flatMap(([, bi]) => [bi.en, bi.fr])
+      .join('\n')
   }
 
   it('does not state Ontario’s closed list of hardship factors as universal', () => {
@@ -188,18 +203,45 @@ describe('jurisdiction-specific rules stay in jurisdiction notes', () => {
        health and safety, so employee morale is out. Québec names no list and
        weighs the whole of the circumstances, where disruption to the operation
        or the team can count. Saying "morale is not undue hardship" to every
-       reader is therefore wrong for a Québec one. */
-    expect(universalProse('T24')).not.toMatch(/morale/i)
+       reader is therefore wrong for a Québec one.
+       Checked in both languages: the French original said `moral du personnel`
+       and could come back on its own. */
+    const universal = universalStrings('T24')
+    expect(universal).not.toMatch(/morale/i)
+    expect(universal).not.toMatch(/moral du personnel/i)
+
+    /* And it must still be said where it is true. */
     expect(template('T24').jurisdictionNotes.ON?.en).toMatch(/morale/i)
+    expect(template('T24').jurisdictionNotes.ON?.fr).toMatch(/moral du personnel/i)
   })
 
   it('keeps the rules that do hold everywhere', () => {
     /* The opposite failure — hedging a claim that is actually universal until
        it says nothing. Business inconvenience and customer preference carry a
        refusal nowhere, and the document should still say so plainly. */
-    const prose = universalProse('T24')
-    expect(prose).toMatch(/inconvenience/i)
-    expect(prose).toMatch(/preference/i)
+    const universal = universalStrings('T24')
+    expect(universal).toMatch(/inconvenience/i)
+    expect(universal).toMatch(/preference/i)
+  })
+
+  it('renders the applicable test in the document, not only in a note', () => {
+    /* `jurisdictionNotes` show on the template detail screen; a generated or
+       exported document renders `preview` through `resolveBlocks` and nothing
+       else. A worksheet that told its reader to consult a note the artifact
+       does not carry would be pointing at nothing. */
+    const tpl = template('T24')
+    for (const jurisdiction of JURISDICTIONS) {
+      const blocks = resolveBlocks(tpl, { jurisdiction, headcount: 38, unionized: false })
+      const testClauses = blocks.filter((b) => b.heading?.en === 'The test that applies here')
+      expect(testClauses, jurisdiction).toHaveLength(1)
+    }
+  })
+
+  it('gives every jurisdiction somewhere to record what it may rely on', () => {
+    /* Québec's wider set is only real if the worksheet collects it. Without a
+       field for it, the note would describe factors the document has no room
+       for and the conclusion would rest on the narrower list regardless. */
+    expect(template('T24').questions.map((q) => q.id)).toContain('other_factors')
   })
 })
 

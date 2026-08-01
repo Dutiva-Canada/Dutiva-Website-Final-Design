@@ -71,6 +71,10 @@ export const tplT24: DocTemplate = {
       fr: 'Chaque option envisagée',
     },
     {
+      en: 'The test that applies in your jurisdiction',
+      fr: 'Le test applicable dans votre juridiction',
+    },
+    {
       en: 'Cost, with the evidence behind it',
       fr: 'Coût, avec la preuve à l’appui',
     },
@@ -81,6 +85,10 @@ export const tplT24: DocTemplate = {
     {
       en: 'Health and safety analysis',
       fr: 'Analyse de santé et sécurité',
+    },
+    {
+      en: 'Any other circumstances relied on',
+      fr: 'Toute autre circonstance invoquée',
     },
     {
       en: 'Conclusion and who approved it',
@@ -207,6 +215,27 @@ export const tplT24: DocTemplate = {
       },
     },
     {
+      id: 'other_factors',
+      section: {
+        en: 'Factors',
+        fr: 'Facteurs',
+      },
+      label: {
+        en: 'Anything else you are relying on',
+        fr: 'Tout autre élément invoqué',
+      },
+      type: 'textarea',
+      required: true,
+      placeholder: {
+        en: 'Other circumstances you say make this unworkable — and the evidence for each.',
+        fr: 'Autres circonstances qui rendraient la situation irréalisable — et la preuve de chacune.',
+      },
+      hint: {
+        en: 'In Ontario and federally the analysis is confined to the factors above, so "nothing further" is usually the right answer — and recording that you had nothing further is itself worth having. In Québec the assessment is global, and operational disruption or the effect on the team belongs here, evidenced like everything else.',
+        fr: 'En Ontario et au fédéral, l’analyse se limite aux facteurs ci-dessus : « rien de plus » est donc habituellement la bonne réponse — et consigner que vous n’aviez rien d’autre a sa valeur. Au Québec, l’évaluation est globale, et la perturbation des activités ou l’effet sur l’équipe trouvent leur place ici, avec preuve à l’appui comme le reste.',
+      },
+    },
+    {
       id: 'conclusion',
       section: {
         en: 'Conclusion',
@@ -261,6 +290,54 @@ export const tplT24: DocTemplate = {
       text: {
         en: 'This worksheet records how {{org}} assessed whether accommodating {{employee_name}} reaches undue hardship under {{jurisdiction}} law. Undue hardship is the outer limit of the duty to accommodate and the threshold is high: the employer must prove it on evidence. The written answer to the employee is a separate document.',
         fr: 'La présente feuille de travail consigne la manière dont {{org}} a évalué si l’accommodement de {{employee_name}} atteint la contrainte excessive en droit applicable en {{jurisdiction}}. La contrainte excessive constitue la limite ultime de l’obligation d’accommodement et le seuil en est élevé : il revient à l’employeur de la prouver par une preuve. La réponse écrite à l’employé(e) fait l’objet d’un document distinct.',
+      },
+    },
+    /* The applicable test, carried in the rendered blocks rather than left to
+       `jurisdictionNotes` — those show on the template detail screen only, so a
+       generated or exported worksheet would not contain the standard it is
+       measured against. One gated variant per jurisdiction; unnumbered, like
+       the collective-agreement clause, so the numbering below is stable
+       whichever one resolves. */
+    {
+      type: 'clause',
+      text: {
+        en: 'In Ontario the Human Rights Code confines this analysis to three things: cost, outside sources of funding, and health and safety requirements. Nothing else counts — not business inconvenience, not employee morale, not customer or co-worker preference.',
+        fr: 'En Ontario, le Code des droits de la personne limite l’analyse à trois éléments : le coût, les sources externes de financement et les exigences de santé et de sécurité. Rien d’autre ne compte — ni les inconvénients d’affaires, ni le moral du personnel, ni les préférences de la clientèle ou des collègues.',
+      },
+      heading: {
+        en: 'The test that applies here',
+        fr: 'Le test applicable',
+      },
+      when: {
+        juris: 'ON',
+      },
+    },
+    {
+      type: 'clause',
+      text: {
+        en: 'In Québec the Charter of human rights and freedoms names no list, so the assessment is global: the whole of the circumstances, weighed cumulatively. That set is wider than Ontario’s — operational disruption and the effect on other employees can count here — but wider is not easier. Every factor still has to be evidenced, and customer or co-worker preference is the discrimination rather than a defence to it.',
+        fr: 'Au Québec, la Charte des droits et libertés de la personne n’énumère aucun facteur : l’évaluation est donc globale, soit l’ensemble des circonstances appréciées cumulativement. Cet ensemble est plus large qu’en Ontario — la perturbation des activités et l’effet sur les autres employés peuvent y compter — mais plus large ne veut pas dire plus permissif. Chaque facteur doit être prouvé, et la préférence de la clientèle ou des collègues constitue la discrimination elle-même, non un moyen de défense.',
+      },
+      heading: {
+        en: 'The test that applies here',
+        fr: 'Le test applicable',
+      },
+      when: {
+        juris: 'QC',
+      },
+    },
+    {
+      type: 'clause',
+      text: {
+        en: 'Federally the Canadian Human Rights Act names health, safety and cost — a listed set, like Ontario’s and unlike Québec’s. Business inconvenience and customer or co-worker preference are not among them.',
+        fr: 'Au fédéral, la Loi canadienne sur les droits de la personne nomme la santé, la sécurité et le coût — une liste énumérée, comme en Ontario et contrairement au Québec. Les inconvénients d’affaires et les préférences de la clientèle ou des collègues n’en font pas partie.',
+      },
+      heading: {
+        en: 'The test that applies here',
+        fr: 'Le test applicable',
+      },
+      when: {
+        juris: 'FED',
       },
     },
     {
@@ -326,10 +403,22 @@ export const tplT24: DocTemplate = {
     {
       type: 'clause',
       text: {
+        en: '{{other_factors}}',
+        fr: '{{other_factors}}',
+      },
+      n: 6,
+      heading: {
+        en: 'Other circumstances relied on',
+        fr: 'Autres circonstances invoquées',
+      },
+    },
+    {
+      type: 'clause',
+      text: {
         en: '{{conclusion}} Approved by {{approved_by}} on {{today}}.',
         fr: '{{conclusion}} Approuvé par {{approved_by}} le {{today}}.',
       },
-      n: 6,
+      n: 7,
       heading: {
         en: 'Conclusion',
         fr: 'Conclusion',
@@ -338,8 +427,8 @@ export const tplT24: DocTemplate = {
     {
       type: 'note',
       text: {
-        en: 'Business inconvenience will not carry a refusal anywhere, and neither will customer or co-worker preference — a preference rooted in a protected ground is the discrimination, not a defence to it. Which further factors count is jurisdictional: check the conclusion above against the note for your jurisdiction, not against a general sense of how difficult this would be.',
-        fr: 'Les inconvénients d’affaires ne soutiennent un refus dans aucune juridiction, pas plus que les préférences de la clientèle ou des collègues — une préférence fondée sur un motif protégé constitue la discrimination elle-même, et non un moyen de défense. Les autres facteurs pertinents varient selon la juridiction : confrontez la conclusion ci-dessus à la note applicable à votre juridiction, et non à une impression générale de difficulté.',
+        en: 'Measure the conclusion against the test set out at the top of this worksheet, not against a general sense of how difficult this would be. Business inconvenience carries a refusal nowhere, and neither does customer or co-worker preference — a preference rooted in a protected ground is the discrimination, not a defence to it.',
+        fr: 'Confrontez la conclusion au test énoncé en tête de la présente feuille de travail, et non à une impression générale de difficulté. Les inconvénients d’affaires ne soutiennent un refus dans aucune juridiction, pas plus que les préférences de la clientèle ou des collègues — une préférence fondée sur un motif protégé constitue la discrimination elle-même, et non un moyen de défense.',
       },
       tone: 'risk',
     },

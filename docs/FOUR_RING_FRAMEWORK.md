@@ -131,8 +131,9 @@ meant to be carried into the template the outcome names.
 jurisdiction to gate on, because the runner never asks for one, so the gate
 silently no-opped. Authoring `only: 'QC'` would have shipped Québec-specific
 legal content to an Ontario reader with nothing failing. Where the law
-differs, say so in the copy and point at the Document Studio template, whose
-`jurisdictionNotes` the reader can see resolved.
+differs, name the difference in the copy — as the accommodation flow's
+hardship caution does — and send the reader to the template that resolves it
+for their jurisdiction.
 
 **What this does not do: scoring.** The framework's CSA Z1003-13
 self-assessment needs weighted answers summed into a band, and nothing in the
@@ -213,15 +214,27 @@ caught. Budget for review, not just writing.
    BC is out of scope.
 2. **EN + FR, both complete.** French with no handoff source is marked
    `[FR self-authored]` at the definition site.
-3. **A rule that holds in one jurisdiction goes in that jurisdiction's note.**
+3. **A rule that holds in one jurisdiction is scoped to that jurisdiction.**
    This is the mistake this content keeps making — three times so far, twice
    caught in review on #122 and once in a later audit. Ontario's undue-hardship
    list is statutory and closed; Québec names no list and weighs more; a
    common-law formation rule does not apply in Québec at all. Copy that renders
-   for every reader must be true for every reader, and `jurisdictionNotes` is
-   the only place the reader sees a rule attributed to a jurisdiction.
+   for every reader must be true for every reader.
+
+   **Scope it with a `when.juris` clause, not only with a
+   `jurisdictionNotes` entry.** Those notes render on the template detail
+   screen alone — `GenerateScreen` and a saved document resolve `preview`
+   through `resolveBlocks` and nothing else, so a note is absent from the
+   artifact the customer keeps. A document that tells its reader to check a
+   note it does not carry is pointing at nothing. Where a rule differs, ship
+   one gated clause per jurisdiction (T24's "The test that applies here"), and
+   make sure the worksheet collects what the wider test needs — a note
+   describing factors the questions have no field for is a note the conclusion
+   cannot rest on.
+
    Guarded for T24 by `authoredTemplates.test.ts`; everywhere else it is
    review, because no test can tell you a statute is characterised correctly.
+
 4. **The standing disclaimer** ships with generated documents, via the
    template's `note` block or the shared `Disclaimer` component — never
    retyped.
