@@ -54,8 +54,20 @@ describe('StudioScreen', () => {
     expect(screen.getByText('Offer of employment letter')).toBeInTheDocument()
     expect(screen.getByText('Québec offer letter')).toBeInTheDocument()
     expect(screen.queryByText('Confidentiality agreement')).not.toBeInTheDocument()
-    expect(screen.getAllByRole('article')).toHaveLength(2)
-    expect(screen.getByText('2 templates')).toBeInTheDocument()
+
+    /* Derived from the same haystack StudioScreen searches, rather than a
+       literal: "offer" once matched exactly the two offer letters, then a
+       later template happened to use the word in its description and the
+       count moved. What is being tested is that search narrows and the count
+       follows it — not how many templates contain a particular word. */
+    const matches = allTemplates.filter((tpl) =>
+      `${tpl.tid} ${tpl.name.en} ${tpl.name.fr} ${tpl.desc.en} ${tpl.desc.fr}`
+        .toLowerCase()
+        .includes('offer'),
+    ).length
+    expect(matches).toBeLessThan(CATALOGUE_SIZE)
+    expect(screen.getAllByRole('article')).toHaveLength(matches)
+    expect(screen.getByText(`${matches} templates`)).toBeInTheDocument()
   })
 
   it('union toggle flips T03 to "Collective agreement governs"', async () => {
