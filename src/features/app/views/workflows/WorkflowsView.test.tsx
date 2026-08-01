@@ -26,6 +26,24 @@ function renderWorkflows() {
 }
 
 describe('WorkflowsView', () => {
+  it('lists the guided flows and links each to its runner', () => {
+    renderWorkflows()
+    expect(screen.getByText('Guided processes · 1')).toBeInTheDocument()
+    /* The flow card, not the catalogue tile — the card carries the summary. */
+    expect(
+      screen.getByRole('link', { name: /Duty to accommodate.*documented arrangement/s }),
+    ).toHaveAttribute('href', '/app/workflows/duty-to-accommodate')
+  })
+
+  it('routes the accommodation catalogue tile to the flow, not the Advisor', async () => {
+    const user = userEvent.setup()
+    renderWorkflows()
+    /* The tile is a button; its subtitle is the process name. */
+    const tile = screen.getByRole('button', { name: /Accommodation/ })
+    await user.click(tile)
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/workflows/duty-to-accommodate')
+  })
+
   it('renders the header, in-flight rows, flagship map, and catalog', () => {
     renderWorkflows()
 
@@ -53,7 +71,10 @@ describe('WorkflowsView', () => {
     /* Catalog tiles ('Hiring'/'Termination' also name in-flight rows). */
     expect(screen.getAllByText('Hiring').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText('Policy update')).toBeInTheDocument()
-    expect(screen.getByText('Duty to accommodate')).toBeInTheDocument()
+    /* Two now: the guided-flow card and the catalogue tile whose subtitle
+       names the same process — the tile routes to the flow rather than to an
+       Advisor conversation about it. */
+    expect(screen.getAllByText('Duty to accommodate')).toHaveLength(2)
 
     expect(
       screen.getByText(

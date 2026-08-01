@@ -37,8 +37,9 @@ now covering every tool the April framework listed for it. Plus the Advisor,
 the compliance register, cases, employees, policies and tasks. This is the
 product.
 
-**Ring 2 — Pillar B only, and not all of it.** The accommodation documents
-below. Pillars A, C and D do not exist.
+**Ring 2 — Pillar B, complete.** Six accommodation tools: four Document
+Studio templates, one guided flow, one reference guide. Pillars A, C and D do
+not exist.
 
 **Rings 3 and 4 — nothing.**
 
@@ -67,14 +68,16 @@ It is also where Ring 1 had a hole: the framework listed an **Accommodation
 Response** among Ring 1's tools and called it the document this whole process
 produces, and it was not in the catalogue. It is now.
 
-| Tool                            | tid | State                           |
-| ------------------------------- | --- | ------------------------------- |
-| Accommodation request form      | T21 | **Built**                       |
-| Accommodation response (Ring 1) | T22 | **Built**                       |
-| Accommodation plan              | T23 | **Built**                       |
-| Undue hardship assessment       | T24 | **Built**                       |
-| Duty to accommodate workflow    | —   | Not built — needs a new surface |
-| Functional limitations guide    | —   | Not built — needs a new surface |
+**Pillar B is complete.** It is the only pillar of Rings 2–4 that is.
+
+| Tool                            | Where                                   | State     |
+| ------------------------------- | --------------------------------------- | --------- |
+| Accommodation request form      | T21                                     | **Built** |
+| Accommodation response (Ring 1) | T22                                     | **Built** |
+| Accommodation plan              | T23                                     | **Built** |
+| Undue hardship assessment       | T24                                     | **Built** |
+| Duty to accommodate workflow    | `/app/workflows/duty-to-accommodate`    | **Built** |
+| Functional limitations guide    | `/app/knowledge/functional-limitations` | **Built** |
 
 Two ported legacy documents sit in the same category and complete the
 workflow: **Accommodation documentation** (T19) and **Medical information
@@ -87,23 +90,64 @@ information request (T20) → response (T22) → plan (T23) → record (T19), wi
 the undue hardship assessment (T24) as the internal worksheet behind a
 refusal.
 
-### What the two remaining tools need
+## The two surfaces
 
-Neither fits the Document Studio engine, which renders a linear question set
-into merge-field blocks (`data/types.ts`, `engine.ts`):
+Pillar B's last two tools did not fit Document Studio, which renders a linear
+question set into merge-field blocks. Finishing the pillar meant building the
+surfaces they needed — and those surfaces are what unblocks most of what is
+left across Rings 2–4, so they matter well beyond the pillar that prompted
+them.
 
-- **Duty to accommodate workflow** is a decision tree — receive disclosure →
-  assess → explore options → implement → document. `ClauseGate` gates blocks
-  on jurisdiction, headcount and union, not on answers, so branching on what
-  the user just said is not expressible. This needs a flow runner.
-- **Functional limitations guide** is a reference document. There is no
-  surface for reference content: the Knowledge view holds titles and tags
-  with no bodies (`src/data/knowledge.ts`), and Document Studio generates
-  documents rather than publishing them.
+Neither had a design handoff. AGENTS.md says feature work here is driven by
+high-fidelity handoffs, so both were designed against the existing system —
+tokens, the chip and card patterns already in the app views, the shared
+`Disclaimer` — rather than against a prototype. Treat them as the pattern for
+the next tool of each shape.
 
-Both are product-design questions with no handoff. Per AGENTS.md, feature
-work here is driven by high-fidelity handoffs — so these two are blocked on
-design, not on engineering capacity.
+### Guided flows — `src/features/app/flows/`
+
+A flow is a graph of steps: `choice` steps branch, `task` steps instruct,
+`outcome` steps end the run. Three shapes fall out of one structure — a
+checklist is a chain of tasks, a decision tree is choices, a guided worksheet
+mixes them — which is why there is one engine and not three.
+
+- `flowModel.ts` — the content model.
+- `flowEngine.ts` — pure: `advance` / `back` / `progress` / `flowRecord`, plus
+  the graph checks (`unreachableSteps`, `longestPath`) the tests use.
+- `FlowRunner.tsx` — the runner at `/app/workflows/:slug`, ungated.
+
+Two decisions worth keeping. **Flows loop** — "check for funding, then re-test
+hardship" is a real step, so the graph is not a tree and `longestPath` walks
+with a visited set. **Every outcome hands off to a document**: a flow that
+ends in advice leaves nothing on the file, and the file is what an employer is
+asked to produce. `flowEngine.test.ts` enforces both, plus bilingual copy and
+reachability, for every shipped flow.
+
+Nothing is persisted. A run is a thinking tool; the record it produces is
+meant to be carried into the template the outcome names.
+
+**What this does not do: scoring.** The framework's CSA Z1003-13
+self-assessment needs weighted answers summed into a band, and nothing in the
+engine does arithmetic on answers. That is a real extension of the model, not
+a use of it.
+
+### Reference guides — `src/features/app/reference/`
+
+Long-form in-product content with per-jurisdiction notes, at
+`/app/knowledge/:slug`, listed above the fixture titles on the Knowledge
+index.
+
+Deliberately not `articleModel.ts`, though the block structure is similar.
+Different reader, different rules: this is behind the app and not indexed, it
+carries jurisdiction notes because the reader has a jurisdiction, and it links
+out to the templates and flows that act on it because the reader is mid-task.
+It also adds a `contrast` block — the do/don't pair that most of this content
+naturally takes.
+
+The editorial no-figures rule is not enforced here the way `articles.test.ts`
+enforces it for `/guides`. The same caution applies and it is a judgement
+call: name the statute, describe the shape of the rule, point at the official
+text.
 
 ## The rest of Rings 2–4
 
@@ -128,22 +172,30 @@ summary, salary review letter, pay stub guide, RRSP & TFSA guide.
 
 ### Grouped by what they cost to build
 
-The ring split describes the product; this split describes the work.
+The ring split describes the product; this split describes the work. 25 tools
+remain.
 
-27 tools remain across the four rings — the 25 listed above plus Pillar B's
-two.
+| Shape                             | Count | Where it goes                                                  |
+| --------------------------------- | ----- | -------------------------------------------------------------- |
+| Generated templates               | 15    | `data/templates/`, the shape T21–T32 established               |
+| Reference guides / guidance notes | 7     | `reference/data/`, the shape the limitations guide established |
+| Checklists and decision flows     | 2     | `flows/data/`, the shape the accommodation flow established    |
+| Scored assessment                 | 1     | Nowhere yet — the flow engine does not score                   |
 
-| Shape                                             | Count | Where it goes                                    |
-| ------------------------------------------------- | ----- | ------------------------------------------------ |
-| Generated templates                               | 15    | `data/templates/`, the shape T21–T24 established |
-| Reference guides / guidance notes                 | 8     | Nowhere yet — needs a reference-content surface  |
-| Interactive checklists, flows, scored assessments | 4     | Nowhere yet — needs new machinery                |
+**24 of the 25 now have a home.** That is the change: before the two surfaces
+existed, 12 of these were blocked on machinery that did not exist and the
+answer to "where would this go?" was nothing. Now the answer is a directory
+and a worked example for all but one.
 
-So a little over half of what remains is content authoring against a pattern
-that now exists. The rest is blocked on two surfaces that do not: one for
-reference content, one for interactive assessment. Building those two unblocks
-12 tools across three rings, which makes them the highest-leverage thing to
-design next.
+The exception is Pillar C's CSA Z1003-13 self-assessment, which needs weighted
+answers summed into a band. Extending the flow model to score is the smaller
+job of the two that were outstanding, and it is the last piece of machinery
+Rings 2–4 need.
+
+What remains is therefore mostly authoring — and authoring is where the real
+constraint is. These are legal-adjacent documents in a compliance product, and
+the review on #122 found four wrong legal claims that no test could have
+caught. Budget for review, not just writing.
 
 ## Standing constraints on any ring tool
 
@@ -210,12 +262,21 @@ Drive document undercounts the product, not the other way round.
 ## Adding a ring tool
 
 1. Check this file and `CANONICAL_FACTS.md` first.
-2. If it is a generated document, author it under `data/templates/` following
-   T21–T32. Numbering continues from the highest tid in `catalogue.ts` —
-   **check both sources**, because `data/templates/` and `customTemplates.ts`
-   share one tid space and doclib silently wins the lookup in
-   `DocStudioProvider`. `src/canonicalFacts.test.ts` fails on a duplicate.
-   `authoredTemplates.test.ts` picks up anything from T21 up automatically.
+2. Pick the surface by shape, and follow the worked example already there:
+   - **a document** → `data/templates/`, following T21–T32. Numbering
+     continues from the highest tid in `catalogue.ts` — **check both
+     sources**, because `data/templates/` and `customTemplates.ts` share one
+     tid space and doclib silently wins the lookup in `DocStudioProvider`.
+     `src/canonicalFacts.test.ts` fails on a duplicate, and
+     `authoredTemplates.test.ts` picks up anything from T21 up automatically.
+   - **a checklist or decision tree** → `flows/data/`, following
+     `dutyToAccommodate.ts`. Register it in `flows/data/index.ts`;
+     `flowEngine.test.ts` then holds it to the graph and bilingual rules.
+   - **a reference guide** → `reference/data/`, following
+     `functionalLimitations.ts`. Register it in `reference/data/index.ts`.
+   - **a scored assessment** → the engine does not score yet. Extend
+     `flowModel.ts` deliberately rather than faking it with a chain of
+     choices.
 3. Update the template count row in `CANONICAL_FACTS.md` in the same PR; the
    test derives it from `catalogue.ts` and fails on drift.
 4. Update the state tables here.

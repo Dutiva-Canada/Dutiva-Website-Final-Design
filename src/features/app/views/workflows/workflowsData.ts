@@ -130,6 +130,18 @@ export interface WorkflowCatalogItem {
   query: Bi
   /** Explicit Advisor flow key — prototype `start(key, en, frq)` (4763–4776). */
   flowKey: FlowKeyOrFallback
+  /**
+   * A guided flow (`src/features/app/flows/`) that covers this tile's subject.
+   * Where one exists it wins: a real step-by-step process that ends in a
+   * document beats opening an Advisor conversation about the same thing.
+   * Tiles without one keep the prototype's Advisor behaviour.
+   */
+  flowSlug?: string
+}
+
+/** Catalogue tile key → guided flow slug, where the flow exists. */
+const CATALOG_FLOW_SLUGS: Record<string, string> = {
+  accommodation: 'duty-to-accommodate',
 }
 
 /** Prototype tile key → startFlow key (leave/investigation/promotion → 'fallback'). */
@@ -222,6 +234,7 @@ const catalogEntries: readonly Omit<WorkflowCatalogItem, 'flowKey'>[] = [
 export const workflowCatalog: readonly WorkflowCatalogItem[] = catalogEntries.map((entry) => ({
   ...entry,
   flowKey: CATALOG_FLOW_KEYS[entry.key] ?? 'fallback',
+  ...(CATALOG_FLOW_SLUGS[entry.key] !== undefined && { flowSlug: CATALOG_FLOW_SLUGS[entry.key] }),
 }))
 
 /* -------------------------------------------------------- termination map */
