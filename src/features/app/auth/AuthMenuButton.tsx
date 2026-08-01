@@ -26,22 +26,23 @@ export function AuthMenuButton({ compact = false }: { readonly compact?: boolean
         aria-expanded={open}
         className={
           compact
-            ? 'relative cursor-pointer border-none bg-transparent p-[6px] text-text'
+            ? 'flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent p-[6px] text-text'
             : 'relative cursor-pointer border-none bg-transparent p-[6px] text-text-3'
         }
       >
-        <UserRound size={compact ? 19 : 18} strokeWidth={1.7} />
-        {status === 'signed-in' && (
-          <div className="absolute top-[5px] right-[6px] h-[7px] w-[7px] rounded-full border-[1.5px] border-bg bg-gold-dot" />
-        )}
+        {/* The signed-in dot anchors to the glyph, not the button, so the
+            compact variant can grow to a 44pt touch target without dragging
+            the dot off into the corner of the larger box. */}
+        <span className="relative flex">
+          <UserRound size={compact ? 19 : 18} strokeWidth={1.7} />
+          {status === 'signed-in' && (
+            <div className="absolute top-[-1px] right-0 h-[7px] w-[7px] rounded-full border-[1.5px] border-bg bg-gold-dot" />
+          )}
+        </span>
       </button>
       {open && (
         <>
-          <div
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 z-190"
-            aria-hidden="true"
-          />
+          <div onClick={() => setOpen(false)} className="fixed inset-0 z-190" aria-hidden="true" />
           <dialog
             open
             aria-label={x(M.auth_menu_title)}
