@@ -11,6 +11,31 @@ import type { Bi, Lang } from '@/i18n/core'
  * URL in both locales automatically — the registry, sitemap, and prerender
  * manifest all derive from `ALL_ARTICLES`.
  *
+ * **Which collection does an article belong to?** The two split on what the
+ * reader is doing, not on how fresh the writing is:
+ *
+ *   - `/guides` — the documents and decisions an employer *produces*. The
+ *     contract clause, the probation period, the accommodation process, the
+ *     termination notice and the file behind it. The reader already knows they
+ *     have something to write; the guide is about getting it right. These are
+ *     the articles the landing page teases and the ones that feed `/templates`.
+ *   - `/blog` — the regimes and obligations that *apply* to an employer before
+ *     anything is drafted. Which employment regime governs the workplace, which
+ *     written policies are actually required, which records must be kept and
+ *     for how long, which leaves exist. The reader is orienting, not drafting.
+ *
+ * Ask "is this about a document they are writing, or about a rule they are
+ * under?" and the answer places the article. Neither collection is dated and
+ * neither is the "news" one — there is no publishing cadence to promise, and a
+ * stale timestamp on a compliance page is worse than none. If that ever
+ * changes, change this rule deliberately rather than letting one article
+ * quietly become the exception.
+ *
+ * Keeping the collections disjoint is *also* an SEO constraint, and the
+ * stricter of the two: both indexes once listed the same six titles, and a
+ * title under both prefixes ships duplicate pages competing with each other in
+ * search. `src/seo/seo.test.ts` fails the build if the collections converge.
+ *
  * Editorial rules (docs/SEO_GEO_IMPLEMENTATION.md, docs/CANONICAL_FACTS.md):
  *
  *   - Articles explain concepts, decision points, and what to document. They
