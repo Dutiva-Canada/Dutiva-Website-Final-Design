@@ -353,6 +353,26 @@ describe('scoring', () => {
     expect(advance(scored, run, 'hi')).toEqual(run)
   })
 
+  it('lets an outcome opt out of a document, but not silently', () => {
+    /* The per-flow suite below enforces this on shipped content. This asserts
+       the rule itself is exclusive-or, because the failure mode of relaxing
+       it is an author who omits the handoff and writes no reason — which,
+       without this, would read as "correctly opted out". */
+    const holds = (step: { documents?: string[]; noDocument?: unknown }) =>
+      (step.documents?.length ?? 0) > 0 !== Boolean(step.noDocument)
+
+    expect(holds({ documents: ['T21'] }), 'names a document').toBe(true)
+    expect(holds({ noDocument: bi('None, and here is why', 'Aucun, et voici pourquoi') })).toBe(
+      true,
+    )
+    expect(holds({}), 'names neither').toBe(false)
+    expect(holds({ documents: [] }), 'an empty list is naming neither').toBe(false)
+    expect(
+      holds({ documents: ['T21'], noDocument: bi('None', 'Aucun') }),
+      'names both, so the reader is told two different things',
+    ).toBe(false)
+  })
+
   it('recognises a rated question and rejects the two shapes that are not one', () => {
     expect(isScored(stepById(scored, 'q1'))).toBe(true)
     expect(isScored(stepById(fixture, 'ask'))).toBe(false)
@@ -434,6 +454,11 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
           if (option.detail) strings.push([`${step.id}.${option.id}.detail`, option.detail])
         }
       }
+      if (step.kind === 'outcome' && step.noDocument) {
+        /* It renders where the handoff list would be, so it is as user-facing
+           as the documents it stands in for. */
+        strings.push([`${step.id}.noDocument`, step.noDocument])
+      }
       if (isResult(step)) {
         /* A band is what a scored run actually reads at the end — the step's
            own body is the preamble. An untranslated band would ship English
@@ -452,16 +477,30 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
       if (value.en.split(/\s+/).length > 3) {
         expect(value.fr, `${path} is untranslated`).not.toBe(value.en)
       }
+      /* Flow copy renders as text, not markdown — `**emphasis**` reaches the
+         reader as asterisks. Same guard as `GuideView.test.tsx`. */
+      expect(value.en, `${path} carries markdown that will render literally`).not.toMatch(/\*\*/)
+      expect(value.fr, `${path} carries markdown that will render literally`).not.toMatch(/\*\*/)
     }
   })
 
-  it('hands every ending off to at least one document', () => {
+  it('hands every ending off to a document, or says why there is none', () => {
     /* A flow that ends in advice leaves nothing on the file, and the file is
        what an employer is asked to produce. Bands count as endings: a scored
-       run reaches one of them, not the step's own body. */
+       run reaches one of them, not the step's own body.
+
+       `noDocument` is the one way out, and it is not a way to skip the
+       question: an outcome carrying both, or neither, fails here. It exists
+       because an ending whose content is "record nothing about their health"
+       cannot lead with a document prompt without asking for the record it
+       just said not to create. */
     for (const step of flow.steps) {
       if (step.kind === 'outcome') {
-        expect(step.documents?.length ?? 0, `${step.id} names no document`).toBeGreaterThan(0)
+        const named = (step.documents?.length ?? 0) > 0
+        expect(
+          named !== Boolean(step.noDocument),
+          `${step.id} must name documents or say why it names none — never both, never neither`,
+        ).toBe(true)
       }
       if (isResult(step)) {
         for (const band of step.bands) {

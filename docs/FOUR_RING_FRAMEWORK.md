@@ -37,11 +37,12 @@ now covering every tool the April framework listed for it. Plus the Advisor,
 the compliance register, cases, employees, policies and tasks. This is the
 product.
 
-**Ring 2 — Pillars B and D complete, plus one tool of Pillar C.** Six
+**Ring 2 — Pillars A, B and D complete, plus one tool of Pillar C.** Six
 accommodation tools (four Document Studio templates, a guided flow, a
 reference guide), four leave-management tools (two templates, a flow, a
-guide), and the psychological safety self-check. Pillar A does not exist, and
-two tools of C remain.
+guide), four mental health tools (a flow and three reference guides), and the
+psychological safety self-check. Three tools of Pillar C remain, and they are
+the only Ring 2 work outstanding.
 
 **Rings 3 and 4 — nothing.**
 
@@ -120,10 +121,21 @@ mixes them — which is why there is one engine and not three.
 
 Two decisions worth keeping. **Flows loop** — "check for funding, then re-test
 hardship" is a real step, so the graph is not a tree and `longestPath` walks
-with a visited set. **Every outcome hands off to a document**: a flow that
-ends in advice leaves nothing on the file, and the file is what an employer is
-asked to produce. `flowEngine.test.ts` enforces both, plus bilingual copy and
-reachability, for every shipped flow.
+with a visited set. **Every outcome hands off to a document, or says why it
+does not**: a flow that ends in advice leaves nothing on the file, and the
+file is what an employer is asked to produce. `flowEngine.test.ts` enforces
+both, plus bilingual copy and reachability, for every shipped flow.
+
+The second half of that rule was added in review on #127, and the exception is
+narrow. Pillar A's flow has an ending whose entire content is "nothing changes,
+and record nothing about their health" — leading it with a document prompt
+asks for exactly the record it just said not to create, and the record in
+question is a health record created for someone who requested nothing. So an
+outcome may set `noDocument` instead, which renders where the handoff list
+would be. It is **exclusive-or**: an outcome carrying both, or neither, fails
+the test, so an author still cannot quietly skip the handoff — they have to
+write down why there is none, and the reader sees it. Reach for it only when
+producing a document would be the wrong instruction.
 
 Nothing is persisted. A run is a thinking tool; the record it produces is
 meant to be carried into the template the outcome names.
@@ -177,12 +189,10 @@ text.
 
 Nothing below is built. Counts are the framework's own.
 
-**Ring 2, remaining pillars — 7 tools.** Pillar A, Mental Health & EAP
-readiness (4): support checklist, EAP referral guide, return-to-work after
-mental health leave, manager conversation guide. Pillar C, Psychological
-Safety (3 of 4): respectful workplace policy, bystander intervention guide,
-wellness action plan — the self-check is built, and the policy is a special
-case, see below. Pillar D is complete.
+**Ring 2, remaining pillars — 3 tools.** Pillar C, Psychological Safety
+(3 of 4): respectful workplace policy, bystander intervention guide, wellness
+action plan — the self-check is built, and the policy is a special case, see
+below. Pillars A, B and D are complete.
 
 ### Pillar C's respectful workplace policy overlaps T13 — build it by widening T13
 
@@ -209,6 +219,57 @@ templates carry. So widening it means first deciding whether T13 moves to
 hand-maintained the way `data/templates/` already is, or the generator is
 repaired. Take that decision deliberately; do not resolve it by quietly editing
 a file that says not to.
+
+### Ring 2, Pillar A — Mental health & EAP readiness
+
+Complete, and the only pillar built entirely out of the two newer surfaces —
+no Document Studio template at all. That was not a shortcut. Every candidate
+document already existed: the plan is T23, the return is T27, the leave is
+T33. What Pillar A adds is the judgement in front of those, which is why it is
+one flow and three guides.
+
+| Tool                                     | Where                                             | State     |
+| ---------------------------------------- | ------------------------------------------------- | --------- |
+| Mental health support checklist          | `/app/workflows/mental-health-response`           | **Built** |
+| EAP referral guide                       | `/app/knowledge/eap-referral`                     | **Built** |
+| Manager conversation guide               | `/app/knowledge/manager-conversations`            | **Built** |
+| Return to work after mental health leave | `/app/knowledge/return-after-mental-health-leave` | **Built** |
+
+**Two near-duplicates were avoided here, and the reasoning is the reusable
+part.** The framework's "support checklist" reads like a second
+duty-to-accommodate flow — that flow already starts at "someone tells you they
+are struggling" and already branches on a manager who noticed rather than was
+told. And "return-to-work after mental health leave" reads like a third
+return document, between T27 and T23, repeating both.
+
+So the flow was scoped to the ten minutes **before** any process starts, and
+it ends by routing: to an emergency response, to the accommodation process, to
+a leave, or to an ordinary performance conversation. Its distinct content is
+the triage, because getting it wrong is the harm — a health need managed as
+underperformance is how an employer disciplines a disability, and a
+performance problem re-labelled as health is how an employee is never told the
+truth about their work. And the return-to-work tool was built as a guide,
+carrying the judgement a form cannot: that a graduated return is an
+accommodation rather than a favour, that a fitness-to-return note means "able
+to work under stated conditions" rather than "recovered", that the receiving
+manager is told the adjustment and never the reason, and that the relapse path
+is decided while everyone is calm.
+
+**When a framework tool sounds like something already shipped, check before
+authoring, not in review.** That check has now changed the answer three times
+— T13, and both of these.
+
+The manager conversation guide is deliberately written as wording rather than
+principles. Managers already know to be supportive and not to pry; what they
+lack is the sentence to say when the room goes quiet, so they improvise, and
+the improvisation is where the diagnosis gets guessed at and the promise gets
+made that cannot be kept. Every `contrast` pair in it is a real sentence
+against the real sentence it replaces.
+
+No figures anywhere in the pillar. EAP session counts and coverage are set by
+the plan an employer bought; ramp lengths and benefit durations by the plan
+and the treating clinician. A guide carrying a "typical four weeks" becomes
+the standard someone is measured against.
 
 ### Ring 2, Pillar D — Leave management
 
@@ -274,15 +335,18 @@ the sake of a round number.
 
 ### Grouped by what they cost to build
 
-The ring split describes the product; this split describes the work. 20 tools
-remain — the same 20 as above, counted the other way: Ring 2's 7 + Ring 3's 9 +
+The ring split describes the product; this split describes the work. 16 tools
+remain — the same 16 as above, counted the other way: Ring 2's 3 + Ring 3's 9 +
 Ring 4's 4. **Change one of these tables and check the other still adds up.**
 
 | Shape                             | Count | Where it goes                                                  |
 | --------------------------------- | ----- | -------------------------------------------------------------- |
 | Generated templates               | 13    | `data/templates/`, the shape T21–T34 established               |
-| Reference guides / guidance notes | 6     | `reference/data/`, the shape the limitations guide established |
-| Checklists and decision flows     | 1     | `flows/data/`, the shape the accommodation flow established    |
+| Reference guides / guidance notes | 3     | `reference/data/`, the shape the limitations guide established |
+| Checklists and decision flows     | 0     | `flows/data/`, the shape the accommodation flow established    |
+
+Every remaining flow is built. What is left is 13 documents and 3 guides —
+Ring 3 is nine documents and nothing else, and Ring 4 is two of each.
 
 **Every remaining tool now has a home and a worked example.** No machinery is
 outstanding: templates, reference guides, decision flows and scored

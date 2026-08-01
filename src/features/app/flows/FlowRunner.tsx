@@ -310,7 +310,21 @@ function OutcomeActions({ flow, run }: { readonly flow: Flow; readonly run: Flow
     : step.kind === 'outcome'
       ? (step.documents ?? [])
       : []
-  if (tids.length === 0) return null
+
+  /* An ending that deliberately produces no document says so, rather than
+     rendering nothing — the absence is the instruction. */
+  if (tids.length === 0) {
+    const reason = step.kind === 'outcome' ? step.noDocument : undefined
+    if (!reason) return null
+    return (
+      <div className="mt-[18px] border-t border-inset pt-[16px]">
+        <div className="text-[11.5px] font-bold tracking-[0.04em] text-text-muted uppercase">
+          {x(M.flows_no_document)}
+        </div>
+        <p className="mt-[8px] text-[13px] leading-[1.6] text-text-soft">{x(reason)}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="mt-[18px] border-t border-inset pt-[16px]">

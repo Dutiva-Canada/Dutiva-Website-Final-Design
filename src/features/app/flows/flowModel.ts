@@ -100,6 +100,24 @@ export interface FlowOutcomeStep extends FlowStepBase {
   tone: 'ok' | 'caution'
   /** Document Studio tids this outcome hands off to, in the order to use them. */
   documents?: string[]
+  /**
+   * Why this ending deliberately produces no document, shown where the
+   * handoff list would be. **Exactly one of this and `documents` is set**, and
+   * `flowEngine.test.ts` fails an outcome carrying both or neither.
+   *
+   * The rule this relaxes is that a flow ending in advice leaves nothing on
+   * the file. It still holds, with one exception found in review: an ending
+   * whose whole content is "nothing changes, and record nothing about their
+   * health" cannot lead with a document prompt without asking for exactly the
+   * record it just said not to create. Naming a template there is worse than
+   * naming none.
+   *
+   * So the pressure stays — an author cannot quietly omit the handoff, they
+   * have to write down why there is none, and the reader sees it. Reach for
+   * this only when producing a document would be the wrong instruction, never
+   * when you have not worked out which one applies.
+   */
+  noDocument?: Bi
 }
 
 /** One reading of a score, selected by where the total lands. */
