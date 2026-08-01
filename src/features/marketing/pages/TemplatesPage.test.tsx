@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
-import { docTemplates } from '@/features/app/documents/data'
+import { allTemplates } from '@/features/app/documents/catalogue'
 import { TemplatesPage } from './TemplatesPage'
 
 describe('TemplatesPage', () => {
@@ -15,7 +15,7 @@ describe('TemplatesPage', () => {
       }),
     ).toBeInTheDocument()
 
-    for (const tpl of docTemplates) {
+    for (const tpl of allTemplates) {
       expect(screen.getByText(tpl.name.en)).toBeInTheDocument()
     }
 
@@ -30,7 +30,7 @@ describe('TemplatesPage', () => {
     const [langToggle] = screen.getAllByRole('button', { name: /Toggle language/ })
     await user.click(langToggle as HTMLElement)
 
-    const firstTemplate = docTemplates[0]
+    const firstTemplate = allTemplates[0]
     expect(firstTemplate).toBeDefined()
     expect(screen.getByText(firstTemplate!.name.fr)).toBeInTheDocument()
   })

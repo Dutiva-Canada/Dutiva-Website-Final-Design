@@ -1,3 +1,16 @@
+/**
+ * ONE-SHOT IMPORT — kept for provenance, not runnable.
+ *
+ * This read the HR Documents Library handoff's `dutiva-data.js` (exported to
+ * JSON) and emitted the T01–T16 fixture modules. Both paths below point at a
+ * developer machine that no longer exists and the source JSON was never
+ * committed, so running this today fails at the first `readFileSync` — and if
+ * the inputs were ever restored, it would overwrite `templates/index.ts` and
+ * `meta.ts`, dropping every template authored in-repo since the import.
+ *
+ * Templates added after the import are hand-authored against the model in
+ * `data/types.ts`. See docs/FOUR_RING_FRAMEWORK.md.
+ */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 

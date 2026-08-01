@@ -1,5 +1,8 @@
-/* GENERATED from the HR Documents Library handoff (dutiva-data.js) — do not
-   hand-edit. Regenerate with scripts/generate-doclib.mjs (see repo docs). */
+/* Originally GENERATED from the HR Documents Library handoff (dutiva-data.js)
+   by scripts/generate-doclib.mjs. That generator is a one-shot import and can
+   no longer be run (see its header), so entries added after the import are
+   authored here by hand and marked AUTHORED IN-REPO. Leave the handoff-derived
+   entries alone; append new ones. */
 import type { Bi } from '@/i18n/core'
 import type {
   CapabilityMatrix,
@@ -82,6 +85,23 @@ export const templateCategories: TemplateCategory[] = [
     desc: {
       en: 'The highest-risk documents — review before use.',
       fr: 'Les documents les plus à risque — à réviser avant usage.',
+    },
+  },
+  /* AUTHORED IN-REPO (not from the handoff) — see docs/FOUR_RING_FRAMEWORK.md.
+     The accommodation process is Ring 2 Pillar B; its output document
+     (T22) is Ring 1. Both live here because a category split by ring would
+     hide the fact that they are one workflow. */
+  {
+    id: 'accommodation',
+    order: 6,
+    icon: 'heart-handshake',
+    name: {
+      en: 'Accommodation',
+      fr: 'Accommodement',
+    },
+    desc: {
+      en: 'The duty-to-accommodate process, from request to documented plan.',
+      fr: 'Le processus d’obligation d’accommodement, de la demande au plan documenté.',
     },
   },
 ]

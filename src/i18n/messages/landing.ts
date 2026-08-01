@@ -398,6 +398,14 @@ export const landing = defineMessages({
     en: 'Analytics',
     fr: 'Analytique',
   },
+  landing_mod_roadmap: {
+    en: 'Roadmap',
+    fr: 'À venir',
+  },
+  landing_mod_roadmap_note: {
+    en: 'Modules marked roadmap are in design and not yet available. Everything else runs on your live workspace data today.',
+    fr: 'Les modules marqués « à venir » sont en conception et ne sont pas encore offerts. Tout le reste fonctionne dès aujourd’hui avec les données réelles de votre espace de travail.',
+  },
   landing_cat_label: {
     en: 'Available template categories',
     fr: 'Catégories de modèles disponibles',

@@ -1,6 +1,6 @@
-import { docCases, docEmployees, docTemplates, sampleDocuments, templateCategories } from './data'
+import { docCases, docEmployees, sampleDocuments, templateCategories } from './data'
 import type { DocCase, DocEmployee, DocTemplate, GeneratedDoc, TemplateCategory } from './data'
-import { customTemplates } from './customTemplates'
+import { allTemplates } from './catalogue'
 
 /**
  * Read layer for the HR Documents Library.
@@ -28,10 +28,7 @@ export interface DoclibData {
 }
 
 const FIXTURES: DoclibData = {
-  /* customTemplates are hand-authored (see that file's header) — spliced
-     in here rather than into data/templates/index.ts (generated, would
-     be clobbered on a future regen). */
-  templates: [...docTemplates, ...customTemplates],
+  templates: allTemplates,
   categories: templateCategories,
   documents: sampleDocuments,
   employees: docEmployees,

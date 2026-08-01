@@ -4,13 +4,22 @@ import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 import { IconChip } from './IconChip'
 
-const MODULES: { icon: LucideIcon; label: LandingMessageKey }[] = [
+/**
+ * `roadmap: true` marks a module that is not shipped capability.
+ * Compensation, Communications and Wellbeing exist in the app only as
+ * prototype surfaces on demo fixtures, gated off in a production workspace
+ * (`gated(…)` in src/app/appViews.tsx) — they are Rings 4, 3 and 2, and
+ * CANONICAL_FACTS §4 requires those be presented as roadmap. The other four
+ * are real: compliance monitoring, people and cases, the knowledge base, and
+ * analytics all run on live data.
+ */
+const MODULES: { icon: LucideIcon; label: LandingMessageKey; roadmap?: true }[] = [
   { icon: ShieldCheck, label: 'landing_mod1_label' },
   { icon: Users, label: 'landing_mod2_label' },
   { icon: BookOpen, label: 'landing_mod3_label' },
-  { icon: Banknote, label: 'landing_mod4_label' },
-  { icon: Send, label: 'landing_mod5_label' },
-  { icon: Activity, label: 'landing_mod6_label' },
+  { icon: Banknote, label: 'landing_mod4_label', roadmap: true },
+  { icon: Send, label: 'landing_mod5_label', roadmap: true },
+  { icon: Activity, label: 'landing_mod6_label', roadmap: true },
   { icon: BarChart3, label: 'landing_mod7_label' },
 ]
 
@@ -28,9 +37,15 @@ export function Modules() {
         </h2>
         <div className="flex flex-wrap gap-2">
           {MODULES.map((mod) => (
-            <IconChip key={mod.label} icon={mod.icon} label={lt(mod.label)} />
+            <IconChip
+              key={mod.label}
+              icon={mod.icon}
+              label={lt(mod.label)}
+              note={mod.roadmap === true ? lt('landing_mod_roadmap') : undefined}
+            />
           ))}
         </div>
+        <p className="mt-3.5 text-sm leading-6 text-text-muted">{lt('landing_mod_roadmap_note')}</p>
       </div>
     </section>
   )

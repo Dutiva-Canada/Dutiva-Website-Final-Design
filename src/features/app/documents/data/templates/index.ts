@@ -1,5 +1,10 @@
-/* GENERATED from the HR Documents Library handoff (dutiva-data.js) — do not
-   hand-edit. Regenerate with scripts/generate-doclib.mjs (see repo docs). */
+/* T01–T16 were GENERATED from the HR Documents Library handoff (dutiva-data.js)
+   by scripts/generate-doclib.mjs. That generator is a one-shot import and can
+   no longer be run (see its header), so this barrel is now maintained by hand:
+   templates authored in-repo since the import are appended below.
+
+   Catalogue order is the tid order, which is also the order the Studio and
+   /templates render within a category. */
 import { tplT01 } from './t01-offer-letter'
 import { tplT02 } from './t02-employment-agreement'
 import { tplT03 } from './t03-termination-letter'
@@ -16,6 +21,15 @@ import { tplT13 } from './t13-harassment-policy'
 import { tplT14 } from './t14-resignation-acceptance'
 import { tplT15 } from './t15-group-termination-notice'
 import { tplT16 } from './t16-performance-improvement-plan'
+/* Authored in-repo — see docs/FOUR_RING_FRAMEWORK.md. Numbering resumes at
+   T21 because T17–T20 are taken by customTemplates.ts, and this barrel wins
+   the `templateByTid.get(k) ?? customTemplateByTid.get(k)` lookup in
+   DocStudioProvider — a tid reused here would silently shadow the fixture
+   documents in src/data/employees.ts and chats.ts rather than collide. */
+import { tplT21 } from './t21-accommodation-request-form'
+import { tplT22 } from './t22-accommodation-response'
+import { tplT23 } from './t23-accommodation-plan'
+import { tplT24 } from './t24-undue-hardship-assessment'
 import type { DocTemplate } from '../types'
 
 export const docTemplates: DocTemplate[] = [
@@ -35,6 +49,10 @@ export const docTemplates: DocTemplate[] = [
   tplT14,
   tplT15,
   tplT16,
+  tplT21,
+  tplT22,
+  tplT23,
+  tplT24,
 ]
 
 export const templateByTid = new Map(docTemplates.map((t) => [t.tid, t]))

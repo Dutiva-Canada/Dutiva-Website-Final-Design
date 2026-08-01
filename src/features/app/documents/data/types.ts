@@ -3,8 +3,9 @@ import type { Bi } from '@/i18n/core'
 /**
  * Domain model for the HR Documents Library (Document Studio + Repository),
  * mirroring the handoff's Supabase spec (`doclib` schema — see DATA_MODEL.md).
- * Fixture modules in this folder are GENERATED from the handoff's
- * `dutiva-data.js` — edit the generator, not the emitted files.
+ * The T01–T16 fixture modules in this folder were generated from the handoff's
+ * `dutiva-data.js` and should be left alone. Templates added since are authored
+ * in-repo against this model (docs/FOUR_RING_FRAMEWORK.md).
  */
 
 export type Jurisdiction = 'ON' | 'QC' | 'FED'
@@ -54,7 +55,8 @@ export type DocCapability =
   | 'manage_permissions'
   | 'view_audit'
 
-export type TemplateCategoryId = 'hiring' | 'agreements' | 'policies' | 'discipline' | 'termination'
+export type TemplateCategoryId =
+  'hiring' | 'agreements' | 'policies' | 'discipline' | 'termination' | 'accommodation'
 
 /** Who the document is about — drives the wizard's context step. */
 export type TemplateSubject = 'candidate' | 'employee' | 'org' | 'external'
@@ -132,7 +134,7 @@ export interface PreviewBlock {
 
 export interface DocTemplate {
   id: string
-  /** Display id T01–T16. */
+  /** Display id, `T` + zero-padded ordinal (T01…). */
   tid: string
   key: string
   kind: string
