@@ -49,10 +49,15 @@ interface FlowStepBase {
   /**
    * A caution rendered with the step. Use for the thing that goes wrong here,
    * not for general encouragement.
+   *
+   * Every step shows in every jurisdiction. There is deliberately no
+   * per-jurisdiction gate here: a run has no jurisdiction to gate on — the
+   * runner never asks for one — so a gate would have silently no-opped and
+   * shown Québec-specific content to an Ontario reader. Where the law differs,
+   * say so in the copy and point at the Document Studio template, whose
+   * `jurisdictionNotes` the reader can actually see resolved.
    */
   caution?: Bi
-  /** Restricts the step to one jurisdiction. Absent means it always shows. */
-  only?: Jurisdiction
 }
 
 /**

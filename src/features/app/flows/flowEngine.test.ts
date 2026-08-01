@@ -10,7 +10,6 @@ import {
   outgoing,
   progress,
   startRun,
-  stepApplies,
   stepById,
   unreachableSteps,
 } from './flowEngine'
@@ -153,13 +152,6 @@ describe('flow engine', () => {
     expect(nextStepId(ask, 'left')).toBe('doLeft')
     expect(nextStepId(ask, 'ghost')).toBeUndefined()
     expect(nextStepId(end)).toBeNull()
-  })
-
-  it('applies a jurisdiction-restricted step only in that jurisdiction', () => {
-    const step = { ...stepById(fixture, 'doLeft'), only: 'QC' as const }
-    expect(stepApplies(step, 'QC')).toBe(true)
-    expect(stepApplies(step, 'ON')).toBe(false)
-    expect(stepApplies(stepById(fixture, 'doLeft'), 'ON')).toBe(true)
   })
 
   it('terminates on a flow that loops', () => {

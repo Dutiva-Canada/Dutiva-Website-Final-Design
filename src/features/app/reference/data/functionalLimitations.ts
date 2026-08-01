@@ -161,8 +161,8 @@ export const functionalLimitationsGuide: ReferenceGuide = {
   ],
   jurisdictionNotes: {
     ON: {
-      en: 'The Human Rights Code sets the duty to accommodate, and the information you may require is what supports it — limitations and prognosis. Personal health information is separately protected, and a manager is not among the people entitled to it merely by being the employee’s manager.',
-      fr: 'Le Code des droits de la personne établit l’obligation d’accommodement, et les renseignements exigibles sont ceux qui l’appuient : limitations et pronostic. Les renseignements personnels sur la santé font l’objet d’une protection distincte, et un gestionnaire n’y a pas droit du seul fait qu’il est le supérieur de l’employé(e).',
+      en: 'The Human Rights Code sets the duty to accommodate, and the information you may require is what supports it — limitations and prognosis. Note what Ontario does not have: no general privacy statute covers private-sector employee records, so the constraint here comes from the Code itself, the common law, and the confidentiality you undertook when you asked. That makes practice the safeguard rather than a statute, and a manager is not entitled to the detail merely by being the employee’s manager.',
+      fr: 'Le Code des droits de la personne établit l’obligation d’accommodement, et les renseignements exigibles sont ceux qui l’appuient : limitations et pronostic. Notez ce qui manque en Ontario : aucune loi générale sur la vie privée ne vise les dossiers d’employés du secteur privé, de sorte que l’encadrement découle du Code lui-même, de la common law et de l’engagement de confidentialité pris au moment de la demande. La protection tient donc à la pratique plutôt qu’à une loi, et un gestionnaire n’a pas droit au détail du seul fait qu’il est le supérieur de l’employé(e).',
     },
     QC: {
       en: 'The Charter of human rights and freedoms imposes the same duty, and Québec’s private-sector privacy regime is stricter than most on collecting only what is necessary — a diagnosis you did not need is not merely surplus, it is a collection you could not justify.',

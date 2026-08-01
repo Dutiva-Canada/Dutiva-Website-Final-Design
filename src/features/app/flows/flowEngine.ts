@@ -1,7 +1,6 @@
 import type { Bi } from '@/i18n/core'
 import type { Flow, FlowStep, FlowStepId } from './flowModel'
 import { isOutcome } from './flowModel'
-import type { Jurisdiction } from '@/features/app/documents/data/types'
 
 /**
  * The flow engine: pure, so the graph can be reasoned about and tested
@@ -40,10 +39,6 @@ export function currentStep(flow: Flow, run: FlowRun): FlowStep {
 }
 
 export const isComplete = (flow: Flow, run: FlowRun): boolean => isOutcome(currentStep(flow, run))
-
-/** Steps visible in this jurisdiction — `only` restricts a step to one. */
-export const stepApplies = (step: FlowStep, jurisdiction: Jurisdiction): boolean =>
-  step.only === undefined || step.only === jurisdiction
 
 /**
  * Where a step leads. Returns null when the step ends the run, and undefined

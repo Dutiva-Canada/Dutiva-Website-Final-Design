@@ -126,6 +126,15 @@ reachability, for every shipped flow.
 Nothing is persisted. A run is a thinking tool; the record it produces is
 meant to be carried into the template the outcome names.
 
+**Every step shows in every jurisdiction.** The model briefly carried an
+`only` field to restrict a step to one, and it was removed: a run has no
+jurisdiction to gate on, because the runner never asks for one, so the gate
+silently no-opped. Authoring `only: 'QC'` would have shipped Québec-specific
+legal content to an Ontario reader with nothing failing. Where the law
+differs, name the difference in the copy — as the accommodation flow's
+hardship caution does — and send the reader to the template that resolves it
+for their jurisdiction.
+
 **What this does not do: scoring.** The framework's CSA Z1003-13
 self-assessment needs weighted answers summed into a band, and nothing in the
 engine does arithmetic on answers. That is a real extension of the model, not
@@ -205,12 +214,33 @@ caught. Budget for review, not just writing.
    BC is out of scope.
 2. **EN + FR, both complete.** French with no handoff source is marked
    `[FR self-authored]` at the definition site.
-3. **The standing disclaimer** ships with generated documents, via the
+3. **A rule that holds in one jurisdiction is scoped to that jurisdiction.**
+   This is the mistake this content keeps making — three times so far, twice
+   caught in review on #122 and once in a later audit. Ontario's undue-hardship
+   list is statutory and closed; Québec names no list and weighs more; a
+   common-law formation rule does not apply in Québec at all. Copy that renders
+   for every reader must be true for every reader.
+
+   **Scope it with a `when.juris` clause, not only with a
+   `jurisdictionNotes` entry.** Those notes render on the template detail
+   screen alone — `GenerateScreen` and a saved document resolve `preview`
+   through `resolveBlocks` and nothing else, so a note is absent from the
+   artifact the customer keeps. A document that tells its reader to check a
+   note it does not carry is pointing at nothing. Where a rule differs, ship
+   one gated clause per jurisdiction (T24's "The test that applies here"), and
+   make sure the worksheet collects what the wider test needs — a note
+   describing factors the questions have no field for is a note the conclusion
+   cannot rest on.
+
+   Guarded for T24 by `authoredTemplates.test.ts`; everywhere else it is
+   review, because no test can tell you a statute is characterised correctly.
+
+4. **The standing disclaimer** ships with generated documents, via the
    template's `note` block or the shared `Disclaimer` component — never
    retyped.
-4. **Compliance-oriented, never compliant.** No "legally compliant",
+5. **Compliance-oriented, never compliant.** No "legally compliant",
    "guaranteed compliant", or "legal advice".
-5. **Figures.** Public editorial content states no statutory figures
+6. **Figures.** Public editorial content states no statutory figures
    (AGENTS.md). In-product tools are not covered by that rule, but Ring 4's
    pay-stub and RRSP/TFSA guides and Ring 2's parental-leave guide are
    inherently figure-heavy and would need annual maintenance. **Decide the
