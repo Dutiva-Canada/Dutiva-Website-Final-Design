@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/brand/icon-app.svg" />
     <link rel="apple-touch-icon" href="/brand/dutiva-leaf.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to real
+         values instead of 0 on notched iOS devices; the mobile bottom nav pads
+         itself with the bottom inset. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <script>
       // Magic-link safety net. The sign-in email is meant to land on the app's
       // confirm route (/app/auth/confirm), which exchanges the token for a
@@ -35,7 +38,12 @@
       })()
     </script>
     <link rel="manifest" href="/site.webmanifest" />
-    <meta name="theme-color" content="#081019" />
+    <!-- Safari tints its status/toolbar area with this. A single static value
+         painted dark chrome around light pages, so scope the pair to the OS
+         preference; the bootstrap script below re-points both at the resolved
+         theme, which is what wins when a persisted choice disagrees. -->
+    <meta name="theme-color" content="#f3f5fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#081019" media="(prefers-color-scheme: dark)" />
     <meta
       name="description"
       content="Dutiva — AI-assisted, jurisdiction-aware HR compliance for Canadian employers. Bilingual EN/FR."
@@ -79,6 +87,13 @@
               : 'light'
         }
         document.documentElement.dataset.theme = theme
+        // Keep Safari's chrome tint on the theme we actually resolved — the
+        // media-scoped tags above only know the OS preference.
+        var chrome = theme === 'dark' ? '#081019' : '#f3f5fa'
+        var tints = document.querySelectorAll('meta[name="theme-color"]')
+        for (var i = 0; i < tints.length; i++) {
+          tints[i].setAttribute('content', chrome)
+        }
         var path = window.location.pathname
         var lang = 'en-CA'
         if (path === '/fr' || path.indexOf('/fr/') === 0) {

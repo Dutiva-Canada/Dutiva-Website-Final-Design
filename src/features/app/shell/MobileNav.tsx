@@ -29,26 +29,29 @@ export function MobileTopbar({
   const { openSearch } = useSearch()
   return (
     <header className="flex h-[56px] shrink-0 items-center justify-between border-b border-border bg-surface px-[14px]">
+      {/* min-h/min-w 44px on every control: the icons stay their design size,
+          but the hit area meets the iOS 44pt touch-target floor instead of the
+          ~30px box a bare 6px pad around a 19px glyph produced. */}
       <button
         ref={triggerRef}
         type="button"
         onClick={onOpenDrawer}
         aria-label={x(M.shell_open_menu)}
-        className="cursor-pointer border-none bg-transparent p-[6px]"
+        className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent p-[6px]"
       >
         <Menu size={20} strokeWidth={1.8} className="text-text" />
       </button>
       <h1 className="m-0 font-display text-[16px] font-semibold">{title}</h1>
       <div className="flex items-center gap-[2px]">
         <ThemeToggle
-          className="flex cursor-pointer border-none bg-transparent p-[6px] text-text"
+          className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent p-[6px] text-text"
           iconSize={18}
         />
         <button
           type="button"
           onClick={openSearch}
           aria-label={x(M.shell_search)}
-          className="cursor-pointer border-none bg-transparent p-[6px]"
+          className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent p-[6px]"
         >
           <Search size={19} strokeWidth={1.8} className="text-text" />
         </button>
@@ -95,10 +98,14 @@ export function MobileNav({
 }) {
   const { x } = useI18n()
   const { pathname } = useLocation()
+  /* The bottom pad carries the safe-area inset so the tabs clear the home
+     indicator once Safari's toolbar auto-hides on scroll. Resolves to the plain
+     5px on devices without an inset — and needs viewport-fit=cover in
+     index.html to be anything but 0. */
   return (
     <nav
       aria-label={x(M.shell_primary_nav)}
-      className="relative z-50 flex shrink-0 items-end justify-around border-t border-border bg-surface px-[4px] pb-[5px] transition-transform duration-300 ease-out transform-gpu"
+      className="relative z-50 flex shrink-0 items-end justify-around border-t border-border bg-surface px-[4px] pb-[calc(5px_+_env(safe-area-inset-bottom))] transition-transform duration-300 ease-out transform-gpu"
     >
       <MobileTab
         to="/app/home"

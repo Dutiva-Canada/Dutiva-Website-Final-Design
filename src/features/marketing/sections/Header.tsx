@@ -113,7 +113,12 @@ export function Header() {
       <a href="#main-content" className="skip-link">
         {L('Skip to main content', 'Passer au contenu principal')}
       </a>
-      <header className="sticky top-0 z-30 border-b border-border bg-(--topbar-bg) backdrop-blur-[18px]">
+      {/* Top inset so the bar clears the status area in an installed PWA, where
+          index.html's viewport-fit=cover lets the page paint under it. The
+          padding extends the header's own background up behind the status bar
+          rather than leaving the content to slide beneath it; 0 in ordinary
+          Safari, which already reserves that space. */}
+      <header className="sticky top-0 z-30 border-b border-border bg-(--topbar-bg) pt-[env(safe-area-inset-top)] backdrop-blur-[18px]">
         <div className="mx-auto flex max-w-300 items-center justify-between gap-4 px-6 py-3">
           <a href={home('top')} className="flex items-center gap-2.5">
             <LeafTile size={46} radius={13} leafHeight={32} shadow />
