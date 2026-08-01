@@ -86,7 +86,7 @@ describe('FlowRunner', () => {
     await user.click(screen.getByRole('button', { name: /everything is fine/ }))
 
     expect(screen.getByRole('heading', { level: 2, name: 'Take the answer' })).toBeVisible()
-    expect(screen.getByText('Nothing to file here')).toBeVisible()
+    expect(screen.getByText('No document to open')).toBeVisible()
     expect(screen.getByText(/Nothing goes on file/)).toBeVisible()
     expect(screen.queryAllByRole('link', { name: /Open$/ })).toHaveLength(0)
   })

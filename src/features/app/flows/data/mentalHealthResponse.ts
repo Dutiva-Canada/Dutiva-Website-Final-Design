@@ -338,10 +338,10 @@ export const mentalHealthResponseFlow: Flow = {
       tone: 'ok',
       title: bi('This is a leave', 'Il s’agit d’un congé'),
       body: bi(
-        'Treat it as the leave it is — statutory sick or medical leave in the first instance — and do not require a diagnosis to start it. Plan the return at the same time as the departure, because a return nobody planned is the part of a mental health absence that most often fails.',
-        'Traitez la situation comme le congé qu’elle est — en premier lieu un congé de maladie prévu par la loi — et n’exigez pas de diagnostic pour l’amorcer. Planifiez le retour en même temps que le départ, car un retour que personne n’a planifié est l’aspect d’une absence pour santé mentale qui échoue le plus souvent.',
+        'Treat it as the leave it is — statutory sick or medical leave in the first instance — and do not require a diagnosis to start it. Apply your sick leave policy as written rather than deciding terms case by case here, and plan the return at the same time as the departure, because a return nobody planned is the part of a mental health absence that most often fails.',
+        'Traitez la situation comme le congé qu’elle est — en premier lieu un congé de maladie prévu par la loi — et n’exigez pas de diagnostic pour l’amorcer. Appliquez votre politique de congé de maladie telle qu’elle est rédigée plutôt que d’en fixer les modalités au cas par cas, et planifiez le retour en même temps que le départ, car un retour que personne n’a planifié est l’aspect d’une absence pour santé mentale qui échoue le plus souvent.',
       ),
-      documents: ['T33', 'T34', 'T27'],
+      documents: ['T33', 'T27'],
     },
     {
       id: 'door_open',

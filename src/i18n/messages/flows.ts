@@ -29,8 +29,8 @@ export const flowsMessages = defineMessages({
   },
   flows_open_template: { en: 'Open', fr: 'Ouvrir' },
   flows_no_document: {
-    en: 'Nothing to file here',
-    fr: 'Rien à consigner ici',
+    en: 'No document to open',
+    fr: 'Aucun document à ouvrir',
   },
   flows_not_found: {
     en: 'That process does not exist.',
