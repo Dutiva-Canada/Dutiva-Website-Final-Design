@@ -21,6 +21,12 @@ import type {
   TemplateCategory,
 } from './types'
 
+/**
+ * `order` is the employment lifecycle, not the order the categories were
+ * added: hiring → changes → agreements → policies → discipline →
+ * accommodation → termination. Termination sits last because it is where a
+ * file ends and because it carries the highest-risk documents.
+ */
 export const templateCategories: TemplateCategory[] = [
   {
     id: 'hiring',
@@ -35,9 +41,25 @@ export const templateCategories: TemplateCategory[] = [
       fr: 'Offres et ententes qui amorcent la relation.',
     },
   },
+  /* AUTHORED IN-REPO — see docs/FOUR_RING_FRAMEWORK.md. The framework's Ring 1
+     has an "Employment Changes" group with no home in the handoff's five
+     categories, which is part of why its documents were never built. */
+  {
+    id: 'changes',
+    order: 2,
+    icon: 'arrow-right-left',
+    name: {
+      en: 'Employment changes',
+      fr: 'Changements en cours d’emploi',
+    },
+    desc: {
+      en: 'Confirming a change to the terms someone already works under.',
+      fr: 'Confirmer une modification aux conditions déjà en vigueur.',
+    },
+  },
   {
     id: 'agreements',
-    order: 2,
+    order: 3,
     icon: 'file-lock',
     name: {
       en: 'Agreements & IP',
@@ -50,7 +72,7 @@ export const templateCategories: TemplateCategory[] = [
   },
   {
     id: 'policies',
-    order: 3,
+    order: 4,
     icon: 'book',
     name: {
       en: 'Policies & handbook',
@@ -63,20 +85,20 @@ export const templateCategories: TemplateCategory[] = [
   },
   {
     id: 'discipline',
-    order: 4,
+    order: 5,
     icon: 'list-checks',
     name: {
       en: 'Performance & discipline',
       fr: 'Rendement et discipline',
     },
     desc: {
-      en: 'Warnings and structured improvement plans.',
-      fr: 'Avertissements et plans d’amélioration structurés.',
+      en: 'Warnings, improvement plans, and the record of a workplace investigation.',
+      fr: 'Avertissements, plans d’amélioration et le rapport d’une enquête en milieu de travail.',
     },
   },
   {
     id: 'termination',
-    order: 5,
+    order: 7,
     icon: 'file-x',
     name: {
       en: 'Termination & offboarding',
