@@ -52,6 +52,8 @@ import { tplT40 } from './t40-policy-update-notification'
 import { tplT41 } from './t41-investigation-notice'
 import { tplT42 } from './t42-departure-announcement'
 import { tplT43 } from './t43-incident-communication'
+/* Ring 2, Pillar C — the `wellbeing` category. */
+import { tplT44 } from './t44-wellness-action-plan'
 import type { DocTemplate } from '../types'
 
 export const docTemplates: DocTemplate[] = [
@@ -94,6 +96,7 @@ export const docTemplates: DocTemplate[] = [
   tplT41,
   tplT42,
   tplT43,
+  tplT44,
 ]
 
 export const templateByTid = new Map(docTemplates.map((t) => [t.tid, t]))

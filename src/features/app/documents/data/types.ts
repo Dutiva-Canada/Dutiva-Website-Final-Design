@@ -63,6 +63,7 @@ export type TemplateCategoryId =
   | 'discipline'
   | 'termination'
   | 'accommodation'
+  | 'wellbeing'
   | 'communications'
 
 /** Who the document is about — drives the wizard's context step. */

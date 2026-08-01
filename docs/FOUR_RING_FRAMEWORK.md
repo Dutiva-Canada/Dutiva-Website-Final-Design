@@ -33,17 +33,16 @@ previous rings more useful. They are not tiers of a price list, and no plan in
 ## What is built
 
 **Ring 1 — the document catalogue** (`catalogue.ts`), now covering every tool
-the April framework listed for it. The catalogue is 43 templates in total,
-T01…T43, nine of which are Ring 3. Plus the Advisor,
+the April framework listed for it. The catalogue is 44 templates in total,
+T01…T44, nine of which are Ring 3. Plus the Advisor,
 the compliance register, cases, employees, policies and tasks. This is the
 product.
 
-**Ring 2 — Pillars A, B and D complete, plus one tool of Pillar C.** Six
-accommodation tools (four Document Studio templates, a guided flow, a
-reference guide), four leave-management tools (two templates, a flow, a
-guide), four mental health tools (a flow and three reference guides), and the
-psychological safety self-check. Three tools of Pillar C remain, and they are
-the only Ring 2 work outstanding.
+**Ring 2 — complete.** Six accommodation tools (Pillar B), four
+leave-management tools (Pillar D), four mental health tools (Pillar A), and
+four psychological safety tools (Pillar C): the self-check, the respectful
+workplace policy, the bystander intervention guide and the wellness action
+plan.
 
 **Ring 3 — complete.** Nine templates (T35–T43) in the new Internal
 communications category: layoff and restructuring, policy rollout, crisis
@@ -201,11 +200,6 @@ text.
 
 Nothing below is built. Counts are the framework's own.
 
-**Ring 2, remaining pillars — 3 tools.** Pillar C, Psychological Safety
-(3 of 4): respectful workplace policy, bystander intervention guide, wellness
-action plan — the self-check is built, and the policy is a special case, see
-below. Pillars A, B and D are complete.
-
 ### Pillar C's respectful workplace policy overlaps T13 — build it by widening T13
 
 The framework lists it as "comprehensive policy covering harassment,
@@ -312,8 +306,47 @@ written. A figure in a guide is a figure someone has to re-audit annually, and
 the year nobody does is the year it misleads.
 
 **Ring 4, Compensation & Financial Literacy — 4 tools.** Total compensation
-summary, salary review letter, pay stub guide, RRSP & TFSA guide. Ring 3 is
-complete, see below.
+summary, salary review letter, pay stub guide, RRSP & TFSA guide. **This is
+all that remains.** Rings 1, 2 and 3 are complete, see below.
+
+## Ring 2, Pillar C — Psychological safety
+
+Complete. The self-check came first (see below); the other three landed once
+the generator decision unblocked the policy.
+
+| Tool                         | Where                                       | State     |
+| ---------------------------- | ------------------------------------------- | --------- |
+| Psychological safety check   | `/app/workflows/psychological-safety-check` | **Built** |
+| Respectful workplace policy  | T13, widened                                | **Built** |
+| Bystander intervention guide | `/app/knowledge/bystander-intervention`     | **Built** |
+| Wellness action plan         | T44                                         | **Built** |
+
+**The policy was built by widening T13, as this doc said to.** #126 found the
+overlap and #127 recorded why it could not be closed then: T13 is a generated
+file whose generator does not run, and the fix needed that decision taken
+first. It was taken in #128. Widening it also closed two defects that had
+nothing to do with Pillar C — `includes` advertised seven sections against a
+two-clause preview, so the template promised a document it did not produce,
+and there was no statement of what is _not_ harassment, which is the omission
+that makes managers afraid to manage.
+
+**T44 belongs to the employee, and that is why it is not in `accommodation`.**
+Filing a wellness plan beside the duty-to-accommodate documents asserts that
+whoever completed one has a disability and asked for an adjustment. Neither
+follows, and it is the same misfiling that once put T19/T20 under
+`discipline` — so it has its own `wellbeing` category. The questions ask what
+helps at work and never what is wrong: there is no field for a condition, a
+diagnosis or a treatment, deliberately, because a box marked "nature of
+condition" gets filled in.
+
+**The bystander guide is the only tool in the product written for the
+colleague rather than the employer**, and it is written as options rather than
+as a duty. A guide that says you must intervene produces either nothing or an
+escalation the person was not equipped for; four options, any of which counts,
+is what makes the quiet ones usable. It creates no obligation to intervene,
+because an employer whose policy disciplines a silent bystander has invented
+an offence out of someone else's misconduct and shifted its own duty onto a
+witness.
 
 ## Ring 3 — Internal communications
 
@@ -452,20 +485,20 @@ the sake of a round number.
 
 ### Grouped by what they cost to build
 
-The ring split describes the product; this split describes the work. 7 tools
-remain — the same 7 as above, counted the other way: Ring 2's 3 + Ring 4's 4.
+The ring split describes the product; this split describes the work. 4 tools
+remain — the same 4 as above, counted the other way: all of Ring 4.
 **Change one of these tables and check the other still adds up.**
 
 | Shape                             | Count | Where it goes                                                  |
 | --------------------------------- | ----- | -------------------------------------------------------------- |
-| Generated templates               | 4     | `data/templates/`, the shape T21–T43 established               |
-| Reference guides / guidance notes | 3     | `reference/data/`, the shape the limitations guide established |
+| Generated templates               | 2     | `data/templates/`, the shape T21–T44 established               |
+| Reference guides / guidance notes | 2     | `reference/data/`, the shape the limitations guide established |
 | Checklists and decision flows     | 0     | `flows/data/`, the shape the accommodation flow established    |
 
-Every remaining flow is built. What is left is Ring 2's Pillar C (the
-respectful workplace policy, which means widening T13 — see above — plus the
-bystander intervention guide and the wellness action plan) and the whole of
-Ring 4 (two templates, two guides).
+Every remaining flow is built, and every remaining pillar is complete. What is
+left is Ring 4: the total compensation summary and the salary review letter as
+templates, the pay-stub and RRSP/TFSA explainers as guides — and both of those
+guides fall squarely under the figure rule the parental leave guide set.
 
 **Every remaining tool now has a home and a worked example.** No machinery is
 outstanding: templates, reference guides, decision flows and scored
@@ -529,7 +562,7 @@ four places. Treat the Drive document as superseded on all four.
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | All 14 jurisdictions, every ring                | Three — ON, QC, FED                                                                                                                    |
 | $39/month flat                                  | Free · Starter $24 · Growth $49 · Pro $99, and paid plans are not sold during beta                                                     |
-| 47 tools at launch                              | 43 templates ship; the 47 counted a launch state that did not happen                                                                   |
+| 47 tools at launch                              | 44 templates ship; the 47 counted a launch state that did not happen                                                                   |
 | Month-numbered build schedule off a launch date | Both published launch dates have passed. Tie sequencing to product state, never a calendar date (`CANONICAL_FACTS.md` § Launch status) |
 
 Its Ring 1 inventory did not match what shipped either. Of the 18 tools it
@@ -567,7 +600,7 @@ Drive document undercounts the product, not the other way round.
 
 1. Check this file and `CANONICAL_FACTS.md` first.
 2. Pick the surface by shape, and follow the worked example already there:
-   - **a document** → `data/templates/`, following T21–T43. Numbering
+   - **a document** → `data/templates/`, following T21–T44. Numbering
      continues from the highest tid in `catalogue.ts` — **check both
      sources**, because `data/templates/` and `customTemplates.ts` share one
      tid space and doclib silently wins the lookup in `DocStudioProvider`.

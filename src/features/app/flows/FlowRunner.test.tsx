@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
+import { allTemplates } from '@/features/app/documents/catalogue'
 import { FlowRunner } from './FlowRunner'
 
 /**
@@ -179,10 +180,16 @@ describe('FlowRunner — a scored assessment', () => {
     expect(screen.getByText('Psychological support')).toBeVisible()
     expect(screen.getByText('Protection of physical safety')).toBeVisible()
 
-    /* And the weakest band points at the legally required pieces first. */
-    expect(
-      screen.getByRole('link', { name: /Harassment, discrimination & violence policy/ }),
-    ).toHaveAttribute('href', '/app/documents/templates/T13')
+    /* And the weakest band points at the legally required pieces first. The
+       name is read from the catalogue rather than written here: T13 was
+       renamed when it was widened into Pillar C's respectful workplace policy,
+       and a literal turned that into an unrelated test failure. */
+    const t13 = allTemplates.find((t) => t.tid === 'T13')
+    expect(t13).toBeDefined()
+    expect(screen.getByRole('link', { name: new RegExp(t13!.name.en) })).toHaveAttribute(
+      'href',
+      '/app/documents/templates/T13',
+    )
   })
 
   it('orders the factor breakdown weakest first', () => {

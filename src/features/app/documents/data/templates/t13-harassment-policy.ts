@@ -4,7 +4,23 @@
    first read. The "regenerate rather than edit" instruction it left here
    pointed at a process that no longer exists, so this file is hand-maintained
    like the rest of the catalogue. Edit it deliberately and keep the FR in
-   step; docs/FOUR_RING_FRAMEWORK.md records why. */
+   step; docs/FOUR_RING_FRAMEWORK.md records why.
+
+   **Widened in v5 to be Ring 2 Pillar C's respectful workplace policy.** The
+   framework asks for a policy "covering harassment, discrimination, and
+   inclusion", and #126 recorded that the first two were already here and the
+   third was not — so the tool stayed outstanding rather than being counted
+   done against a policy that did not cover it. Building it by widening this
+   file rather than minting a companion was the decision then, and it is what
+   happened.
+
+   Two things were wrong independently of that. `includes` advertised seven
+   sections — definitions, prohibited conduct, reporting, confidentiality,
+   investigation, no reprisal, support resources — and the preview rendered
+   two clauses, so the template promised a document it did not produce. And a
+   conduct policy with no statement of what is *not* harassment is the version
+   that makes managers afraid to manage; reasonable direction, feedback and
+   performance management are named here for that reason. */
 import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
@@ -16,22 +32,22 @@ export const tplT13: DocTemplate = {
   category: 'policies',
   core: true,
   name: {
-    en: 'Harassment, discrimination & violence policy',
-    fr: 'Politique sur le harcèlement, la discrimination et la violence',
+    en: 'Respectful workplace policy',
+    fr: 'Politique sur le respect en milieu de travail',
   },
   desc: {
-    en: 'A legally required policy in every Canadian jurisdiction. Defines prohibited conduct, reporting, and investigation.',
-    fr: 'Une politique exigée par la loi dans toutes les juridictions. Définit la conduite interdite, le signalement et l’enquête.',
+    en: 'Required by law in every jurisdiction Dutiva covers. Covers harassment, discrimination and violence, what respect looks like day to day, and how a report is handled.',
+    fr: 'Exigée par la loi dans chaque juridiction couverte par Dutiva. Vise le harcèlement, la discrimination et la violence, le respect au quotidien, et le traitement d’un signalement.',
   },
   jurisdictions: ['ON', 'QC', 'FED'],
   risk: 'medium',
   review: 'hr_review_required',
   requiresLawyerReview: false,
-  version: 'v4',
-  versionNumber: 4,
+  version: 'v5',
+  versionNumber: 5,
   effectiveDate: '2026-02-01',
-  updatedAt: '2026-06-16',
-  estMinutes: 9,
+  updatedAt: '2026-08-01',
+  estMinutes: 11,
   usageCount: 88,
   statutory: [
     {
@@ -49,16 +65,16 @@ export const tplT13: DocTemplate = {
   ],
   jurisdictionNotes: {
     ON: {
-      en: 'A written program, worker training, and a defined complaint procedure are mandatory under OHSA.',
-      fr: 'Un programme écrit, la formation et une procédure de plainte sont obligatoires (LSST).',
+      en: 'Two statutes carry this. The Occupational Health and Safety Act requires a written harassment and violence programme, worker training, and a defined complaint procedure — including a route that does not run through the employee’s own manager. The Human Rights Code is what defines discrimination and sets the protected grounds this policy refers to; the Code’s list is the operative one, so check it rather than relying on any list reproduced elsewhere.',
+      fr: 'Deux lois s’appliquent. La Loi sur la santé et la sécurité au travail exige un programme écrit contre le harcèlement et la violence, la formation des travailleurs et une procédure de plainte définie — y compris une voie qui ne passe pas par le gestionnaire de la personne. Le Code des droits de la personne définit la discrimination et établit les motifs protégés auxquels renvoie la présente politique; c’est la liste du Code qui fait foi, alors consultez-la plutôt que toute liste reproduite ailleurs.',
     },
     QC: {
-      en: 'Employers must adopt and make available a psychological-harassment prevention policy under the LSA.',
-      fr: 'Les employeurs doivent adopter et rendre disponible une politique de prévention du harcèlement psychologique (LNT).',
+      en: 'The Act respecting labour standards requires an employer to adopt a psychological harassment prevention and complaint-handling policy and to make it available to employees, and psychological harassment there expressly includes sexual harassment. Note that a single serious incident can constitute harassment — a policy written as though a pattern is required understates the law. The Charter of human rights and freedoms sets the protected grounds. The policy must be available in French.',
+      fr: 'La Loi sur les normes du travail oblige l’employeur à adopter une politique de prévention du harcèlement psychologique et de traitement des plaintes et à la rendre disponible au personnel, et le harcèlement psychologique y comprend expressément le harcèlement sexuel. Notez qu’une seule conduite grave peut constituer du harcèlement — une politique rédigée comme si une répétition était requise sous-estime la loi. La Charte des droits et libertés de la personne établit les motifs protégés. La politique doit être disponible en français.',
     },
     FED: {
-      en: 'The federal Regulations require risk assessments, training, and a resolution process with set timelines.',
-      fr: 'Le Règlement fédéral exige des évaluations, de la formation et un processus de résolution avec délais.',
+      en: 'The Work Place Harassment and Violence Prevention Regulations require the policy to be developed and reviewed jointly with the policy committee or health and safety representative — an employer-written policy circulated for comment does not satisfy that. They also require a workplace assessment, training, and a resolution process with prescribed timelines, and they protect the identity of the parties throughout. The Canadian Human Rights Act sets the protected grounds.',
+      fr: 'Le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail exige que la politique soit élaborée et révisée conjointement avec le comité d’orientation ou le représentant en santé et sécurité — une politique rédigée par l’employeur puis soumise à commentaires n’y satisfait pas. Il exige aussi une évaluation du lieu de travail, de la formation et un processus de règlement assorti de délais prescrits, et il protège l’identité des parties tout au long. La Loi canadienne sur les droits de la personne établit les motifs protégés.',
     },
   },
   includes: [
@@ -69,6 +85,14 @@ export const tplT13: DocTemplate = {
     {
       en: 'Prohibited conduct',
       fr: 'Conduite interdite',
+    },
+    {
+      en: 'What respect looks like day to day',
+      fr: 'Le respect au quotidien',
+    },
+    {
+      en: 'What is not harassment',
+      fr: 'Ce qui ne constitue pas du harcèlement',
     },
     {
       en: 'How to report',
@@ -89,6 +113,10 @@ export const tplT13: DocTemplate = {
     {
       en: 'Support resources',
       fr: 'Ressources de soutien',
+    },
+    {
+      en: 'Training and review cycle',
+      fr: 'Formation et cycle de révision',
     },
   ],
   questions: [
@@ -139,6 +167,48 @@ export const tplT13: DocTemplate = {
         fr: 'p. ex. propriétaire / ombudsman',
       },
     },
+    {
+      id: 'support_resources',
+      section: {
+        en: 'Support',
+        fr: 'Soutien',
+      },
+      label: {
+        en: 'Support available to anyone involved',
+        fr: 'Soutien offert aux personnes concernées',
+      },
+      type: 'textarea',
+      required: true,
+      placeholder: {
+        en: 'Assistance programme, benefits contact, or the external services you would point people to.',
+        fr: 'Programme d’aide, personne-ressource pour les avantages, ou services externes vers lesquels orienter.',
+      },
+      hint: {
+        en: 'Support is available to everyone involved, including the person a complaint is about. A policy that offers it only to complainants is one respondents disengage from.',
+        fr: 'Le soutien est offert à toutes les personnes concernées, y compris celle visée par une plainte. Une politique qui ne l’offre qu’aux plaignants est une politique dont les personnes mises en cause se désengagent.',
+      },
+    },
+    {
+      id: 'review_cycle',
+      section: {
+        en: 'Support',
+        fr: 'Soutien',
+      },
+      label: {
+        en: 'How often this policy is reviewed',
+        fr: 'Fréquence de révision de la politique',
+      },
+      type: 'text',
+      required: true,
+      placeholder: {
+        en: 'e.g. every year, and after any incident.',
+        fr: 'p. ex. chaque année, et après tout incident.',
+      },
+      hint: {
+        en: 'Several jurisdictions require a review on a set cycle. Write the cycle you will actually keep — a policy dated four years ago is evidence on its own.',
+        fr: 'Plusieurs juridictions imposent une révision périodique. Inscrivez le cycle que vous respecterez réellement — une politique datée de quatre ans constitue une preuve en soi.',
+      },
+    },
   ],
   preview: [
     {
@@ -157,26 +227,125 @@ export const tplT13: DocTemplate = {
     },
     {
       type: 'clause',
-      text: {
-        en: '{{org}} is committed to a workplace free from harassment, discrimination, and violence, as required for {{jurisdiction}}.',
-        fr: '{{org}} s’engage à offrir un milieu exempt de harcèlement, de discrimination et de violence, conformément aux exigences pour {{jurisdiction}}.',
-      },
       n: 1,
       heading: {
-        en: 'Commitment',
-        fr: 'Engagement',
+        en: 'What we are committing to',
+        fr: 'Notre engagement',
+      },
+      text: {
+        en: '{{org}} is committed to a workplace free from harassment, discrimination and violence, as required in {{jurisdiction}}. This policy applies to everyone who works here, however they are engaged, and it applies wherever the work happens — on our premises, at a client site, while travelling, at work events, and in email, chat and video calls. Conduct does not stop being workplace conduct because it happened on a screen or after hours.',
+        fr: '{{org}} s’engage à offrir un milieu exempt de harcèlement, de discrimination et de violence, conformément aux exigences applicables en {{jurisdiction}}. La présente politique vise toute personne qui travaille ici, quel que soit son statut, et s’applique partout où le travail se fait : dans nos locaux, chez un client, en déplacement, lors d’activités professionnelles, ainsi que dans les courriels, les messageries et les visioconférences. Un comportement ne cesse pas de relever du travail parce qu’il s’est produit à l’écran ou en dehors des heures.',
       },
     },
     {
       type: 'clause',
-      text: {
-        en: 'Report incidents to {{report_to}}. If the report concerns that person, contact {{alt_contact}} instead. Reports are handled confidentially and investigated promptly. Reprisal is prohibited.',
-        fr: 'Signalez à {{report_to}}. Si le signalement concerne cette personne, contactez plutôt {{alt_contact}}. Les signalements sont confidentiels et font l’objet d’une enquête rapide. Les représailles sont interdites.',
-      },
       n: 2,
+      heading: {
+        en: 'What is prohibited',
+        fr: 'Ce qui est interdit',
+      },
+      text: {
+        en: 'Harassment — comment or conduct that is known, or ought reasonably to be known, to be unwelcome. Sexual harassment, including unwelcome advances, comments about someone’s body or private life, and the display or sending of sexual material. Discrimination, meaning treating someone adversely on a ground the human rights legislation applying to this workplace protects. And violence, including threats and attempts, whether or not anyone is hurt. The grounds and definitions that bind us are the ones in the legislation named in this policy’s jurisdiction notes, not a list we chose.',
+        fr: 'Le harcèlement — des propos ou des comportements dont on sait ou devrait raisonnablement savoir qu’ils sont importuns. Le harcèlement sexuel, y compris les avances importunes, les commentaires sur le corps ou la vie privée d’une personne, et l’affichage ou l’envoi de matériel à caractère sexuel. La discrimination, soit un traitement défavorable fondé sur un motif protégé par la législation en droits de la personne applicable à ce milieu. Et la violence, y compris les menaces et les tentatives, qu’il y ait blessure ou non. Les motifs et définitions qui nous lient sont ceux de la législation nommée dans les notes par juridiction de la présente politique, et non une liste de notre choix.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 3,
+      heading: {
+        en: 'What respect looks like here',
+        fr: 'Ce à quoi ressemble le respect ici',
+      },
+      text: {
+        en: 'Prohibitions describe the floor. Most of what makes a workplace liveable sits above it, and it is worth saying out loud: people are addressed by the name and pronouns they use; meetings are run so the quietest person in them can be heard; credit follows the work; disagreement is about the work and not the person; and someone who says a joke landed badly is told thank you rather than that they misread it. Nobody is disciplined for falling short of this paragraph. It is the standard we hold ourselves to, and the reason the paragraphs above rarely have to be used.',
+        fr: 'Les interdictions décrivent le seuil minimal. L’essentiel de ce qui rend un milieu vivable se situe au-dessus, et cela mérite d’être dit : on s’adresse aux personnes par le nom et les pronoms qu’elles utilisent; les réunions sont animées de façon que la personne la plus discrète puisse se faire entendre; le mérite suit le travail; les désaccords portent sur le travail et non sur la personne; et lorsqu’une personne signale qu’une plaisanterie a mal passé, on la remercie plutôt que de lui dire qu’elle a mal compris. Personne n’est sanctionné pour ne pas être à la hauteur du présent paragraphe. C’est la norme que nous nous donnons, et la raison pour laquelle les paragraphes précédents servent rarement.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 4,
+      heading: {
+        en: 'What is not harassment',
+        fr: 'Ce qui ne constitue pas du harcèlement',
+      },
+      text: {
+        en: 'Managing is not harassing. Assigning work, setting deadlines, giving feedback that is difficult to hear, addressing performance, investigating a concern, and deciding not to approve something are all ordinary and none of them becomes harassment because the person on the receiving end is unhappy. What changes that is how it is done: direction delivered to humiliate, singled out for a reason this policy prohibits, or applied to one person and not another doing the same job. If you are unsure which side of that line you are on, ask before you act rather than after.',
+        fr: 'Encadrer n’est pas harceler. Attribuer du travail, fixer des échéances, donner une rétroaction difficile à entendre, aborder le rendement, examiner une préoccupation ou refuser une demande sont des gestes ordinaires, et aucun ne devient du harcèlement parce que la personne visée en est mécontente. Ce qui change la donne, c’est la manière : une directive donnée pour humilier, une personne ciblée pour un motif que la présente politique interdit, ou une règle appliquée à l’une et non à l’autre pour un même poste. Si vous doutez de quel côté de cette ligne vous vous trouvez, demandez avant d’agir plutôt qu’après.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 5,
       heading: {
         en: 'How to report',
         fr: 'Comment signaler',
+      },
+      text: {
+        en: 'Report to {{report_to}}. If the report concerns that person, contact {{alt_contact}} instead — you never have to raise something with the person it is about. A report can be made in writing or in person, by the person affected or by someone who witnessed it. You do not need to be certain, and you do not need to use the word "harassment". Nothing here removes your right to go to the ministry, regulator or human rights body with jurisdiction, or to take your own legal advice, at any point.',
+        fr: 'Signalez à {{report_to}}. Si le signalement concerne cette personne, adressez-vous plutôt à {{alt_contact}} — vous n’avez jamais à soulever une question auprès de la personne qu’elle vise. Un signalement peut être fait par écrit ou de vive voix, par la personne concernée ou par un témoin. Vous n’avez pas à être certain(e), ni à employer le mot « harcèlement ». Rien ici ne vous retire le droit de vous adresser au ministère, à l’organisme de réglementation ou à l’organisme des droits de la personne compétent, ni de consulter votre propre conseiller juridique, à tout moment.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 6,
+      heading: {
+        en: 'Confidentiality, and its limits',
+        fr: 'La confidentialité et ses limites',
+      },
+      text: {
+        en: 'A report is shared only with the people who need it to respond, and details are not discussed in the workplace. That is not the same as secrecy, and we will not promise more than we can hold to: a person a complaint is about has to be told enough to answer it, some matters must be reported to a regulator, and a record may have to be produced in a proceeding. Where the law requires us to disclose, we will, and we will tell you before we do wherever we can.',
+        fr: 'Un signalement n’est communiqué qu’aux personnes qui doivent y donner suite, et les détails ne se discutent pas dans le milieu de travail. Cela ne signifie pas le secret, et nous ne promettrons pas plus que ce que nous pouvons tenir : la personne visée par une plainte doit en savoir assez pour y répondre, certaines situations doivent être signalées à un organisme de réglementation, et un dossier peut devoir être produit dans une instance. Lorsque la loi nous oblige à divulguer, nous le ferons, et nous vous en informerons au préalable chaque fois que ce sera possible.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 7,
+      heading: {
+        en: 'What happens after a report',
+        fr: 'Ce qui suit un signalement',
+      },
+      text: {
+        en: 'Every report is taken seriously and looked into in a way that fits what is alleged — not every concern needs a formal investigation, and some are resolved by a conversation the parties agree to. Where an investigation is needed it is conducted by someone impartial, the person the complaint is about is told the allegations in enough detail to respond, both are given the chance to be heard, and the outcome is communicated to those entitled to it. Nothing is decided before that happens.',
+        fr: 'Chaque signalement est pris au sérieux et examiné d’une manière adaptée à ce qui est allégué — toute préoccupation n’appelle pas une enquête formelle, et certaines se règlent par une conversation acceptée par les parties. Lorsqu’une enquête s’impose, elle est menée par une personne impartiale, la personne visée est informée des allégations avec assez de détails pour y répondre, chacune peut se faire entendre, et l’issue est communiquée aux personnes qui y ont droit. Rien n’est décidé avant.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 8,
+      heading: {
+        en: 'No reprisal',
+        fr: 'Aucune représaille',
+      },
+      text: {
+        en: 'Nobody is penalised for raising a concern in good faith, for taking part in a process under this policy, or for refusing to take part in conduct it prohibits. Reprisal is itself a breach of this policy and is dealt with on its own footing. A report made in good faith that is not substantiated is not a false report, and is never treated as one.',
+        fr: 'Nul n’est pénalisé pour avoir soulevé de bonne foi une préoccupation, participé à un processus prévu par la présente politique ou refusé de prendre part à un comportement qu’elle interdit. Les représailles constituent en soi un manquement à la présente politique et sont traitées de façon distincte. Un signalement fait de bonne foi mais non fondé n’est pas un faux signalement et n’est jamais traité comme tel.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 9,
+      heading: {
+        en: 'Support, training and review',
+        fr: 'Soutien, formation et révision',
+      },
+      text: {
+        en: '{{support_resources}} That support is open to everyone involved, including the person a complaint is about. Everyone who works here is trained on this policy when they join and when it changes, and managers are trained on what to do when something is reported to them. This policy is reviewed {{review_cycle}}.',
+        fr: '{{support_resources}} Ce soutien est offert à toutes les personnes concernées, y compris celle visée par une plainte. Toute personne qui travaille ici reçoit une formation sur la présente politique à son arrivée et à chaque modification, et les gestionnaires sont formés sur la conduite à tenir lorsqu’un signalement leur est adressé. La présente politique est révisée {{review_cycle}}.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 10,
+      when: {
+        juris: 'FED',
+      },
+      heading: {
+        en: 'The federal resolution process',
+        fr: 'Le processus de règlement fédéral',
+      },
+      text: {
+        en: 'This workplace is federally regulated. Where what is reported is a harassment or violence occurrence, the Work Place Harassment and Violence Prevention Regulations set the process and its timelines — negotiated resolution, conciliation where both parties agree to it, and an investigation the principal party may require — and they protect the identity of the parties and witnesses throughout. This policy is developed and reviewed jointly with the policy committee or health and safety representative, as those Regulations require.',
+        fr: 'Le présent milieu de travail est de compétence fédérale. Lorsque le signalement porte sur un incident de harcèlement ou de violence, le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail fixe le processus et ses délais — résolution négociée, conciliation lorsque les deux parties y consentent, et enquête que la partie principale peut exiger — et il protège l’identité des parties et des témoins tout au long. La présente politique est élaborée et révisée conjointement avec le comité d’orientation ou le représentant en santé et sécurité, comme l’exige ce règlement.',
       },
     },
     {
