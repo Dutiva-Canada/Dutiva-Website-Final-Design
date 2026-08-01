@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { allTemplates } from '../../catalogue'
 import { computedTokens, mergeSegments, resolveBlocks } from '../../engine'
+import { templateCategories } from '../meta'
 import type { DocTemplate, Jurisdiction } from '../types'
 
 /**
- * Guards for the accommodation templates authored in-repo (T21–T24, Ring 2
- * Pillar B — docs/FOUR_RING_FRAMEWORK.md).
+ * Guards for every template authored in-repo — T21 up, the ones under
+ * `data/templates/` that did not come from the handoff
+ * (docs/FOUR_RING_FRAMEWORK.md).
  *
  * The handoff-derived templates were machine-generated from validated JSON,
  * so their bilingual completeness and token hygiene were guaranteed by the
@@ -19,7 +21,11 @@ import type { DocTemplate, Jurisdiction } from '../types'
  * that silently ships English to a French workspace.
  */
 
-const TIDS = ['T21', 'T22', 'T23', 'T24'] as const
+/* Derived from the catalogue rather than listed, so a template authored
+   without a matching test entry cannot slip through ungoverned. */
+const AUTHORED_FROM = 21
+const AUTHORED = allTemplates.filter((t) => Number(t.tid.slice(1)) >= AUTHORED_FROM)
+const TIDS = AUTHORED.map((t) => t.tid)
 const JURISDICTIONS: Jurisdiction[] = ['ON', 'QC', 'FED']
 
 const template = (tid: string): DocTemplate => {
@@ -62,13 +68,27 @@ const TOKEN_RE = /\{\{([a-z0-9_]+)\}\}/g
 const tokensIn = (text: string): string[] => [...text.matchAll(TOKEN_RE)].map((m) => m[1] ?? '')
 
 describe.each(TIDS)('%s', (tid) => {
-  it('is in the accommodation category and covers all three jurisdictions', () => {
+  it('covers all three jurisdictions, each with a note behind it', () => {
     const tpl = template(tid)
-    expect(tpl.category).toBe('accommodation')
     expect([...tpl.jurisdictions].sort()).toEqual([...JURISDICTIONS].sort())
     /* A jurisdiction claimed in `jurisdictions` with no note behind it is the
        "implied coverage that doesn't exist" CANONICAL_FACTS §3 bars. */
     expect(Object.keys(tpl.jurisdictionNotes).sort()).toEqual([...JURISDICTIONS].sort())
+  })
+
+  it('sits in a category the catalogue actually defines', () => {
+    expect(templateCategories.map((c) => c.id)).toContain(template(tid).category)
+  })
+
+  it('routes to lawyer review when it is marked high risk', () => {
+    /* The three fields are read in different places — a card chip, the
+       wizard's review gate, the repository filter — and a template that is
+       high risk in one and routine in another sends mixed signals about the
+       document a customer is about to send. */
+    const tpl = template(tid)
+    if (tpl.risk !== 'high') return
+    expect(tpl.requiresLawyerReview, tid).toBe(true)
+    expect(tpl.review, tid).toBe('lawyer_review_recommended')
   })
 
   it('ships every string in both languages, with no untranslated FR', () => {
@@ -136,22 +156,24 @@ describe('the accommodation category', () => {
     expect(tids).toEqual(['T19', 'T20', 'T21', 'T22', 'T23', 'T24'])
   })
 
-  it('routes the two refusal-bearing documents to lawyer review', () => {
+  it('marks the two refusal-bearing documents high risk', () => {
     /* T22 (the answer the employee receives) and T24 (the record behind it)
        are the two an employer is asked to produce when a refusal is
-       challenged. */
+       challenged. The lawyer-review routing that follows from `high` is
+       asserted for every authored template above. */
     for (const tid of ['T22', 'T24']) {
-      const tpl = template(tid)
-      expect(tpl.risk, tid).toBe('high')
-      expect(tpl.requiresLawyerReview, tid).toBe(true)
-      expect(tpl.review, tid).toBe('lawyer_review_recommended')
+      expect(template(tid).risk, tid).toBe('high')
     }
   })
+})
 
+describe('medical privacy across every authored template', () => {
   it('never asks for a diagnosis', () => {
-    /* The constraint the framework puts on Pillar B, and the one thing in
-       these documents that would be a privacy failure rather than a wording
-       preference. Every mention must be a prohibition. */
+    /* The constraint the framework puts on Pillar B, and it does not stop
+       there — the attendance policy and the return-from-leave letter reach
+       for the same information. Asking for a diagnosis is a privacy failure
+       rather than a wording preference, so every mention anywhere in the
+       authored set must be a prohibition. */
     for (const tid of TIDS) {
       const tpl = template(tid)
       const prose = [
@@ -162,6 +184,64 @@ describe('the accommodation category', () => {
         if (!/diagnosis/i.test(line)) continue
         expect(line, `${tid}: "${line}"`).toMatch(/\b(not|never|no|without)\b/i)
       }
+    }
+  })
+})
+
+describe('T31 investigation report — the federal de-identification rule', () => {
+  /* The Work Place Harassment and Violence Prevention Regulations require an
+     investigator's report not to reveal, directly or indirectly, anyone
+     involved. ON and QC have no such rule and naming the parties there is
+     normal, so the report is jurisdiction-split rather than de-identified
+     everywhere — which is exactly the kind of split that decays silently. */
+  const blocksFor = (jurisdiction: Jurisdiction) =>
+    resolveBlocks(template('T31'), { jurisdiction, headcount: 38, unionized: false })
+      .map((b) => b.text?.en ?? '')
+      .join('\n')
+
+  it('states the requirement on the face of the federal report', () => {
+    expect(blocksFor('FED')).toMatch(/de-identified/i)
+  })
+
+  it('does not impose it on ON or QC, where no such rule applies', () => {
+    expect(blocksFor('ON')).not.toMatch(/de-identified/i)
+    expect(blocksFor('QC')).not.toMatch(/de-identified/i)
+  })
+
+  it('renders exactly one parties clause per jurisdiction', () => {
+    /* Two gated ON/QC variants plus a FED one — a copy-paste slip that leaves
+       two matching the same jurisdiction shows up as a duplicated clause in a
+       customer's document, not as a type error. */
+    for (const jurisdiction of JURISDICTIONS) {
+      const parties = resolveBlocks(template('T31'), {
+        jurisdiction,
+        headcount: 38,
+        unionized: false,
+      }).filter((b) => b.heading?.en === 'Parties')
+      expect(parties, jurisdiction).toHaveLength(1)
+    }
+  })
+})
+
+describe('the Ring 1 gaps the framework listed', () => {
+  it('are all closed', () => {
+    /* docs/FOUR_RING_FRAMEWORK.md recorded eight Ring 1 tools from the April
+       framework with no template, plus the accommodation response. If one of
+       these keys disappears, the framework doc's Ring 1 section is wrong and
+       needs updating with it. */
+    const keys = new Set(allTemplates.map((t) => t.key))
+    for (const key of [
+      'accommodation_response',
+      'probationary_period_review',
+      'promotion_salary_adjustment',
+      'return_from_leave_confirmation',
+      'attendance_policy',
+      'roe_preparation_guide',
+      'reference_letter',
+      'investigation_report',
+      'layoff_notice',
+    ]) {
+      expect(keys, key).toContain(key)
     }
   })
 })

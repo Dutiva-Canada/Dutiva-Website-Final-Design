@@ -32,9 +32,10 @@ previous rings more useful. They are not tiers of a price list, and no plan in
 
 ## What is built
 
-**Ring 1 — the document catalogue, 24 templates** (`catalogue.ts`, T01…T24).
-Plus the Advisor, the compliance register, cases, employees, policies and
-tasks. This is the product.
+**Ring 1 — the document catalogue, 32 templates** (`catalogue.ts`, T01…T32),
+now covering every tool the April framework listed for it. Plus the Advisor,
+the compliance register, cases, employees, policies and tasks. This is the
+product.
 
 **Ring 2 — Pillar B only, and not all of it.** The accommodation documents
 below. Pillars A, C and D do not exist.
@@ -48,6 +49,16 @@ v2 design handoff, running on demo fixtures, wrapped in `gated(…)` at
 Nothing in them is a ring tool, none is wired to persistence, and describing
 them as shipped capability is the specific claim `CANONICAL_FACTS.md` §4
 forbids.
+
+### Where the catalogue puts things
+
+Categories are ordered as the employment lifecycle, not by when they were
+added: hiring → changes → agreements → policies → discipline → accommodation
+→ termination. Two are authored in-repo. **Accommodation** holds Ring 2 Pillar
+B and the Ring 1 document it produces. **Employment changes** exists because
+the framework's Ring 1 has an "Employment Changes" group that had no home in
+the handoff's five categories — part of why its two documents were never
+built.
 
 ## Ring 2, Pillar B — Accommodation
 
@@ -162,28 +173,49 @@ four places. Treat the Drive document as superseded on all four.
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | All 14 jurisdictions, every ring                | Three — ON, QC, FED                                                                                                                    |
 | $39/month flat                                  | Free · Starter $24 · Growth $49 · Pro $99, and paid plans are not sold during beta                                                     |
-| 47 tools at launch                              | 24 templates ship; the 47 counted a launch state that did not happen                                                                   |
+| 47 tools at launch                              | 32 templates ship; the 47 counted a launch state that did not happen                                                                   |
 | Month-numbered build schedule off a launch date | Both published launch dates have passed. Tie sequencing to product state, never a calendar date (`CANONICAL_FACTS.md` § Launch status) |
 
-Its Ring 1 inventory also does not match what shipped: of the 18 tools it
-lists, 9 have no template (probationary period review, promotion & salary
-adjustment, return from leave confirmation, attendance policy, ROE preparation
-guide, reference letter, investigation report, layoff notice as distinct from
-the group termination notice — and the accommodation response, now T22). Seven
-shipped templates are absent from its list (employment agreement, employee
-handbook, restrictive covenants, Québec offer letter, vacation & leave policy,
-code of conduct, group termination notice). **"Ring 1 is complete at launch"
-is not true against the framework's own list**, and the eight remaining gaps
-are the cheapest ring work available — they are all plain templates.
+Its Ring 1 inventory did not match what shipped either. Of the 18 tools it
+lists, 9 had no template — **"Ring 1 is complete at launch" was not true
+against the framework's own list**. Those nine are now built:
+
+| Framework's Ring 1 tool        | tid |
+| ------------------------------ | --- |
+| Accommodation Response         | T22 |
+| Probationary Period Review     | T25 |
+| Promotion & Salary Adjustment  | T26 |
+| Return from Leave Confirmation | T27 |
+| Attendance Policy              | T28 |
+| ROE Preparation Guide          | T29 |
+| Reference Letter               | T30 |
+| Investigation Report           | T31 |
+| Layoff Notice                  | T32 |
+
+T32 is the individual temporary layoff. T15, the group termination notice, is
+a different document for a different trigger, and treating one as the other is
+the mistake that made this look like a duplicate rather than a gap.
+
+T29 is the framework's one Ring 1 reference doc. With no surface for reference
+content it is built as a preparation record instead — the shape the ported
+offboarding checklist (T18) already uses. It deliberately states no ROE filing
+deadline: that depends on the filing method and the pay-period schedule, and a
+wrong date in a customer's document is a compliance defect, not a typo.
+
+Seven shipped templates remain absent from the framework's list (employment
+agreement, employee handbook, restrictive covenants, Québec offer letter,
+vacation & leave policy, code of conduct, group termination notice) — the
+Drive document undercounts the product, not the other way round.
 
 ## Adding a ring tool
 
 1. Check this file and `CANONICAL_FACTS.md` first.
 2. If it is a generated document, author it under `data/templates/` following
-   T21–T24. Numbering continues from the highest tid in `catalogue.ts` —
+   T21–T32. Numbering continues from the highest tid in `catalogue.ts` —
    **check both sources**, because `data/templates/` and `customTemplates.ts`
    share one tid space and doclib silently wins the lookup in
    `DocStudioProvider`. `src/canonicalFacts.test.ts` fails on a duplicate.
+   `authoredTemplates.test.ts` picks up anything from T21 up automatically.
 3. Update the template count row in `CANONICAL_FACTS.md` in the same PR; the
    test derives it from `catalogue.ts` and fails on drift.
 4. Update the state tables here.

@@ -38,7 +38,7 @@ people who don't read the repo. Re-export it when this file changes.
 
 | Fact                  | Value                                                                       | Source of truth                                                         |
 | --------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Templates shipped     | **24** — T01…T24                                                            | `src/features/app/documents/catalogue.ts`                               |
+| Templates shipped     | **32** — T01…T32                                                            | `src/features/app/documents/catalogue.ts`                               |
 | Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)          | jurisdiction codes `ON`, `QC`, `FED`                                    |
 | Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                | `src/config/plans.ts` → `PLANS`                                         |
 | Annual billing        | 10 of 12 months charged (two months free)                                   | `ANNUAL_MONTHS_BILLED`                                                  |
@@ -100,17 +100,21 @@ not the outcome, until that resolves.
 
 ### 3. Counts
 
-**16** templates — not 20, "20+" or 47. **3** jurisdictions — not 4 or 14.
-Federally regulated remote work is a supported _scenario_ under `FED`, not a fourth
-jurisdiction. Alberta and BC stay labelled roadmap.
+**32** templates — not 47, and no longer 16 either: the count has moved, so state
+it from `catalogue.ts` rather than from memory or from any Drive document. **3**
+jurisdictions — not 4 or 14. Federally regulated remote work is a supported
+_scenario_ under `FED`, not a fourth jurisdiction. Alberta and BC stay labelled
+roadmap.
 
 ### 4. Rings 2–4 as shipped
 
-Ring 1 exists. Of Rings 2–4, the **only** shipped work is part of Ring 2's
-Pillar B: the accommodation documents (T21–T24, plus the ported T19/T20) in
-Document Studio's Accommodation category. Pillar B is not finished — the Duty
-to Accommodate workflow and the Functional Limitations guide are not built —
-and Pillars A, C and D do not exist at all.
+Ring 1 exists, and as of August 2026 covers every tool the April framework
+listed for it (T25–T32 closed the last eight gaps). Of Rings 2–4, the **only**
+shipped work is part of Ring 2's Pillar B: the accommodation documents
+(T21–T24, plus the ported T19/T20) in Document Studio's Accommodation
+category. Pillar B is not finished — the Duty to Accommodate workflow and the
+Functional Limitations guide are not built — and Pillars A, C and D do not
+exist at all.
 
 Rings 3 and 4 are roadmap. The Compensation, Communications and Wellbeing
 modules in the app are prototype surfaces on demo fixtures, gated off in a

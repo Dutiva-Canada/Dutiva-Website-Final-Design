@@ -30,6 +30,14 @@ import { tplT21 } from './t21-accommodation-request-form'
 import { tplT22 } from './t22-accommodation-response'
 import { tplT23 } from './t23-accommodation-plan'
 import { tplT24 } from './t24-undue-hardship-assessment'
+import { tplT25 } from './t25-probationary-period-review'
+import { tplT26 } from './t26-promotion-salary-adjustment'
+import { tplT27 } from './t27-return-from-leave-confirmation'
+import { tplT28 } from './t28-attendance-policy'
+import { tplT29 } from './t29-roe-preparation-guide'
+import { tplT30 } from './t30-reference-letter'
+import { tplT31 } from './t31-investigation-report'
+import { tplT32 } from './t32-layoff-notice'
 import type { DocTemplate } from '../types'
 
 export const docTemplates: DocTemplate[] = [
@@ -53,6 +61,14 @@ export const docTemplates: DocTemplate[] = [
   tplT22,
   tplT23,
   tplT24,
+  tplT25,
+  tplT26,
+  tplT27,
+  tplT28,
+  tplT29,
+  tplT30,
+  tplT31,
+  tplT32,
 ]
 
 export const templateByTid = new Map(docTemplates.map((t) => [t.tid, t]))

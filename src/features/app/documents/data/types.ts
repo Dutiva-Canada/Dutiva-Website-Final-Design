@@ -56,7 +56,7 @@ export type DocCapability =
   | 'view_audit'
 
 export type TemplateCategoryId =
-  'hiring' | 'agreements' | 'policies' | 'discipline' | 'termination' | 'accommodation'
+  'hiring' | 'changes' | 'agreements' | 'policies' | 'discipline' | 'termination' | 'accommodation'
 
 /** Who the document is about — drives the wizard's context step. */
 export type TemplateSubject = 'candidate' | 'employee' | 'org' | 'external'
