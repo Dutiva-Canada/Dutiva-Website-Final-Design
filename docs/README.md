@@ -1,9 +1,8 @@
 # Dutiva Web — documentation index
 
-Twenty documents live here. This index exists so the important ones are found
-by someone who doesn't already know they exist — start with **Canonical
-facts**, which outranks every other document in this folder on any question of
-fact.
+This index exists so the documents that matter are found by someone who
+doesn't already know they exist — start with **Canonical facts**, which
+outranks every other document in this folder on any question of fact.
 
 Repo-root entry points: [README.md](../README.md) (what the project is and how
 to run it), [AGENTS.md](../AGENTS.md) (AI coding agents start here),

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { mentionsStatutoryFigure } from '@/features/app/advisor/safety/statutoryFigures'
 import { ALL_ARTICLES } from './index'
 import type { Article } from './articleModel'
+import { editorialFigureIn } from './editorialFigures'
 
 /**
  * Enforcement for the editorial rule stated at the top of `articleModel.ts`:
@@ -18,10 +18,10 @@ import type { Article } from './articleModel'
  * here — it gets quoted onward, by machines, without the disclaimer that sits
  * next to it on the page.
  *
- * The detector is the same one the Advisor already runs against model prose
- * (`advisor/safety/statutoryFigures.ts`), pointed at the editorial corpus:
- * one definition of "this looks like a statutory figure", enforced in both
- * the generated and the authored halves of the product.
+ * The detector lives in `./editorialFigures.ts`, which documents why it is
+ * deliberately stricter than the Advisor's runtime `statutoryFigures.ts`:
+ * authored prose is checked before it ships, so a false positive costs one
+ * rephrase, while a false negative reaches an indexed page.
  *
  * If a future article genuinely needs a figure, that is a decision to make
  * deliberately — change the rule in `articleModel.ts` and this test together,
@@ -53,9 +53,6 @@ function strings(article: Article): { where: string; text: string }[] {
   return out
 }
 
-/** A currency amount — a threshold, penalty or wage figure. */
-const CURRENCY = /\$\s?\d/
-
 describe('editorial rule: articles publish no statutory figures', () => {
   it('has articles to check', () => {
     /* Guards the suite itself: an empty corpus would pass every assertion
@@ -64,22 +61,12 @@ describe('editorial rule: articles publish no statutory figures', () => {
   })
 
   it.each(ALL_ARTICLES.map((article) => [article.slug, article] as const))(
-    '%s states no notice/severance quantity',
+    '%s quotes no duration or monetary figure',
     (_slug, article) => {
-      const offenders = strings(article)
-        .filter(({ text }) => mentionsStatutoryFigure(text))
-        .map(({ where, text }) => `${where}: ${text}`)
-
-      expect(offenders).toEqual([])
-    },
-  )
-
-  it.each(ALL_ARTICLES.map((article) => [article.slug, article] as const))(
-    '%s quotes no dollar figure',
-    (_slug, article) => {
-      const offenders = strings(article)
-        .filter(({ text }) => CURRENCY.test(text))
-        .map(({ where, text }) => `${where}: ${text}`)
+      const offenders = strings(article).flatMap(({ where, text }) => {
+        const figure = editorialFigureIn(text)
+        return figure ? [`${where} — "${figure}" in: ${text}`] : []
+      })
 
       expect(offenders).toEqual([])
     },

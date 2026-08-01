@@ -33,18 +33,65 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const docPath = path.join(root, 'docs', 'CANONICAL_FACTS.md')
 const stylesDir = path.join(root, 'src', 'styles')
 
-/** Rows whose values must resolve to a hex declared somewhere in src/styles/. */
-const BRAND_ROWS = ['Brand gold', 'Brand navy']
+/**
+ * Each brand row, and the exact CSS declarations that define it.
+ *
+ * Deliberately not "does this hex appear anywhere in src/styles/": that is
+ * satisfied by any unrelated value in any file, so pointing Brand navy's deep
+ * stop at `#0a1522` (a gradient stop already in patterns.css) or swapping the
+ * gold and navy rows outright would both stay green. Each row is compared as
+ * an exact set against the declarations it actually names, so a value that
+ * moves to a different meaning fails even though the hex still exists.
+ *
+ * `--bg` is scoped to its selector because surfaces.css declares it four times
+ * across the theme ramps; only the marketing dark surface is the brand's deep
+ * navy floor.
+ */
+const BRAND_ROWS = [
+  {
+    label: 'Brand gold',
+    sources: [
+      { file: 'tokens.css', selector: ':root', prop: '--gold-gradient' },
+      { file: 'tokens.css', selector: ':root', prop: '--gold-on-dark' },
+    ],
+  },
+  {
+    label: 'Brand navy',
+    sources: [
+      { file: 'tokens.css', selector: ':root', prop: '--dutiva-navy' },
+      { file: 'surfaces.css', selector: '.surface-marketing', prop: '--bg' },
+    ],
+  },
+]
 
 const doc = await readFile(docPath, 'utf8')
 
 const styleFiles = (await readdir(stylesDir)).filter((name) => name.endsWith('.css'))
-const stylesheets = await Promise.all(
-  styleFiles.map(async (name) => ({
-    name,
-    css: (await readFile(path.join(stylesDir, name), 'utf8')).toLowerCase(),
-  })),
+const stylesheets = new Map(
+  await Promise.all(
+    styleFiles.map(async (name) => [
+      name,
+      (await readFile(path.join(stylesDir, name), 'utf8')).toLowerCase(),
+    ]),
+  ),
 )
+
+/** Hex values declared by `prop` inside the `selector` block of `css`. */
+function declaredHexes(css, selector, prop) {
+  /* Comments are stripped first so a hex mentioned in prose (surfaces.css
+     explains the deep floor by naming the brand navy) is never mistaken for a
+     declaration. */
+  const code = css.replace(/\/\*[\s\S]*?\*\//g, '')
+
+  for (const [, rawSelector, body] of code.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (rawSelector.trim() !== selector) continue
+    const declaration = body.split(';').find((entry) => entry.trim().startsWith(`${prop}:`))
+    if (declaration === undefined) continue
+    return [...declaration.matchAll(/#([0-9a-f]{6})\b/g)].map((m) => m[0])
+  }
+
+  return null
+}
 
 /**
  * First cell of a markdown table row, trimmed — `null` for a non-table line.
@@ -64,7 +111,7 @@ function firstCell(line) {
 
 const problems = []
 
-for (const label of BRAND_ROWS) {
+for (const { label, sources } of BRAND_ROWS) {
   const row = doc.split('\n').find((line) => firstCell(line) === label)
 
   if (!row) {
@@ -72,22 +119,49 @@ for (const label of BRAND_ROWS) {
     continue
   }
 
-  const hexes = [...row.matchAll(/#([0-9a-f]{6})\b/gi)].map((m) => m[0].toLowerCase())
+  const documented = [...row.matchAll(/#([0-9a-f]{6})\b/gi)].map((m) => m[0].toLowerCase())
 
-  if (hexes.length === 0) {
+  if (documented.length === 0) {
     problems.push(`"${label}" row publishes no hex value — it used to`)
     continue
   }
 
-  for (const hex of hexes) {
-    const declaredIn = stylesheets.filter(({ css }) => css.includes(hex)).map(({ name }) => name)
+  const declared = []
+  let unreadable = false
 
-    if (declaredIn.length === 0) {
+  for (const { file, selector, prop } of sources) {
+    const css = stylesheets.get(file)
+    const hexes = css === undefined ? null : declaredHexes(css, selector, prop)
+
+    if (hexes === null) {
       problems.push(
-        `"${label}" publishes ${hex}, which is not declared anywhere in src/styles/ — ` +
-          'the document is describing a colour the product no longer uses',
+        `"${label}" is defined by ${prop} in ${selector} (src/styles/${file}), which no ` +
+          'longer exists — the declaration moved or was renamed, so this row is ' +
+          'describing something the stylesheets no longer say',
       )
+      unreadable = true
+      continue
     }
+
+    declared.push(...hexes)
+  }
+
+  if (unreadable) continue
+
+  /* Exact set comparison, both directions: a hex the document invented and a
+     stop the palette gained but the document never learned about are equally
+     wrong. Order is ignored — the document writes the gradient light-to-dark
+     and adds the on-dark shade after it. */
+  const documentedSet = [...new Set(documented)].sort()
+  const declaredSet = [...new Set(declared)].sort()
+
+  if (documentedSet.join(' ') !== declaredSet.join(' ')) {
+    const named = sources.map(({ prop }) => prop).join(', ')
+    problems.push(
+      `"${label}" publishes ${documentedSet.join(', ')} but ${named} declare ` +
+        `${declaredSet.join(', ')} — the document is describing a palette the product ` +
+        'does not have',
+    )
   }
 }
 
