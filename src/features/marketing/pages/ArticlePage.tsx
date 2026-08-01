@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Info } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
 import { articleDescription, articleTitle, seoRoute } from '@/seo/routes'
+import { usePublicPath } from '@/seo/usePublicPath'
 import {
   articleBySlug,
   articlePath,
@@ -24,6 +25,7 @@ import { Breadcrumbs, MarketingPageShell } from './MarketingPage'
 export function ArticlePage({ collection }: { readonly collection: ArticleCollection }) {
   const { slug } = useParams()
   const { t, x, lang } = useI18n()
+  const { p } = usePublicPath()
   const article = articleBySlug(collection, slug ?? '', lang)
   const indexRoute = seoRoute(collection === 'guide' ? 'guides' : 'blog')
   const indexPath = indexRoute.path[lang]
@@ -111,6 +113,39 @@ export function ArticlePage({ collection }: { readonly collection: ArticleCollec
             )}
           </section>
         ))}
+
+        {/* Crawlable link from every article into the commercial pages. The
+            editorial body is plain text by design (see articleModel.ts), so
+            this is the one place an article links anywhere other than a
+            sibling article — without it the whole editorial corpus is a
+            dead end that passes nothing to /templates or /pricing. */}
+        <section className="mt-10 rounded-xl border border-border bg-bg px-[18px] py-5">
+          <h2 className="font-display text-[1.0625rem] font-semibold tracking-[-0.01em] text-text">
+            {x({ en: 'Put this into practice', fr: 'Passer à la pratique' })}
+          </h2>
+          <p className="mt-2 text-[0.9375rem] leading-[1.65] text-text-2">
+            {x({
+              en: 'Dutiva turns jurisdiction-specific guidance like this into review-ready HR documents for Ontario, Quebec, and the federal regime.',
+              fr: 'Dutiva transforme des repères propres à chaque compétence comme ceux-ci en documents RH prêts à réviser pour l’Ontario, le Québec et le régime fédéral.',
+            })}
+          </p>
+          <div className="mt-3.5 flex flex-wrap gap-x-5 gap-y-2">
+            <Link
+              to={p('templates')}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+            >
+              {x({ en: 'Browse HR templates', fr: 'Voir les modèles RH' })}
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+            <Link
+              to={p('pricing')}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+            >
+              {x({ en: 'See plans', fr: 'Voir les forfaits' })}
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
 
         {related.length > 0 && (
           <section className="mt-10">

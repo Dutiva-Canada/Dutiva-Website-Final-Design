@@ -22,7 +22,8 @@ export const BLOG_ARTICLES: readonly Article[] = [
     frSlug: 'normes-du-travail-quebec',
     collection: 'blog',
     topic: bi('Jurisdictions', 'Compétences'),
-    readingMinutes: 6,
+    readingMinutes: 4,
+    updated: '2026-08-01',
     title: bi(
       'Quebec employment standards: what differs from Ontario',
       'Normes du travail au Québec : ce qui diffère de l’Ontario',
@@ -87,6 +88,83 @@ export const BLOG_ARTICLES: readonly Article[] = [
         ],
       },
       {
+        heading: bi(
+          'Psychological harassment carries a standing obligation',
+          'Le harcèlement psychologique impose une obligation permanente',
+        ),
+        blocks: [
+          p(
+            'Quebec was early to legislate expressly on psychological harassment, and the obligation sits in the labour standards regime rather than only in occupational health and safety. Employers are required to take reasonable steps to prevent it and, when it is brought to their attention, to make it stop. A written prevention and complaint-handling policy is required, and the framework expressly reaches conduct of a sexual nature.',
+            'Le Québec a légiféré tôt et expressément sur le harcèlement psychologique, et l’obligation se trouve dans le régime des normes du travail plutôt que seulement en santé et sécurité du travail. Les employeurs doivent prendre les moyens raisonnables pour le prévenir et, lorsqu’il est porté à leur connaissance, le faire cesser. Une politique écrite de prévention et de traitement des plaintes est obligatoire, et le cadre vise expressément les conduites à caractère sexuel.',
+          ),
+          p(
+            'An Ontario employer extending its existing harassment policy into Quebec usually needs more than a translation. The definitions, the recourse available to the employee, and the body that hears a complaint all differ, and a policy that describes an Ontario process to a Quebec employee is describing the wrong one.',
+            'L’employeur ontarien qui étend sa politique de harcèlement existante au Québec a généralement besoin de plus qu’une traduction. Les définitions, le recours offert à l’employé et l’instance qui entend une plainte diffèrent tous, et une politique décrivant un processus ontarien à un employé québécois décrit le mauvais processus.',
+          ),
+        ],
+      },
+      {
+        heading: bi(
+          'Employee privacy is governed provincially',
+          'La vie privée des employés relève du provincial',
+        ),
+        blocks: [
+          p(
+            'Quebec has its own private-sector privacy statute governing personal information, and it applies to employee data held by Quebec employers rather than leaving that field to the federal regime. Recent reform has strengthened it considerably, adding obligations around governance, transparency about how information is used, incident reporting, and individual rights.',
+            'Le Québec dispose de sa propre loi sur la protection des renseignements personnels dans le secteur privé, et elle s’applique aux données des employés détenues par les employeurs québécois plutôt que de laisser ce champ au régime fédéral. Une réforme récente l’a considérablement renforcée, ajoutant des obligations de gouvernance, de transparence sur l’utilisation des renseignements, de déclaration des incidents et de droits individuels.',
+          ),
+          p(
+            'For an employer running HR processes across provinces, the practical consequence is that Quebec employee records may be subject to requirements the same records would not attract elsewhere — including around how information is collected, how long it is kept, and what has to happen when confidentiality is breached. Confirm your obligations against the current statute rather than assuming a national privacy policy covers it.',
+            'Pour un employeur qui exploite des processus RH dans plusieurs provinces, la conséquence pratique est que les dossiers d’employés québécois peuvent être assujettis à des exigences que les mêmes dossiers n’attireraient pas ailleurs — notamment quant à la collecte des renseignements, à leur durée de conservation et à ce qui doit survenir en cas d’atteinte à la confidentialité. Validez vos obligations au regard de la loi en vigueur plutôt que de présumer qu’une politique nationale de confidentialité y répond.',
+          ),
+        ],
+      },
+      {
+        heading: bi('Before your first Quebec hire', 'Avant votre première embauche au Québec'),
+        blocks: [
+          li(
+            'Have the employment documents prepared for Quebec rather than adapted from an Ontario set, and confirm the language in which they must be provided.',
+            'Faites préparer les documents d’emploi pour le Québec plutôt que de les adapter d’un ensemble ontarien, et confirmez la langue dans laquelle ils doivent être remis.',
+          ),
+          li(
+            'Register with the applicable provincial payroll and workplace programs before the first pay run rather than after it.',
+            'Inscrivez-vous aux programmes provinciaux de paie et de milieu de travail applicables avant la première paie plutôt qu’après.',
+          ),
+          li(
+            'Put the required psychological harassment policy in place and distribute it, keeping proof of distribution.',
+            'Mettez en place la politique obligatoire contre le harcèlement psychologique et diffusez-la, en conservant la preuve de la diffusion.',
+          ),
+          li(
+            "Review how you handle employee personal information against Quebec's privacy requirements specifically.",
+            'Révisez votre traitement des renseignements personnels des employés au regard des exigences québécoises en matière de vie privée en particulier.',
+          ),
+          li(
+            'Budget for advice from counsel practising in Quebec before the relationship starts, not at the point it ends.',
+            'Prévoyez un budget pour l’avis d’un conseiller qui pratique au Québec avant le début de la relation, et non au moment où elle se termine.',
+          ),
+        ],
+      },
+      {
+        heading: bi(
+          'Ending employment under a civil-law contract',
+          'Mettre fin à un emploi sous un contrat de droit civil',
+        ),
+        blocks: [
+          p(
+            "Quebec's employment contract is governed by the Civil Code, and the vocabulary that Ontario employers rely on does not map cleanly onto it. The Code frames the obligation as reasonable notice of termination, alongside the labour standards minimums, and it recognizes a serious reason as the basis for ending a contract without notice. An employer thinking in terms of common-law reasonable notice and just cause is reasoning about adjacent but distinct concepts.",
+            'Le contrat de travail québécois est régi par le Code civil, et le vocabulaire sur lequel s’appuient les employeurs ontariens ne s’y transpose pas proprement. Le Code formule l’obligation comme un délai de congé raisonnable, en parallèle des minimums prévus par les normes du travail, et il reconnaît le motif sérieux comme fondement d’une résiliation sans délai de congé. L’employeur qui raisonne en préavis raisonnable de common law et en motif valable réfléchit à des concepts voisins mais distincts.',
+          ),
+          p(
+            'The recourse against dismissal without good and sufficient cause sits on top of that and changes what is actually at stake. In Ontario the practical question at the end of most non-union relationships is how much notice is owed; in Quebec, for an employee with enough continuous service, the question can be whether the dismissal stands at all. Reinstatement is a live remedy rather than a theoretical one, which means the analysis has to happen before the decision rather than during a negotiation about its cost.',
+            'Le recours contre le congédiement sans cause juste et suffisante s’y superpose et modifie ce qui est réellement en jeu. En Ontario, la question pratique à la fin de la plupart des relations non syndiquées est le montant du préavis dû; au Québec, pour un employé comptant suffisamment de service continu, la question peut être le maintien même du congédiement. La réintégration est un remède bien réel plutôt que théorique, ce qui signifie que l’analyse doit précéder la décision plutôt que d’accompagner une négociation sur son coût.',
+          ),
+          p(
+            'The practical consequence for a multi-province employer is that a single national termination playbook will misprice Quebec departures. Build the Quebec path separately, and involve counsel practising there before the conversation happens rather than after a contestation is filed.',
+            'La conséquence pratique pour un employeur multiprovincial est qu’un guide national unique de cessation d’emploi évaluera mal les départs québécois. Construisez le parcours québécois séparément, et faites intervenir un conseiller qui y pratique avant la conversation plutôt qu’après le dépôt d’une contestation.',
+          ),
+        ],
+      },
+      {
         blocks: [
           p(
             'Dutiva treats Quebec as its own jurisdiction rather than an Ontario variant, alongside Ontario and the federal regime. Jurisdiction-specific guidance narrows the questions worth asking; it does not answer them for your particular situation, and Quebec questions in particular reward advice from counsel practising there.',
@@ -101,7 +179,8 @@ export const BLOG_ARTICLES: readonly Article[] = [
     frSlug: 'entreprises-de-competence-federale',
     collection: 'blog',
     topic: bi('Jurisdictions', 'Compétences'),
-    readingMinutes: 5,
+    readingMinutes: 4,
+    updated: '2026-08-01',
     title: bi(
       'Is your workplace federally regulated?',
       'Votre entreprise est-elle de compétence fédérale?',
@@ -163,6 +242,74 @@ export const BLOG_ARTICLES: readonly Article[] = [
         ],
       },
       {
+        heading: bi(
+          'What changes in practice if you are federal',
+          'Ce qui change en pratique si vous êtes de compétence fédérale',
+        ),
+        blocks: [
+          p(
+            'The differences are not confined to termination. Nearly every recurring HR process has a federal counterpart that differs from the provincial one you may have built around:',
+            'Les différences ne se limitent pas à la cessation d’emploi. Presque tous les processus RH récurrents ont un pendant fédéral qui diffère de celui, provincial, autour duquel vous avez peut-être bâti vos façons de faire :',
+          ),
+          li(
+            'Hours of work, scheduling, breaks, and overtime follow federal rules, including notice requirements around schedule changes that have no provincial equivalent.',
+            'La durée du travail, les horaires, les pauses et le temps supplémentaire suivent les règles fédérales, y compris des exigences d’avis en cas de modification d’horaire qui n’ont pas d’équivalent provincial.',
+          ),
+          li(
+            'The leave catalogue is federal, with its own eligibility conditions and documentation limits.',
+            'Le catalogue des congés est fédéral, avec ses propres conditions d’admissibilité et limites documentaires.',
+          ),
+          li(
+            'Harassment and violence prevention runs under dedicated federal regulations, with prescribed steps for assessment, training, and resolution.',
+            'La prévention du harcèlement et de la violence relève de règlements fédéraux dédiés, avec des étapes prescrites d’évaluation, de formation et de résolution.',
+          ),
+          li(
+            'Employee personal information falls under PIPEDA, rather than under a provincial private-sector privacy statute.',
+            'Les renseignements personnels des employés relèvent de la LPRPDE plutôt que d’une loi provinciale sur la protection des renseignements personnels dans le secteur privé.',
+          ),
+          li(
+            'Pay-equity and employment-equity style obligations apply to federally regulated employers on their own terms and thresholds.',
+            'Les obligations de type équité salariale et équité en matière d’emploi s’appliquent aux employeurs de compétence fédérale selon leurs propres modalités et seuils.',
+          ),
+        ],
+      },
+      {
+        heading: bi(
+          'Confirming your status, and mixed operations',
+          'Confirmer votre statut, et les exploitations mixtes',
+        ),
+        blocks: [
+          p(
+            'Most employers can settle the question by describing what the business actually does and comparing it against the federal heads of power — but a surprising number sit near a line. A business can also have federally regulated and provincially regulated parts, where a distinct division carries on an activity that is federal in nature while the rest is not. Where that is the case, the two parts follow different rules, and treating the whole organization as one regime will be wrong for part of it.',
+            'La plupart des employeurs peuvent trancher la question en décrivant ce que fait réellement l’entreprise et en la comparant aux chefs de compétence fédéraux — mais un nombre étonnant se trouvent près d’une frontière. Une entreprise peut aussi comporter des parties de compétence fédérale et d’autres de compétence provinciale, lorsqu’une division distincte exerce une activité de nature fédérale alors que le reste ne l’est pas. Dans ce cas, les deux parties suivent des règles différentes, et traiter toute l’organisation comme un seul régime sera erroné pour une partie d’entre elles.',
+          ),
+          p(
+            'Corporate structure is not the answer either. Being federally incorporated does not make an employer federally regulated, and a great many federally incorporated businesses are provincially regulated for employment purposes. The determination follows the nature of the undertaking, and it is worth recording the reasoning in writing once it is made so it does not get relitigated informally each time a question arises.',
+            'La structure corporative n’est pas non plus la réponse. Être constituée en société fédérale ne rend pas un employeur de compétence fédérale, et un très grand nombre d’entreprises à charte fédérale relèvent du provincial en matière d’emploi. La qualification suit la nature de l’entreprise, et il vaut la peine de consigner le raisonnement par écrit une fois la question tranchée, afin qu’elle ne soit pas réexaminée de façon informelle chaque fois qu’elle refait surface.',
+          ),
+        ],
+      },
+      {
+        heading: bi(
+          'The unjust-dismissal recourse in practice',
+          'Le recours pour congédiement injuste en pratique',
+        ),
+        blocks: [
+          p(
+            'This is the difference that most changes how a federally regulated employer should think about ending employment. Eligible non-managerial employees with sufficient continuous service can bring a complaint that the dismissal was unjust, and the available remedies include reinstatement with compensation — an outcome most provincially regulated employers never have to contemplate for non-union staff.',
+            'C’est la différence qui modifie le plus la façon dont un employeur de compétence fédérale devrait envisager la fin d’un emploi. Les employés non cadres admissibles comptant suffisamment de service continu peuvent déposer une plainte alléguant que le congédiement était injuste, et les remèdes offerts incluent la réintégration avec indemnisation — une issue que la plupart des employeurs de compétence provinciale n’ont jamais à envisager pour du personnel non syndiqué.',
+          ),
+          p(
+            'Two consequences follow. First, paying notice does not necessarily resolve the exposure the way it typically would provincially: an employer that offers a generous package may still face a complaint seeking the job back. Second, the quality of the underlying record matters more, because the question being asked is whether the dismissal was justified rather than what it should cost. Performance documentation, progressive discipline, and a consistent stated reason carry more weight here than in a jurisdiction where the argument is about quantum.',
+            'Deux conséquences en découlent. D’abord, verser un préavis ne règle pas nécessairement l’exposition comme ce serait généralement le cas au provincial : l’employeur qui offre une indemnité généreuse peut tout de même faire face à une plainte visant la reprise de l’emploi. Ensuite, la qualité du dossier sous-jacent compte davantage, car la question posée est de savoir si le congédiement était justifié plutôt que ce qu’il devrait coûter. La documentation du rendement, la discipline progressive et un motif invoqué constant y pèsent plus lourd que dans une compétence où le débat porte sur le montant.',
+          ),
+          p(
+            'Genuine discontinuance of a function is treated differently from dismissal for cause or performance, which is why an accurate characterization of the reason — settled before the meeting and reflected consistently in the letter and the Record of Employment — matters as much here as anywhere.',
+            'La suppression véritable d’une fonction est traitée différemment d’un congédiement pour motif ou pour rendement, d’où l’importance d’une qualification exacte du motif — arrêtée avant la rencontre et reflétée de façon cohérente dans la lettre et le relevé d’emploi — tout autant ici qu’ailleurs.',
+          ),
+        ],
+      },
+      {
         blocks: [
           p(
             'If you have never confirmed which regime governs you, confirm it now rather than at the point of a dispute. Dutiva supports Ontario, Quebec, and the federal regime, and asks you to set the jurisdiction explicitly for exactly this reason — but the determination itself is a legal question about your business.',
@@ -177,7 +324,8 @@ export const BLOG_ARTICLES: readonly Article[] = [
     frSlug: 'politiques-en-milieu-de-travail',
     collection: 'blog',
     topic: bi('Policies', 'Politiques'),
-    readingMinutes: 5,
+    readingMinutes: 4,
+    updated: '2026-08-01',
     title: bi(
       'Workplace policies Canadian employers are expected to maintain',
       'Politiques que les employeurs canadiens doivent tenir à jour',
@@ -258,6 +406,83 @@ export const BLOG_ARTICLES: readonly Article[] = [
         ],
       },
       {
+        heading: bi(
+          'Write it so it can actually be followed',
+          'Rédigez-la pour qu’elle puisse réellement être suivie',
+        ),
+        blocks: [
+          p(
+            'The most common drafting error is promising more process than the organization will deliver. A policy that commits to an investigation completed on a fixed timetable, an appeal to a committee that has never met, or a review cycle nobody owns creates a standard the employer will be measured against and will miss. Write what you will do, then do it.',
+            'L’erreur de rédaction la plus courante consiste à promettre plus de processus que l’organisation n’en livrera. Une politique qui s’engage à une enquête terminée selon un échéancier fixe, à un appel devant un comité qui ne s’est jamais réuni ou à un cycle de révision dont personne n’est responsable crée une norme à l’aune de laquelle l’employeur sera évalué et à laquelle il faillira. Écrivez ce que vous ferez, puis faites-le.',
+          ),
+          p(
+            'A workable policy states who it applies to, what conduct or situation it governs, what the employee is expected to do, what the employer will do in response, and who owns it by role. Anything beyond that tends to be either aspiration or legal text copied from a source that did not have your workplace in mind — and both dilute the parts that matter.',
+            'Une politique viable indique à qui elle s’applique, quels comportements ou situations elle régit, ce qu’on attend de l’employé, ce que l’employeur fera en réponse, et qui en est responsable par fonction. Ce qui dépasse cela relève généralement soit de l’aspiration, soit d’un texte juridique copié d’une source qui n’avait pas votre milieu de travail en tête — et les deux diluent l’essentiel.',
+          ),
+        ],
+      },
+      {
+        heading: bi(
+          'Training and acknowledgement are part of the obligation',
+          'La formation et l’accusé de réception font partie de l’obligation',
+        ),
+        blocks: [
+          p(
+            'For several of these policies the legislation requires not just a document but that workers be informed and, in some cases, trained. Distribution alone may not discharge that. Keep a record of who was trained, on what version, and when — and repeat it for new hires and after substantive revisions rather than treating it as a one-time exercise at launch.',
+            'Pour plusieurs de ces politiques, la loi exige non seulement un document, mais aussi que les travailleurs soient informés et, dans certains cas, formés. La seule diffusion peut ne pas y satisfaire. Conservez un registre des personnes formées, sur quelle version et à quel moment — et répétez l’exercice pour les nouvelles embauches et après toute révision de fond plutôt que de le traiter comme une opération unique au lancement.',
+          ),
+          p(
+            'Acknowledgements are worth collecting even where they are not strictly required, because they answer the question that comes up first in any dispute: did this person know? An unsigned acknowledgement is not fatal, but a documented distribution list with dates is considerably better than a recollection that the policy was on the intranet.',
+            'Les accusés de réception valent la peine d’être recueillis même lorsqu’ils ne sont pas strictement exigés, car ils répondent à la question qui surgit en premier dans tout litige : cette personne le savait-elle? Un accusé non signé n’est pas fatal, mais une liste de diffusion documentée et datée vaut considérablement mieux que le souvenir que la politique se trouvait sur l’intranet.',
+          ),
+        ],
+      },
+      {
+        heading: bi('Where policy meets discipline', 'Quand la politique rencontre la discipline'),
+        blocks: [
+          p(
+            'Policies become consequential at the moment an employer relies on one to justify a decision. Two things determine whether that reliance holds: whether the employee knew the rule, and whether the employer has applied it consistently to others. Selective enforcement is one of the most reliable ways to convert a defensible decision into an indefensible one, because it supports the argument that the policy was a pretext rather than the reason.',
+            'Les politiques deviennent déterminantes au moment où un employeur en invoque une pour justifier une décision. Deux éléments déterminent la solidité de cet appui : l’employé connaissait-il la règle, et l’employeur l’a-t-il appliquée de façon uniforme aux autres. L’application sélective est l’un des moyens les plus sûrs de transformer une décision défendable en décision indéfendable, car elle appuie l’argument que la politique servait de prétexte plutôt que de motif.',
+          ),
+          p(
+            'Before relying on a policy breach, check that the version in force at the time said what you think it said, that the employee received it, and that comparable conduct by others was handled the same way. Where it was not, that is worth knowing before the decision rather than during a hearing about it.',
+            'Avant d’invoquer un manquement à une politique, vérifiez que la version en vigueur à l’époque disait bien ce que vous croyez, que l’employé l’a reçue, et qu’une conduite comparable d’autres personnes a été traitée de la même manière. Si ce n’est pas le cas, mieux vaut le savoir avant la décision que pendant une audience à son sujet.',
+          ),
+        ],
+      },
+      {
+        heading: bi(
+          'A starting set for a growing employer',
+          'Un ensemble de départ pour un employeur en croissance',
+        ),
+        blocks: [
+          p(
+            'Employers who are behind on this rarely benefit from trying to adopt everything at once. A more reliable approach is to put the required items in place first, in the order that exposure actually accrues, and to add the discretionary ones as the organization grows into them.',
+            'Les employeurs en retard sur ce plan gagnent rarement à vouloir tout adopter d’un coup. Une approche plus fiable consiste à mettre d’abord en place les éléments obligatoires, dans l’ordre où l’exposition s’accumule réellement, puis à ajouter les éléments facultatifs à mesure que l’organisation y arrive.',
+          ),
+          li(
+            'Start with harassment and violence prevention and with health and safety, because these are the most widely mandated and the most likely to be examined after an incident.',
+            'Commencez par la prévention du harcèlement et de la violence et par la santé et sécurité, car ce sont les plus largement obligatoires et les plus susceptibles d’être examinées après un incident.',
+          ),
+          li(
+            'Add accommodation and privacy next, since both govern processes you are already running whether or not they are written down.',
+            'Ajoutez ensuite l’accommodement et la protection de la vie privée, puisque les deux régissent des processus que vous appliquez déjà, qu’ils soient consignés ou non.',
+          ),
+          li(
+            'Then technology use and remote work, which mostly prevent disputes rather than satisfying a requirement — though some jurisdictions now mandate elements of both above a headcount threshold.',
+            'Puis l’utilisation des technologies et le télétravail, qui préviennent surtout des différends plutôt que de satisfaire une exigence — bien que certaines compétences en imposent maintenant des éléments au-delà d’un seuil d’effectif.',
+          ),
+          li(
+            'Re-run the exercise whenever headcount crosses a threshold that attaches new obligations, and whenever you begin employing someone in a new jurisdiction.',
+            'Refaites l’exercice chaque fois que l’effectif franchit un seuil qui fait naître de nouvelles obligations, et chaque fois que vous commencez à employer quelqu’un dans une nouvelle compétence.',
+          ),
+          p(
+            'Resist adopting a large borrowed handbook to close the gap quickly. It will describe processes you do not run, name roles you do not have, and reference legislation that may not govern you — and every one of those becomes a standard you have set for yourself in writing.',
+            'Évitez d’adopter un vaste manuel emprunté pour combler rapidement l’écart. Il décrira des processus que vous n’appliquez pas, nommera des fonctions que vous n’avez pas et renverra à des lois qui ne vous régissent peut-être pas — et chacun de ces éléments devient une norme que vous vous êtes fixée par écrit.',
+          ),
+        ],
+      },
+      {
         blocks: [
           p(
             'Confirm which policies are mandatory for your jurisdiction, sector, and size — the thresholds change and several were added in recent years. Dutiva can hold your policy set and track when each was last reviewed; deciding which ones the law requires of you remains a question for counsel.',
@@ -272,7 +497,8 @@ export const BLOG_ARTICLES: readonly Article[] = [
     frSlug: 'conservation-des-dossiers-demploi',
     collection: 'blog',
     topic: bi('Records', 'Dossiers'),
-    readingMinutes: 5,
+    readingMinutes: 4,
+    updated: '2026-08-01',
     title: bi(
       'Employment record-keeping and retention in Canada',
       'Tenue et conservation des dossiers d’emploi au Canada',
@@ -344,6 +570,90 @@ export const BLOG_ARTICLES: readonly Article[] = [
         ],
       },
       {
+        heading: bi(
+          'Building a retention schedule that resolves the conflict',
+          'Bâtir un calendrier de conservation qui règle le conflit',
+        ),
+        blocks: [
+          p(
+            'The way to reconcile the two obligations is to stop treating "the employee file" as a single object with a single lifespan. Break it into categories, and give each one a retention period derived from the rule that governs it:',
+            'Pour concilier les deux obligations, il faut cesser de traiter « le dossier de l’employé » comme un objet unique doté d’une seule durée de vie. Découpez-le en catégories et attribuez à chacune une période de conservation issue de la règle qui la régit :',
+          ),
+          li(
+            'Payroll and hours records, governed by employment standards and tax requirements, which typically run from the end of the employment or the tax year rather than from the date each entry was made.',
+            'Les registres de paie et d’heures, régis par les normes d’emploi et les exigences fiscales, dont le décompte part généralement de la fin de l’emploi ou de l’année d’imposition plutôt que de la date de chaque inscription.',
+          ),
+          li(
+            'Contractual documents, kept while any claim arising from them remains possible.',
+            'Les documents contractuels, conservés tant qu’une réclamation en découlant demeure possible.',
+          ),
+          li(
+            'Medical and accommodation material, held only as long as the accommodation and any related obligation continues, then disposed of on schedule.',
+            'Le matériel médical et d’accommodement, conservé seulement tant que l’accommodement et toute obligation connexe se poursuivent, puis éliminé selon le calendrier.',
+          ),
+          li(
+            'Investigation records, retained on their own basis given the possibility of later proceedings.',
+            'Les dossiers d’enquête, conservés selon leur propre logique compte tenu de la possibilité de procédures ultérieures.',
+          ),
+          li(
+            'Recruitment material for candidates who were not hired, which usually has the shortest justified life of anything on this list.',
+            'Le matériel de recrutement des personnes candidates non retenues, dont la durée de vie justifiée est habituellement la plus courte de cette liste.',
+          ),
+          p(
+            'Write the schedule down, assign an owner by role, and make disposal something that happens on a cycle rather than when storage runs short. A schedule that is applied inconsistently is harder to defend than a generous one applied uniformly, because the exceptions are what get examined.',
+            'Consignez le calendrier par écrit, désignez un responsable par fonction, et faites de l’élimination une opération cyclique plutôt qu’une réaction au manque d’espace. Un calendrier appliqué de façon inégale est plus difficile à défendre qu’un calendrier généreux appliqué uniformément, car ce sont les exceptions qui sont examinées.',
+          ),
+        ],
+      },
+      {
+        heading: bi(
+          'Two things that override the schedule',
+          'Deux éléments qui priment le calendrier',
+        ),
+        blocks: [
+          p(
+            'The first is a legal hold. Once a dispute is live or reasonably anticipated, routine disposal of anything touching it has to stop, even where the retention period has expired. Destroying relevant material after a claim is foreseeable is a materially worse problem than having kept it, and the fact that a scheduled process did it automatically is not much of an answer. Make sure whoever runs the disposal cycle can suspend it, and that someone is responsible for telling them to.',
+            'Le premier est la suspension pour litige. Dès qu’un différend est en cours ou raisonnablement prévisible, l’élimination courante de tout élément s’y rapportant doit cesser, même si la période de conservation est expirée. Détruire du matériel pertinent alors qu’une réclamation est prévisible constitue un problème nettement plus grave que de l’avoir conservé, et le fait qu’un processus planifié l’ait fait automatiquement n’est guère une réponse. Assurez-vous que la personne qui exécute le cycle d’élimination puisse le suspendre, et que quelqu’un ait la responsabilité de le lui demander.',
+          ),
+          p(
+            "The second is an employee's right to access their own information, which exists in some form under the privacy regime that applies to you. Requests tend to arrive at the least convenient moment, often alongside a dispute, and the response is easier when records are organized by person and category than when they are scattered across mailboxes and shared drives. Structuring the file well is what makes both obligations manageable at once.",
+            'Le second est le droit de l’employé d’accéder à ses propres renseignements, qui existe sous une forme ou une autre dans le régime de protection de la vie privée qui vous est applicable. Les demandes arrivent souvent au moment le moins commode, fréquemment en parallèle d’un litige, et la réponse est plus simple lorsque les dossiers sont organisés par personne et par catégorie que lorsqu’ils sont éparpillés dans des boîtes de courriel et des lecteurs partagés. C’est la bonne structuration du dossier qui rend les deux obligations gérables en même temps.',
+          ),
+        ],
+      },
+      {
+        heading: bi(
+          'Records held in systems you do not own',
+          'Des dossiers hébergés dans des systèmes qui ne vous appartiennent pas',
+        ),
+        blocks: [
+          p(
+            'Most employment records now live in software — payroll platforms, applicant tracking systems, shared drives, messaging tools. That does not move the obligation anywhere. The employer remains accountable for information it collects about its employees regardless of which vendor stores it, and a retention schedule that only governs the filing cabinet governs almost nothing.',
+            'La plupart des dossiers d’emploi résident aujourd’hui dans des logiciels — plateformes de paie, systèmes de suivi des candidatures, lecteurs partagés, outils de messagerie. Cela ne déplace l’obligation nulle part. L’employeur demeure responsable des renseignements qu’il recueille sur ses employés, quel que soit le fournisseur qui les stocke, et un calendrier de conservation qui ne régit que le classeur ne régit à peu près rien.',
+          ),
+          li(
+            'Know where each category of record actually lives, including copies that accumulate in mailboxes and chat history.',
+            'Sachez où réside réellement chaque catégorie de dossier, y compris les copies qui s’accumulent dans les boîtes de courriel et les historiques de clavardage.',
+          ),
+          li(
+            'Check what your agreement with each vendor says about retention, deletion, and what happens to the data if the relationship ends.',
+            'Vérifiez ce que votre entente avec chaque fournisseur prévoit quant à la conservation, à la suppression et au sort des données si la relation prend fin.',
+          ),
+          li(
+            'Confirm whether the applicable privacy regime constrains where information may be stored or processed, and whether you have to disclose that to employees.',
+            'Confirmez si le régime de protection de la vie privée applicable encadre l’endroit où les renseignements peuvent être conservés ou traités, et si vous devez en informer les employés.',
+          ),
+          li(
+            'Review access permissions on the same cycle as the retention schedule — access granted for a project and never revoked is the most common quiet exposure.',
+            'Révisez les autorisations d’accès selon le même cycle que le calendrier de conservation — un accès accordé pour un projet et jamais révoqué est l’exposition discrète la plus courante.',
+          ),
+          li(
+            "Make sure departing managers' files and notes are captured, rather than leaving the only record of a performance history in an individual's personal storage.",
+            'Assurez-vous que les fichiers et notes des gestionnaires qui partent sont récupérés, plutôt que de laisser l’unique trace d’un historique de rendement dans l’espace personnel d’une personne.',
+          ),
+        ],
+      },
+      {
         blocks: [
           p(
             'Write down a retention schedule that reflects both obligations, apply it consistently, and suspend deletion for anything touched by a live or reasonably anticipated dispute. Dutiva keeps generated documents and their history in one place; the retention decisions themselves stay yours.',
@@ -358,7 +668,8 @@ export const BLOG_ARTICLES: readonly Article[] = [
     frSlug: 'conges-proteges',
     collection: 'blog',
     topic: bi('Leaves', 'Congés'),
-    readingMinutes: 5,
+    readingMinutes: 4,
+    updated: '2026-08-01',
     title: bi(
       'Job-protected leaves across Canadian jurisdictions',
       'Congés protégés dans les compétences canadiennes',
@@ -451,6 +762,75 @@ export const BLOG_ARTICLES: readonly Article[] = [
         ],
       },
       {
+        heading: bi(
+          'Covering the work without eroding the job',
+          'Assurer le travail sans éroder le poste',
+        ),
+        blocks: [
+          p(
+            "The operational problem is real: work has to continue while someone is away. The legal constraint is that the arrangements you make to cover it cannot quietly become permanent. Where a replacement is hired, engage them on terms that reflect the temporary nature of the assignment, and be explicit internally that the absent employee's position continues to exist.",
+            'Le problème opérationnel est réel : le travail doit se poursuivre pendant l’absence d’une personne. La contrainte juridique est que les arrangements pris pour l’assurer ne peuvent devenir discrètement permanents. Lorsqu’un remplaçant est embauché, engagez-le à des conditions qui reflètent le caractère temporaire de l’affectation, et soyez explicite à l’interne sur le fait que le poste de l’employé absent continue d’exister.',
+          ),
+          p(
+            'Where duties are redistributed to the existing team instead, keep a note of what moved and on what understanding. Responsibilities absorbed informally over a long absence have a way of never coming back, and the returning employee who finds their scope diminished has the makings of a claim that nobody intended to create.',
+            'Lorsque les tâches sont plutôt redistribuées à l’équipe en place, notez ce qui a été déplacé et sur quelle base. Les responsabilités absorbées de façon informelle au cours d’une longue absence ont tendance à ne jamais revenir, et l’employé qui constate à son retour que son champ d’action est réduit détient les éléments d’une réclamation que personne n’a voulu créer.',
+          ),
+          p(
+            'Restructuring during a leave is not prohibited, but it carries a heavy evidentiary burden. If a genuine business reorganization would have affected the position regardless of the absence, document that reasoning at the time the decision is made rather than assembling it afterwards.',
+            'Une restructuration pendant un congé n’est pas interdite, mais elle comporte un lourd fardeau de preuve. Si une réorganisation d’affaires véritable aurait touché le poste indépendamment de l’absence, consignez ce raisonnement au moment de la décision plutôt que de le reconstituer par la suite.',
+          ),
+        ],
+      },
+      {
+        heading: bi('Mistakes that recur', 'Des erreurs qui reviennent'),
+        blocks: [
+          li(
+            'Requiring a diagnosis where the statute permits only confirmation of the need for leave.',
+            'Exiger un diagnostic là où la loi ne permet que la confirmation du besoin de congé.',
+          ),
+          li(
+            'Suspending benefit coverage automatically at the start of an unpaid leave without checking whether continuation is required.',
+            'Suspendre automatiquement la couverture des avantages sociaux au début d’un congé non payé sans vérifier si le maintien est obligatoire.',
+          ),
+          li(
+            'Counting a protected absence against an attendance-management program as though it were ordinary absenteeism.',
+            'Comptabiliser une absence protégée dans un programme de gestion de l’assiduité comme s’il s’agissait d’absentéisme ordinaire.',
+          ),
+          li(
+            "Applying one province's entitlement to an employee governed by another's, or by the federal regime.",
+            'Appliquer le droit d’une province à un employé régi par celui d’une autre, ou par le régime fédéral.',
+          ),
+          li(
+            'Treating a leave request as a performance signal, or letting it influence a review written during the absence.',
+            'Traiter une demande de congé comme un signal de rendement, ou la laisser influencer une évaluation rédigée pendant l’absence.',
+          ),
+          li(
+            'Losing track of the return date, so the employee comes back to no plan, no access, and no assigned work.',
+            'Perdre de vue la date de retour, de sorte que l’employé revient sans plan, sans accès et sans travail assigné.',
+          ),
+        ],
+      },
+      {
+        heading: bi(
+          'Documenting a leave from request to return',
+          'Documenter un congé, de la demande au retour',
+        ),
+        blocks: [
+          p(
+            'Leaves generate disputes long after they end, usually about what was agreed and when. The record that resolves them is built while the leave is running, and it is inexpensive to keep if someone owns it.',
+            'Les congés engendrent des litiges bien après leur fin, généralement sur ce qui a été convenu et à quel moment. Le dossier qui les règle se constitue pendant le congé, et il coûte peu à tenir lorsque quelqu’un en est responsable.',
+          ),
+          p(
+            'Record the request as it was made, including the date and the basis given, and confirm back in writing what leave is being taken, what documentation was requested, what happens to benefits and any top-up, and the expected return date. That single confirmation resolves most of what is later argued about, and it protects the employee as much as the employer.',
+            'Consignez la demande telle qu’elle a été formulée, avec la date et le fondement invoqué, et confirmez par écrit quel congé est pris, quels documents ont été demandés, ce qu’il advient des avantages sociaux et de tout complément, ainsi que la date de retour prévue. Cette seule confirmation règle l’essentiel de ce qui sera plus tard contesté, et elle protège l’employé autant que l’employeur.',
+          ),
+          p(
+            'Keep contact during the absence proportionate and purposeful. Operational updates and confirmation of return logistics are appropriate; pressure to return, requests for work, or repeated enquiries about progress are not, and they read badly afterwards. Diarize the return date, plan for it before it arrives, and confirm the arrangements in writing before the employee walks back in.',
+            'Gardez un contact proportionné et utile pendant l’absence. Les mises à jour opérationnelles et la confirmation de la logistique du retour sont appropriées; les pressions pour revenir, les demandes de travail ou les questions répétées sur l’évolution de la situation ne le sont pas, et se lisent mal par la suite. Inscrivez la date de retour à l’agenda, préparez-la avant qu’elle n’arrive, et confirmez les modalités par écrit avant que l’employé ne revienne.',
+          ),
+        ],
+      },
+      {
         blocks: [
           p(
             'Because leave entitlements change often and vary by jurisdiction, verify the current rules for the specific leave and jurisdiction in front of you rather than relying on internal precedent. This article is orientation, not entitlement advice.',
@@ -465,7 +845,8 @@ export const BLOG_ARTICLES: readonly Article[] = [
     frSlug: 'prevention-du-harcelement',
     collection: 'blog',
     topic: bi('Workplace safety', 'Sécurité au travail'),
-    readingMinutes: 6,
+    readingMinutes: 4,
+    updated: '2026-08-01',
     title: bi(
       'Workplace harassment and violence prevention obligations',
       'Obligations de prévention du harcèlement et de la violence au travail',
@@ -530,6 +911,84 @@ export const BLOG_ARTICLES: readonly Article[] = [
           p(
             'Keep investigation material confidential and limited to those who need it, while recognizing that participants are generally entitled to know enough about the outcome as it affects them. Reprisal against someone who reports or participates is separately prohibited, and post-complaint changes to schedules, duties, or reporting lines will be read in that light — so document the independent business reason before making one, or wait.',
             'Gardez le matériel d’enquête confidentiel et limité aux personnes qui en ont besoin, tout en reconnaissant que les participants ont généralement le droit d’en savoir assez sur l’issue dans la mesure où elle les touche. Les représailles contre une personne qui signale ou participe sont interdites séparément, et les changements d’horaire, de tâches ou de lien hiérarchique survenant après une plainte seront interprétés sous cet angle — documentez donc le motif d’affaires indépendant avant d’en faire un, ou attendez.',
+          ),
+        ],
+      },
+      {
+        heading: bi(
+          'Running an investigation that stands up',
+          'Mener une enquête qui tient la route',
+        ),
+        blocks: [
+          p(
+            'Most of what makes an investigation defensible is decided in its first stage, before any evidence is weighed. Settle the scope — what specific allegations are being examined — and put it in writing, because an investigation that drifts into unrelated territory becomes difficult to defend for everyone involved.',
+            'L’essentiel de ce qui rend une enquête défendable se décide à sa première étape, avant toute appréciation de la preuve. Arrêtez la portée — quelles allégations précises sont examinées — et consignez-la, car une enquête qui dérive vers des sujets sans lien devient difficile à défendre pour toutes les personnes concernées.',
+          ),
+          li(
+            'Choose an investigator with no stake in the outcome and no reporting relationship to either party, and consider an external investigator where seniority or complexity makes internal neutrality doubtful.',
+            'Choisissez un enquêteur sans intérêt dans l’issue et sans lien hiérarchique avec l’une ou l’autre partie, et envisagez un enquêteur externe lorsque l’ancienneté ou la complexité rend la neutralité interne douteuse.',
+          ),
+          li(
+            'Tell the respondent what is alleged in enough detail to answer it, and give them a genuine opportunity to respond.',
+            'Informez la personne mise en cause de ce qui est allégué avec assez de détails pour y répondre, et donnez-lui une véritable occasion de le faire.',
+          ),
+          li(
+            'Interview the people identified by both parties, not only those the complainant named.',
+            'Interrogez les personnes désignées par les deux parties, et non seulement celles nommées par la personne plaignante.',
+          ),
+          li(
+            'Take contemporaneous notes and keep the evidence you relied on, rather than only the conclusion you reached.',
+            'Prenez des notes au fur et à mesure et conservez la preuve sur laquelle vous vous êtes appuyé, et non seulement la conclusion retenue.',
+          ),
+          li(
+            'Apply a balance-of-probabilities standard and state findings as findings, without editorializing about either party.',
+            'Appliquez la norme de la prépondérance des probabilités et énoncez les conclusions comme telles, sans commentaire éditorial sur l’une ou l’autre partie.',
+          ),
+          li(
+            'Consider interim measures while the process runs — separation of duties or schedules — chosen so they do not penalize the complainant.',
+            'Envisagez des mesures provisoires pendant le processus — séparation des tâches ou des horaires — choisies de manière à ne pas pénaliser la personne plaignante.',
+          ),
+        ],
+      },
+      {
+        heading: bi('After the findings', 'Après les conclusions'),
+        blocks: [
+          p(
+            'An investigation that concludes and then produces nothing is a familiar failure. Where conduct is substantiated, the response has to be proportionate and actually implemented, and where it is not substantiated, that outcome still needs to be communicated and the working relationship still needs attention. Both parties are generally entitled to know the outcome as it affects them, even where the full report is not shared.',
+            'Une enquête qui se conclut sans rien produire est un échec bien connu. Lorsque la conduite est établie, la réponse doit être proportionnée et réellement mise en œuvre; lorsqu’elle ne l’est pas, cette issue doit tout de même être communiquée et la relation de travail requiert quand même de l’attention. Les deux parties ont généralement le droit de connaître l’issue dans la mesure où elle les touche, même si le rapport complet n’est pas communiqué.',
+          ),
+          p(
+            'Close the loop on the systemic side as well. If the process surfaced a gap — a reporting route nobody knew about, a manager who did not escalate, a risk the assessment missed — record it and fix it. Prevention obligations are continuing rather than one-time, and a pattern of complaints handled individually without any change to the conditions that produced them is itself a finding waiting to be made.',
+            'Bouclez également la boucle sur le plan systémique. Si le processus a révélé une lacune — une voie de signalement que personne ne connaissait, un gestionnaire qui n’a pas fait remonter l’information, un risque que l’évaluation a manqué — consignez-la et corrigez-la. Les obligations de prévention sont continues plutôt que ponctuelles, et une succession de plaintes traitées individuellement sans aucun changement aux conditions qui les ont engendrées constitue en soi une conclusion en attente d’être tirée.',
+          ),
+        ],
+      },
+      {
+        heading: bi('Who and what the obligations reach', 'Qui et quoi les obligations visent'),
+        blocks: [
+          p(
+            'Employers frequently scope these obligations too narrowly, applying them to direct employees during working hours at a company site. The frameworks generally reach further than that, and the gap is where incidents fall through.',
+            'Les employeurs délimitent fréquemment ces obligations de façon trop étroite, en les appliquant aux employés directs, pendant les heures de travail, sur un site de l’entreprise. Les cadres vont généralement plus loin, et c’est dans cet écart que les incidents passent entre les mailles.',
+          ),
+          li(
+            "Conduct by clients, customers, patients, contractors, and members of the public can engage the employer's prevention obligations toward its own workers.",
+            'La conduite de clients, de patients, de sous-traitants et de membres du public peut engager les obligations de prévention de l’employeur envers ses propres travailleurs.',
+          ),
+          li(
+            'Work-related conduct away from the workplace — travel, conferences, work social events — is commonly captured where there is a sufficient connection to the employment.',
+            'La conduite liée au travail à l’extérieur du lieu de travail — déplacements, congrès, activités sociales professionnelles — est couramment visée lorsqu’il existe un lien suffisant avec l’emploi.',
+          ),
+          li(
+            'Online conduct counts. Messaging platforms, email, and video calls are workplaces for this purpose, and remote arrangements do not narrow the obligation.',
+            'La conduite en ligne compte. Les plateformes de messagerie, le courriel et les appels vidéo sont des milieux de travail à cette fin, et le télétravail ne restreint pas l’obligation.',
+          ),
+          li(
+            'Domestic violence that follows an employee into the workplace triggers duties in several jurisdictions once the employer is aware of a risk.',
+            'La violence conjugale qui suit un employé jusqu’au travail déclenche des obligations dans plusieurs compétences dès que l’employeur a connaissance d’un risque.',
+          ),
+          p(
+            'Scope your risk assessment against how your people actually work rather than against an office floorplan, and make sure the reporting route is available to someone who is remote, on a client site, or working outside ordinary hours.',
+            'Délimitez votre évaluation des risques en fonction de la façon dont vos gens travaillent réellement plutôt qu’en fonction d’un plan de bureau, et assurez-vous que la voie de signalement est accessible à une personne en télétravail, chez un client ou en dehors des heures habituelles.',
           ),
         ],
       },
