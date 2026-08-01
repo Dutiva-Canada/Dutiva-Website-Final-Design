@@ -17,17 +17,15 @@ import type { Jurisdiction } from '@/features/app/documents/data/types'
  *
  *   - a **checklist** is a chain of `task` steps with one exit each;
  *   - a **decision tree** is `choice` steps whose options name the next step;
- *   - a **guided worksheet** mixes the two and ends at an `outcome`.
- *
- * What a flow deliberately is **not**: a scored assessment. The framework's
- * CSA Z1003-13 self-assessment needs weighted answers summed into a band, and
- * nothing here does arithmetic on answers. That is a real extension of this
- * model, not a use of it — see the framework doc before building it.
+ *   - a **guided worksheet** mixes the two and ends at an `outcome`;
+ *   - a **scored assessment** is `choice` steps whose options carry a `value`
+ *     and share a destination, ending at a `result` that bands the total.
  *
  * Flows produce a record, not a document. A completed run summarises the path
  * taken and hands off to the Document Studio template that makes it official
- * (`outcome.documents`). Keeping the two separate is deliberate: the flow is
- * how you decide, the template is what you send.
+ * (`outcome.documents`, or the band's on a scored run). Keeping the two
+ * separate is deliberate: the flow is how you decide, the template is what
+ * you send.
  */
 
 export type FlowStepId = string
@@ -158,11 +156,19 @@ export const isTerminal = (step: FlowStep): step is FlowOutcomeStep | FlowResult
   isOutcome(step) || isResult(step)
 
 /**
- * A rated question: every option carries a value. A step where only some do is
- * neither a rated question nor a clean branch, so it is not scored — and
- * `flowEngine.test.ts` rejects it rather than letting it half-count.
+ * A rated question: every option carries a value **and** they all lead to the
+ * same place. Both halves matter. A step where only some options are valued is
+ * neither a rated question nor a clean branch; a step whose valued options
+ * diverge is scoring and branching at once, which makes two runs' percentages
+ * incomparable because they were measured on different questions.
+ *
+ * Either shape returns false here rather than being half-counted, and
+ * `flowEngine.test.ts` rejects both outright so the authoring error surfaces
+ * as a failure instead of as a question that quietly stops scoring.
  */
-export const isScored = (step: FlowStep): step is FlowChoiceStep =>
-  step.kind === 'choice' &&
-  step.options.length > 0 &&
-  step.options.every((option) => option.value !== undefined)
+export const isScored = (step: FlowStep): step is FlowChoiceStep => {
+  if (step.kind !== 'choice' || step.options.length === 0) return false
+  if (!step.options.every((option) => option.value !== undefined)) return false
+  const [first, ...rest] = step.options
+  return rest.every((option) => option.to === first?.to)
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
 import { FlowRunner } from './FlowRunner'
@@ -166,6 +166,28 @@ describe('FlowRunner — a scored assessment', () => {
     expect(
       screen.getByRole('link', { name: /Harassment, discrimination & violence policy/ }),
     ).toHaveAttribute('href', '/app/documents/templates/T13')
+  })
+
+  it('orders the factor breakdown weakest first', () => {
+    renderCheck()
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    /* A mixed run: the first factor scores nothing, the rest score full. Both
+       other scenarios answer uniformly, so every factor ties and the sort is
+       invisible — this is the only test that would notice it being removed or
+       reversed, which is the point of having it. */
+    fireEvent.click(screen.getByRole('button', { name: /Not in place/ }))
+    for (let i = 0; i < 12; i += 1) {
+      fireEvent.click(screen.getByRole('button', { name: /In place and written down/ }))
+    }
+
+    const rows = within(screen.getByRole('list', { name: 'By factor' })).getAllByRole('listitem')
+    const labels = rows.map((row) => row.textContent ?? '')
+    expect(labels[0]).toContain('Psychological support')
+    expect(labels[0]).toContain('0%')
+    /* And everything after it scored higher. */
+    for (const label of labels.slice(1)) {
+      expect(label).toContain('100%')
+    }
   })
 
   it('says plainly that it is not an audit against the Standard', () => {

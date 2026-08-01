@@ -353,17 +353,30 @@ describe('scoring', () => {
     expect(advance(scored, run, 'hi')).toEqual(run)
   })
 
-  it('recognises a rated question and rejects a half-rated one', () => {
+  it('recognises a rated question and rejects the two shapes that are not one', () => {
     expect(isScored(stepById(scored, 'q1'))).toBe(true)
     expect(isScored(stepById(fixture, 'ask'))).toBe(false)
+
+    const base = stepById(scored, 'q1') as { options: { value?: number }[] }
     const half = {
-      ...(stepById(scored, 'q1') as { options: { value?: number }[] }),
+      ...base,
       options: [
-        { id: 'a', label: bi('A', 'A'), value: 1, to: null },
-        { id: 'b', label: bi('B', 'B'), to: null },
+        { id: 'a', label: bi('A', 'A'), value: 1, to: 'q2' },
+        { id: 'b', label: bi('B', 'B'), to: 'q2' },
       ],
     }
-    expect(isScored(half as never)).toBe(false)
+    expect(isScored(half as never), 'only some options valued').toBe(false)
+
+    /* Scoring and branching at once: the values are all there, but two runs
+       answering "the same" question would be measured on different ones. */
+    const branching = {
+      ...base,
+      options: [
+        { id: 'a', label: bi('A', 'A'), value: 1, to: 'q2' },
+        { id: 'b', label: bi('B', 'B'), value: 2, to: 'q3' },
+      ],
+    }
+    expect(isScored(branching as never), 'valued options that diverge').toBe(false)
   })
 })
 
@@ -413,9 +426,23 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
         step.points.forEach((p, i) => strings.push([`${step.id}.points[${i}]`, p]))
       }
       if (step.kind === 'choice') {
+        /* The factor heading is user-facing — it labels a row of the result
+           breakdown — so it belongs in the same net as the rest. */
+        if (step.domain) strings.push([`${step.id}.domain`, step.domain])
         for (const option of step.options) {
           strings.push([`${step.id}.${option.id}`, option.label])
           if (option.detail) strings.push([`${step.id}.${option.id}.detail`, option.detail])
+        }
+      }
+      if (isResult(step)) {
+        /* A band is what a scored run actually reads at the end — the step's
+           own body is the preamble. An untranslated band would ship English
+           to the French reader at the one moment the flow says something. */
+        for (const band of step.bands) {
+          strings.push(
+            [`${step.id}/${band.id}.title`, band.title],
+            [`${step.id}/${band.id}.body`, band.body],
+          )
         }
       }
     }
@@ -444,6 +471,19 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
           ).toBeGreaterThan(0)
         }
       }
+    }
+  })
+
+  it('sends every option of a rated question to the same place', () => {
+    /* A question that scores *and* branches makes two runs' percentages
+       incomparable — they were measured on different questions. `isScored`
+       returns false for it, which would quietly stop it scoring, so the
+       authoring error is caught loudly here instead. */
+    for (const step of flow.steps) {
+      if (step.kind !== 'choice') continue
+      if (!step.options.every((o) => o.value !== undefined)) continue
+      const targets = new Set(step.options.map((o) => o.to))
+      expect(targets.size, `${step.id} scores and branches at once`).toBe(1)
     }
   })
 

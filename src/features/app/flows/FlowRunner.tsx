@@ -267,7 +267,7 @@ function ScoredResult({ flow, run }: { readonly flow: Flow; readonly run: FlowRu
             {x(M.flows_by_factor)}
           </div>
           <p className="mt-[4px] text-[12px] text-text-muted">{x(M.flows_by_factor_intro)}</p>
-          <ul className="mt-[10px] flex flex-col gap-[8px]">
+          <ul aria-label={x(M.flows_by_factor)} className="mt-[10px] flex flex-col gap-[8px]">
             {byDomain.map((entry) => {
               const pct = entry.max === 0 ? 0 : Math.round((entry.total / entry.max) * 100)
               return (
