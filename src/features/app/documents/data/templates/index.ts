@@ -40,6 +40,18 @@ import { tplT31 } from './t31-investigation-report'
 import { tplT32 } from './t32-layoff-notice'
 import { tplT33 } from './t33-leave-request-form'
 import { tplT34 } from './t34-sick-leave-policy'
+/* Ring 3, Internal Communications — the `communications` category. Unlike
+   everything above, these are addressed to people who are not their subject,
+   which is the distinction to keep when adding one. */
+import { tplT35 } from './t35-layoff-announcement-script'
+import { tplT36 } from './t36-restructuring-announcement'
+import { tplT37 } from './t37-restructuring-faq'
+import { tplT38 } from './t38-policy-introduction-memo'
+import { tplT39 } from './t39-policy-acknowledgement-form'
+import { tplT40 } from './t40-policy-update-notification'
+import { tplT41 } from './t41-investigation-notice'
+import { tplT42 } from './t42-departure-announcement'
+import { tplT43 } from './t43-incident-communication'
 import type { DocTemplate } from '../types'
 
 export const docTemplates: DocTemplate[] = [
@@ -73,6 +85,15 @@ export const docTemplates: DocTemplate[] = [
   tplT32,
   tplT33,
   tplT34,
+  tplT35,
+  tplT36,
+  tplT37,
+  tplT38,
+  tplT39,
+  tplT40,
+  tplT41,
+  tplT42,
+  tplT43,
 ]
 
 export const templateByTid = new Map(docTemplates.map((t) => [t.tid, t]))

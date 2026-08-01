@@ -32,8 +32,9 @@ previous rings more useful. They are not tiers of a price list, and no plan in
 
 ## What is built
 
-**Ring 1 — the document catalogue, 34 templates** (`catalogue.ts`, T01…T34),
-now covering every tool the April framework listed for it. Plus the Advisor,
+**Ring 1 — the document catalogue** (`catalogue.ts`), now covering every tool
+the April framework listed for it. The catalogue is 43 templates in total,
+T01…T43, nine of which are Ring 3. Plus the Advisor,
 the compliance register, cases, employees, policies and tasks. This is the
 product.
 
@@ -44,7 +45,11 @@ guide), four mental health tools (a flow and three reference guides), and the
 psychological safety self-check. Three tools of Pillar C remain, and they are
 the only Ring 2 work outstanding.
 
-**Rings 3 and 4 — nothing.**
+**Ring 3 — complete.** Nine templates (T35–T43) in the new Internal
+communications category: layoff and restructuring, policy rollout, crisis
+communications.
+
+**Ring 4 — nothing.**
 
 The `/app/communications`, `/app/compensation` and `/app/wellbeing` modules
 are **not** Rings 3, 4 and 2. They are prototype surfaces ported from the App
@@ -54,15 +59,22 @@ Nothing in them is a ring tool, none is wired to persistence, and describing
 them as shipped capability is the specific claim `CANONICAL_FACTS.md` §4
 forbids.
 
+**This gets more confusing now that Ring 3 exists, not less.** Ring 3 is the
+nine templates in Document Studio. `/app/communications` is still a ported
+prototype on fixtures and is still not it, and the fact that the names now
+match makes the claim easier to make by accident.
+
 ### Where the catalogue puts things
 
 Categories are ordered as the employment lifecycle, not by when they were
 added: hiring → changes → agreements → policies → discipline → accommodation
-→ termination. Two are authored in-repo. **Accommodation** holds Ring 2 Pillar
-B and the Ring 1 document it produces. **Employment changes** exists because
-the framework's Ring 1 has an "Employment Changes" group that had no home in
-the handoff's five categories — part of why its two documents were never
-built.
+→ termination, with **internal communications** last. Three are authored
+in-repo. **Accommodation** holds Ring 2 Pillar B and the Ring 1 document it
+produces. **Employment changes** exists because the framework's Ring 1 has an
+"Employment Changes" group that had no home in the handoff's five categories —
+part of why its two documents were never built. **Internal communications** is
+Ring 3, and it is last because it does not sit at a point in the lifecycle at
+all: it cuts across every one of them.
 
 ## Ring 2, Pillar B — Accommodation
 
@@ -71,7 +83,7 @@ It is also where Ring 1 had a hole: the framework listed an **Accommodation
 Response** among Ring 1's tools and called it the document this whole process
 produces, and it was not in the catalogue. It is now.
 
-**Pillar B is complete.** It is the only pillar of Rings 2–4 that is.
+**Pillar B is complete**, and it was the first pillar of Rings 2–4 to be.
 
 | Tool                            | Where                                   | State     |
 | ------------------------------- | --------------------------------------- | --------- |
@@ -299,14 +311,119 @@ Apply the same rule to Ring 4's pay-stub and RRSP/TFSA guides when they are
 written. A figure in a guide is a figure someone has to re-audit annually, and
 the year nobody does is the year it misleads.
 
-**Ring 3, Internal Communications — 9 tools.** Layoff & restructuring (3):
-announcement script, team restructuring announcement, employee FAQ. Policy
-rollout (3): introduction memo, acknowledgement form, update notification.
-Crisis communications (3): investigation notice, sudden departure
-announcement, incident communication.
-
 **Ring 4, Compensation & Financial Literacy — 4 tools.** Total compensation
-summary, salary review letter, pay stub guide, RRSP & TFSA guide.
+summary, salary review letter, pay stub guide, RRSP & TFSA guide. Ring 3 is
+complete, see below.
+
+## Ring 3 — Internal communications
+
+All nine built, as templates in a new `communications` category. The category
+sits last in the lifecycle order because it does not sit at a point in it:
+**every other category belongs to a moment in one person's employment, and
+these cut across all of them.** That is the distinction to hold when adding
+one.
+
+A first draft of this section claimed something sharper — that everything here
+is addressed to people who are not its subject — and review showed it false
+for two of the nine: T39 is addressed to the employee who signs it, and T41 to
+an individual participant. What is true of most of the set, and what drives the
+risk, is that these documents are read by an audience wider than the person
+they concern. The invariant to actually hold is the narrower one: **nothing
+here says anything about a person that its readers do not need.**
+
+| Group                  | Tool                            | tid |
+| ---------------------- | ------------------------------- | --- |
+| Layoff & restructuring | Layoff announcement script      | T35 |
+|                        | Team restructuring announcement | T36 |
+|                        | Employee FAQ                    | T37 |
+| Policy rollout         | Policy introduction memo        | T38 |
+|                        | Policy acknowledgement form     | T39 |
+|                        | Policy update notification      | T40 |
+| Crisis communications  | Investigation notice            | T41 |
+|                        | Departure announcement          | T42 |
+|                        | Incident communication          | T43 |
+
+**Four rules run through the set, and they are the reusable part.**
+
+_An announcement is never notice._ T35 and T36 both say so, and T35 refuses to
+start until the individual notices are in hand. An employer who treats a
+meeting as having discharged a statutory obligation has given no notice at
+all, and the group-termination thresholds add obligations to a ministry that
+an internal message cannot touch.
+
+_Say nothing about why anyone left._ T42 is three clauses long and most of it
+is restraint. A stated or implied reason is published to an audience with no
+need for it, by an employer who would have to prove it, about a person who is
+not present — and it is written so a resignation and a dismissal read
+identically, because an organisation that announces one warmly and the other
+tersely has published the difference without meaning to.
+
+_Telling staff is not reporting._ T43's risk note carries this: serious
+injuries, fatalities and privacy breaches have notification duties to
+regulators with their own deadlines and forms, and a carefully written
+all-staff message satisfies none of them. It is an easy mistake precisely
+because the internal message feels like the responsible thing to have done.
+
+_A confidentiality request has limits, and they get stated._ T41 asks
+participants not to discuss an active investigation among colleagues, and then
+says plainly that nothing in it prevents legal advice, a union representative,
+a regulator, a human rights complaint, or a doctor. A clause that reads as
+barring those is unenforceable and reads as an employer containing something.
+
+**T39 overlaps something already shipped, and the header says so.** Every
+policy template — T04, T10, T11, T12, T13, T28, T34 — already ends with its
+own `ack` block, so a policy generated here does not need the form and
+collecting both produces two records of the same thing with different dates.
+It is scoped to what those blocks cannot do: a set rolled out together on one
+signature, and policies distributed outside Document Studio.
+
+T38 and T40 are separate for a reason worth keeping: a new policy has to be
+explained, an update only has to be diffed, and an update notice that
+re-explains the whole policy buries the two lines the reader needed. T40 makes
+the author write the before as well as the after, which is deliberate
+friction — an employer who cannot state the old position in a sentence has not
+established what they are changing.
+
+**Risk is calibrated against the rest of the catalogue, not upward.** Only T41
+is `high`: it is the procedural-fairness document, and a notice too vague to
+respond to is what costs an employer the finding. The announcements are
+`medium` — they create no entitlement, and their risk lives in deviating from
+what they say rather than in the documents themselves.
+
+**A block can gate on an answer, and the standing disclaimer is one string.**
+Two more from review on #128, both wider than Ring 3. `ClauseGate` gained
+`answer` because T40 asks whether a fresh acknowledgement is required and had
+no way to honour a "no" — it shipped a signature page to people it had just
+told not to sign. And the disclaimer, which `CONVENTIONS.md` says never to
+retype, was retyped in all 31 templates: three different wordings had already
+drifted apart. It is `DOC_DISCLAIMER_NOTE` now, in a note of its own, with the
+template's own guidance in a separate note beside it. That covers the whole
+catalogue, including the ported T17–T20 — and T18, which turned out to ship no
+disclaimer at all.
+
+**The generator decision, taken rather than deferred.** T01–T16 carried a "do
+not hand-edit, regenerate with `scripts/generate-doclib.mjs`" header, and #127
+recorded that widening T13 was blocked on deciding what to do about it. It is
+decided here: `generate-doclib.mjs` says in its own header that it is a
+one-shot import and not runnable, its source JSON was never committed, and it
+fails at the first read. The instruction pointed at a process that does not
+exist, so those headers now say what is true — the files are hand-maintained
+like the rest of the catalogue. Nothing else about them changed in this PR
+beyond the disclaimer.
+
+That also unblocks Pillar C: widening T13 into the respectful workplace policy
+is now an authoring job rather than a decision.
+
+**A merged `select` renders its label, not its stored value.** Review on #128
+found that `mergeSegments` inserts an answer verbatim, so a select merged into
+a document rendered `option.value` — an internal key where the value was one
+(`no_plans`), and one language's prose everywhere else, which is how a French
+document came to say "2 weeks" while the option's own French label said
+"2 semaines". That was live in T01, T08, T10, T11, T16, T22 and T23 before
+Ring 3 existed, so it is fixed centrally in `engine.answerLabels` rather than
+worked around per template. Apply it wherever answers meet `mergeSegments`;
+`engine.test.ts` holds every merged select in the catalogue to resolving in
+both languages.
 
 ### The psychological safety self-check
 
@@ -335,18 +452,20 @@ the sake of a round number.
 
 ### Grouped by what they cost to build
 
-The ring split describes the product; this split describes the work. 16 tools
-remain — the same 16 as above, counted the other way: Ring 2's 3 + Ring 3's 9 +
-Ring 4's 4. **Change one of these tables and check the other still adds up.**
+The ring split describes the product; this split describes the work. 7 tools
+remain — the same 7 as above, counted the other way: Ring 2's 3 + Ring 4's 4.
+**Change one of these tables and check the other still adds up.**
 
 | Shape                             | Count | Where it goes                                                  |
 | --------------------------------- | ----- | -------------------------------------------------------------- |
-| Generated templates               | 13    | `data/templates/`, the shape T21–T34 established               |
+| Generated templates               | 4     | `data/templates/`, the shape T21–T43 established               |
 | Reference guides / guidance notes | 3     | `reference/data/`, the shape the limitations guide established |
 | Checklists and decision flows     | 0     | `flows/data/`, the shape the accommodation flow established    |
 
-Every remaining flow is built. What is left is 13 documents and 3 guides —
-Ring 3 is nine documents and nothing else, and Ring 4 is two of each.
+Every remaining flow is built. What is left is Ring 2's Pillar C (the
+respectful workplace policy, which means widening T13 — see above — plus the
+bystander intervention guide and the wellness action plan) and the whole of
+Ring 4 (two templates, two guides).
 
 **Every remaining tool now has a home and a worked example.** No machinery is
 outstanding: templates, reference guides, decision flows and scored
@@ -410,7 +529,7 @@ four places. Treat the Drive document as superseded on all four.
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | All 14 jurisdictions, every ring                | Three — ON, QC, FED                                                                                                                    |
 | $39/month flat                                  | Free · Starter $24 · Growth $49 · Pro $99, and paid plans are not sold during beta                                                     |
-| 47 tools at launch                              | 34 templates ship; the 47 counted a launch state that did not happen                                                                   |
+| 47 tools at launch                              | 43 templates ship; the 47 counted a launch state that did not happen                                                                   |
 | Month-numbered build schedule off a launch date | Both published launch dates have passed. Tie sequencing to product state, never a calendar date (`CANONICAL_FACTS.md` § Launch status) |
 
 Its Ring 1 inventory did not match what shipped either. Of the 18 tools it
@@ -448,7 +567,7 @@ Drive document undercounts the product, not the other way round.
 
 1. Check this file and `CANONICAL_FACTS.md` first.
 2. Pick the surface by shape, and follow the worked example already there:
-   - **a document** → `data/templates/`, following T21–T34. Numbering
+   - **a document** → `data/templates/`, following T21–T43. Numbering
      continues from the highest tid in `catalogue.ts` — **check both
      sources**, because `data/templates/` and `customTemplates.ts` share one
      tid space and doclib silently wins the lookup in `DocStudioProvider`.

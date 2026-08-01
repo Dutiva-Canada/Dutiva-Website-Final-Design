@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  answerLabels,
   applicability,
   can,
   computedTokens,
@@ -8,8 +9,10 @@ import {
   gatePasses,
   mergeSegments,
   resolveBlocks,
+  templateTokens,
 } from './engine'
 import { defaultOrgProfile, sampleDocuments, templateByTid } from './data'
+import { allTemplates } from './catalogue'
 import type { DocTemplate, GeneratedDoc, OrgProfile } from './data'
 
 const tpl = (tid: string): DocTemplate => {
@@ -62,6 +65,34 @@ describe('conditional clauses (template × jurisdiction × headcount × union)',
     expect(gatePasses({ min_headcount: 31 }, ctx)).toBe(false)
     expect(gatePasses({ union: false }, ctx)).toBe(false)
   })
+
+  it('gates a block on a wizard answer, and treats unanswered as undecided', () => {
+    const base = { jurisdiction: 'ON' as const, headcount: 30, unionized: false }
+    const gate = { answer: { id: 'reack', equals: ['yes'] } }
+    expect(gatePasses(gate, { ...base, answers: { reack: 'yes' } })).toBe(true)
+    expect(gatePasses(gate, { ...base, answers: { reack: 'no' } })).toBe(false)
+    /* Still being filled in — the clause stays visible rather than flickering
+       out of the live preview before the question has been reached. */
+    expect(gatePasses(gate, { ...base, answers: { reack: '' } })).toBe(true)
+    expect(gatePasses(gate, { ...base, answers: {} })).toBe(true)
+    /* No answers at all: the template detail preview, which is showing what
+       the template can produce rather than one filled-in document. */
+    expect(gatePasses(gate, base)).toBe(true)
+  })
+
+  it('T40 omits the signature page when no acknowledgement was asked for', () => {
+    /* The document has to honour the answer it collected: telling someone
+       they need not sign and then handing them a signature block is the
+       contradiction this gate exists for. */
+    const t = tpl('T40')
+    const ctx = { jurisdiction: 'ON' as const, headcount: 30, unionized: false }
+    const kinds = (reack: string) =>
+      resolveBlocks(t, { ...ctx, answers: { reack } }).map((b) => b.type)
+    expect(kinds('yes')).toContain('ack')
+    expect(kinds('yes')).toContain('sig')
+    expect(kinds('no')).not.toContain('ack')
+    expect(kinds('no')).not.toContain('sig')
+  })
 })
 
 describe('applicability engine', () => {
@@ -112,6 +143,54 @@ describe('merge fields', () => {
       'Loi sur les normes du travail (LNT)',
     )
     expect(computedTokens('ON', 'en', '2026-07-10').jurisdiction).toBe('Ontario')
+  })
+
+  it('merges a select as its label in the document language, not its stored value', () => {
+    /* A select stores `option.value` and mergeSegments inserts verbatim, so
+       without answerLabels a French document renders the English value — or,
+       where the value is a key, renders the key. Both shipped before this. */
+    const t41 = tpl('T41')
+    expect(answerLabels(t41, { role: 'respondent' }, 'en').role).toBe(
+      'The person the allegations are about',
+    )
+    expect(answerLabels(t41, { role: 'respondent' }, 'fr').role).toBe(
+      'La personne visée par les allégations',
+    )
+
+    /* The pre-existing case: a human-readable value that is still one
+       language's prose. */
+    expect(answerLabels(tpl('T11'), { vacation_base: '2 weeks' }, 'fr').vacation_base).toContain(
+      'semaines',
+    )
+  })
+
+  it('leaves free-text answers and unknown options alone', () => {
+    const t41 = tpl('T41')
+    expect(answerLabels(t41, { participant_name: 'Priya Raman' }, 'fr').participant_name).toBe(
+      'Priya Raman',
+    )
+    /* A stored value with no matching option — a stale draft after the options
+       changed — passes through rather than resolving to undefined. */
+    expect(answerLabels(t41, { role: 'gone' }, 'fr').role).toBe('gone')
+  })
+
+  it('every merged select resolves to a label, across the whole catalogue', () => {
+    /* The guard that makes this stay fixed: any template merging a select must
+       have that select resolvable, in both languages. */
+    for (const template of allTemplates) {
+      const merged = new Set(templateTokens(template))
+      for (const question of template.questions) {
+        if (!question.options || !merged.has(question.id)) continue
+        for (const option of question.options) {
+          for (const lang of ['en', 'fr'] as const) {
+            const resolved = answerLabels(template, { [question.id]: option.value }, lang)
+            expect(resolved[question.id], `${template.tid}.${question.id}=${option.value}`).toBe(
+              option.label[lang],
+            )
+          }
+        }
+      }
+    }
   })
 
   it('fillProgress counts answer-backed tokens only', () => {

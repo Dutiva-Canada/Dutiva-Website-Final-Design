@@ -56,7 +56,14 @@ export type DocCapability =
   | 'view_audit'
 
 export type TemplateCategoryId =
-  'hiring' | 'changes' | 'agreements' | 'policies' | 'discipline' | 'termination' | 'accommodation'
+  | 'hiring'
+  | 'changes'
+  | 'agreements'
+  | 'policies'
+  | 'discipline'
+  | 'termination'
+  | 'accommodation'
+  | 'communications'
 
 /** Who the document is about — drives the wizard's context step. */
 export type TemplateSubject = 'candidate' | 'employee' | 'org' | 'external'
@@ -95,6 +102,21 @@ export interface ClauseGate {
   juris?: Jurisdiction
   min_headcount?: number
   union?: boolean
+  /**
+   * Render only when the wizard answer `id` is one of `equals`.
+   *
+   * Added in review on #128 for the one thing the org-profile gates cannot
+   * express: a document that asks a question and then has to honour the
+   * answer. T40 asks whether a fresh acknowledgement is required and had no
+   * way to omit the signature block when it is not, so it shipped a signature
+   * page to people it had just told they did not need to sign.
+   *
+   * **Where no answers are supplied — the template detail preview — an
+   * answer-gated block renders.** That surface is showing what the template
+   * can produce rather than one filled-in document, and hiding conditional
+   * clauses there would understate it.
+   */
+  answer?: { id: string; equals: string[] }
 }
 
 export interface TemplateQuestionOption {

@@ -14,6 +14,7 @@
    whether you file electronically or on paper and on your pay-period
    schedule, and a wrong date here would be a compliance defect, not a typo.
    The employer computes it and records it. */
+import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
 export const tplT29: DocTemplate = {
@@ -314,11 +315,16 @@ export const tplT29: DocTemplate = {
     },
     {
       type: 'note',
-      text: {
-        en: 'Filing deadlines and reason codes are set by Service Canada and change from time to time. Confirm both against the current employer guide before you file. Dutiva provides compliance-oriented HR guidance, not legal advice.',
-        fr: 'Les délais de transmission et les codes de motif sont établis par Service Canada et changent à l’occasion. Validez les deux auprès du guide de l’employeur en vigueur avant de transmettre. Dutiva offre un accompagnement RH axé sur la conformité, non des conseils juridiques.',
-      },
       tone: 'info',
+      text: {
+        en: 'Filing deadlines and reason codes are set by Service Canada and change from time to time. Confirm both against the current employer guide before you file.',
+        fr: 'Les délais de transmission et les codes de motif sont établis par Service Canada et changent à l’occasion. Validez les deux auprès du guide de l’employeur en vigueur avant de transmettre.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',

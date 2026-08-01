@@ -9,6 +9,7 @@
    a capacity problem and triggers the duty to accommodate. A policy that
    treats every absence as the first kind is how employers discipline their
    way into a human rights complaint. */
+import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
 export const tplT28: DocTemplate = {
@@ -298,11 +299,16 @@ export const tplT28: DocTemplate = {
     },
     {
       type: 'note',
-      text: {
-        en: 'Generated from your answers as a starting point. Review before use — Dutiva provides compliance-oriented HR guidance, not legal advice.',
-        fr: 'Généré à partir de vos réponses comme point de départ. À réviser avant usage — Dutiva offre un accompagnement RH axé sur la conformité, non des conseils juridiques.',
-      },
       tone: 'info',
+      text: {
+        en: 'Generated from your answers as a starting point.',
+        fr: 'Généré à partir de vos réponses comme point de départ.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'org',

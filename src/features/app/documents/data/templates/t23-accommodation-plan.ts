@@ -5,6 +5,7 @@
    "documented agreement between employer and employee" — so it is written as
    a two-signature record of what each side committed to, not as a decision
    handed down. T22 is the decision; this is how it gets operated. */
+import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
 export const tplT23: DocTemplate = {
@@ -345,11 +346,16 @@ export const tplT23: DocTemplate = {
     },
     {
       type: 'note',
-      text: {
-        en: 'Generated from your answers as a starting point. Review before use — Dutiva provides compliance-oriented HR guidance, not legal advice.',
-        fr: 'Généré à partir de vos réponses comme point de départ. À réviser avant usage — Dutiva offre un accompagnement RH axé sur la conformité, non des conseils juridiques.',
-      },
       tone: 'info',
+      text: {
+        en: 'Generated from your answers as a starting point.',
+        fr: 'Généré à partir de vos réponses comme point de départ.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'info',
+      text: DOC_DISCLAIMER_NOTE,
     },
   ],
   subject: 'employee',
