@@ -37,9 +37,10 @@ now covering every tool the April framework listed for it. Plus the Advisor,
 the compliance register, cases, employees, policies and tasks. This is the
 product.
 
-**Ring 2 — Pillar B, complete.** Six accommodation tools: four Document
-Studio templates, one guided flow, one reference guide. Pillars A, C and D do
-not exist.
+**Ring 2 — Pillar B complete, plus one tool of Pillar C.** Six accommodation
+tools (four Document Studio templates, a guided flow, a reference guide) and
+the psychological safety self-check. Pillars A and D do not exist, and the
+rest of C does not either.
 
 **Rings 3 and 4 — nothing.**
 
@@ -135,10 +136,23 @@ differs, name the difference in the copy — as the accommodation flow's
 hardship caution does — and send the reader to the template that resolves it
 for their jurisdiction.
 
-**What this does not do: scoring.** The framework's CSA Z1003-13
-self-assessment needs weighted answers summed into a band, and nothing in the
-engine does arithmetic on answers. That is a real extension of the model, not
-a use of it.
+**Scoring.** A rated question is a `choice` step whose options all carry a
+`value` and lead to the same place — no separate step kind, because the only
+thing that differs is what the answer is for. `domain` names the factor it
+measures, and a `result` step ends the run by banding the total. `scoreRun`
+measures against what the answered questions offered rather than against every
+rated question in the flow: a run that branched past some would otherwise be
+scored out of points it could never have earned.
+
+`result` is its own terminal kind rather than an `outcome` with an optional
+`bands` field. The two are reached differently and read differently, and a
+single kind whose meaning flips on whether a field is set is the shape that
+gets misused later.
+
+One trap worth knowing, because it does not fail — it hangs. `longestPath`
+walks _distinct_ successors, not the raw edge list: four options leading to the
+same next step are one branch, and exploring them separately is 4^13 for a
+thirteen-question assessment. `flowEngine.test.ts` builds exactly that shape.
 
 ### Reference guides — `src/features/app/reference/`
 
@@ -162,11 +176,11 @@ text.
 
 Nothing below is built. Counts are the framework's own.
 
-**Ring 2, remaining pillars — 12 tools.** Pillar A, Mental Health & EAP
+**Ring 2, remaining pillars — 11 tools.** Pillar A, Mental Health & EAP
 readiness (4): support checklist, EAP referral guide, return-to-work after
 mental health leave, manager conversation guide. Pillar C, Psychological
-Safety (4): CSA Z1003-13 self-assessment, respectful workplace policy,
-bystander intervention guide, wellness action plan. Pillar D, Leave
+Safety (3 of 4): respectful workplace policy, bystander intervention guide,
+wellness action plan — the self-check is built, see below. Pillar D, Leave
 Management (4): leave of absence checklist, leave request form, parental leave
 guide, sick day policy.
 
@@ -179,9 +193,34 @@ announcement, incident communication.
 **Ring 4, Compensation & Financial Literacy — 4 tools.** Total compensation
 summary, salary review letter, pay stub guide, RRSP & TFSA guide.
 
+### The psychological safety self-check
+
+Pillar C's scored assessment, at `/app/workflows/psychological-safety-check` —
+thirteen rated questions banded into a result with a per-factor breakdown.
+Building it is what added scoring to the flow engine, so the last piece of
+machinery Rings 2–4 needed now exists.
+
+**Read this before touching its content.** CSA Z1003-13 is a copyrighted
+standard published by the CSA Group, and none of its assessment instrument is
+reproduced — not in whole, not in paraphrase. What is used is the set of
+thirteen psychosocial factors it identifies, which are named and described in
+freely published material about it; every question is written from scratch.
+The copy never describes a run as an audit against the Standard, a measure of
+conformance, or any kind of certification, and a test asserts the disclaimer is
+on the page. Keep both of those true.
+
+It also asks the employer what they have put in place — not how their staff
+feel. An anonymous employee survey is a different instrument with different
+ethics (consent, anonymity, a duty to act on what it surfaces), and shipping
+one under this label would be the wrong tool wearing the right name.
+
+The framework asks for fifteen questions; there are thirteen, one per factor.
+Padding two factors into four questions would have weighted them double for
+the sake of a round number.
+
 ### Grouped by what they cost to build
 
-The ring split describes the product; this split describes the work. 25 tools
+The ring split describes the product; this split describes the work. 24 tools
 remain.
 
 | Shape                             | Count | Where it goes                                                  |
@@ -189,22 +228,19 @@ remain.
 | Generated templates               | 15    | `data/templates/`, the shape T21–T32 established               |
 | Reference guides / guidance notes | 7     | `reference/data/`, the shape the limitations guide established |
 | Checklists and decision flows     | 2     | `flows/data/`, the shape the accommodation flow established    |
-| Scored assessment                 | 1     | Nowhere yet — the flow engine does not score                   |
 
-**24 of the 25 now have a home.** That is the change: before the two surfaces
-existed, 12 of these were blocked on machinery that did not exist and the
-answer to "where would this go?" was nothing. Now the answer is a directory
-and a worked example for all but one.
+**Every remaining tool now has a home and a worked example.** No machinery is
+outstanding: templates, reference guides, decision flows and scored
+assessments each have a directory and something shipped to copy from. Before
+the surfaces existed, 12 of these were blocked on code that did not exist and
+the answer to "where would this go?" was nothing.
 
-The exception is Pillar C's CSA Z1003-13 self-assessment, which needs weighted
-answers summed into a band. Extending the flow model to score is the smaller
-job of the two that were outstanding, and it is the last piece of machinery
-Rings 2–4 need.
-
-What remains is therefore mostly authoring — and authoring is where the real
-constraint is. These are legal-adjacent documents in a compliance product, and
-the review on #122 found four wrong legal claims that no test could have
-caught. Budget for review, not just writing.
+So what remains is authoring — and authoring is where the real constraint is.
+These are legal-adjacent documents in a compliance product. Across four PRs,
+every legal error was caught by review and none by CI: the tests here check
+graph shape, merge fields, bilingual completeness and jurisdiction scoping,
+and none of them can tell you a statute is characterised correctly. Budget for
+review, not just writing.
 
 ## Standing constraints on any ring tool
 
@@ -304,9 +340,11 @@ Drive document undercounts the product, not the other way round.
      `flowEngine.test.ts` then holds it to the graph and bilingual rules.
    - **a reference guide** → `reference/data/`, following
      `functionalLimitations.ts`. Register it in `reference/data/index.ts`.
-   - **a scored assessment** → the engine does not score yet. Extend
-     `flowModel.ts` deliberately rather than faking it with a chain of
-     choices.
+   - **a scored assessment** → `flows/data/`, following
+     `psychologicalSafety.ts`. A rated question is a `choice` whose options
+     all carry a `value` and share a `to`; give it a `domain` so the result
+     can break down by factor, and end at a `result` step whose bands cover
+     down to 0.
 3. Update the template count row in `CANONICAL_FACTS.md` in the same PR; the
    test derives it from `catalogue.ts` and fails on drift.
 4. Update the state tables here.

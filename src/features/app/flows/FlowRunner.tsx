@@ -10,14 +10,16 @@ import { flowBySlug } from './data'
 import {
   advance,
   back,
+  bandFor,
   currentStep,
   flowRecord,
   isComplete,
   progress,
+  scoreRun,
   startRun,
 } from './flowEngine'
 import type { FlowRun } from './flowEngine'
-import { isOutcome } from './flowModel'
+import { isResult } from './flowModel'
 import type { Flow } from './flowModel'
 
 /**
@@ -180,6 +182,8 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
             </button>
           )}
 
+          {isResult(step) && <ScoredResult flow={flow} run={run} />}
+
           {done && <OutcomeActions flow={flow} run={run} />}
         </div>
 
@@ -212,12 +216,100 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
   )
 }
 
-/** The documents the outcome hands off to — what actually goes on the file. */
+const BAND_TONE: Record<'ok' | 'caution' | 'risk', string> = {
+  ok: 'border-ok-border bg-ok-bg text-ok-fg',
+  caution: 'border-gold-border bg-gold-bg text-gold-fg',
+  risk: 'border-risk-border bg-risk-bg text-risk-fg',
+}
+
+/**
+ * A scored ending: the band the total landed in, then the per-factor
+ * breakdown weakest-first.
+ *
+ * The breakdown is the point. A single percentage tells someone how they are
+ * doing and nothing about what to change, and an average high enough to feel
+ * reassuring can still hide the one factor people are actually living with —
+ * so the weakest factor is the first thing on the page after the verdict.
+ */
+function ScoredResult({ flow, run }: { readonly flow: Flow; readonly run: FlowRun }) {
+  const { x } = useI18n()
+  const step = currentStep(flow, run)
+  if (!isResult(step)) return null
+
+  const score = scoreRun(flow, run)
+  const band = bandFor(step, score.percent)
+  const byDomain = [...score.byDomain].sort((a, b) => a.total / a.max - b.total / b.max)
+
+  return (
+    <div className="mt-[18px]">
+      <div className="flex flex-wrap items-baseline gap-x-[10px] gap-y-[2px]">
+        <span className="text-[11.5px] font-bold tracking-[0.04em] text-text-muted uppercase">
+          {x(M.flows_score_label)}
+        </span>
+        <span className="font-display text-[26px] font-bold text-text">{score.percent}%</span>
+        <span className="text-[12.5px] text-text-muted">
+          {score.total} {x(M.flows_score_of)} {score.max}
+        </span>
+      </div>
+
+      {band && (
+        <div
+          className={`mt-[12px] rounded-[12px] border px-[16px] py-[13px] ${BAND_TONE[band.tone]}`}
+        >
+          <div className="text-[14px] font-bold">{x(band.title)}</div>
+          <div className="mt-[5px] text-[13px] leading-[1.6]">{x(band.body)}</div>
+        </div>
+      )}
+
+      {byDomain.length > 0 && (
+        <div className="mt-[18px]">
+          <div className="text-[11.5px] font-bold tracking-[0.04em] text-text-muted uppercase">
+            {x(M.flows_by_factor)}
+          </div>
+          <p className="mt-[4px] text-[12px] text-text-muted">{x(M.flows_by_factor_intro)}</p>
+          <ul aria-label={x(M.flows_by_factor)} className="mt-[10px] flex flex-col gap-[8px]">
+            {byDomain.map((entry) => {
+              const pct = entry.max === 0 ? 0 : Math.round((entry.total / entry.max) * 100)
+              return (
+                <li key={entry.domain.en} className="flex items-center gap-[10px]">
+                  <span className="min-w-0 flex-1 text-[12.5px] text-text-2">
+                    {x(entry.domain)}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="h-[6px] w-[90px] shrink-0 overflow-hidden rounded-full bg-inset"
+                  >
+                    <span
+                      className="block h-full rounded-full bg-navy"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </span>
+                  <span className="w-[38px] shrink-0 text-right text-[12px] font-semibold text-text-3">
+                    {pct}%
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * The documents a finished run hands off to — what actually goes on the file.
+ * Reads them off the outcome, or off the band a scored run landed in, since
+ * what to do next depends on the score rather than on reaching the end.
+ */
 function OutcomeActions({ flow, run }: { readonly flow: Flow; readonly run: FlowRun }) {
   const { x } = useI18n()
   const step = currentStep(flow, run)
-  if (!isOutcome(step)) return null
-  const tids = step.documents ?? []
+  const tids = isResult(step)
+    ? (bandFor(step, scoreRun(flow, run).percent)?.documents ?? [])
+    : step.kind === 'outcome'
+      ? (step.documents ?? [])
+      : []
   if (tids.length === 0) return null
 
   return (

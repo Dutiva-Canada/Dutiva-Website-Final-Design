@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
 import { FlowRunner } from './FlowRunner'
@@ -107,5 +107,94 @@ describe('FlowRunner', () => {
   it('tells the user when the slug is not a flow', () => {
     renderFlow('not-a-flow')
     expect(screen.getByText('That process does not exist.')).toBeVisible()
+  })
+})
+
+describe('FlowRunner — a scored assessment', () => {
+  const renderCheck = () =>
+    renderApp(<FlowRunner />, {
+      route: '/app/workflows/psychological-safety-check',
+      path: '/app/workflows/:slug',
+    })
+
+  /**
+   * Answer the intro and all thirteen rated questions with the same option.
+   *
+   * `fireEvent` rather than `userEvent`: this is fourteen clicks through the
+   * full provider tree per run, and userEvent's input simulation made the file
+   * take two minutes. Nothing here depends on realistic pointer events.
+   */
+  /** The headline score line, which the per-factor rows would otherwise
+      make ambiguous — they report percentages of their own. */
+  const scoreRow = () => screen.getByText('Your score').parentElement?.textContent ?? ''
+
+  const answerAll = (label: RegExp) => {
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    for (let i = 0; i < 13; i += 1) {
+      fireEvent.click(screen.getByRole('button', { name: label }))
+    }
+  }
+
+  it('scores a perfect run at 100% and lands the top band', () => {
+    renderCheck()
+    answerAll(/In place and written down/)
+
+    /* Scoped to the score row: every factor also reports a percentage, so a
+       bare getByText('100%') matches fourteen things. */
+    expect(scoreRow()).toContain('100%')
+    expect(scoreRow()).toContain('39')
+    expect(screen.getByText('Largely established')).toBeVisible()
+  })
+
+  it('scores the bottom of the scale as 0%, reports every factor, and hands off', () => {
+    renderCheck()
+    answerAll(/Not in place/)
+
+    /* Zero is a real score, not an absence of one. */
+    expect(scoreRow()).toContain('0%')
+    expect(scoreRow()).toContain('39')
+    /* The lowest scorer is the reader who most needs a result. */
+    expect(screen.getByText(/Early — start with the obligations/)).toBeVisible()
+
+    /* The breakdown is the actionable part — a single percentage says how you
+       did and nothing about what to change. */
+    expect(screen.getByText('By factor')).toBeVisible()
+    expect(screen.getByText('Psychological support')).toBeVisible()
+    expect(screen.getByText('Protection of physical safety')).toBeVisible()
+
+    /* And the weakest band points at the legally required pieces first. */
+    expect(
+      screen.getByRole('link', { name: /Harassment, discrimination & violence policy/ }),
+    ).toHaveAttribute('href', '/app/documents/templates/T13')
+  })
+
+  it('orders the factor breakdown weakest first', () => {
+    renderCheck()
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    /* A mixed run: the first factor scores nothing, the rest score full. Both
+       other scenarios answer uniformly, so every factor ties and the sort is
+       invisible — this is the only test that would notice it being removed or
+       reversed, which is the point of having it. */
+    fireEvent.click(screen.getByRole('button', { name: /Not in place/ }))
+    for (let i = 0; i < 12; i += 1) {
+      fireEvent.click(screen.getByRole('button', { name: /In place and written down/ }))
+    }
+
+    const rows = within(screen.getByRole('list', { name: 'By factor' })).getAllByRole('listitem')
+    const labels = rows.map((row) => row.textContent ?? '')
+    expect(labels[0]).toContain('Psychological support')
+    expect(labels[0]).toContain('0%')
+    /* And everything after it scored higher. */
+    for (const label of labels.slice(1)) {
+      expect(label).toContain('100%')
+    }
+  })
+
+  it('says plainly that it is not an audit against the Standard', () => {
+    renderCheck()
+    /* CSA Z1003-13 is copyrighted and this reproduces none of it. Claiming to
+       measure conformance would be the compliance defect, not the copyright
+       one, and both are avoided by saying what this is. */
+    expect(screen.getByText(/not an audit against CSA Z1003-13/)).toBeVisible()
   })
 })

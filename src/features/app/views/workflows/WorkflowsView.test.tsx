@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useLocation } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
+import { flows } from '@/features/app/flows/data'
 import { WorkflowsView } from './WorkflowsView'
 
 function LocationProbe() {
@@ -26,13 +27,16 @@ function renderWorkflows() {
 }
 
 describe('WorkflowsView', () => {
-  it('lists the guided flows and links each to its runner', () => {
+  it('lists every guided flow and links each to its runner', () => {
     renderWorkflows()
-    expect(screen.getByText('Guided processes · 1')).toBeInTheDocument()
-    /* The flow card, not the catalogue tile — the card carries the summary. */
-    expect(
-      screen.getByRole('link', { name: /Duty to accommodate.*documented arrangement/s }),
-    ).toHaveAttribute('href', '/app/workflows/duty-to-accommodate')
+    /* Derived, not hardcoded: adding a flow is not a reason to edit this. */
+    expect(screen.getByText(`Guided processes · ${flows.length}`)).toBeInTheDocument()
+    for (const flow of flows) {
+      expect(
+        screen.getByRole('link', { name: new RegExp(flow.summary.en.slice(0, 40), 's') }),
+        flow.slug,
+      ).toHaveAttribute('href', `/app/workflows/${flow.slug}`)
+    }
   })
 
   it('routes the accommodation catalogue tile to the flow, not the Advisor', async () => {
