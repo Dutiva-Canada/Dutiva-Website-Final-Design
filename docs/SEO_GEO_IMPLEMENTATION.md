@@ -149,8 +149,14 @@ placeholder values.
 ## Sitemap & llms.txt
 
 - `sitemap.xml`: every indexable URL (both locales) with reciprocal
-  `xhtml:link` alternates; `lastmod` **only** for policy documents (parsed
-  from their real displayed dates) — never the build date. Deterministic.
+  `xhtml:link` alternates; `lastmod` **only** where a real authored date
+  exists — policy documents (parsed from their displayed "Last updated"
+  dates) and editorial articles (the `updated` field on the article record).
+  Never the build date, and never on pages that carry no verified date: a
+  `lastmod` that moves on every build teaches crawlers to ignore it.
+  Both locales of an article share one date, because the article is authored
+  bilingually in a single record and an EN/FR split would be fictional.
+  Deterministic.
   Element order inside `<url>` is `loc` → `lastmod` → the `xhtml:link`
   alternates: the sitemaps.org 0.9 schema declares the sitemap-namespace
   children as an ordered sequence, so a `lastmod` trailing the extension
@@ -182,11 +188,16 @@ injected as meta tags by the prerender script — no tokens live in the repo.
 
 **Add a guide or blog article** — add an entry to `GUIDE_ARTICLES`
 (`src/features/marketing/articles/guideArticles.ts`) or `BLOG_ARTICLES`
-(`blogArticles.ts`) with a `slug`, a localized `frSlug`, and bilingual body
-blocks. The route, metadata, breadcrumb, sitemap entry, and index card are all
-derived — no other file needs editing. Keep the two collections disjoint in
-topic: a title appearing in both would mint duplicate competing pages, and
-`seo.test.ts` fails the build if they converge. Articles follow the editorial
+(`blogArticles.ts`) with a `slug`, a localized `frSlug`, an `updated` ISO date,
+and bilingual body blocks. The route, metadata, breadcrumb, sitemap entry
+(including `lastmod`, from `updated`), and index card are all derived — no
+other file needs editing. Bump `updated` only when the substance changes.
+Every article also renders a fixed call-to-action into `/templates` and
+`/pricing` (`ArticlePage.tsx`): article bodies are plain text by design, so
+that block is the only link out of the editorial corpus into the commercial
+pages, and removing it makes the corpus a dead end. Keep the two collections
+disjoint in topic: a title appearing in both would mint duplicate competing
+pages, and `seo.test.ts` fails the build if they converge. Articles follow the editorial
 rules in `articleModel.ts` — concepts and decision points, no published
 statutory figures, never legal advice.
 
@@ -228,3 +239,6 @@ change the default in `src/seo/site.ts`).
   pages and monitor Coverage/Pages reports.
 - Business-profile and third-party directory listings should use the exact
   positioning line in `src/seo/site.ts` (`ORG_DESCRIPTION`) for consistency.
+  The listing targets, ready-to-paste copy, and the outreach queue live in
+  [SEO_AUTHORITY_PLAYBOOK.md](./SEO_AUTHORITY_PLAYBOOK.md) — the off-site half
+  of this work, none of which the build can do.

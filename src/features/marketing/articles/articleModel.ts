@@ -49,6 +49,14 @@ export interface Article {
   topic: Bi
   /** Approximate reading time in minutes, shown on index cards. */
   readingMinutes: number
+  /**
+   * ISO date (YYYY-MM-DD) the article's substance last changed. Feeds
+   * `sitemap.xml` `lastmod` through the SEO registry, the same way policy
+   * documents feed theirs from their displayed dates. Bump it only when the
+   * content materially changes — a `lastmod` that moves on every build teaches
+   * crawlers to ignore it.
+   */
+  updated: string
   title: Bi
   /** One-line blurb for cards and the SEO meta description. */
   summary: Bi

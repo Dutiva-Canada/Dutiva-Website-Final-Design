@@ -62,6 +62,7 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | ------------------------------------------------------ | --------------------------------------------------------------------------------------- |
 | [SEO_GEO_IMPLEMENTATION.md](SEO_GEO_IMPLEMENTATION.md) | Search- and answer-engine visibility: prerendering, per-locale routes, structured data. |
 | [SEO_ROUTE_MATRIX.md](SEO_ROUTE_MATRIX.md)             | Every route, classified. Derived from the router.                                       |
+| [SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md) | The off-site half: listings, associations, citations, and what is deliberately barred.  |
 | [DEV_ANNOTATIONS.md](DEV_ANNOTATIONS.md)               | The in-app annotation overlay for AI-assisted editing. Dev and preview only.            |
 
 ## Support
