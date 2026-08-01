@@ -25,6 +25,7 @@ function gated(view: ReactNode) {
 /* prettier-ignore */ const HomeView = lazy(() => import('@/features/app/views/home/HomeView').then((m) => ({ default: m.HomeView })))
 /* prettier-ignore */ const AdvisorView = lazy(() => import('@/features/app/views/advisor/AdvisorView').then((m) => ({ default: m.AdvisorView })))
 /* prettier-ignore */ const WorkflowsView = lazy(() => import('@/features/app/views/workflows/WorkflowsView').then((m) => ({ default: m.WorkflowsView })))
+/* prettier-ignore */ const FlowRunner = lazy(() => import('@/features/app/flows/FlowRunner').then((m) => ({ default: m.FlowRunner })))
 /* prettier-ignore */ const CasesView = lazy(() => import('@/features/app/views/cases/CasesView').then((m) => ({ default: m.CasesView })))
 /* prettier-ignore */ const CaseDetailView = lazy(() => import('@/features/app/views/cases/CaseDetailView').then((m) => ({ default: m.CaseDetailView })))
 /* prettier-ignore */ const EmployeesView = lazy(() => import('@/features/app/views/employees/EmployeesView').then((m) => ({ default: m.EmployeesView })))
@@ -34,6 +35,7 @@ function gated(view: ReactNode) {
 /* prettier-ignore */ const TemplatesView = lazy(() => import('@/features/app/views/templates/TemplatesView').then((m) => ({ default: m.TemplatesView })))
 /* prettier-ignore */ const ReportsView = lazy(() => import('@/features/app/views/reports/ReportsView').then((m) => ({ default: m.ReportsView })))
 /* prettier-ignore */ const KnowledgeView = lazy(() => import('@/features/app/views/knowledge/KnowledgeView').then((m) => ({ default: m.KnowledgeView })))
+/* prettier-ignore */ const GuideView = lazy(() => import('@/features/app/reference/GuideView').then((m) => ({ default: m.GuideView })))
 /* prettier-ignore */ const CommunicationsView = lazy(() => import('@/features/app/views/communications/CommunicationsView').then((m) => ({ default: m.CommunicationsView })))
 /* prettier-ignore */ const CompensationView = lazy(() => import('@/features/app/views/compensation/CompensationView').then((m) => ({ default: m.CompensationView })))
 /* prettier-ignore */ const WellbeingView = lazy(() => import('@/features/app/views/wellbeing/WellbeingView').then((m) => ({ default: m.WellbeingView })))
@@ -66,7 +68,11 @@ function gated(view: ReactNode) {
 export const appViewRoutes: RouteObject[] = [
   { path: 'home', element: <HomeView /> },
   { path: 'advisor', element: <AdvisorView /> },
-  { path: 'workflows', element: gated(<WorkflowsView />) },
+  /* Workflows handles both modes itself: the guided-flow list is real
+     content and shows in production, while the prototype's in-flight rows,
+     termination map and Advisor catalogue are demo-only. */
+  { path: 'workflows', element: <WorkflowsView /> },
+  { path: 'workflows/:slug', element: <FlowRunner /> },
   /* Cases list + detail handle both modes themselves (real persistence
      in production, including the hr_case_notes thread on the detail). */
   { path: 'cases', element: <CasesView /> },
@@ -84,6 +90,8 @@ export const appViewRoutes: RouteObject[] = [
   /* Reports handles both modes itself (live aggregation in production). */
   { path: 'reports', element: <ReportsView /> },
   { path: 'knowledge', element: <KnowledgeView /> },
+  /* Reference guides are real content — ungated, like the Knowledge index. */
+  { path: 'knowledge/:slug', element: <GuideView /> },
   /* Support hub — real feature (request form → create-support-ticket), ungated. */
   { path: 'support', element: <SupportView /> },
   { path: 'support/requests', element: <SupportRequestsList /> },

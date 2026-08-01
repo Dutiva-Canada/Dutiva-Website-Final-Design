@@ -11,6 +11,7 @@ import { homeMessages } from './home'
 import { advisorViewMessages } from './advisorView'
 import { advisorWorkspaceMessages } from './advisorWorkspace'
 import { workflowsMessages } from './workflows'
+import { flowsMessages } from './flows'
 import { casesMessages } from './cases'
 import { employeesMessages } from './employees'
 import { complianceMessages } from './compliance'
@@ -20,6 +21,7 @@ import { calendarMessages } from './calendar'
 import { reportsMessages } from './reports'
 import { templatesMessages } from './templates'
 import { knowledgeMessages } from './knowledge'
+import { referenceMessages } from './reference'
 import { settingsMessages } from './settings'
 import { communicationsMessages } from './communications'
 import { compensationMessages } from './compensation'
@@ -59,6 +61,7 @@ export const messages = {
   ...advisorViewMessages,
   ...advisorWorkspaceMessages,
   ...workflowsMessages,
+  ...flowsMessages,
   ...casesMessages,
   ...employeesMessages,
   ...complianceMessages,
@@ -68,6 +71,7 @@ export const messages = {
   ...reportsMessages,
   ...templatesMessages,
   ...knowledgeMessages,
+  ...referenceMessages,
   ...settingsMessages,
   ...communicationsMessages,
   ...compensationMessages,

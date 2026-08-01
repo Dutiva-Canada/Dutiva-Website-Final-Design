@@ -110,11 +110,12 @@ roadmap.
 
 Ring 1 exists, and as of August 2026 covers every tool the April framework
 listed for it (T25–T32 closed the last eight gaps). Of Rings 2–4, the **only**
-shipped work is part of Ring 2's Pillar B: the accommodation documents
-(T21–T24, plus the ported T19/T20) in Document Studio's Accommodation
-category. Pillar B is not finished — the Duty to Accommodate workflow and the
-Functional Limitations guide are not built — and Pillars A, C and D do not
-exist at all.
+shipped work is Ring 2's **Pillar B, which is complete**: the accommodation
+documents (T21–T24, plus the ported T19/T20) in Document Studio's
+Accommodation category, the duty-to-accommodate flow at
+`/app/workflows/duty-to-accommodate`, and the functional limitations guide at
+`/app/knowledge/functional-limitations`. Pillars A, C and D do not exist at
+all.
 
 Rings 3 and 4 are roadmap. The Compensation, Communications and Wellbeing
 modules in the app are prototype surfaces on demo fixtures, gated off in a

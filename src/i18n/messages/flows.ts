@@ -1,0 +1,40 @@
+import { defineMessages } from '../core'
+
+/**
+ * Guided flows — the runner chrome. No prototype counterpart: this surface
+ * did not exist in the App v2 handoff (docs/FOUR_RING_FRAMEWORK.md), so every
+ * string here is authored, and all FR is [FR self-authored] Québec French.
+ *
+ * Flow *content* — steps, options, outcomes — lives with the flow in
+ * `src/features/app/flows/data/`, not here. Only the frame is shared.
+ */
+export const flowsMessages = defineMessages({
+  flows_section_label: { en: 'Guided processes', fr: 'Processus guidés' },
+  flows_section_intro: {
+    en: 'Step-by-step processes that end in a document, not just advice.',
+    fr: 'Des processus étape par étape qui aboutissent à un document, et non à de simples conseils.',
+  },
+  flows_minutes: { en: 'min', fr: 'min' },
+  flows_start: { en: 'Start', fr: 'Commencer' },
+  flows_continue: { en: 'Continue', fr: 'Continuer' },
+  flows_back: { en: 'Back', fr: 'Retour' },
+  flows_restart: { en: 'Start over', fr: 'Recommencer' },
+  flows_step_of: { en: 'Step', fr: 'Étape' },
+  flows_progress_aria: { en: 'Progress through this process', fr: 'Progression dans ce processus' },
+  flows_watch_for: { en: 'Watch for', fr: 'À surveiller' },
+  flows_your_path: { en: 'The path you took', fr: 'Le chemin parcouru' },
+  flows_next_documents: {
+    en: 'Document this in Document Studio',
+    fr: 'Documentez-le dans le Studio de documents',
+  },
+  flows_open_template: { en: 'Open', fr: 'Ouvrir' },
+  flows_not_found: {
+    en: 'That process does not exist.',
+    fr: 'Ce processus n’existe pas.',
+  },
+  flows_back_to_workflows: { en: 'Back to workflows', fr: 'Retour aux processus' },
+  flows_record_note: {
+    en: 'This is a record of how the decision was reached, not the decision itself. The documents below are what goes on the file.',
+    fr: 'Ceci consigne la façon dont la décision a été prise, non la décision elle-même. Les documents ci-dessous sont ce qui est versé au dossier.',
+  },
+})
