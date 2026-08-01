@@ -29,6 +29,15 @@ export const advisorCore = defineMessages({
     fr: 'Confirmez les détails de ce dossier avant de poursuivre.',
   },
   advisor_send: { en: 'Send', fr: 'Envoyer' }, // [FR self-authored]
+
+  /* ── Rich message formatting (ChatMarkdown / ChatChart) ─────────────────── */
+  // Accessible name for the horizontally scrollable frame a Markdown table
+  // sits in — screen-reader only. [FR self-authored]
+  advisor_md_table: { en: 'Table', fr: 'Tableau' },
+  advisor_chart_data: { en: 'Chart data', fr: 'Données du graphique' }, // [FR self-authored]
+  advisor_chart_show_data: { en: 'Show data', fr: 'Afficher les données' }, // [FR self-authored]
+  advisor_chart_hide_data: { en: 'Hide data', fr: 'Masquer les données' }, // [FR self-authored]
+
   advisor_retry: { en: 'Retry', fr: 'Réessayer' },
   advisor_retry_resolved: { en: 'Here’s that, resolved.', fr: 'Voici, c’est résolu.' }, // [FR self-authored]
   advisor_error_default: {

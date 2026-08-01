@@ -1,7 +1,7 @@
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
 import type { LText } from '@/i18n/core'
-import { renderMarkdown } from './markdown'
+import { ChatMarkdown } from '@/components/advisor/ChatMarkdown'
 import type { MessageStatus } from './types'
 
 /**
@@ -11,10 +11,15 @@ import type { MessageStatus } from './types'
  * text. Localization happens at render time, so a live language toggle
  * re-localizes mid-stream.
  *
- * The shown text is rendered as Markdown (`renderMarkdown`) so the backend's
- * `**bold**` / `*italic*` / `` `code` `` / links / headings become formatting
- * rather than literal markers. Partial delimiters mid-stream degrade to plain
- * text, so the reveal never swallows characters.
+ * The shown text is rendered as GitHub-flavored Markdown (`ChatMarkdown`), so
+ * the backend's tables, lists, headings, links and code become real elements
+ * rather than literal `| pipes |` and `**` markers. `streaming` suppresses a
+ * half-arrived table until its separator row lands, and drives the caret —
+ * `.cm-streaming` places it inline after the last block (chat-markdown.css)
+ * instead of on a line of its own.
+ *
+ * Only assistant text goes through here. User messages stay plain text, so
+ * nothing a user types is ever parsed as Markdown.
  */
 export interface StreamedTextProps {
   readonly text: LText
@@ -28,14 +33,8 @@ export function StreamedText({ text, status, streamedLen }: StreamedTextProps) {
   const streaming = status === 'streaming'
   const shown = streaming ? full.slice(0, streamedLen ?? 0) : full
   return (
-    <>
-      {renderMarkdown(shown)}
-      {streaming && (
-        <span
-          aria-hidden="true"
-          className="ml-[2px] inline-block h-[14px] w-[2px] animate-[blinkCursor_.9s_infinite] bg-ink align-middle"
-        />
-      )}
-    </>
+    <ChatMarkdown streaming={streaming} className={streaming ? 'cm-streaming' : undefined}>
+      {shown}
+    </ChatMarkdown>
   )
 }

@@ -119,8 +119,19 @@ export default defineConfig(({ command }) => {
                  prerendered marketing pages never download or preload it. A
                  dedicated `supabase` group would instead attract the shared
                  vite/preload-helper module and get pulled back into the eager
-                 entry graph. */
-              { name: 'vendor', test: /node_modules[\\/](?!@supabase[\\/])/ },
+                 entry graph.
+
+                 recharts and its d3 / redux tree are excluded for the same
+                 reason, and it matters more: ~430kB raw, serving exactly one
+                 thing — the ```chart block in an Advisor reply. ChatMarkdown
+                 imports ChatChart dynamically, so left ungrouped those modules
+                 form an on-demand chunk fetched the first time a reply
+                 actually contains a chart. Naming them as a group instead
+                 makes the chunk static, and AdvisorView links it eagerly. */
+              {
+                name: 'vendor',
+                test: /node_modules[\\/](?!@supabase[\\/])(?!(?:recharts|victory-vendor|d3-[a-z-]+|internmap|@reduxjs[\\/]toolkit|react-redux|reselect|immer|use-sync-external-store|es-toolkit|decimal\.js-light|eventemitter3)[\\/])/,
+              },
             ],
           },
         },
