@@ -16,7 +16,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "check:migrations": "node scripts/check-migrations.mjs",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations",
+    "check:facts": "node scripts/check-canonical-facts.mjs",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run check:facts",
     "db:snapshot": "supabase db dump -f supabase/schema.sql"
   },
   "dependencies": {
