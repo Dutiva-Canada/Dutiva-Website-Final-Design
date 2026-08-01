@@ -53,6 +53,16 @@ previously listed the same six titles, so giving each a URL under both
 prefixes would have shipped duplicate pages competing with one another in
 search. `src/seo/seo.test.ts` asserts the collections never converge again.
 
+They are also disjoint in **purpose**, which is what decides where a new
+article goes: `/guides` covers the documents and decisions an employer
+_produces_ (contracts, probation, accommodation, termination files), and
+`/blog` covers the regimes and obligations that _apply_ to them before
+anything is drafted (which jurisdiction governs, which policies are required,
+which records to keep). Neither is dated and neither is the "news" collection.
+The rule is stated in full in `src/features/marketing/articles/articleModel.ts`,
+and each index carries a `PageAside` pointing at the other so a reader who
+landed on the wrong one can cross over.
+
 ## Authentication — AUTHENTICATION_NOINDEX
 
 | Route          | Notes                                                                                                                             |

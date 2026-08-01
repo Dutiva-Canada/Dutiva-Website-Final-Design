@@ -4,7 +4,7 @@ import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { GUIDE_ARTICLES, articlePath } from '../articles'
-import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
+import { MarketingPageShell, PageAside, PageCta, PageHero, PageSection } from './MarketingPage'
 
 /**
  * /guides — index of the evergreen employment-law guides. Cards render from
@@ -12,6 +12,11 @@ import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingP
  * guide's own page, so this index and the landing teaser share one source.
  * `/guides/template-usage` is listed separately: it is a product how-to with
  * its own registry route rather than an article in the collection.
+ *
+ * The `PageAside` hands a reader who needs the other half of the split — which
+ * regime governs them, before any document exists — over to `/blog`, which is
+ * otherwise reachable only from the footer and one landing-page link. See the
+ * collection split in `articles/articleModel.ts`.
  */
 export function GuidesIndexPage() {
   const { t, x, lang } = useI18n()
@@ -70,6 +75,13 @@ export function GuidesIndexPage() {
           <ArrowRight size={15} aria-hidden="true" />
         </Link>
       </PageSection>
+
+      <PageAside
+        title={t('guidesIdx_toBlog_t')}
+        body={t('guidesIdx_toBlog_p')}
+        action={t('guidesIdx_toBlog_link')}
+        to={p('blog')}
+      />
 
       <PageCta
         title={t('guidesIdx_cta_t')}

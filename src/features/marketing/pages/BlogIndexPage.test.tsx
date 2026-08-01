@@ -9,7 +9,7 @@ describe('BlogIndexPage', () => {
   it('renders hero, a linked card per post, and CTA in English', () => {
     renderApp(<BlogIndexPage />, { route: '/blog', path: '/blog' })
     expect(
-      screen.getByRole('heading', { level: 1, name: 'HR compliance, in practice.' }),
+      screen.getByRole('heading', { level: 1, name: 'Know what applies to your workplace.' }),
     ).toBeInTheDocument()
     const main = within(screen.getByRole('main'))
     for (const post of BLOG_ARTICLES) {
@@ -34,6 +34,16 @@ describe('BlogIndexPage', () => {
     }
   })
 
+  it('points a reader who wants the document itself at /guides', () => {
+    /* The two collections split on purpose, not freshness (articleModel.ts):
+       /blog is the obligations that apply, /guides is the documents produced.
+       A reader who landed on the wrong one needs a way across — without this
+       link /blog is reachable from the footer but leads nowhere but itself. */
+    renderApp(<BlogIndexPage />, { route: '/blog', path: '/blog' })
+    const main = within(screen.getByRole('main'))
+    expect(main.getByRole('link', { name: /Browse the guides/ })).toHaveAttribute('href', '/guides')
+  })
+
   it('re-localizes to French via the header language toggle', async () => {
     const user = userEvent.setup()
     renderApp(<BlogIndexPage />, { route: '/blog', path: '/blog' })
@@ -41,7 +51,10 @@ describe('BlogIndexPage', () => {
     expect(langToggle).toBeDefined()
     await user.click(langToggle as HTMLElement)
     expect(
-      screen.getByRole('heading', { level: 1, name: 'La conformité RH, en pratique.' }),
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Sachez ce qui s’applique à votre entreprise.',
+      }),
     ).toBeInTheDocument()
     const [first] = BLOG_ARTICLES
     expect(first).toBeDefined()

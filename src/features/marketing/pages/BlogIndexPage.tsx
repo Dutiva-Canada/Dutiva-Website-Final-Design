@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { BLOG_ARTICLES, articlePath } from '../articles'
-import { MarketingPageShell, PageCta, PageHero } from './MarketingPage'
+import { MarketingPageShell, PageAside, PageCta, PageHero } from './MarketingPage'
 
 /**
  * /blog — article index. Cards render from the article registry
@@ -12,10 +13,14 @@ import { MarketingPageShell, PageCta, PageHero } from './MarketingPage'
  * The blog topics are deliberately disjoint from the /guides collection:
  * both indexes previously listed the same six topics, and giving each of
  * those a URL under both prefixes would have shipped duplicate pages
- * competing with one another in search.
+ * competing with one another in search. What each collection is *for* — the
+ * split this page's copy speaks to — is documented in
+ * `articles/articleModel.ts`; the `PageAside` sends a reader who wants the
+ * document rather than the obligation over to `/guides`.
  */
 export function BlogIndexPage() {
   const { t, x, lang } = useI18n()
+  const { p } = usePublicPath()
   return (
     <MarketingPageShell>
       <Seo route="blog" pageType="CollectionPage" />
@@ -53,6 +58,13 @@ export function BlogIndexPage() {
           ))}
         </div>
       </section>
+
+      <PageAside
+        title={t('blog_toGuides_t')}
+        body={t('blog_toGuides_p')}
+        action={t('blog_toGuides_link')}
+        to={p('guides')}
+      />
 
       <PageCta
         title={t('blog_cta_t')}

@@ -4,25 +4,45 @@ import { defineMessages } from '../core'
  * /guides — index of HR guides, linked from the landing page's Guides
  * section ("Browse all guides"). Card copy comes from the article registry
  * (`src/features/marketing/articles`), which the landing teaser and each
- * guide page also render; this module only carries the page hero and CTA
- * framing.
+ * guide page also render; this module only carries the page hero, the
+ * cross-link to `/blog`, and the CTA framing.
+ *
+ * Voice: the guides answer **"what do I write, and how"** for a document or
+ * decision already in front of the reader — contracts, probation,
+ * accommodation, termination. `/blog` answers the other half, "what applies to
+ * my workplace", for a reader who does not yet know which regime governs them.
+ * The split is documented in
+ * `features/marketing/articles/articleModel.ts`; keep this copy on its side of
+ * it, since both indexes once described themselves in the same words.
  */
 export const guidesIndexMessages = defineMessages({
   guidesIdx_eyebrow: {
-    en: 'Guides & Resources',
-    fr: 'Guides et ressources',
+    en: 'Guides',
+    fr: 'Guides',
   },
   guidesIdx_h1: {
-    en: 'Practical guidance for Canadian employers.',
-    fr: 'Des conseils pratiques pour les employeurs canadiens.',
+    en: 'Guidance for the documents you have to get right.',
+    fr: 'Des repères pour les documents que vous devez réussir.',
   },
   guidesIdx_intro: {
-    en: 'Plain-language explainers on the HR situations Canadian employers run into most — written to complement the AI Advisor and document templates, not replace legal counsel.',
-    fr: 'Des explications en langage clair sur les situations RH les plus courantes pour les employeurs canadiens — pensées pour compléter le Conseiller IA et les modèles de documents, sans remplacer un avocat.',
+    en: 'Plain-language explainers on the documents and decisions Canadian employers have to get right — contracts, probation, accommodation, termination — written to complement the AI Advisor and document templates, not replace legal counsel.',
+    fr: 'Des explications en langage clair sur les documents et les décisions que les employeurs canadiens doivent réussir — contrats, probation, accommodement, cessation d’emploi — pensées pour compléter le Conseiller IA et les modèles de documents, sans remplacer un avocat.',
   },
   guidesIdx_section_title: {
     en: 'All guides',
     fr: 'Tous les guides',
+  },
+  guidesIdx_toBlog_t: {
+    en: 'Not sure which rules apply to you?',
+    fr: 'Vous ne savez pas quelles règles s’appliquent?',
+  },
+  guidesIdx_toBlog_p: {
+    en: 'The blog covers the obligations behind these documents — which employment regime governs your workplace, which policies you are expected to maintain, and which records you have to keep.',
+    fr: 'Le blogue porte sur les obligations qui sous-tendent ces documents — quel régime d’emploi régit votre entreprise, quelles politiques vous devez tenir à jour et quels dossiers vous devez conserver.',
+  },
+  guidesIdx_toBlog_link: {
+    en: 'Read the blog',
+    fr: 'Lire le blogue',
   },
   guidesIdx_cta_t: {
     en: 'Have a question a guide doesn’t answer?',

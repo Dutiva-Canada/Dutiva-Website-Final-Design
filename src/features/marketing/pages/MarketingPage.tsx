@@ -104,6 +104,45 @@ export function PageSection({
   )
 }
 
+/**
+ * Low-emphasis pointer from one page to a sibling page that answers a
+ * different question — used by `/guides` and `/blog` to point at each other.
+ *
+ * Deliberately quieter than `PageCta`: it redirects a reader who landed on the
+ * wrong index, it does not try to convert them. Reuses the bordered-panel
+ * treatment of the "Put this into practice" block in `ArticlePage.tsx` so the
+ * editorial surfaces share one idiom for "there is more, over there".
+ */
+export function PageAside({
+  title,
+  body,
+  action,
+  to,
+}: {
+  readonly title: string
+  readonly body: string
+  readonly action: string
+  readonly to: string
+}) {
+  return (
+    <section className="mx-auto max-w-[1200px] px-6 pt-2">
+      <div className="rounded-xl border border-border bg-bg px-[18px] py-5">
+        <h2 className="font-display text-[1.0625rem] font-semibold tracking-[-0.01em] text-text">
+          {title}
+        </h2>
+        <p className="mt-2 max-w-[68ch] text-[0.9375rem] leading-[1.65] text-text-2">{body}</p>
+        <Link
+          to={to}
+          className="mt-3.5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+        >
+          {action}
+          <ArrowRight size={14} aria-hidden="true" />
+        </Link>
+      </div>
+    </section>
+  )
+}
+
 interface PageCtaProps {
   readonly title: string
   readonly body: string

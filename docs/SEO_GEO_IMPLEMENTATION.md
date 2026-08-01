@@ -195,7 +195,11 @@ other file needs editing. Bump `updated` only when the substance changes.
 Every article also renders a fixed call-to-action into `/templates` and
 `/pricing` (`ArticlePage.tsx`): article bodies are plain text by design, so
 that block is the only link out of the editorial corpus into the commercial
-pages, and removing it makes the corpus a dead end. Keep the two collections
+pages, and removing it makes the corpus a dead end. Which of the two files an
+article goes in is decided by purpose, not freshness — `guideArticles.ts` for
+the documents and decisions an employer produces, `blogArticles.ts` for the
+regimes and obligations that apply to them before anything is drafted; neither
+collection is dated. Keep the two collections
 disjoint in topic: a title appearing in both would mint duplicate competing
 pages, and `seo.test.ts` fails the build if they converge. Articles follow the editorial
 rules in `articleModel.ts` — concepts and decision points, no published

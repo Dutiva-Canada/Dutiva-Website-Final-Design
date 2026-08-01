@@ -13,7 +13,10 @@ describe('GuidesIndexPage', () => {
   it('renders the hero, a linked card per guide, and the CTA in English', () => {
     renderApp(<GuidesIndexPage />, { route: '/guides', path: '/guides' })
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Practical guidance for Canadian employers.' }),
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Guidance for the documents you have to get right.',
+      }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'All guides' })).toBeInTheDocument()
 
@@ -37,6 +40,15 @@ describe('GuidesIndexPage', () => {
     ).toHaveAttribute('href', '/guides/template-usage')
   })
 
+  it('points a reader who needs the underlying rules at /blog', () => {
+    /* The other half of the editorial split (articleModel.ts): /guides is the
+       document being written, /blog is which regime governs the writer. */
+    renderApp(<GuidesIndexPage />, { route: '/guides', path: '/guides' })
+    expect(
+      within(screen.getByRole('main')).getByRole('link', { name: /Read the blog/ }),
+    ).toHaveAttribute('href', '/blog')
+  })
+
   it('re-localizes to French via the header language toggle', async () => {
     const user = userEvent.setup()
     renderApp(<GuidesIndexPage />, { route: '/guides', path: '/guides' })
@@ -45,7 +57,7 @@ describe('GuidesIndexPage', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'Des conseils pratiques pour les employeurs canadiens.',
+        name: 'Des repères pour les documents que vous devez réussir.',
       }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Tous les guides' })).toBeInTheDocument()
