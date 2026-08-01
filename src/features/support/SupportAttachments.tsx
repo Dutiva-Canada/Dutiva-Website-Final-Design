@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
 import {
   ATTACHMENT_ALLOWED_MIME,
+  AttachmentBlockedError,
   formatBytes,
   getAttachmentDownloadUrl,
   listAttachments,
@@ -74,6 +75,12 @@ export function SupportAttachments({
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch (e) {
       console.error('support: attachment download failed', e)
+      if (e instanceof AttachmentBlockedError) {
+        setError(
+          x(e.reason === 'infected' ? M.support_attach_blocked : M.support_attach_scan_incomplete),
+        )
+        return
+      }
       setError(x(M.support_attach_download_error))
     }
   }
@@ -100,10 +107,17 @@ export function SupportAttachments({
                   {x(M.support_attach_scan_pending)}
                 </span>
               )}
+              {a.scanStatus === 'flagged' && (
+                <span className="flex-none rounded-full border border-risk-border bg-risk-bg px-[8px] py-[1px] text-[11px] font-semibold text-risk-fg">
+                  {x(M.support_attach_scan_flagged)}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => onDownload(a.id)}
-                className="flex flex-none cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[10px] py-[5px] text-[12.5px] font-semibold text-text-2 hover:text-text"
+                disabled={a.scanStatus === 'flagged'}
+                title={a.scanStatus === 'flagged' ? x(M.support_attach_blocked) : undefined}
+                className="flex flex-none cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[10px] py-[5px] text-[12.5px] font-semibold text-text-2 hover:text-text disabled:cursor-default disabled:opacity-50 disabled:hover:text-text-2"
               >
                 <Download size={13} aria-hidden="true" />
                 {x(M.support_attach_download)}

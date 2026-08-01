@@ -120,9 +120,10 @@ signed URL. Client:
 [`attachmentsApi.ts`](../src/features/support/attachmentsApi.ts) +
 [`SupportAttachments.tsx`](../src/features/support/SupportAttachments.tsx), on the
 customer thread (upload while open) and the admin view. `scan_status` starts
-`pending`; the malware-scan hook (`SUPPORT_ATTACHMENT_SCAN_URL`) that flips it is
-the documented next hardening. The **public** intake carries no attachments by
-design (unauthenticated users can't write to the bucket).
+`pending` and is flipped by the `support-attachment-scan` worker (see
+*Attachment malware scanning* below), which also gates the `sign` action. The
+**public** intake carries no attachments by design (unauthenticated users can't
+write to the bucket).
 
 **Rollback** is documented at the top of the migration file (drop tables in
 reverse dependency order, drop the helper functions/sequence, delete the bucket).
@@ -136,9 +137,15 @@ documented now in `.env.example`:
 - `SUPPORT_EMAIL_PROVIDER_API_KEY` — transactional email (no provider is wired
   yet; an abstraction is the Phase 2 integration point).
 - `SUPPORT_INBOUND_WEBHOOK_SECRET` — verifying inbound email→ticket webhooks.
-- `SUPPORT_ATTACHMENT_SCAN_URL` / `SUPPORT_ATTACHMENT_SCAN_KEY` — malware-scan
-  hook that flips `support_attachments.scan_status`.
 - `STATUS_PAGE_API_URL` — public status provider feed (branded route consumes it).
+
+These are **live** vars — set them and behaviour changes (see the runbook):
+
+- `SUPPORT_ATTACHMENT_SCAN_URL` / `SUPPORT_ATTACHMENT_SCAN_KEY` — the malware-scan
+  endpoint. Setting the URL arms both the worker and the download gate.
+- `CAPTCHA_SECRET_KEY` / `CAPTCHA_PROVIDER` — server-side CAPTCHA verification,
+  paired with the build-time `VITE_CAPTCHA_SITE_KEY` / `VITE_CAPTCHA_PROVIDER`.
+  Set the server and client halves together.
 
 ## Retention
 
@@ -256,8 +263,8 @@ anyone, alongside general product/sales questions.
   RLS), and enqueues the same acknowledgement + operator-alert notifications.
 - Anti-abuse: a honeypot; per-IP (3 / 15 min) and per-email (3 / 60 min) rate
   limits backed by `support_public_intake` (migration `0016`), which stores
-  **only salted hashes** (`PUBLIC_INTAKE_SALT`) — never the raw IP or email.
-  A third-party CAPTCHA (Turnstile/hCaptcha) is the documented next hardening.
+  **only salted hashes** (`PUBLIC_INTAKE_SALT`) — never the raw IP or email;
+  and a CAPTCHA once configured (see *Anti-abuse on the public intake* below).
 
 An anonymous requester can't sign in to read the ticket, so updates go by email;
 account/billing issues are steered to sign-in (those categories aren't public).
@@ -266,9 +273,14 @@ account/billing issues are steered to sign-in (those categories aren't public).
 
 Foundation (config, policy, data model + RLS), authenticated request flow +
 ticket loop, founder dashboard, email templates + outbox + send worker, Help
-Centre, public unauthenticated intake, and ticket attachments — all shipped.
-Four edge functions: `create-support-ticket`, `create-public-support-ticket`,
-`support-agent-action`, `support-notify`, plus `support-attachment-action`.
+Centre, public unauthenticated intake, ticket attachments, public-intake
+CAPTCHA, attachment malware scanning, and the entry-point sweep — all shipped.
+Six edge functions: `create-support-ticket`, `create-public-support-ticket`,
+`support-agent-action`, `support-notify`, `support-attachment-action`, and
+`support-attachment-scan`.
+
+Two of those ship **inert by design** and need operator configuration before
+they do anything — the CAPTCHA and the attachment scanner. See the runbook.
 
 ## First-line self-service (intake forms)
 
@@ -324,19 +336,113 @@ the source of truth, so the page is only as truthful as the operator keeps it.
 - Prerender shows the all-operational baseline; the live status is fetched on
   hydration. Footer entry point under Resources.
 
+## Anti-abuse on the public intake: CAPTCHA
+
+The honeypot and the per-IP/per-email rate limits are the cheap layers, and a
+script that rotates addresses and IPs walks through both. A CAPTCHA
+(Turnstile **or** hCaptcha — they share one siteverify request/response shape,
+so the provider is a config value) is the layer that costs an attacker
+something.
+
+- Verification: [`captcha.ts`](../src/features/support/captcha.ts) — pure,
+  injectable fetch, unit-tested, and **mirrored** in
+  `create-public-support-ticket` (the `svixSignature.ts` convention).
+- Widget: [`CaptchaField.tsx`](../src/features/support/CaptchaField.tsx) —
+  renders nothing and loads no third-party script unless
+  `VITE_CAPTCHA_SITE_KEY` is set, so prerender, tests and local dev are
+  untouched. Tokens are single-use, so a rejected submit resets the widget.
+- **Configured or absent, never half-on.** With no `CAPTCHA_SECRET_KEY` the
+  function skips verification entirely — that is how it ships (AGENTS.md's
+  two-halves rule), and the honeypot + rate limits still apply. Once the secret
+  IS set, a missing or bad token is a hard `403`: a configured CAPTCHA that
+  quietly passes traffic is worse than none, because the operator believes they
+  are protected.
+- **Unrecognised is never a pass.** A `success: false` with no known error code
+  still fails; a wrong secret is reported as `bad_secret` rather than blamed on
+  the caller's token, so the operator isn't sent hunting a bot that isn't there.
+- The check runs *after* the rate limit, so a flooder is turned away before we
+  pay the provider for them.
+
+Set `CAPTCHA_SECRET_KEY` and `VITE_CAPTCHA_SITE_KEY` **together** — the site key
+is compiled into the client, so a secret without a redeployed site key locks
+every real customer out of the form. See the runbook.
+
+## Attachment malware scanning
+
+`support_attachments.scan_status` existed from migration `0014` and read
+`pending` on every row ever inserted, because nothing flipped it. The column
+documented an intention, not a control: the MIME allowlist is the *declared*
+content type, which an attacker picks freely.
+
+- Worker: [`support-attachment-scan`](../supabase/functions/support-attachment-scan/index.ts)
+  — drains `pending` rows (25/run), hands each file to the operator's scanner as
+  a **5-minute signed URL** (never a bearer token, never ticket content), and
+  writes back `scan_status` + `scan_detail` + `scanned_at`. Scheduled every 10
+  minutes by migration `0038`, which also adds the bookkeeping columns and the
+  partial index the drain query needs.
+- Verdicts: [`attachmentScan.ts`](../src/features/support/attachmentScan.ts) —
+  pure, unit-tested, mirrored in the worker. The documented contract is
+  `{status: 'clean'|'infected'|'unsupported'}`; the common boolean shapes and a
+  bare `OK`/`FOUND` are accepted so an off-the-shelf ClamAV wrapper needs no
+  adapter.
+- **Unrecognised is never clean.** Every ambiguous answer maps to `unknown`,
+  which leaves the row `pending` for a later attempt and settles on `skipped`
+  after 5 tries. That asymmetry is the point: a false `flagged` costs a customer
+  one re-upload; a false `clean` puts malware behind a download button the
+  founder is about to click. `skipped` means "never established as safe" and is
+  **not** a synonym for `clean`.
+- **Downloads are gated by the verdict**, mirroring `canReleaseAttachment` in
+  `support-attachment-action`: `flagged` is refused unconditionally — for admins
+  too, and even after the scan URL is removed — while anything not yet `clean`
+  is refused only while a scanner is configured. With no scanner the download
+  path behaves exactly as it always has, so enabling scanning is the only thing
+  that changes behaviour.
+- **A flagged object is not deleted.** Downloads stop; the bytes stay so they can
+  go to an incident responder. Destroying the only copy of the evidence is not
+  the worker's call.
+
+Inert until `SUPPORT_ATTACHMENT_SCAN_URL` is set: rows stay `pending`, downloads
+are unaffected, and wiring a scanner later scans the backlog rather than
+blessing it.
+
+## Support entry points
+
+Where a customer can reach support from, by surface:
+
+| Surface | Entry point |
+| --- | --- |
+| Marketing footer | Contact · Help Centre · Status (Resources column) |
+| Help Centre | Contact CTA on the hub and every article |
+| 404 page | Help Centre + Contact support |
+| Route error boundary | Contact support + the `support@` address |
+| Pricing | "Ask a question" → `/contact?topic=sales` (ticketed, not a mailto) |
+| App sidebar (account menu) | Help Centre · Contact support · Support dashboard (admin) |
+| App settings | Help and support section — Help Centre, send a request, address |
+| Sign-in / recovery | "Get help" article + the `support@` address |
+
+Two rules hold across all of them: **addresses come from `src/config/support.ts`**
+(never inlined — the founder changes one file), and anything that can be a
+ticket is one, so the customer gets a reference and a response target instead of
+an email into a personal inbox.
+
+The sign-in panel is the deliberate exception that offers an address rather than
+the public form: `account_access` is not an `allowPublic` category (the public
+function rejects it), and someone locked out cannot reach the in-app form — so
+email is the only route that actually works from there.
+
 ## Staged (not yet implemented)
 
 - **Turn email on** (operator config): verify a Resend domain, set the secrets,
   schedule `support-notify` (see the runbook). The mechanism is built; it's inert
   until then.
-- **Entry-point sweep & scheduled-call scheduling** — remaining support entry
-  points (nav/account/billing/error/login-recovery pages) and the post-triage
-  "request a scheduled call" *scheduling* flow (the forms already offer it as a
-  preferred response method; the founder arranges calls manually today).
-- **Attachment malware scan** — a worker consuming `SUPPORT_ATTACHMENT_SCAN_URL`
-  that flips `support_attachments.scan_status`.
-- **CAPTCHA** on the public intake (Turnstile/hCaptcha) as a second anti-abuse
-  layer beyond the honeypot + rate limits.
+- **Turn on CAPTCHA and attachment scanning** (operator config): both are built
+  and inert until their secrets are set — see the runbook. Merging them did not
+  arm them.
+- **Scheduled-call *scheduling* flow** — the forms already offer a scheduled call
+  as a preferred response method and triage can move a ticket to
+  `scheduled_call`, but the founder arranges the appointment manually. Booking
+  (availability, invitations, reminders) is unbuilt; it needs a calendar
+  decision first, not just code.
 - **Support analytics** — privacy-conscious support/deflection events. Not built:
   the data model is a product decision (what to collect, anonymous vs
   user-scoped, retention), and collecting customer-behaviour data shouldn't be

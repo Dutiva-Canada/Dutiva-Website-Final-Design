@@ -1,6 +1,8 @@
 ﻿import { useState } from 'react'
-import { ShieldCheck } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ExternalLink, LifeBuoy, ShieldCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { supportChannel } from '@/config/support'
 import { pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
@@ -36,8 +38,13 @@ import { Card, Section, StatusChip, ToggleRow } from './settingsPrimitives'
  * settingsData.ts; shared building blocks in settingsPrimitives.tsx.
  */
 
+const SUPPORT_EMAIL = supportChannel('support').email
+
 export function SettingsView() {
   const { x, lang, setLang } = useI18n()
+  /* The Help Centre lives on the public marketing surface, so it opens in a new
+     tab rather than navigating the workspace away from itself. */
+  const helpCentrePath = lang === 'fr' ? '/fr/aide' : '/help'
   const { theme, setTheme } = useTheme()
   const { showToast } = useToasts()
   const { mode: workspaceMode, isAdmin, identity, setMode: setWorkspaceMode } = useWorkspaceMode()
@@ -444,6 +451,50 @@ export function SettingsView() {
             </Card>
           </Section>
         )}
+
+        {/* Help & support — the account surface had no support entry point at
+            all, so the only in-app route to a ticket was the sidebar profile
+            menu. Addresses come from src/config/support.ts, never inline. */}
+        <Section label={x(M.settings_support)}>
+          <Card>
+            <a
+              href={helpCentrePath}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[13px] no-underline first:border-t-0 hover:bg-inset"
+            >
+              <span className="min-w-0">
+                <span className="block text-[13px] font-semibold text-text">
+                  {x(M.settings_support_help_centre)}
+                </span>
+                <span className="mt-[2px] block text-[12px] leading-[1.5] text-text-muted">
+                  {x(M.settings_support_help_centre_note)}
+                </span>
+              </span>
+              <ExternalLink size={15} strokeWidth={1.7} aria-hidden="true" className="shrink-0 text-text-muted" />
+            </a>
+            <Link
+              to="/app/support"
+              className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[13px] no-underline hover:bg-inset"
+            >
+              <span className="min-w-0">
+                <span className="block text-[13px] font-semibold text-text">
+                  {x(M.settings_support_request)}
+                </span>
+                <span className="mt-[2px] block text-[12px] leading-[1.5] text-text-muted">
+                  {x(M.settings_support_request_note)}
+                </span>
+              </span>
+              <LifeBuoy size={15} strokeWidth={1.7} aria-hidden="true" className="shrink-0 text-text-muted" />
+            </Link>
+            <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
+              {x(M.settings_support_email_note)}{' '}
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-text-2">
+                {SUPPORT_EMAIL}
+              </a>
+            </div>
+          </Card>
+        </Section>
       </div>
     </div>
   )

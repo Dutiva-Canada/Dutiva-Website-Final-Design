@@ -27,13 +27,30 @@ export function validateAttachment(file: { size: number; type: string }): Attach
   return null
 }
 
+/**
+ * Malware-scan state (migration 0014 + the `support-attachment-scan` worker).
+ * `skipped` means the scan never established the file was safe — it is not a
+ * synonym for `clean`, and the server refuses to sign it while scanning is on.
+ */
+export type AttachmentScanStatus = 'pending' | 'clean' | 'flagged' | 'skipped'
+
 export interface SupportAttachment {
   id: string
   fileName: string
   mimeType: string
   sizeBytes: number
-  scanStatus: string
+  scanStatus: AttachmentScanStatus
   createdAt: string
+}
+
+/** Why a download was refused, when the refusal was about the file itself. */
+export type AttachmentDownloadRefusal = 'infected' | 'unscanned'
+
+export class AttachmentBlockedError extends Error {
+  constructor(public readonly reason: AttachmentDownloadRefusal) {
+    super(reason)
+    this.name = 'AttachmentBlockedError'
+  }
 }
 
 const attachmentSchema = z.object({
@@ -45,13 +62,18 @@ const attachmentSchema = z.object({
   created_at: z.string(),
 })
 
+const SCAN_STATUSES: readonly AttachmentScanStatus[] = ['pending', 'clean', 'flagged', 'skipped']
+
 function toAttachment(r: z.infer<typeof attachmentSchema>): SupportAttachment {
   return {
     id: r.id,
     fileName: r.file_name,
     mimeType: r.mime_type,
     sizeBytes: r.size_bytes,
-    scanStatus: r.scan_status,
+    // An unrecognised value reads as un-scanned, never as cleared.
+    scanStatus: (SCAN_STATUSES as readonly string[]).includes(r.scan_status)
+      ? (r.scan_status as AttachmentScanStatus)
+      : 'pending',
     createdAt: r.created_at,
   }
 }
@@ -108,7 +130,26 @@ export async function getAttachmentDownloadUrl(attachmentId: string): Promise<st
   const { data, error } = await supabase.functions.invoke('support-attachment-action', {
     body: { action: 'sign', attachment_id: attachmentId },
   })
-  if (error) throw error
+  if (error) {
+    // 423 Locked is reserved for the malware-scan gate, so the caller can say
+    // why the file is unavailable instead of showing a generic failure. The
+    // server is the real gate — this only shapes the message.
+    const context = (error as { context?: Response }).context
+    if (context?.status === 423) {
+      // Default to the softer reason: "still scanning" is both the commoner
+      // case and the one that is harmless to state wrongly, whereas telling
+      // someone their file holds malware when it does not is alarming.
+      let reason: AttachmentDownloadRefusal = 'unscanned'
+      try {
+        const body = (await context.clone().json()) as { code?: unknown }
+        if (body.code === 'infected') reason = 'infected'
+      } catch {
+        // Body already consumed or not JSON — keep the default.
+      }
+      throw new AttachmentBlockedError(reason)
+    }
+    throw error
+  }
   return z.object({ data: z.object({ url: z.string() }) }).parse(data).data.url
 }
 

@@ -20,6 +20,7 @@ import type { ComparisonCell } from '@/config/planComparison'
 import type { MessageKey } from '@/i18n/messages'
 import { Disclaimer } from '@/components/Disclaimer'
 import { Seo } from '@/seo/Seo'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { webApplicationNode } from '@/seo/jsonld'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
@@ -300,6 +301,7 @@ const FAQ_ITEMS: { q: MessageKey; a: MessageKey }[] = [
  */
 export function PricingPage() {
   const { t, lang } = useI18n()
+  const { p } = usePublicPath()
   const { status } = useAuth()
   const { isAdmin, plan: currentPlan, stripeCustomerId, loading: planLoading } = usePlan()
   const [period, setPeriod] = useState<BillingPeriod>('monthly')
@@ -573,13 +575,17 @@ export function PricingPage() {
         action={t('landing_free_cta')}
         to="/app/welcome"
       />
+      {/* A pricing question is a sales enquiry, so it goes to the ticketed
+          intake pre-set to that topic rather than a raw mailto — the sender
+          gets a reference and the request lands in the queue instead of an
+          inbox. `?topic=` is the deep link ContactPage already understands. */}
       <div className="mx-auto -mt-12 mb-16 flex max-w-[1200px] justify-center px-6">
-        <a
-          href="mailto:support@dutiva.ca"
+        <Link
+          to={`${p('contact')}?topic=sales`}
           className="text-sm font-semibold text-text-2 transition-opacity hover:opacity-80"
         >
           {t('pricing_cta_ask')}
-        </a>
+        </Link>
       </div>
     </MarketingPageShell>
   )

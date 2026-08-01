@@ -10,7 +10,7 @@ import type { SupportCategory, SupportImpact, SupportUrgency } from '@/config/su
  * hidden `contact_fax` trap; real users leave it empty.
  */
 
-export type PublicSupportErrorCode = 'rate_limited' | 'validation' | 'error'
+export type PublicSupportErrorCode = 'rate_limited' | 'captcha' | 'validation' | 'error'
 
 export class PublicSupportError extends Error {
   constructor(public readonly code: PublicSupportErrorCode) {
@@ -31,6 +31,11 @@ export interface PublicSupportRequestInput {
   consent: boolean
   /** Honeypot — always empty for real users. */
   honeypot?: string
+  /**
+   * CAPTCHA token from the widget. Absent when no site key is configured; the
+   * server only requires one once its own secret is set.
+   */
+  captchaToken?: string | null
 }
 
 const responseSchema = z.object({
@@ -42,6 +47,10 @@ const responseSchema = z.object({
 
 function errorCodeFromStatus(status: number | undefined): PublicSupportErrorCode {
   if (status === 429) return 'rate_limited'
+  // The function returns 403 for one reason only — a CAPTCHA token that was
+  // missing, spent, or rejected by the provider — so the status is enough to
+  // tell the customer to retry the check rather than blaming the form.
+  if (status === 403) return 'captcha'
   if (status === 400 || status === 422) return 'validation'
   return 'error'
 }
@@ -66,6 +75,7 @@ export async function createPublicSupportTicket(
       preferred_response_method: input.preferredResponseMethod,
       consent: input.consent,
       contact_fax: input.honeypot ?? '',
+      captcha_token: input.captchaToken ?? '',
     },
   })
   if (error) {

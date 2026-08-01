@@ -13,6 +13,8 @@ import {
 import type { SupportCategory, SupportImpact, SupportUrgency } from '@/config/support'
 import { createPublicSupportTicket, PublicSupportError } from './publicSupportApi'
 import { FirstLineSuggestions } from './FirstLineSuggestions'
+import { CaptchaField } from './CaptchaField'
+import { isCaptchaConfigured } from './captcha'
 
 /**
  * PUBLIC (unauthenticated) support form for the marketing-surface Contact page.
@@ -83,6 +85,11 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
   const [responseMethod, setResponseMethod] = useState<'email' | 'scheduled_call'>('email')
   const [consent, setConsent] = useState(false)
   const [honeypot, setHoneypot] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  /* Bumped to force a fresh challenge — a token is single-use, so a rejected
+     submit leaves the current one spent. */
+  const [captchaReset, setCaptchaReset] = useState(0)
+  const captchaRequired = isCaptchaConfigured()
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -102,6 +109,8 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
     setErrors({})
     setSubmitError(null)
     setDone(null)
+    setCaptchaToken(null)
+    setCaptchaReset((n) => n + 1)
   }
 
   async function onSubmit(event: FormEvent) {
@@ -111,6 +120,7 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
     if (!subject.trim()) next.subject = x(M.support_err_subject)
     if (!description.trim()) next.description = x(M.support_err_description)
     if (!consent) next.consent = x(M.support_err_consent)
+    if (captchaRequired && !captchaToken) next.captcha = x(M.support_err_captcha_required)
     setErrors(next)
     if (Object.keys(next).length > 0 || category === '') return
 
@@ -135,11 +145,24 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
         preferredResponseMethod: responseMethod,
         consent,
         honeypot,
+        captchaToken,
       })
       setDone({ reference })
     } catch (error) {
       const code = error instanceof PublicSupportError ? error.code : 'error'
-      setSubmitError(x(code === 'rate_limited' ? M.support_err_rate_limited : M.support_err_generic))
+      setSubmitError(
+        x(
+          code === 'rate_limited'
+            ? M.support_err_rate_limited
+            : code === 'captcha'
+              ? M.support_err_captcha_failed
+              : M.support_err_generic,
+        ),
+      )
+      // The token is spent whether or not it verified, so any failed attempt
+      // needs a fresh challenge before the customer can resubmit.
+      setCaptchaToken(null)
+      setCaptchaReset((n) => n + 1)
     } finally {
       setSubmitting(false)
     }
@@ -339,6 +362,19 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
           </p>
         )}
       </div>
+
+      {/* Nothing at all when unconfigured — an empty wrapper would still take a
+          gap from the form's flex column. */}
+      {captchaRequired && (
+        <div className="flex flex-col gap-[6px]">
+          <CaptchaField onToken={setCaptchaToken} resetSignal={captchaReset} />
+          {errors.captcha && (
+            <p role="alert" className="m-0 text-[12.5px] text-risk-fg">
+              {errors.captcha}
+            </p>
+          )}
+        </div>
+      )}
 
       {submitError && (
         <p role="alert" className="m-0 rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13px] text-risk-fg">

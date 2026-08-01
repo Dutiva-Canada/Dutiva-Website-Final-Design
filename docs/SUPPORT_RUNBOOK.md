@@ -172,6 +172,109 @@ operator-alert recipient and the `From:` address customers reply to. If one
 doesn't exist in Google Workspace, its mail bounces silently — create them as
 aliases or groups.
 
+## CAPTCHA on the public intake (turning it on)
+
+The public Contact form is protected by a honeypot and per-IP/per-email rate
+limits. Both are defeated by a script that rotates addresses and IPs, so the
+CAPTCHA is the layer that actually costs an attacker something. It is **built
+and inert**: with no secret set, `create-public-support-ticket` skips the check
+entirely and the form behaves exactly as it does today.
+
+**Set both keys together.** The secret is server-side; the site key is public
+and is baked into the client bundle at build time. With the secret set but no
+site key deployed, every real customer is turned away with a 403 — the form has
+no token to send.
+
+1. Create a **Cloudflare Turnstile** widget (or an hCaptcha site) for
+   `dutiva.ca`. Both work; they share one verification API.
+2. **Edge-function secret** (Supabase → Edge Functions → Secrets):
+   - `CAPTCHA_SECRET_KEY` — the widget's secret key.
+   - `CAPTCHA_PROVIDER` — `turnstile` (default) or `hcaptcha`.
+3. **Build-time client vars** (Vercel → Environment Variables), then redeploy —
+   these are compiled in, so a secret rotation without a redeploy breaks the form:
+   - `VITE_CAPTCHA_SITE_KEY` — the public site key.
+   - `VITE_CAPTCHA_PROVIDER` — must match `CAPTCHA_PROVIDER`.
+4. **Verify** on `/contact`: the widget renders above the send button, and a
+   request submitted normally still returns a `DUT-…` reference. Then confirm
+   the gate is live by posting without a token — it must be refused:
+
+   ```bash
+   curl -i -X POST 'https://<project-ref>.supabase.co/functions/v1/create-public-support-ticket' \
+     -H 'apikey: <publishable-key>' -H 'Content-Type: application/json' \
+     -d '{"category":"product_question","email":"you@example.ca","subject":"t","description":"t","consent":true}'
+   # expect: HTTP/2 403  {"error":"Human verification failed…","code":"missing_token"}
+   ```
+
+A 403 with `"code":"bad_secret"` means the secret is wrong or the provider
+setting doesn't match the widget — not that a bot is calling.
+
+**Turning it off** is removing `CAPTCHA_SECRET_KEY`: verification stops, the
+honeypot and rate limits stay. Drop `VITE_CAPTCHA_SITE_KEY` and redeploy too, or
+customers keep solving a challenge nothing checks.
+
+## Attachment malware scanning (turning it on)
+
+`support_attachments.scan_status` has read `pending` on every row since the
+table shipped, because nothing flipped it. The `support-attachment-scan` worker
+(migration `0038`) is what makes it mean something. Until a scanner is
+configured it is a **safe no-op**: rows stay `pending`, downloads are unaffected,
+and turning it on later scans the backlog rather than blessing it.
+
+1. **Stand up a scan endpoint** (typically a ClamAV wrapper). It receives:
+
+   ```json
+   { "url": "<5-minute signed URL>", "file_name": "…", "mime_type": "…",
+     "size_bytes": 1234, "reference": "<attachment id>" }
+   ```
+
+   and must answer `{"status":"clean"|"infected"|"unsupported"}`. The boolean
+   shapes (`{"infected":true}`, `{"clean":true}`) and a bare `OK`/`FOUND` body
+   are accepted too. **Anything unrecognised counts as "not scanned", never as
+   clean** — it is retried up to 5 times and then settles on `skipped`.
+2. **Edge-function secrets**:
+   - `SUPPORT_ATTACHMENT_SCAN_URL` — the endpoint. Setting this is what arms
+     both the worker *and* the download gate.
+   - `SUPPORT_ATTACHMENT_SCAN_KEY` — sent as `Authorization: Bearer`.
+3. **Apply `0038`** and **deploy `support-attachment-scan`**, then add the Vault
+   secret the cron job needs (the migration schedules the job every 10 minutes,
+   but it no-ops until the key exists):
+
+   ```sql
+   select vault.create_secret('<service-role key>', 'attachment_scan_service_key',
+     'Service key used by the support-attachment-scan cron job');
+   ```
+
+4. **Verify** — one query answers "is this actually running?":
+
+   ```sql
+   select * from public.attachment_scan_status();
+   ```
+
+   `secret_configured` and `job_scheduled` both true, `pending_count` falling,
+   `last_scanned_at` recent. Upload a test attachment to a ticket and watch it
+   go `pending → clean`.
+
+**Once scanning is on, downloads are gated.** `support-attachment-action`
+refuses to sign anything that has not come back `clean` (HTTP 423) — including
+`skipped`, which means "never established as safe". A `flagged` file is refused
+**unconditionally and for admins too**, and stays refused even if the scan URL is
+later removed.
+
+**A flagged object is not deleted.** The bytes stay in the bucket so they can be
+handed to an incident responder; destroying the only copy of the evidence is not
+the worker's call. To retrieve one deliberately, sign it with service-role
+tooling outside the app. Find them with:
+
+```sql
+select a.id, a.file_name, a.scan_detail, a.scanned_at, t.public_reference
+from support_attachments a join support_tickets t on t.id = a.ticket_id
+where a.scan_status = 'flagged';
+```
+
+Rows stuck `pending` with `scan_attempts` climbing mean the endpoint is
+unreachable or answering in a shape the worker doesn't recognise; `scan_detail`
+records which (`timeout`, `scanner_unreachable`, `http_502`).
+
 ## Never do
 
 - Never publish or imply 24/7 staffed support.

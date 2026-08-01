@@ -72,6 +72,24 @@ export const supportMessages = defineMessages({
     fr: 'Vous avez envoyé plusieurs demandes récemment. Veuillez réessayer plus tard ou écrire à support@dutiva.ca.',
   },
 
+  /* ── Human check (public intake only) ─────────────────────────────────── */
+  support_captcha_hint: {
+    en: 'This quick check confirms you’re a person. It runs automatically in most cases.',
+    fr: 'Cette vérification rapide confirme que vous êtes une personne. Elle s’exécute automatiquement dans la plupart des cas.',
+  },
+  support_captcha_unavailable: {
+    en: 'The human-verification check could not load. Please refresh the page, or email support@dutiva.ca if it keeps happening.',
+    fr: 'La vérification humaine n’a pas pu se charger. Veuillez actualiser la page ou écrire à support@dutiva.ca si le problème persiste.',
+  },
+  support_err_captcha_required: {
+    en: 'Please complete the human-verification check before sending.',
+    fr: 'Veuillez effectuer la vérification humaine avant d’envoyer.',
+  },
+  support_err_captcha_failed: {
+    en: 'The human-verification check didn’t pass. Please try it again, or email support@dutiva.ca.',
+    fr: 'La vérification humaine n’a pas réussi. Veuillez réessayer ou écrire à support@dutiva.ca.',
+  },
+
   /* ── Support request form ─────────────────────────────────────────────── */
   support_form_title: { en: 'Contact support', fr: 'Contacter le soutien' },
   support_form_intro: {
@@ -242,6 +260,15 @@ export const supportMessages = defineMessages({
     fr: 'Nous n’avons pas pu ouvrir ce fichier. Veuillez réessayer.',
   },
   support_attach_scan_pending: { en: 'Scan pending', fr: 'Analyse en attente' },
+  support_attach_scan_flagged: { en: 'Blocked', fr: 'Bloqué' },
+  support_attach_blocked: {
+    en: 'This file was flagged by our malware scan and can’t be downloaded. If you sent it, please check the file on your device before attaching it again.',
+    fr: 'Ce fichier a été signalé par notre analyse antimaliciel et ne peut pas être téléchargé. Si vous l’avez envoyé, veuillez le vérifier sur votre appareil avant de le joindre de nouveau.',
+  },
+  support_attach_scan_incomplete: {
+    en: 'This file is still being scanned for malware. Please try again in a few minutes.',
+    fr: 'Ce fichier fait encore l’objet d’une analyse antimaliciel. Veuillez réessayer dans quelques minutes.',
+  },
 
   /* ── Founder / operator dashboard ─────────────────────────────────────── */
   support_admin_title: { en: 'Support dashboard', fr: 'Tableau de bord du soutien' },
