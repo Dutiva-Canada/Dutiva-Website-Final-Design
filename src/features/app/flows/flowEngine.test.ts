@@ -9,12 +9,14 @@ import {
   nextStepId,
   outgoing,
   progress,
+  scoreRun,
+  bandFor,
   startRun,
   stepById,
   unreachableSteps,
 } from './flowEngine'
-import { isOutcome } from './flowModel'
-import type { Flow } from './flowModel'
+import { isResult, isScored, isTerminal } from './flowModel'
+import type { Flow, FlowResultStep } from './flowModel'
 import { flows } from './data'
 import { bi } from '@/i18n/core'
 
@@ -186,6 +188,185 @@ describe('flow engine', () => {
   })
 })
 
+const scored: Flow = {
+  ...fixture,
+  slug: 'scored',
+  start: 'q1',
+  steps: [
+    {
+      id: 'q1',
+      kind: 'choice',
+      domain: bi('Alpha', 'Alpha'),
+      title: bi('Q1', 'Q1'),
+      body: bi('First question.', 'Première question.'),
+      options: [
+        { id: 'lo', label: bi('Low', 'Faible'), value: 0, to: 'q2' },
+        { id: 'hi', label: bi('High', 'Élevé'), value: 4, to: 'q2' },
+      ],
+    },
+    {
+      id: 'q2',
+      kind: 'choice',
+      domain: bi('Alpha', 'Alpha'),
+      title: bi('Q2', 'Q2'),
+      body: bi('Same factor as Q1.', 'Même facteur que Q1.'),
+      options: [
+        { id: 'lo', label: bi('Low', 'Faible'), value: 0, to: 'q3' },
+        { id: 'hi', label: bi('High', 'Élevé'), value: 4, to: 'q3' },
+      ],
+    },
+    {
+      id: 'q3',
+      kind: 'choice',
+      domain: bi('Beta', 'Bêta'),
+      title: bi('Q3', 'Q3'),
+      body: bi('A different factor.', 'Un autre facteur.'),
+      options: [
+        { id: 'lo', label: bi('Low', 'Faible'), value: 0, to: 'end' },
+        { id: 'hi', label: bi('High', 'Élevé'), value: 2, to: 'end' },
+      ],
+    },
+    {
+      id: 'end',
+      kind: 'result',
+      title: bi('Result', 'Résultat'),
+      body: bi('Where you landed.', 'Où vous en êtes.'),
+      bands: [
+        {
+          id: 'low',
+          minPercent: 0,
+          tone: 'risk',
+          title: bi('Low', 'Faible'),
+          body: bi('Start here.', 'Commencez ici.'),
+        },
+        {
+          id: 'mid',
+          minPercent: 50,
+          tone: 'caution',
+          title: bi('Mid', 'Moyen'),
+          body: bi('Partway.', 'À mi-chemin.'),
+        },
+        {
+          id: 'high',
+          minPercent: 80,
+          tone: 'ok',
+          title: bi('High', 'Élevé'),
+          body: bi('Solid.', 'Solide.'),
+        },
+      ],
+    },
+  ],
+}
+
+const answerAll = (ids: string[]) =>
+  ids.reduce((run, id) => advance(scored, run, id), startRun(scored))
+
+describe('longestPath on parallel edges', () => {
+  it('walks distinct targets, not every edge', () => {
+    /* A rated question is four options that all lead to the same next step.
+       Walking the raw edge list explores that subtree once per option — 4^13
+       for a thirteen-question assessment, which does not return. This is the
+       shape that caught it: without deduping, the assertion below hangs
+       rather than fails. */
+    const chain = (n: number): Flow => ({
+      ...fixture,
+      slug: 'chain',
+      start: 's0',
+      steps: [
+        ...Array.from({ length: n }, (_, i) => ({
+          id: `s${i}`,
+          kind: 'choice' as const,
+          title: bi(`S${i}`, `S${i}`),
+          body: bi('A rated question.', 'Une question notée.'),
+          options: [0, 1, 2, 3].map((v) => ({
+            id: `o${v}`,
+            label: bi(`O${v}`, `O${v}`),
+            value: v,
+            to: i + 1 < n ? `s${i + 1}` : 'end',
+          })),
+        })),
+        {
+          id: 'end',
+          kind: 'outcome' as const,
+          tone: 'ok' as const,
+          title: bi('End', 'Fin'),
+          body: bi('Done.', 'Terminé.'),
+        },
+      ],
+    })
+
+    expect(longestPath(chain(13))).toBe(14)
+  })
+})
+
+describe('scoring', () => {
+  it('sums the values chosen and the values available', () => {
+    const run = answerAll(['hi', 'hi', 'hi'])
+    const result = scoreRun(scored, run)
+    expect(result.total).toBe(10)
+    expect(result.max).toBe(10)
+    expect(result.percent).toBe(100)
+  })
+
+  it('scores the bottom of the scale as zero, not as unanswered', () => {
+    const result = scoreRun(scored, answerAll(['lo', 'lo', 'lo']))
+    expect(result.total).toBe(0)
+    expect(result.max).toBe(10)
+    expect(result.percent).toBe(0)
+  })
+
+  it('measures against what the answered questions offered', () => {
+    /* Not against every rated question in the flow: a run that branched past
+       some of them would otherwise be scored out of points it could never
+       have earned, which reads as a failing grade for taking another route. */
+    const partial = advance(scored, startRun(scored), 'hi')
+    expect(scoreRun(scored, partial)).toMatchObject({ total: 4, max: 4, percent: 100 })
+  })
+
+  it('aggregates questions that share a factor', () => {
+    const result = scoreRun(scored, answerAll(['hi', 'lo', 'hi']))
+    const alpha = result.byDomain.find((d) => d.domain.en === 'Alpha')
+    const beta = result.byDomain.find((d) => d.domain.en === 'Beta')
+    expect(alpha).toEqual({ domain: expect.anything(), total: 4, max: 8 })
+    expect(beta).toEqual({ domain: expect.anything(), total: 2, max: 2 })
+  })
+
+  it('scores nothing on a flow with no rated questions', () => {
+    expect(scoreRun(fixture, startRun(fixture))).toMatchObject({ total: 0, max: 0, percent: 0 })
+  })
+
+  it('picks the highest band the score reaches', () => {
+    const step = stepById(scored, 'end') as FlowResultStep
+    expect(bandFor(step, 100)?.id).toBe('high')
+    expect(bandFor(step, 80)?.id).toBe('high')
+    expect(bandFor(step, 79)?.id).toBe('mid')
+    expect(bandFor(step, 50)?.id).toBe('mid')
+    expect(bandFor(step, 49)?.id).toBe('low')
+    expect(bandFor(step, 0)?.id).toBe('low')
+  })
+
+  it('treats a result step as an ending', () => {
+    const run = answerAll(['hi', 'hi', 'hi'])
+    expect(isComplete(scored, run)).toBe(true)
+    expect(isResult(currentStep(scored, run))).toBe(true)
+    /* And cannot be advanced past, the same as an outcome. */
+    expect(advance(scored, run, 'hi')).toEqual(run)
+  })
+
+  it('recognises a rated question and rejects a half-rated one', () => {
+    expect(isScored(stepById(scored, 'q1'))).toBe(true)
+    expect(isScored(stepById(fixture, 'ask'))).toBe(false)
+    const half = {
+      ...(stepById(scored, 'q1') as { options: { value?: number }[] }),
+      options: [
+        { id: 'a', label: bi('A', 'A'), value: 1, to: null },
+        { id: 'b', label: bi('B', 'B'), to: null },
+      ],
+    }
+    expect(isScored(half as never)).toBe(false)
+  })
+})
+
 describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) => {
   it('has no unreachable steps', () => {
     /* Content nobody can reach reads as shipped and is not. */
@@ -205,15 +386,15 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
     /* A `to: null` on a task or choice would end a run with no result and no
        document to hand off to — the user is left mid-process with a blank. */
     for (const step of flow.steps) {
-      if (isOutcome(step)) continue
+      if (isTerminal(step)) continue
       for (const next of outgoing(step)) {
         expect(next, `${step.id} ends the run without an outcome`).not.toBeNull()
       }
     }
   })
 
-  it('reaches at least one outcome', () => {
-    expect(flow.steps.some(isOutcome)).toBe(true)
+  it('reaches at least one terminal step', () => {
+    expect(flow.steps.some(isTerminal)).toBe(true)
   })
 
   it('has a start step that exists', () => {
@@ -247,12 +428,58 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
     }
   })
 
-  it('hands every outcome off to at least one document', () => {
+  it('hands every ending off to at least one document', () => {
     /* A flow that ends in advice leaves nothing on the file, and the file is
-       what an employer is asked to produce. */
+       what an employer is asked to produce. Bands count as endings: a scored
+       run reaches one of them, not the step's own body. */
     for (const step of flow.steps) {
-      if (!isOutcome(step)) continue
-      expect(step.documents?.length ?? 0, `${step.id} names no document`).toBeGreaterThan(0)
+      if (step.kind === 'outcome') {
+        expect(step.documents?.length ?? 0, `${step.id} names no document`).toBeGreaterThan(0)
+      }
+      if (isResult(step)) {
+        for (const band of step.bands) {
+          expect(
+            band.documents?.length ?? 0,
+            `${step.id}/${band.id} names no document`,
+          ).toBeGreaterThan(0)
+        }
+      }
+    }
+  })
+
+  it('scores a question wholly or not at all', () => {
+    /* An option carrying a value beside one that does not is neither a rated
+       question nor a clean branch — `isScored` rejects it, so it would score
+       zero silently instead of being caught. */
+    for (const step of flow.steps) {
+      if (step.kind !== 'choice') continue
+      const valued = step.options.filter((o) => o.value !== undefined).length
+      expect([0, step.options.length], `${step.id} mixes rated and unrated options`).toContain(
+        valued,
+      )
+    }
+  })
+
+  it('names the factor behind every rated question', () => {
+    /* A score with no breakdown tells a reader how they did and nothing about
+       what to change. */
+    for (const step of flow.steps) {
+      if (isScored(step)) expect(step.domain, `${step.id} is rated but has no domain`).toBeDefined()
+    }
+  })
+
+  it('lands every possible score in a band', () => {
+    /* Without a band at 0 a low scorer reaches the end and is shown nothing —
+       the one reader who most needs the result. */
+    for (const step of flow.steps) {
+      if (!isResult(step)) continue
+      expect(
+        step.bands.some((b) => b.minPercent === 0),
+        `${step.id} has no band covering the bottom`,
+      ).toBe(true)
+      for (const percent of [0, 1, 39, 40, 69, 70, 100]) {
+        expect(bandFor(step, percent), `${step.id} at ${percent}%`).not.toBeNull()
+      }
     }
   })
 })

@@ -109,13 +109,21 @@ roadmap.
 ### 4. Rings 2–4 as shipped
 
 Ring 1 exists, and as of August 2026 covers every tool the April framework
-listed for it (T25–T32 closed the last eight gaps). Of Rings 2–4, the **only**
-shipped work is Ring 2's **Pillar B, which is complete**: the accommodation
-documents (T21–T24, plus the ported T19/T20) in Document Studio's
-Accommodation category, the duty-to-accommodate flow at
-`/app/workflows/duty-to-accommodate`, and the functional limitations guide at
-`/app/knowledge/functional-limitations`. Pillars A, C and D do not exist at
-all.
+listed for it (T25–T32 closed the last eight gaps). Of Rings 2–4 the shipped
+work is Ring 2's **Pillar B, which is complete** — the accommodation documents
+(T21–T24, plus the ported T19/T20) in Document Studio's Accommodation
+category, the duty-to-accommodate flow at `/app/workflows/duty-to-accommodate`,
+and the functional limitations guide at `/app/knowledge/functional-limitations`
+— **plus one tool of Pillar C**, the psychological safety self-check at
+`/app/workflows/psychological-safety-check`.
+
+That self-check is **not** an audit against CSA Z1003-13 and not a measure of
+conformance with it. It is an original self-assessment organised around the
+thirteen psychosocial factors the Standard names. Never describe it as
+CSA-certified, CSA-compliant, or an assessment against the Standard.
+
+Pillars A and D do not exist, and the rest of Pillar C does not either. Rings 3
+and 4 are untouched.
 
 Rings 3 and 4 are roadmap. The Compensation, Communications and Wellbeing
 modules in the app are prototype surfaces on demo fixtures, gated off in a

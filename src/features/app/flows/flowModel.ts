@@ -39,6 +39,12 @@ export interface FlowOption {
   /** Shown under the label when the choice needs a reason to pick it. */
   detail?: Bi
   to: FlowStepId | null
+  /**
+   * What picking this contributes to the run's score. Present on every option
+   * of a rated question and on none of a branching one — a step with a mix is
+   * neither, and `flowEngine.test.ts` fails it.
+   */
+  value?: number
 }
 
 interface FlowStepBase {
@@ -67,6 +73,16 @@ interface FlowStepBase {
 export interface FlowChoiceStep extends FlowStepBase {
   kind: 'choice'
   options: FlowOption[]
+  /**
+   * What this question measures, on a rated step. Two things depend on it: the
+   * per-factor breakdown a result reports, and the fact that a score is only
+   * worth showing if the reader can see which parts produced it.
+   *
+   * A rated question is just a choice whose options all carry a `value` and
+   * lead to the same place — no separate step kind, because the only thing
+   * that differs is what the answer is for.
+   */
+  domain?: Bi
 }
 
 /**
@@ -79,7 +95,7 @@ export interface FlowTaskStep extends FlowStepBase {
   to: FlowStepId | null
 }
 
-/** A terminal step. Reaching one ends the run. */
+/** A terminal step reached by branching. Where the path led. */
 export interface FlowOutcomeStep extends FlowStepBase {
   kind: 'outcome'
   /** How the outcome reads — a settled result, or a stop-and-get-help. */
@@ -88,7 +104,35 @@ export interface FlowOutcomeStep extends FlowStepBase {
   documents?: string[]
 }
 
-export type FlowStep = FlowChoiceStep | FlowTaskStep | FlowOutcomeStep
+/** One reading of a score, selected by where the total lands. */
+export interface FlowBand {
+  id: string
+  /**
+   * Lower bound, inclusive, as a percentage of the score available on the
+   * questions actually answered. A percentage rather than a raw total so a
+   * band survives a question being added or reweighted.
+   */
+  minPercent: number
+  tone: 'ok' | 'caution' | 'risk'
+  title: Bi
+  body: Bi
+  documents?: string[]
+}
+
+/**
+ * A terminal step reached by scoring. Where the answers added up to.
+ *
+ * Separate from `outcome` rather than an optional field on it: the two are
+ * reached differently and read differently, and a single kind whose meaning
+ * flips on whether `bands` is set is the shape that gets misused later.
+ */
+export interface FlowResultStep extends FlowStepBase {
+  kind: 'result'
+  /** Any order — the engine sorts. At least one must have `minPercent: 0`. */
+  bands: FlowBand[]
+}
+
+export type FlowStep = FlowChoiceStep | FlowTaskStep | FlowOutcomeStep | FlowResultStep
 
 export interface Flow {
   /** Stable URL slug — `/app/workflows/<slug>`. */
@@ -106,3 +150,19 @@ export interface Flow {
 }
 
 export const isOutcome = (step: FlowStep): step is FlowOutcomeStep => step.kind === 'outcome'
+
+export const isResult = (step: FlowStep): step is FlowResultStep => step.kind === 'result'
+
+/** Reaching either kind ends the run. */
+export const isTerminal = (step: FlowStep): step is FlowOutcomeStep | FlowResultStep =>
+  isOutcome(step) || isResult(step)
+
+/**
+ * A rated question: every option carries a value. A step where only some do is
+ * neither a rated question nor a clean branch, so it is not scored — and
+ * `flowEngine.test.ts` rejects it rather than letting it half-count.
+ */
+export const isScored = (step: FlowStep): step is FlowChoiceStep =>
+  step.kind === 'choice' &&
+  step.options.length > 0 &&
+  step.options.every((option) => option.value !== undefined)

@@ -33,6 +33,13 @@ export const flowsMessages = defineMessages({
     fr: 'Ce processus n’existe pas.',
   },
   flows_back_to_workflows: { en: 'Back to workflows', fr: 'Retour aux processus' },
+  flows_score_label: { en: 'Your score', fr: 'Votre score' },
+  flows_score_of: { en: 'of', fr: 'sur' },
+  flows_by_factor: { en: 'By factor', fr: 'Par facteur' },
+  flows_by_factor_intro: {
+    en: 'Lowest first — a strong average can still hide a factor people are living with.',
+    fr: 'Du plus faible au plus élevé — une bonne moyenne peut masquer un facteur que les gens subissent.',
+  },
   flows_record_note: {
     en: 'This is a record of how the decision was reached, not the decision itself. The documents below are what goes on the file.',
     fr: 'Ceci consigne la façon dont la décision a été prise, non la décision elle-même. Les documents ci-dessous sont ce qui est versé au dossier.',

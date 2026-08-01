@@ -1,6 +1,6 @@
 import type { Bi } from '@/i18n/core'
-import type { Flow, FlowStep, FlowStepId } from './flowModel'
-import { isOutcome } from './flowModel'
+import type { Flow, FlowBand, FlowResultStep, FlowStep, FlowStepId } from './flowModel'
+import { isScored, isTerminal } from './flowModel'
 
 /**
  * The flow engine: pure, so the graph can be reasoned about and tested
@@ -38,7 +38,7 @@ export function currentStep(flow: Flow, run: FlowRun): FlowStep {
   return stepById(flow, last.step)
 }
 
-export const isComplete = (flow: Flow, run: FlowRun): boolean => isOutcome(currentStep(flow, run))
+export const isComplete = (flow: Flow, run: FlowRun): boolean => isTerminal(currentStep(flow, run))
 
 /**
  * Where a step leads. Returns null when the step ends the run, and undefined
@@ -47,7 +47,7 @@ export const isComplete = (flow: Flow, run: FlowRun): boolean => isOutcome(curre
  */
 export function nextStepId(step: FlowStep, optionId?: string): FlowStepId | null | undefined {
   if (step.kind === 'task') return step.to
-  if (step.kind === 'outcome') return null
+  if (isTerminal(step)) return null
   const option = step.options.find((o) => o.id === optionId)
   return option ? option.to : undefined
 }
@@ -59,7 +59,7 @@ export function nextStepId(step: FlowStep, optionId?: string): FlowStepId | null
  */
 export function advance(flow: Flow, run: FlowRun, optionId?: string): FlowRun {
   const step = currentStep(flow, run)
-  if (isOutcome(step)) return run
+  if (isTerminal(step)) return run
 
   const next = nextStepId(step, optionId)
   if (next === undefined || next === null) return run
@@ -114,11 +114,16 @@ export function longestPath(flow: Flow): number {
     if (seen.has(id)) return 0
     seen.add(id)
     const step = stepById(flow, id)
-    const nexts = outgoing(step)
-    const deepest = nexts.reduce(
-      (max, next) => (next === null ? max : Math.max(max, walk(next))),
-      0,
-    )
+    /* Deduped, and this is load-bearing rather than tidiness. A rated question
+       is four options that all lead to the same next step, so walking the raw
+       edge list explores that subtree four times over — 4^13 for a
+       thirteen-question assessment, which does not return. Distinct targets
+       are what a path branches on; parallel edges are one branch. */
+    const nexts = new Set(outgoing(step))
+    let deepest = 0
+    for (const next of nexts) {
+      if (next !== null) deepest = Math.max(deepest, walk(next))
+    }
     seen.delete(id)
     return 1 + deepest
   }
@@ -171,5 +176,83 @@ export function flowRecord(flow: Flow, run: FlowRun): FlowRecord {
     return option ? { step, chosen: { id: option.id, label: option.label } } : { step }
   })
   const last = entries.at(-1)?.step
-  return { entries, outcome: last && isOutcome(last) ? last : null }
+  return { entries, outcome: last && isTerminal(last) ? last : null }
+}
+
+/* ── Scoring ─────────────────────────────────────────────────────────────── */
+
+export interface FlowDomainScore {
+  domain: Bi
+  total: number
+  max: number
+}
+
+export interface FlowScore {
+  total: number
+  /** The most that was available on the questions actually answered. */
+  max: number
+  /** `total / max` as a whole number, 0 when nothing scored was answered. */
+  percent: number
+  byDomain: FlowDomainScore[]
+}
+
+/**
+ * Score a run over the rated questions it actually answered.
+ *
+ * Measured against what was available on the answered path rather than
+ * against every rated question in the flow: a flow that branches past some of
+ * them would otherwise report a percentage the reader could not have reached,
+ * which reads as a failing grade for taking a different route.
+ */
+export function scoreRun(flow: Flow, run: FlowRun): FlowScore {
+  let total = 0
+  let max = 0
+  const domains = new Map<string, FlowDomainScore>()
+
+  for (const answer of run.path) {
+    if (answer.option === undefined) continue
+    const step = stepById(flow, answer.step)
+    if (!isScored(step)) continue
+
+    const chosen = step.options.find((o) => o.id === answer.option)
+    if (!chosen) continue
+
+    const scored = chosen.value ?? 0
+    const available = Math.max(...step.options.map((o) => o.value ?? 0))
+    total += scored
+    max += available
+
+    if (step.domain) {
+      /* Keyed on the English label: two questions in the same domain must
+         aggregate, and `Bi` objects are distinct references. */
+      const key = step.domain.en
+      const existing = domains.get(key)
+      if (existing) {
+        existing.total += scored
+        existing.max += available
+      } else {
+        domains.set(key, { domain: step.domain, total: scored, max: available })
+      }
+    }
+  }
+
+  return {
+    total,
+    max,
+    percent: max === 0 ? 0 : Math.round((total / max) * 100),
+    byDomain: [...domains.values()],
+  }
+}
+
+/**
+ * The band a percentage lands in: the highest whose `minPercent` it reaches.
+ *
+ * Returns null only if the step has no band at 0 — an authoring error the
+ * flow tests catch, not something a run can cause.
+ */
+export function bandFor(step: FlowResultStep, percent: number): FlowBand | null {
+  const eligible = step.bands
+    .filter((band) => percent >= band.minPercent)
+    .sort((a, b) => b.minPercent - a.minPercent)
+  return eligible[0] ?? null
 }
