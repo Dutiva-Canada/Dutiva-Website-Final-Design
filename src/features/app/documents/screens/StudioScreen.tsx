@@ -240,7 +240,7 @@ function StudioSkeleton() {
 }
 
 /**
- * Document Studio — the template library. Filterable catalogue of the 16
+ * Document Studio — the template library. Filterable catalogue of the
  * jurisdiction-aware templates, grouped by category, with the editable org
  * compliance profile driving each card's applicability chip live.
  */
@@ -271,6 +271,9 @@ export function StudioScreen() {
     .map((cat) => ({ category: cat, templates: filtered.filter((tpl) => tpl.category === cat.id) }))
     .filter((group) => group.templates.length > 0)
   const filtersActive = q !== '' || category !== 'all' || jurisdiction !== 'all' || risk !== 'all'
+  /* "Search 24 templates…" / "Rechercher parmi 24 modèles…" — composed rather
+     than a fixed string, so the catalogue size is stated from the catalogue. */
+  const searchPlaceholder = `${t('doclib_studio_searchPh')} ${data.templates.length} ${t('doclib_studio_results')}…`
   const clearFilters = () => {
     setQuery('')
     setCategory('all')
@@ -335,8 +338,8 @@ export function StudioScreen() {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={t('doclib_studio_searchPh')}
-            aria-label={t('doclib_studio_searchPh')}
+            placeholder={searchPlaceholder}
+            aria-label={searchPlaceholder}
             className="h-[40px] w-full rounded-[9px] border border-border-strong bg-surface pr-3 pl-9 text-[13.5px] text-text"
           />
         </div>

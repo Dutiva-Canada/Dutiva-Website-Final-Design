@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { fireEvent, screen, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
+import { allTemplates } from '../catalogue'
 import { DoclibProvider } from '../DoclibProvider'
 import { StudioScreen } from './StudioScreen'
+
+/* Derived, not hardcoded: the assertion worth making is "every template in
+   the catalogue reaches the grid", and a literal count turns each catalogue
+   addition into an unrelated test edit. */
+const CATALOGUE_SIZE = allTemplates.length
 
 const renderStudio = () =>
   renderApp(
@@ -13,7 +19,7 @@ const renderStudio = () =>
   )
 
 describe('StudioScreen', () => {
-  it('renders all 20 templates grouped by category', async () => {
+  it('renders the whole catalogue grouped by category', async () => {
     renderStudio()
 
     /* Data loads async from fixtures — wait for the first card. */
@@ -25,18 +31,23 @@ describe('StudioScreen', () => {
        docstudio-only fixture, see that file's header comment. */
     expect(screen.getByText('Full & final release')).toBeInTheDocument()
     expect(screen.getByText('Accommodation documentation')).toBeInTheDocument()
-    expect(screen.getAllByRole('article')).toHaveLength(20)
-    expect(screen.getByText('20 templates')).toBeInTheDocument()
-    /* Category group headings in handoff order. */
+    /* Authored in-repo (T21-T24) — Ring 2 Pillar B, see
+       docs/FOUR_RING_FRAMEWORK.md. */
+    expect(screen.getByText('Accommodation request form')).toBeInTheDocument()
+    expect(screen.getByText('Undue hardship assessment')).toBeInTheDocument()
+    expect(screen.getAllByRole('article')).toHaveLength(CATALOGUE_SIZE)
+    expect(screen.getByText(`${CATALOGUE_SIZE} templates`)).toBeInTheDocument()
+    /* Category group headings in handoff order, then the authored one. */
     expect(screen.getByRole('heading', { name: 'Hiring & onboarding' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Termination & offboarding' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Accommodation' })).toBeInTheDocument()
   })
 
   it('search narrows the grid to offer templates and updates the count', async () => {
     renderStudio()
     await screen.findByText('Offer of employment letter')
 
-    fireEvent.change(screen.getByPlaceholderText('Search 20 templates…'), {
+    fireEvent.change(screen.getByPlaceholderText(`Search ${CATALOGUE_SIZE} templates…`), {
       target: { value: 'offer' },
     })
 

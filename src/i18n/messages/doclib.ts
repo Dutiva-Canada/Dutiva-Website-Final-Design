@@ -36,7 +36,10 @@ export const doclibMessages = defineMessages({
     en: 'Reusable, jurisdiction-aware HR templates. Pick one to generate a real document.',
     fr: 'Modèles RH réutilisables et adaptés à la juridiction. Choisissez-en un pour générer un vrai document.',
   },
-  doclib_studio_searchPh: { en: 'Search 20 templates…', fr: 'Rechercher parmi 20 modèles…' },
+  /* Composed with the live catalogue size and `doclib_studio_results` at the
+     call site — the count used to be baked into this string, which made every
+     template added to the catalogue a silent lie in the search box. */
+  doclib_studio_searchPh: { en: 'Search', fr: 'Rechercher parmi' },
   doclib_studio_filters: { en: 'Filters', fr: 'Filtres' },
   doclib_studio_category: { en: 'Category', fr: 'Catégorie' },
   doclib_studio_jurisdiction: { en: 'Jurisdiction', fr: 'Juridiction' },

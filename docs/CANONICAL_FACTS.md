@@ -38,12 +38,12 @@ people who don't read the repo. Re-export it when this file changes.
 
 | Fact                  | Value                                                                       | Source of truth                                                         |
 | --------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Templates shipped     | **16** — T01…T16                                                            | `src/features/app/documents/data/templates/`                            |
+| Templates shipped     | **24** — T01…T24                                                            | `src/features/app/documents/catalogue.ts`                               |
 | Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)          | jurisdiction codes `ON`, `QC`, `FED`                                    |
 | Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                | `src/config/plans.ts` → `PLANS`                                         |
 | Annual billing        | 10 of 12 months charged (two months free)                                   | `ANNUAL_MONTHS_BILLED`                                                  |
 | Beta state            | Paid plans **shown but not sold**                                           | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
-| Rings live            | **Ring 1 only.** Rings 2–4 are roadmap.                                     | `src/features/app/`                                                     |
+| Rings live            | **Ring 1, plus Ring 2 Pillar B in part.** Rings 3–4 are roadmap.            | `docs/FOUR_RING_FRAMEWORK.md`                                           |
 | Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30) | `src/features/app/guidance/monitoringCoverage.ts`                       |
 | Contact address       | **support@dutiva.ca**                                                       | the published support address; retired ones stay retired (§6, enforced) |
 | Languages             | EN + FR, both surfaces, prerendered per locale                              | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
@@ -106,7 +106,17 @@ jurisdiction. Alberta and BC stay labelled roadmap.
 
 ### 4. Rings 2–4 as shipped
 
-Only Ring 1 exists. Present the rest as roadmap.
+Ring 1 exists. Of Rings 2–4, the **only** shipped work is part of Ring 2's
+Pillar B: the accommodation documents (T21–T24, plus the ported T19/T20) in
+Document Studio's Accommodation category. Pillar B is not finished — the Duty
+to Accommodate workflow and the Functional Limitations guide are not built —
+and Pillars A, C and D do not exist at all.
+
+Rings 3 and 4 are roadmap. The Compensation, Communications and Wellbeing
+modules in the app are prototype surfaces on demo fixtures, gated off in a
+production workspace; they are not those rings, and must not be described as
+shipped capability. `docs/FOUR_RING_FRAMEWORK.md` holds the tool-by-tool
+state.
 
 ### 5. "Dutiva monitors the law and tells you when it changes"
 

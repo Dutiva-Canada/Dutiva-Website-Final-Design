@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ANNUAL_MONTHS_BILLED, PAID_PLANS_DISABLED_DURING_BETA, PLANS } from '@/config/plans'
-import { docTemplates } from '@/features/app/documents/data/templates'
+import { allTemplates } from '@/features/app/documents/catalogue'
 import {
   COVERAGE_AUDITED_ON,
   MONITORING_COVERAGE,
@@ -81,12 +81,28 @@ function boldNumbers(text: string): number[] {
 describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () => {
   it('states the shipped template count and range', () => {
     const templates = row('Templates shipped')
-    expect(boldNumbers(templates)).toContain(docTemplates.length)
 
-    /* "T01…T16" — the advertised range must span the real tids. */
-    const tids = docTemplates.map((t) => t.tid)
+    /* Counted from the whole catalogue (`catalogue.ts`), not from
+       `data/templates/` alone — the split between that folder and
+       customTemplates.ts is provenance, and a customer sees one library. */
+    expect(boldNumbers(templates)).toContain(allTemplates.length)
+
+    /* "T01…T24" — the advertised range must span the real tids. */
+    const tids = allTemplates.map((t) => t.tid)
     expect(templates).toContain(tids[0])
     expect(templates).toContain(tids[tids.length - 1])
+  })
+
+  it('has no duplicate template ids across the two catalogue sources', () => {
+    /* DocStudioProvider resolves `templateByTid.get(k) ?? customTemplateByTid.get(k)`,
+       so a tid reused in data/templates/ shadows the customTemplates.ts entry
+       silently — the fixtures in src/data/employees.ts and chats.ts would
+       resolve to the wrong document with nothing failing. */
+    const tids = allTemplates.map((t) => t.tid)
+    expect(tids).toEqual([...new Set(tids)])
+
+    const ids = allTemplates.map((t) => t.id)
+    expect(ids).toEqual([...new Set(ids)])
   })
 
   it('states the supported jurisdiction count and exactly those codes', () => {

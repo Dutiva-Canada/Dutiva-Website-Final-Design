@@ -1,6 +1,7 @@
 import { FileText } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { docTemplates, templateCategories } from '@/features/app/documents/data'
+import { templateCategories } from '@/features/app/documents/data'
+import { allTemplates } from '@/features/app/documents/catalogue'
 import type { DocRiskLevel, Jurisdiction } from '@/features/app/documents/data'
 import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
@@ -41,13 +42,13 @@ export function TemplatesPage() {
         intro={t('tplPreview_intro')}
       />
 
-      <PageSection title={`${docTemplates.length} ${t('tplPreview_count')}`}>
+      <PageSection title={`${allTemplates.length} ${t('tplPreview_count')}`}>
         <div className="space-y-10">
           {templateCategories
             .slice()
             .sort((a, b) => a.order - b.order)
             .map((category) => {
-              const templates = docTemplates.filter((tpl) => tpl.category === category.id)
+              const templates = allTemplates.filter((tpl) => tpl.category === category.id)
               if (templates.length === 0) return null
               return (
                 <div key={category.id}>
