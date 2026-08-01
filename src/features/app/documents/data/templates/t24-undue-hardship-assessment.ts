@@ -53,12 +53,12 @@ export const tplT24: DocTemplate = {
       fr: 'Le paragraphe 11(2) du Code des droits de la personne limite l’analyse au coût, aux sources externes de financement et aux exigences de santé et de sécurité. Les inconvénients d’affaires, le moral du personnel et les préférences de la clientèle ou des collègues ne constituent pas une contrainte excessive.',
     },
     QC: {
-      en: 'Under the Charter of human rights and freedoms the assessment is global and contextual — the whole of the circumstances, cumulatively, rather than any single factor read alone.',
-      fr: 'Sous la Charte des droits et libertés de la personne, l’évaluation est globale et contextuelle : l’ensemble des circonstances, de façon cumulative, plutôt qu’un facteur pris isolément.',
+      en: 'The Charter of human rights and freedoms names no list of factors, so the assessment is global and contextual — the whole of the circumstances, cumulatively, rather than any single factor read alone. That set is wider than Ontario’s: disruption to operations or to other employees can be weighed here where the Ontario Code excludes it. Wider does not mean easier — each factor still has to be evidenced, not asserted.',
+      fr: 'La Charte des droits et libertés de la personne n’énumère aucun facteur : l’évaluation est donc globale et contextuelle — l’ensemble des circonstances, de façon cumulative, plutôt qu’un facteur pris isolément. Cet ensemble est plus large qu’en Ontario : la perturbation des activités ou de l’équipe peut y être prise en compte, là où le Code ontarien l’exclut. Plus large ne veut pas dire plus permissif — chaque facteur doit toujours être prouvé, et non affirmé.',
     },
     FED: {
-      en: 'The Canadian Human Rights Act names health, safety and cost as the factors. Document the evidence supporting each one that you rely on; an unquantified cost figure carries little weight.',
-      fr: 'La Loi canadienne sur les droits de la personne nomme la santé, la sécurité et le coût comme facteurs. Documentez la preuve appuyant chacun des facteurs invoqués; un montant non chiffré a peu de poids.',
+      en: 'The Canadian Human Rights Act names health, safety and cost as the factors — a named list, like Ontario’s and unlike Québec’s. Document the evidence supporting each one that you rely on; an unquantified cost figure carries little weight.',
+      fr: 'La Loi canadienne sur les droits de la personne nomme la santé, la sécurité et le coût comme facteurs — une liste énumérée, comme en Ontario et contrairement au Québec. Documentez la preuve appuyant chacun des facteurs invoqués; un montant non chiffré a peu de poids.',
     },
   },
   includes: [
@@ -338,8 +338,8 @@ export const tplT24: DocTemplate = {
     {
       type: 'note',
       text: {
-        en: 'Business inconvenience, employee morale, and customer or co-worker preference are not undue hardship. If the conclusion above rests on one of those, it does not hold.',
-        fr: 'Les inconvénients d’affaires, le moral du personnel et les préférences de la clientèle ou des collègues ne constituent pas une contrainte excessive. Si la conclusion ci-dessus repose sur l’un de ces motifs, elle ne tient pas.',
+        en: 'Business inconvenience will not carry a refusal anywhere, and neither will customer or co-worker preference — a preference rooted in a protected ground is the discrimination, not a defence to it. Which further factors count is jurisdictional: check the conclusion above against the note for your jurisdiction, not against a general sense of how difficult this would be.',
+        fr: 'Les inconvénients d’affaires ne soutiennent un refus dans aucune juridiction, pas plus que les préférences de la clientèle ou des collègues — une préférence fondée sur un motif protégé constitue la discrimination elle-même, et non un moyen de défense. Les autres facteurs pertinents varient selon la juridiction : confrontez la conclusion ci-dessus à la note applicable à votre juridiction, et non à une impression générale de difficulté.',
       },
       tone: 'risk',
     },

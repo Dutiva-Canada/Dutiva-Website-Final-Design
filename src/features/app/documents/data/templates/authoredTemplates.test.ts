@@ -167,6 +167,42 @@ describe('the accommodation category', () => {
   })
 })
 
+describe('jurisdiction-specific rules stay in jurisdiction notes', () => {
+  /* The failure this guards is the one the review on #122 found twice and a
+     later audit found again: a rule that holds in one jurisdiction, written
+     into copy that renders for all three.
+     `jurisdictionNotes` are the only place the reader sees a rule attributed
+     to a jurisdiction, so anything jurisdictional has to live there. */
+  const universalProse = (tid: string): string => {
+    const tpl = template(tid)
+    return [
+      ...tpl.preview.flatMap((b) => [b.text?.en ?? '', b.heading?.en ?? '']),
+      ...tpl.questions.flatMap((q) => [q.label.en, q.placeholder?.en ?? '', q.hint?.en ?? '']),
+      ...tpl.includes.map((i) => i.en),
+      ...tpl.statutory.map((s) => s.en),
+    ].join('\n')
+  }
+
+  it('does not state Ontario’s closed list of hardship factors as universal', () => {
+    /* Ontario's Code confines undue hardship to cost, outside funding, and
+       health and safety, so employee morale is out. Québec names no list and
+       weighs the whole of the circumstances, where disruption to the operation
+       or the team can count. Saying "morale is not undue hardship" to every
+       reader is therefore wrong for a Québec one. */
+    expect(universalProse('T24')).not.toMatch(/morale/i)
+    expect(template('T24').jurisdictionNotes.ON?.en).toMatch(/morale/i)
+  })
+
+  it('keeps the rules that do hold everywhere', () => {
+    /* The opposite failure — hedging a claim that is actually universal until
+       it says nothing. Business inconvenience and customer preference carry a
+       refusal nowhere, and the document should still say so plainly. */
+    const prose = universalProse('T24')
+    expect(prose).toMatch(/inconvenience/i)
+    expect(prose).toMatch(/preference/i)
+  })
+})
+
 describe('medical privacy across every authored template', () => {
   it('never asks for a diagnosis', () => {
     /* The constraint the framework puts on Pillar B, and it does not stop

@@ -126,6 +126,14 @@ reachability, for every shipped flow.
 Nothing is persisted. A run is a thinking tool; the record it produces is
 meant to be carried into the template the outcome names.
 
+**Every step shows in every jurisdiction.** The model briefly carried an
+`only` field to restrict a step to one, and it was removed: a run has no
+jurisdiction to gate on, because the runner never asks for one, so the gate
+silently no-opped. Authoring `only: 'QC'` would have shipped Québec-specific
+legal content to an Ontario reader with nothing failing. Where the law
+differs, say so in the copy and point at the Document Studio template, whose
+`jurisdictionNotes` the reader can see resolved.
+
 **What this does not do: scoring.** The framework's CSA Z1003-13
 self-assessment needs weighted answers summed into a band, and nothing in the
 engine does arithmetic on answers. That is a real extension of the model, not
@@ -205,12 +213,21 @@ caught. Budget for review, not just writing.
    BC is out of scope.
 2. **EN + FR, both complete.** French with no handoff source is marked
    `[FR self-authored]` at the definition site.
-3. **The standing disclaimer** ships with generated documents, via the
+3. **A rule that holds in one jurisdiction goes in that jurisdiction's note.**
+   This is the mistake this content keeps making — three times so far, twice
+   caught in review on #122 and once in a later audit. Ontario's undue-hardship
+   list is statutory and closed; Québec names no list and weighs more; a
+   common-law formation rule does not apply in Québec at all. Copy that renders
+   for every reader must be true for every reader, and `jurisdictionNotes` is
+   the only place the reader sees a rule attributed to a jurisdiction.
+   Guarded for T24 by `authoredTemplates.test.ts`; everywhere else it is
+   review, because no test can tell you a statute is characterised correctly.
+4. **The standing disclaimer** ships with generated documents, via the
    template's `note` block or the shared `Disclaimer` component — never
    retyped.
-4. **Compliance-oriented, never compliant.** No "legally compliant",
+5. **Compliance-oriented, never compliant.** No "legally compliant",
    "guaranteed compliant", or "legal advice".
-5. **Figures.** Public editorial content states no statutory figures
+6. **Figures.** Public editorial content states no statutory figures
    (AGENTS.md). In-product tools are not covered by that rule, but Ring 4's
    pay-stub and RRSP/TFSA guides and Ring 2's parental-leave guide are
    inherently figure-heavy and would need annual maintenance. **Decide the
