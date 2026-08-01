@@ -123,6 +123,11 @@ describe.each(referenceGuides.map((g) => [g.slug, g] as const))('guide: %s', (_s
       if (value.en.split(/\s+/).length > 3) {
         expect(value.fr, `${path} is untranslated`).not.toBe(value.en)
       }
+      /* Guide copy renders as text, not markdown — `**emphasis**` reaches the
+         reader as asterisks. Caught in review after two guides had shipped
+         with it, so it is a test rather than a convention. */
+      expect(value.en, `${path} carries markdown that will render literally`).not.toMatch(/\*\*/)
+      expect(value.fr, `${path} carries markdown that will render literally`).not.toMatch(/\*\*/)
     }
   })
 })

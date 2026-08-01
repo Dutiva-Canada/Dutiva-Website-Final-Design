@@ -45,8 +45,8 @@ export const returnAfterMentalHealthLeaveGuide: ReferenceGuide = {
       heading: bi('The return is where it fails', 'C’est au retour que cela échoue'),
       blocks: [
         p(
-          'Employers put their attention into the departure — the leave approved, the cover arranged, the benefit claim started — and treat the return as the day the problem ends. It is the day the risk starts. A second absence following a mishandled return is both more likely and longer than the first, and by then the employee has evidence that coming back does not work.',
-          'Les employeurs concentrent leur attention sur le départ — le congé approuvé, le remplacement organisé, la demande de prestations lancée — et voient le retour comme le jour où le problème se termine. C’est le jour où le risque commence. Une seconde absence consécutive à un retour mal géré est à la fois plus probable et plus longue que la première, et la personne a désormais la preuve que revenir ne fonctionne pas.',
+          'Employers put their attention into the departure — the leave approved, the cover arranged, the benefit claim started — and treat the return as the day the problem ends. It is the day the risk starts. Mental health conditions recur, a return that goes badly is one of the things a plan can do something about, and an employee who tried to come back and found it unworkable has learned something about doing it again.',
+          'Les employeurs concentrent leur attention sur le départ — le congé approuvé, le remplacement organisé, la demande de prestations lancée — et voient le retour comme le jour où le problème se termine. C’est le jour où le risque commence. Les troubles de santé mentale sont récurrents, un retour qui se passe mal fait partie de ce sur quoi un plan peut agir, et la personne qui a tenté de revenir et a constaté que ce n’était pas viable en a tiré une leçon sur l’idée de recommencer.',
         ),
         p(
           'Two assumptions cause most of it. The first is that a fitness-to-return note means recovered; it means able to work under stated conditions, which is a different claim. The second is that the job the person left is the job waiting for them — after months of redistributed work, reorganised teams and a temporary replacement who is now good at it, that is rarely automatically true, and the obligation to make it true does not soften because it became inconvenient.',
@@ -140,7 +140,7 @@ export const returnAfterMentalHealthLeaveGuide: ReferenceGuide = {
       blocks: [
         li(
           'Have the return conversation on day one and make it short and practical: what changed while they were away, what they are picking up, what they are not.',
-          'Tenez la conversation de retour dès le premier jour, brève et concrète : ce qui a changé pendant l’absence, ce qu’ils reprennent, ce qu’ils ne reprennent pas.',
+          'Tenez la conversation de retour dès le premier jour, brève et concrète : ce qui a changé pendant l’absence, ce que la personne reprend, ce qu’elle ne reprend pas.',
         ),
         li(
           'Do not open with an appraisal, a backlog, or a restructure announcement. Whatever is waiting, it can wait a week.',

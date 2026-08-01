@@ -477,6 +477,10 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
       if (value.en.split(/\s+/).length > 3) {
         expect(value.fr, `${path} is untranslated`).not.toBe(value.en)
       }
+      /* Flow copy renders as text, not markdown — `**emphasis**` reaches the
+         reader as asterisks. Same guard as `GuideView.test.tsx`. */
+      expect(value.en, `${path} carries markdown that will render literally`).not.toMatch(/\*\*/)
+      expect(value.fr, `${path} carries markdown that will render literally`).not.toMatch(/\*\*/)
     }
   })
 

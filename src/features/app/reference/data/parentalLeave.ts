@@ -48,12 +48,12 @@ export const parentalLeaveGuide: ReferenceGuide = {
           'La chose la plus utile à comprendre pour un employeur est que le congé et l’argent constituent deux systèmes distincts, administrés par des organismes différents, avec des règles et des échéanciers différents.',
         ),
         li(
-          '**Job protection** comes from employment standards legislation — your provincial act, or the Canada Labour Code if you are federally regulated. It is what says the employee can go, for how long, and what they come back to. This is your obligation.',
-          '**La protection d’emploi** découle de la législation sur les normes du travail — votre loi provinciale, ou le Code canadien du travail si vous êtes de compétence fédérale. C’est elle qui prévoit le droit de s’absenter, la durée et ce à quoi la personne revient. C’est votre obligation.',
+          'Job protection comes from employment standards legislation — your provincial act, or the Canada Labour Code if you are federally regulated. It is what says the employee can go, for how long, and what they come back to. This is your obligation.',
+          'La protection d’emploi découle de la législation sur les normes du travail — votre loi provinciale, ou le Code canadien du travail si vous êtes de compétence fédérale. C’est elle qui prévoit le droit de s’absenter, la durée et ce à quoi la personne revient. C’est votre obligation.',
         ),
         li(
-          '**Income replacement** comes from Employment Insurance, or from the Québec Parental Insurance Plan in Québec. It is what the employee is paid while away, it is not paid by you, and you do not administer it.',
-          '**Le remplacement du revenu** provient de l’assurance-emploi ou, au Québec, du Régime québécois d’assurance parentale. C’est ce que touche l’employé(e) pendant son absence; ce n’est pas vous qui le versez ni ne l’administrez.',
+          'Income replacement comes from Employment Insurance, or from the Québec Parental Insurance Plan in Québec. It is what the employee is paid while away, it is not paid by you, and you do not administer it.',
+          'Le remplacement du revenu provient de l’assurance-emploi ou, au Québec, du Régime québécois d’assurance parentale. C’est ce que touche l’employé(e) pendant son absence; ce n’est pas vous qui le versez ni ne l’administrez.',
         ),
         p(
           'They interact, but neither one drives the other. The employee applies for the benefit themselves, and they are told not to wait for your Record of Employment to do it — your ROE supports a claim they have already started, it does not open it, and being on protected leave is not what makes them eligible. Nor do the two have to line up: an employee can be on protected leave after their benefit ends. Planning a return date from the benefit rather than from the leave is a common and consequential mistake.',

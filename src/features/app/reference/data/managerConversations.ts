@@ -47,7 +47,7 @@ export const managerConversationsGuide: ReferenceGuide = {
         ),
         p(
           'This is not a softening device. It is the line between a conversation you are entitled to have and one you are not, and it is what makes a note about the meeting defensible rather than evidence. An employer may observe and address work. An employer may not investigate an employee’s health, and a manager who tries has moved the organisation from "responded to a difficulty" to "made an employment decision informed by a perceived condition".',
-          'Ce n’est pas un procédé d’atténuation. C’est la frontière entre une conversation à laquelle vous avez droit et une autre, et c’est ce qui rend défendable une note sur la rencontre plutôt qu’incriminante. Un employeur peut observer le travail et l’aborder. Il ne peut enquêter sur la santé d’une personne, et le gestionnaire qui s’y essaie fait passer l’organisation de « a réagi à une difficulté » à « a pris une décision d’emploi éclairée par un état de santé perçu ».',
+          'Ce n’est pas un procédé d’atténuation. C’est la frontière entre une conversation à laquelle vous avez droit et une autre à laquelle vous n’avez pas droit, et c’est ce qui rend défendable une note sur la rencontre plutôt qu’incriminante. Un employeur peut observer le travail et l’aborder. Il ne peut enquêter sur la santé d’une personne, et le gestionnaire qui s’y essaie fait passer l’organisation de « a réagi à une difficulté » à « a pris une décision d’emploi éclairée par un état de santé perçu ».',
         ),
         contrast(
           bi(

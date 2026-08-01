@@ -54,13 +54,10 @@ export const mentalHealthResponseFlow: Flow = {
       options: [
         {
           id: 'crisis',
-          label: bi(
-            'Someone may be in danger right now',
-            'Une personne pourrait être en danger en ce moment',
-          ),
+          label: bi('Someone’s safety is at risk', 'La sécurité d’une personne est en jeu'),
           detail: bi(
-            'A threat to their own safety or someone else’s, whether stated or apparent.',
-            'Un risque pour leur propre sécurité ou celle d’autrui, exprimé ou manifeste.',
+            'Their own or someone else’s — whether that is happening right now or you have been told about it. The next step sorts which.',
+            'La leur ou celle d’autrui — que ce soit en train de se produire ou que vous en ayez été informé. L’étape suivante fait la distinction.',
           ),
           to: 'emergency',
         },
@@ -72,7 +69,7 @@ export const mentalHealthResponseFlow: Flow = {
           ),
           detail: bi(
             'In any words. They do not have to have named a condition or used the word "accommodation".',
-            'En quelque termes que ce soit. Elle n’a pas à avoir nommé un trouble ni employé le mot « accommodement ».',
+            'Quels que soient les mots employés. Elle n’a pas à avoir nommé un trouble ni prononcé le mot « accommodement ».',
           ),
           to: 'listen',
         },
@@ -100,8 +97,8 @@ export const mentalHealthResponseFlow: Flow = {
       tone: 'caution',
       title: bi('This is not an HR process yet', 'Il ne s’agit pas encore d’un processus RH'),
       body: bi(
-        'Call emergency services. Not the employee assistance programme, not HR, not a crisis line — those are for a concern that is not immediate, and this route is for danger that is. Stay with the person if you are with them. Do not investigate, do not ask what is wrong, and do not wait to find out whether it is serious enough — that judgement is not yours to make and making it costs time. Once help is on the way, tell one other person in the organisation who needs to know, and no one who does not.',
-        'Appelez les services d’urgence. Ni le programme d’aide aux employés, ni les RH, ni une ligne de crise — ceux-ci s’adressent à une préoccupation qui n’est pas immédiate, alors que ce parcours vise un danger qui l’est. Restez auprès de la personne si vous êtes avec elle. N’enquêtez pas, ne demandez pas ce qui ne va pas et n’attendez pas de savoir si c’est assez grave — ce jugement ne vous appartient pas et le poser prend du temps. Une fois les secours en route, informez une seule autre personne de l’organisation qui doit le savoir, et personne d’autre.',
+        'Two numbers, and which one depends on immediacy. If someone is in danger now, or needs urgent medical help, call 9-1-1. If this is suicidal thoughts or serious distress without immediate danger, 9-8-8 — the Suicide Crisis Helpline — is the better call: it is staffed for exactly this, it is there for you as the person who is worried and not only for the person in distress, and if emergency services turn out to be needed it will tell you so. If you cannot tell which of the two this is, call 9-8-8 and let them help you work it out. What you should not do is route it to the employee assistance programme or to HR and wait.',
+        'Deux numéros, et le choix dépend de l’immédiateté. Si une personne est en danger maintenant, ou a besoin de soins médicaux urgents, composez le 9-1-1. S’il s’agit d’idées suicidaires ou d’une grande détresse sans danger immédiat, le 9-8-8 — la Ligne d’aide en cas de crise de suicide — est le meilleur appel : on y répond précisément à cela, la ligne s’adresse aussi à vous en tant que personne inquiète et non seulement à la personne en détresse, et si les services d’urgence s’avèrent nécessaires, on vous le dira. Si vous n’arrivez pas à déterminer de quel cas il s’agit, composez le 9-8-8 et laissez-les vous aider à y voir clair. Ce qu’il ne faut pas faire, c’est acheminer la situation vers le programme d’aide aux employés ou les RH et attendre.',
       ),
       caution: bi(
         'Afterwards, the employment side resumes and it is ordinary: most often a leave, and a return that is planned rather than assumed. What must not happen is the incident becoming a performance record, or a story anyone else in the workplace is told.',
