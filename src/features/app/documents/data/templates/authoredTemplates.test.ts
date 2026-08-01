@@ -188,6 +188,41 @@ describe('medical privacy across every authored template', () => {
   })
 })
 
+describe('T31 investigation report — the federal de-identification rule', () => {
+  /* The Work Place Harassment and Violence Prevention Regulations require an
+     investigator's report not to reveal, directly or indirectly, anyone
+     involved. ON and QC have no such rule and naming the parties there is
+     normal, so the report is jurisdiction-split rather than de-identified
+     everywhere — which is exactly the kind of split that decays silently. */
+  const blocksFor = (jurisdiction: Jurisdiction) =>
+    resolveBlocks(template('T31'), { jurisdiction, headcount: 38, unionized: false })
+      .map((b) => b.text?.en ?? '')
+      .join('\n')
+
+  it('states the requirement on the face of the federal report', () => {
+    expect(blocksFor('FED')).toMatch(/de-identified/i)
+  })
+
+  it('does not impose it on ON or QC, where no such rule applies', () => {
+    expect(blocksFor('ON')).not.toMatch(/de-identified/i)
+    expect(blocksFor('QC')).not.toMatch(/de-identified/i)
+  })
+
+  it('renders exactly one parties clause per jurisdiction', () => {
+    /* Two gated ON/QC variants plus a FED one — a copy-paste slip that leaves
+       two matching the same jurisdiction shows up as a duplicated clause in a
+       customer's document, not as a type error. */
+    for (const jurisdiction of JURISDICTIONS) {
+      const parties = resolveBlocks(template('T31'), {
+        jurisdiction,
+        headcount: 38,
+        unionized: false,
+      }).filter((b) => b.heading?.en === 'Parties')
+      expect(parties, jurisdiction).toHaveLength(1)
+    }
+  })
+})
+
 describe('the Ring 1 gaps the framework listed', () => {
   it('are all closed', () => {
     /* docs/FOUR_RING_FRAMEWORK.md recorded eight Ring 1 tools from the April

@@ -47,8 +47,8 @@ export const tplT29: DocTemplate = {
       fr: 'Loi sur l’assurance-emploi et ses règlements — le relevé d’emploi est une obligation fédérale pour tout employeur',
     },
     {
-      en: 'Filed with Service Canada — not a document issued to the employee',
-      fr: 'Transmis à Service Canada — il ne s’agit pas d’un document remis à l’employé',
+      en: 'Filed with Service Canada — and on paper, Part 1 goes to the employee',
+      fr: 'Transmis à Service Canada — et, sur papier, la partie 1 est remise à l’employé',
     },
     {
       en: 'Employment standards — final pay and vacation pay feed the insurable amounts',
@@ -231,15 +231,15 @@ export const tplT29: DocTemplate = {
     {
       type: 'meta',
       text: {
-        en: '{{org}} · {{employee_name}} · Internal — the ROE itself is filed with Service Canada',
-        fr: '{{org}} · {{employee_name}} · Interne — le relevé d’emploi lui-même est transmis à Service Canada',
+        en: '{{org}} · {{employee_name}} · Internal — this record is not the ROE',
+        fr: '{{org}} · {{employee_name}} · Interne — le présent dossier n’est pas le relevé d’emploi',
       },
     },
     {
       type: 'para',
       text: {
-        en: 'This record assembles what the Record of Employment for {{employee_name}} needs, and keeps the reasoning behind the reason code on file. The ROE is filed with Service Canada; it is not a document issued to the employee, though they are entitled to see what was reported.',
-        fr: 'Le présent dossier rassemble les éléments requis au relevé d’emploi de {{employee_name}} et conserve le raisonnement justifiant le code de motif. Le relevé d’emploi est transmis à Service Canada; il ne s’agit pas d’un document remis à l’employé(e), qui a néanmoins le droit de savoir ce qui a été déclaré.',
+        en: 'This record assembles what the Record of Employment for {{employee_name}} needs, and keeps the reasoning behind the reason code on file. It is not the ROE itself. Where you file electronically, the ROE goes to Service Canada and the employee reaches it through their own Service Canada account — you do not hand them a copy. Where you file on paper, Part 1 of the form is the employee’s and must be given to them.',
+        fr: 'Le présent dossier rassemble les éléments requis au relevé d’emploi de {{employee_name}} et conserve le raisonnement justifiant le code de motif. Il ne constitue pas le relevé d’emploi lui-même. En cas de transmission électronique, le relevé est acheminé à Service Canada et l’employé(e) y accède par son propre compte Service Canada — vous ne lui remettez aucune copie. En cas de transmission papier, la partie 1 du formulaire lui revient et doit lui être remise.',
       },
     },
     {

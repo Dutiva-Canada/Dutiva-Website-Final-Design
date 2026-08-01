@@ -64,8 +64,8 @@ export const tplT31: DocTemplate = {
       fr: 'La Loi sur les normes du travail oblige l’employeur à se doter d’une politique de prévention du harcèlement psychologique et de traitement des plaintes, et à prendre les moyens raisonnables pour faire cesser le harcèlement dès qu’il en est informé. La Charte des droits et libertés de la personne s’applique lorsque la conduite met en cause un motif protégé.',
     },
     FED: {
-      en: 'The Work Place Harassment and Violence Prevention Regulations under the Canada Labour Code set the resolution process, the qualifications an investigator must meet, and the timelines. Confirm this report satisfies what those Regulations require of an investigator’s report before relying on it.',
-      fr: 'Le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail, pris sous le Code canadien du travail, établit le processus de règlement, les qualifications exigées de l’enquêteur et les délais. Vérifiez que le présent rapport satisfait aux exigences de ce règlement quant au rapport de l’enquêteur avant de vous y fier.',
+      en: 'The Work Place Harassment and Violence Prevention Regulations under the Canada Labour Code set the resolution process, the qualifications an investigator must meet, and the timelines. They also require the investigator’s report not to reveal, directly or indirectly, the identity of anyone involved in the occurrence or the resolution process — so the federal version of this report is written de-identified throughout, and the identifying material stays in the employer’s separate investigation file.',
+      fr: 'Le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail, pris sous le Code canadien du travail, établit le processus de règlement, les qualifications exigées de l’enquêteur et les délais. Il exige aussi que le rapport de l’enquêteur ne révèle, directement ou indirectement, l’identité d’aucune personne en cause dans l’incident ou dans le processus de règlement — la version fédérale du présent rapport est donc rédigée sans élément identificatoire, et les renseignements identificatoires demeurent au dossier d’enquête distinct de l’employeur.',
     },
   },
   includes: [
@@ -128,6 +128,10 @@ export const tplT31: DocTemplate = {
       },
       type: 'textarea',
       required: true,
+      hint: {
+        en: 'Federally regulated: use role descriptors only — "principal party", "responding party" — and no names, here or in any later field. The Work Place Harassment and Violence Prevention Regulations require the investigator’s report not to reveal, directly or indirectly, who was involved.',
+        fr: 'Compétence fédérale : n’employez que des désignations fonctionnelles — « partie principale », « partie intimée » — sans aucun nom, ici comme dans les champs suivants. Le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail exige que le rapport de l’enquêteur ne révèle, directement ou indirectement, l’identité d’aucune personne en cause.',
+      },
       placeholder: {
         en: 'Complainant and respondent, and their roles.',
         fr: 'Personne plaignante et personne mise en cause, et leurs fonctions.',
@@ -270,6 +274,10 @@ export const tplT31: DocTemplate = {
         fr: 'Le présent rapport expose les conclusions d’une enquête menée pour {{org}} par {{investigator}}. Chaque allégation a été appréciée séparément, selon la prépondérance des probabilités — soit s’il est plus probable qu’improbable qu’elle se soit produite.',
       },
     },
+    /* Two variants, because ClauseGate matches a jurisdiction positively and
+       cannot express "not FED". ON and QC name the parties, which is normal
+       and useful there; the federal variant carries the de-identification
+       requirement on the face of the report instead. */
     {
       type: 'clause',
       text: {
@@ -280,6 +288,39 @@ export const tplT31: DocTemplate = {
       heading: {
         en: 'Parties',
         fr: 'Parties',
+      },
+      when: {
+        juris: 'ON',
+      },
+    },
+    {
+      type: 'clause',
+      text: {
+        en: '{{parties}}',
+        fr: '{{parties}}',
+      },
+      n: 1,
+      heading: {
+        en: 'Parties',
+        fr: 'Parties',
+      },
+      when: {
+        juris: 'QC',
+      },
+    },
+    {
+      type: 'clause',
+      text: {
+        en: '{{parties}} This report is written de-identified: the parties and every other person involved are described by role, never by name, as the Work Place Harassment and Violence Prevention Regulations require of an investigator’s report. Anything that would identify someone — names, and details specific enough to point to a person — stays in {{org}}’s separate investigation file and does not appear below.',
+        fr: '{{parties}} Le présent rapport est rédigé sans élément identificatoire : les parties et toute autre personne en cause sont désignées par leur rôle, jamais par leur nom, comme l’exige du rapport de l’enquêteur le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail. Tout élément permettant d’identifier une personne — noms et détails assez précis pour la désigner — demeure au dossier d’enquête distinct de {{org}} et ne figure pas ci-dessous.',
+      },
+      n: 1,
+      heading: {
+        en: 'Parties',
+        fr: 'Parties',
+      },
+      when: {
+        juris: 'FED',
       },
     },
     {

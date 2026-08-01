@@ -37,8 +37,8 @@ export const tplT26: DocTemplate = {
   usageCount: 0,
   statutory: [
     {
-      en: 'Contract law — a term that restricts the employee needs fresh consideration',
-      fr: 'Droit des contrats — une clause qui restreint l’employé exige une contrepartie nouvelle',
+      en: 'Varying a contract — a new restriction needs more than the employee carrying on working',
+      fr: 'Modifier un contrat — une nouvelle restriction exige plus que la simple poursuite du travail',
     },
     {
       en: 'Employment standards — continuous service carries across the change',
@@ -51,12 +51,12 @@ export const tplT26: DocTemplate = {
   ],
   jurisdictionNotes: {
     ON: {
-      en: 'Continuous employment under the Employment Standards Act, 2000 runs from the original hire date, and a promotion does not reset it for notice or severance. If this letter introduces a termination clause, it is a new restriction and needs consideration beyond the raise itself to be enforceable.',
-      fr: 'L’emploi continu au sens de la Loi de 2000 sur les normes d’emploi court depuis la date d’embauche initiale, et une promotion ne le remet pas à zéro aux fins du préavis ou de l’indemnité. Si la présente lettre introduit une clause de cessation, il s’agit d’une nouvelle restriction qui exige une contrepartie distincte de l’augmentation pour être exécutoire.',
+      en: 'Continuous employment under the Employment Standards Act, 2000 runs from the original hire date, and a promotion does not reset it for notice or severance. Adding a restriction — a termination clause, a covenant — makes this a variation of the contract, and a variation needs fresh consideration. Continued employment is not consideration, and neither is a raise the employee was already entitled to; a genuinely new benefit given expressly in exchange for the new term can be. Which of those you have is exactly the question to put to a lawyer.',
+      fr: 'L’emploi continu au sens de la Loi de 2000 sur les normes d’emploi court depuis la date d’embauche initiale, et une promotion ne le remet pas à zéro aux fins du préavis ou de l’indemnité. Ajouter une restriction — clause de cessation, engagement restrictif — fait de la présente lettre une modification du contrat, et une modification exige une contrepartie nouvelle. La poursuite de l’emploi n’en est pas une, pas plus qu’une augmentation à laquelle l’employé(e) avait déjà droit; un avantage véritablement nouveau, accordé expressément en échange de la nouvelle clause, peut en constituer une. Déterminer laquelle de ces situations est la vôtre est précisément la question à poser à un avocat.',
     },
     QC: {
-      en: 'The Act respecting labour standards counts uninterrupted service from the original hire date. Employment documents must be available in French, and the Civil Code obligation of good faith applies to how a change in conditions is presented.',
-      fr: 'La Loi sur les normes du travail calcule le service continu depuis la date d’embauche initiale. Les documents d’emploi doivent être disponibles en français, et l’obligation de bonne foi du Code civil s’applique à la façon dont un changement de conditions est présenté.',
+      en: 'The Act respecting labour standards counts uninterrupted service from the original hire date, and employment documents must be available in French. Québec is civil law: amending a contract turns on the employee’s free and informed consent and on the Civil Code obligation of good faith, not on the common-law requirement of fresh consideration. A new restriction agreed to under pressure, or without the employee understanding what changed, is the exposure here.',
+      fr: 'La Loi sur les normes du travail calcule le service continu depuis la date d’embauche initiale, et les documents d’emploi doivent être disponibles en français. Le Québec relève du droit civil : la modification d’un contrat repose sur le consentement libre et éclairé de l’employé(e) et sur l’obligation de bonne foi du Code civil, et non sur l’exigence de common law d’une contrepartie nouvelle. Le risque tient ici à une nouvelle restriction acceptée sous pression, ou sans que l’employé(e) comprenne ce qui a changé.',
     },
     FED: {
       en: 'Continuous employment under the Canada Labour Code, Part III runs from the original hire date. Where the new role changes hours, scheduling or overtime treatment, confirm those against Part III rather than assuming a salaried title removes them.',
@@ -298,8 +298,8 @@ export const tplT26: DocTemplate = {
     {
       type: 'note',
       text: {
-        en: 'If you intend to add a term that restricts the employee — a termination clause, a non-competition or non-solicitation covenant, a change of jurisdiction — do not attach it here. A raise is not consideration for a restriction the employee did not previously carry, and a clause added this way is commonly found unenforceable. Use the restrictive covenants agreement (T08) and get it reviewed.',
-        fr: 'Si vous comptez ajouter une clause restreignant l’employé(e) — clause de cessation, de non-concurrence ou de non-sollicitation, changement de for — ne l’intégrez pas ici. Une augmentation ne constitue pas une contrepartie pour une restriction que l’employé(e) n’assumait pas auparavant, et une clause ajoutée de cette façon est souvent jugée inexécutoire. Utilisez l’entente de clauses restrictives (T08) et faites-la réviser.',
+        en: 'If you intend to add a term that restricts the employee — a termination clause, a non-competition or non-solicitation covenant, a change of jurisdiction — do not attach it to this letter. A restriction stapled to a promotion is routinely found unenforceable, because what supported it was continued employment or a raise the employee had already earned rather than anything given for the new term. A genuinely new benefit, offered expressly in exchange and with room to consider it, is a different arrangement — and one to set up deliberately, in the restrictive covenants agreement (T08), with legal review.',
+        fr: 'Si vous comptez ajouter une clause restreignant l’employé(e) — clause de cessation, de non-concurrence ou de non-sollicitation, changement de for — ne la joignez pas à la présente lettre. Une restriction greffée à une promotion est régulièrement jugée inexécutoire, parce que ce qui l’appuyait était la poursuite de l’emploi ou une augmentation déjà acquise, et non un avantage accordé pour la nouvelle clause. Un avantage véritablement nouveau, offert expressément en échange et avec le temps d’y réfléchir, constitue un arrangement différent — à mettre en place délibérément, dans l’entente de clauses restrictives (T08), avec une révision juridique.',
       },
       tone: 'risk',
     },
