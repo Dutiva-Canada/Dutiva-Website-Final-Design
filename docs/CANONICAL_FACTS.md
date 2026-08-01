@@ -5,52 +5,60 @@
 A July 2026 audit of the company Google Drive found seven load-bearing facts about
 Dutiva each recorded several different ways across the business plans, the media kit
 and the launch brief, with no document marked as authoritative. This file is the
-resolution, and it lives in the repo deliberately: the facts below are *derived from
-this codebase*, so keeping them next to the code is what stops them drifting again.
+resolution, and it lives in the repo deliberately: the facts below are _derived from
+this codebase_, so keeping them next to the code is what stops them drifting again.
 
 **The rule.** Where any Dutiva document disagrees with this file, this file wins.
 Where this file disagrees with the code, **the code wins** and this file gets
 corrected. When you change one of the values below, update this file in the same PR.
+
+**The rule is enforced.** `npm run check` derives every code-backed row below
+from the code and fails when the two disagree — so this file cannot quietly
+decay the way the Drive documents it replaced did. Two halves:
+`src/canonicalFacts.test.ts` for the rows backed by TypeScript values, and
+`scripts/check-canonical-facts.mjs` (`npm run check:facts`) for the brand
+rows, whose values live in CSS that Vitest cannot read. Adding a code-backed
+fact here means adding its check to one of them.
 
 A mirror of this document lives in Drive as `Dutiva_Canonical_Facts_2026-07` for
 people who don't read the repo. Re-export it when this file changes.
 
 ## Verified against the product
 
-| Fact | Value | Source of truth |
-| --- | --- | --- |
-| Templates shipped | **16** — T01…T16 | `src/features/app/documents/data/templates/` |
-| Jurisdictions | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III) | jurisdiction codes `ON`, `QC`, `FED` |
-| Pricing | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo | `src/config/plans.ts` → `PLANS` |
-| Annual billing | 10 of 12 months charged (two months free) | `ANNUAL_MONTHS_BILLED` |
-| Beta state | Paid plans **shown but not sold** | `PAID_PLANS_DISABLED_DURING_BETA` |
-| Rings live | **Ring 1 only.** Rings 2–4 are roadmap. | `src/features/app/` |
-| Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30) | `src/features/app/guidance/monitoringCoverage.ts` |
-| Contact address | **support@dutiva.ca** | 76 occurrences site-wide |
-| Languages | EN + FR, both surfaces, prerendered per locale | `src/i18n/` — EN unprefixed, FR under `/fr` |
-| Brand gold | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877` | `src/styles/tokens.css` |
-| Brand navy | `#0d1b2a` ground, `#081019` deep | `src/styles/tokens.css` |
+| Fact                  | Value                                                                       | Source of truth                                                         |
+| --------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Templates shipped     | **16** — T01…T16                                                            | `src/features/app/documents/data/templates/`                            |
+| Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)          | jurisdiction codes `ON`, `QC`, `FED`                                    |
+| Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                | `src/config/plans.ts` → `PLANS`                                         |
+| Annual billing        | 10 of 12 months charged (two months free)                                   | `ANNUAL_MONTHS_BILLED`                                                  |
+| Beta state            | Paid plans **shown but not sold**                                           | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
+| Rings live            | **Ring 1 only.** Rings 2–4 are roadmap.                                     | `src/features/app/`                                                     |
+| Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30) | `src/features/app/guidance/monitoringCoverage.ts`                       |
+| Contact address       | **support@dutiva.ca**                                                       | the published support address; retired ones stay retired (§6, enforced) |
+| Languages             | EN + FR, both surfaces, prerendered per locale                              | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
+| Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                  | `src/styles/tokens.css`                                                 |
+| Brand navy            | `#0d1b2a` ground, `#081019` deep                                            | `tokens.css` (ground), `surfaces.css` / `patterns.css` (deep)           |
 
 ## Company and legal
 
 Confirmed by the founder, July 2026. Rows marked **unverified** come from Business
 Plan v1.6 only and have not been checked against a filing.
 
-| Fact | Value | Confidence |
-| --- | --- | --- |
-| Legal name | Dutiva Canada Inc. | consistent everywhere |
-| Registered office | 2967 Dundas St. W., Suite 1485, Toronto, ON M6P 1Z2 | confirmed — use in legal/corporate contexts |
-| Operating city | Ottawa, Ontario | confirmed — use in marketing/press contexts |
-| Founder | Martin Constantineau, Founder & CEO — always full name | confirmed |
-| Incorporation | Federal (CBCA), 27 March 2026 | **unverified** |
-| Trademark | CIPO application, classes 009/035/041/042/044 | **unverified** |
-| Business phone | 1 (800) 349-0297 | **unverified** — absent from the site |
+| Fact              | Value                                                  | Confidence                                  |
+| ----------------- | ------------------------------------------------------ | ------------------------------------------- |
+| Legal name        | Dutiva Canada Inc.                                     | consistent everywhere                       |
+| Registered office | 2967 Dundas St. W., Suite 1485, Toronto, ON M6P 1Z2    | confirmed — use in legal/corporate contexts |
+| Operating city    | Ottawa, Ontario                                        | confirmed — use in marketing/press contexts |
+| Founder           | Martin Constantineau, Founder & CEO — always full name | confirmed                                   |
+| Incorporation     | Federal (CBCA), 27 March 2026                          | **unverified**                              |
+| Trademark         | CIPO application, classes 009/035/041/042/044          | **unverified**                              |
+| Business phone    | 1 (800) 349-0297                                       | **unverified** — absent from the site       |
 
 ## Launch status
 
 May 2026 and September 2026 have both been published as launch dates and both have
 passed. **Do not publish a new calendar date.** Tie the language to product state:
-Dutiva is *in beta, and launches when paid plans open*. That stays true until
+Dutiva is _in beta, and launches when paid plans open_. That stays true until
 `PAID_PLANS_DISABLED_DURING_BETA` is flipped, at which point it becomes true in the
 other direction by itself.
 
@@ -82,7 +90,7 @@ not the outcome, until that resolves.
 ### 3. Counts
 
 **16** templates — not 20, "20+" or 47. **3** jurisdictions — not 4 or 14.
-Federally regulated remote work is a supported *scenario* under `FED`, not a fourth
+Federally regulated remote work is a supported _scenario_ under `FED`, not a fourth
 jurisdiction. Alberta and BC stay labelled roadmap.
 
 ### 4. Rings 2–4 as shipped

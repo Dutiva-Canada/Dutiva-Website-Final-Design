@@ -3,7 +3,33 @@
 Instructions for AI coding agents working in this repository (Claude Code,
 Codex, Cursor, Copilot, etc.). See [CONVENTIONS.md](CONVENTIONS.md) for the
 full engineering conventions this file summarizes — read it before making any
-non-trivial change.
+non-trivial change, and [docs/README.md](docs/README.md) for the documentation
+index.
+
+## Facts come from one place
+
+**[docs/CANONICAL_FACTS.md](docs/CANONICAL_FACTS.md) is the source of record**
+for every load-bearing fact about Dutiva — template and jurisdiction counts,
+pricing, company details, launch status, and the list of claims that must not
+be made. Dutiva is a compliance product, so a wrong fact is a product defect,
+not a typo.
+
+Read it before writing or changing any customer-facing number, capability
+claim, or statement about what Dutiva covers. Its precedence rule: where that
+file disagrees with the code, **the code wins and the file gets corrected** —
+in the same PR. `npm run check` enforces this and fails on drift
+(`src/canonicalFacts.test.ts` plus `npm run check:facts`).
+
+Two standing rules that follow from it:
+
+- **Never state a statutory figure in public editorial content** — no
+  notice-week tables, dollar thresholds or deadline counts in `/guides` or
+  `/blog`. Name the statute, describe the shape of the rule, point at the
+  official text. See `src/features/marketing/articles/articleModel.ts`;
+  enforced by `articles.test.ts`.
+- **Don't upgrade a hedge into a claim.** "Compliance-oriented" is not
+  "compliant"; "monitored" is not "covered". Where the product states a
+  limitation, that wording is deliberate.
 
 ## Project
 

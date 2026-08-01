@@ -109,12 +109,30 @@ to paste into an AI chat — so "change that button" becomes an exact,
 file-anchored instruction. It's compiled out of the production build entirely.
 Details in [docs/DEV_ANNOTATIONS.md](docs/DEV_ANNOTATIONS.md).
 
+## Canonical facts
+
+[docs/CANONICAL_FACTS.md](docs/CANONICAL_FACTS.md) is the **source of record**
+for Dutiva's load-bearing facts — template and jurisdiction counts, pricing,
+company and legal details, launch status, and the claims that must not be made.
+Where it disagrees with the code, the code wins and the file gets corrected in
+the same PR — and `npm run check` enforces that, via
+`src/canonicalFacts.test.ts` for the rows backed by TypeScript values and
+`npm run check:facts` for the brand palette. Check it before publishing any
+number about Dutiva, anywhere — repo, deck, or media kit.
+
+Related standing rule: public `/guides` and `/blog` articles deliberately
+publish **no statutory figures**, because those go stale and become compliance
+representations the moment they are wrong. The rule is stated in
+`src/features/marketing/articles/articleModel.ts` and enforced by
+`articles.test.ts`.
+
 ## Architecture
 
 Working on this repo with an AI coding agent? Start with
 [AGENTS.md](AGENTS.md). See [CONVENTIONS.md](CONVENTIONS.md) for the full
 engineering conventions: directory layout, route map, theming/surface model,
-i18n rules, data layer, and the quality bar. In short:
+i18n rules, data layer, and the quality bar, and
+[docs/README.md](docs/README.md) for the documentation index. In short:
 
 - **React 19 + TypeScript (strict) + Vite + Tailwind v4.**
 - **Design tokens** ported from the Dutiva design system live in `src/styles/`;

@@ -41,6 +41,15 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
 
+      # Canonical-facts drift: the brand-palette rows of docs/CANONICAL_FACTS.md
+      # compared against src/styles/. The rest of that file's code-backed rows
+      # are covered by src/canonicalFacts.test.ts in the test step above; this
+      # half is separate only because Vitest runs with `css: false` and cannot
+      # read a stylesheet. A compliance product's source of record is worth
+      # keeping true — the file exists because seven facts had already drifted.
+      - name: Canonical facts
+        run: npm run check:facts
+
       # Production build: client + SSR bundles, prerendering of every public
       # page (EN + FR), and the dist-level SEO crawl validation
       # (scripts/validate-seo.mjs) — fails on any metadata/sitemap/link drift.
