@@ -244,8 +244,8 @@ export const tplT33: DocTemplate = {
     {
       type: 'clause',
       text: {
-        en: '{{continuing}} Your service continues to accrue under {{statute}} for the whole of the leave.',
-        fr: '{{continuing}} Votre service continue de s’accumuler sous {{statute}} pendant toute la durée du congé.',
+        en: '{{continuing}} For the part of this leave that {{statute}} protects, service continues to accrue for its whole length — that is the statute’s rule, not ours. If we have agreed to time beyond the protected part, what continues during it is what is recorded above, and it continues because {{org}} has agreed to it here.',
+        fr: '{{continuing}} Pour la partie du congé que protège {{statute}}, le service continue de s’accumuler pendant toute sa durée — c’est la règle de la loi, non la nôtre. Si nous avons convenu d’une période au-delà de la partie protégée, ce qui se poursuit pendant celle-ci est ce qui est consigné ci-dessus, et s’y poursuit parce que {{org}} s’y engage par les présentes.',
       },
       n: 3,
       heading: {
@@ -256,8 +256,8 @@ export const tplT33: DocTemplate = {
     {
       type: 'clause',
       text: {
-        en: 'You return to the position you left, or to a comparable one if it no longer exists, at no less than the pay you would have been earning. Taking this leave will not be counted against you in any decision {{org}} makes. We will confirm the return in writing before it happens.',
-        fr: 'Vous réintégrerez le poste que vous avez quitté ou, s’il n’existe plus, un poste comparable, à une rémunération au moins égale à celle que vous auriez touchée. La prise de ce congé ne vous sera reprochée dans aucune décision de {{org}}. Nous confirmerons le retour par écrit avant qu’il n’ait lieu.',
+        en: 'At the end of the part of this leave that {{statute}} protects, the statute returns you to the position you left, or to a comparable one if it no longer exists, at no less than the pay you would have been earning. Where we have agreed to time beyond that part, {{org}} commits to the same return. Taking this leave will not be counted against you in any decision {{org}} makes. We will confirm the return in writing before it happens.',
+        fr: 'À la fin de la partie du congé que protège {{statute}}, la loi vous fait réintégrer le poste que vous avez quitté ou, s’il n’existe plus, un poste comparable, à une rémunération au moins égale à celle que vous auriez touchée. Lorsque nous avons convenu d’une période au-delà de cette partie, {{org}} s’engage au même retour. La prise de ce congé ne vous sera reprochée dans aucune décision de {{org}}. Nous confirmerons le retour par écrit avant qu’il n’ait lieu.',
       },
       n: 4,
       heading: {

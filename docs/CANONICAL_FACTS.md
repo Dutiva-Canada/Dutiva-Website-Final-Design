@@ -43,7 +43,7 @@ people who don't read the repo. Re-export it when this file changes.
 | Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                | `src/config/plans.ts` → `PLANS`                                         |
 | Annual billing        | 10 of 12 months charged (two months free)                                   | `ANNUAL_MONTHS_BILLED`                                                  |
 | Beta state            | Paid plans **shown but not sold**                                           | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
-| Rings live            | **Ring 1, plus Ring 2 Pillars B and D.** Rings 3–4 are roadmap.             | `docs/FOUR_RING_FRAMEWORK.md`                                           |
+| Rings live            | **Ring 1; Ring 2 Pillars B and D, and part of C.** Rings 3–4 are roadmap.   | `docs/FOUR_RING_FRAMEWORK.md`                                           |
 | Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30) | `src/features/app/guidance/monitoringCoverage.ts`                       |
 | Contact address       | **support@dutiva.ca**                                                       | the published support address; retired ones stay retired (§6, enforced) |
 | Languages             | EN + FR, both surfaces, prerendered per locale                              | `src/i18n/` — EN unprefixed, FR under `/fr`                             |

@@ -56,13 +56,13 @@ export const parentalLeaveGuide: ReferenceGuide = {
           '**Le remplacement du revenu** provient de l’assurance-emploi ou, au Québec, du Régime québécois d’assurance parentale. C’est ce que touche l’employé(e) pendant son absence; ce n’est pas vous qui le versez ni ne l’administrez.',
         ),
         p(
-          'They interact — the leave is what makes someone available to claim, and your Record of Employment is what starts the claim — but they do not have to line up. An employee can be on protected leave after their benefit ends. Planning a return date from the benefit rather than from the leave is a common and consequential mistake.',
-          'Les deux interagissent — le congé rend la personne admissible et votre relevé d’emploi déclenche la demande — mais ils ne coïncident pas nécessairement. Une personne peut demeurer en congé protégé après la fin de sa prestation. Fixer une date de retour à partir de la prestation plutôt que du congé est une erreur courante et lourde de conséquences.',
+          'They interact, but neither one drives the other. The employee applies for the benefit themselves, and they are told not to wait for your Record of Employment to do it — your ROE supports a claim they have already started, it does not open it, and being on protected leave is not what makes them eligible. Nor do the two have to line up: an employee can be on protected leave after their benefit ends. Planning a return date from the benefit rather than from the leave is a common and consequential mistake.',
+          'Les deux interagissent, mais ni l’un ni l’autre ne commande l’autre. C’est l’employé(e) qui présente lui-même sa demande de prestations, et on lui indique de ne pas attendre votre relevé d’emploi pour le faire : votre relevé appuie une demande déjà entamée, il ne l’ouvre pas, et le fait d’être en congé protégé n’est pas ce qui rend admissible. Les deux ne coïncident pas nécessairement non plus : une personne peut demeurer en congé protégé après la fin de sa prestation. Fixer une date de retour à partir de la prestation plutôt que du congé est une erreur courante et lourde de conséquences.',
         ),
         contrast(
           bi(
-            'Your leave runs to the date in your letter. Your benefit is a separate arrangement with Service Canada, and if it ends sooner your leave does not.',
-            'Votre congé court jusqu’à la date indiquée dans votre lettre. Votre prestation constitue une entente distincte avec Service Canada et, si elle se termine plus tôt, votre congé se poursuit.',
+            'Your leave runs to the date in your letter. Your benefit is a separate arrangement with whoever pays it — Service Canada, or the QPIP if you work in Québec — and if it ends sooner your leave does not.',
+            'Votre congé court jusqu’à la date indiquée dans votre lettre. Votre prestation constitue une entente distincte avec l’organisme qui la verse — Service Canada, ou le RQAP si vous travaillez au Québec — et, si elle se termine plus tôt, votre congé se poursuit.',
           ),
           bi(
             'You are back when your EI runs out.',

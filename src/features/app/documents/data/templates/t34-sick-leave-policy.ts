@@ -225,8 +225,8 @@ export const tplT34: DocTemplate = {
     {
       type: 'clause',
       text: {
-        en: '{{long_absence}} If an illness turns out to be lasting, it stops being a sick-leave question and becomes an accommodation one — we will work through it with you rather than through this policy.',
-        fr: '{{long_absence}} Si une maladie s’avère durable, la question cesse de relever du congé de maladie pour relever de l’accommodement — nous la traiterons avec vous plutôt qu’au moyen de la présente politique.',
+        en: '{{long_absence}} If an illness turns out to be lasting, a second process starts alongside this one: accommodation. It does not replace this policy — your leave under it continues on its own terms, and paid entitlements keep running until they are used up — it adds a conversation about what would let you work, and what we would have to change for that.',
+        fr: '{{long_absence}} Si une maladie s’avère durable, un second processus s’ajoute au présent : l’accommodement. Il ne remplace pas la présente politique — votre congé s’y poursuit selon ses propres modalités et les droits rémunérés continuent de courir jusqu’à épuisement — il y ajoute une discussion sur ce qui vous permettrait de travailler et sur ce que nous devrions modifier pour cela.',
       },
       n: 4,
       heading: {
@@ -237,8 +237,8 @@ export const tplT34: DocTemplate = {
     {
       type: 'clause',
       text: {
-        en: 'Sick leave is not an attendance matter. Days taken under this policy are not counted as absences, do not appear in any attendance record, and are never a factor in a decision about your work, your pay or your future here. Our attendance policy says the same thing from its own side.',
-        fr: 'Le congé de maladie ne relève pas de la présence au travail. Les journées prises en vertu de la présente politique ne sont pas comptabilisées comme des absences, ne figurent dans aucun registre de présence et n’entrent jamais en compte dans une décision touchant votre travail, votre rémunération ou votre avenir ici. Notre politique de présence énonce la même règle de son côté.',
+        en: 'Sick leave is not an attendance matter. Days taken under this policy are recorded — we have to know what you have used and what is left, and so do you — but they are recorded as sick leave, not as absences, and they are never a factor in a decision about your work, your pay or your future here. Our attendance policy says the same thing from its own side.',
+        fr: 'Le congé de maladie ne relève pas de la présence au travail. Les journées prises en vertu de la présente politique sont consignées — nous devons savoir ce que vous avez utilisé et ce qu’il vous reste, et vous aussi — mais elles le sont à titre de congé de maladie et non d’absences, et elles n’entrent jamais en compte dans une décision touchant votre travail, votre rémunération ou votre avenir ici. Notre politique de présence énonce la même règle de son côté.',
       },
       n: 5,
       heading: {

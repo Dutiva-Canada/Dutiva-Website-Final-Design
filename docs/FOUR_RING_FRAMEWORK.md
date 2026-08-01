@@ -177,24 +177,38 @@ text.
 
 Nothing below is built. Counts are the framework's own.
 
-**Ring 2, remaining pillars — 6 tools.** Pillar A, Mental Health & EAP
+**Ring 2, remaining pillars — 7 tools.** Pillar A, Mental Health & EAP
 readiness (4): support checklist, EAP referral guide, return-to-work after
 mental health leave, manager conversation guide. Pillar C, Psychological
-Safety (2 of 4): bystander intervention guide and wellness action plan — the
-self-check is built, and the respectful workplace policy is already shipped as
-T13, see below. Pillar D is complete.
+Safety (3 of 4): respectful workplace policy, bystander intervention guide,
+wellness action plan — the self-check is built, and the policy is a special
+case, see below. Pillar D is complete.
 
-### Pillar C's respectful workplace policy is T13
+### Pillar C's respectful workplace policy overlaps T13 — build it by widening T13
 
 The framework lists it as "comprehensive policy covering harassment,
-discrimination, and inclusion". That is the harassment, discrimination &
-violence policy already in the catalogue as **T13** — same subject, same
+discrimination, and inclusion". Most of that is the harassment, discrimination
+& violence policy already in the catalogue as **T13** — same subject, same
 audience, and a policy every jurisdiction Dutiva covers requires by statute.
+Not all of it: T13 carries no inclusion content, so the framework's third
+dimension is genuinely unbuilt, which is why this stays counted as remaining
+rather than done.
 
-Building a second one would put two overlapping conduct policies in front of
-the same employer, which is the near-duplicate problem the accommodation
-category already had once (T19 beside T23). Counted as done. If T13 is ever
-judged too narrow, widen T13 rather than minting a companion.
+**When it is built, widen T13. Do not mint a companion policy.** Two
+overlapping conduct policies in front of the same employer is the
+near-duplicate problem the accommodation category already had once (T19 beside
+T23), and an inclusion clause that lives apart from the harassment policy is
+the clause nobody reads.
+
+That is more than an authoring job, and worth knowing before it is picked up.
+T13 is a **generated** file — `t13-harassment-policy.ts` carries the
+`do not hand-edit / regenerate with scripts/generate-doclib.mjs` header — and
+the generator does not run: dead Windows paths, and its source JSON was never
+committed. It is also thin, two clauses against the eight or nine the authored
+templates carry. So widening it means first deciding whether T13 moves to
+hand-maintained the way `data/templates/` already is, or the generator is
+repaired. Take that decision deliberately; do not resolve it by quietly editing
+a file that says not to.
 
 ### Ring 2, Pillar D — Leave management
 
@@ -261,7 +275,8 @@ the sake of a round number.
 ### Grouped by what they cost to build
 
 The ring split describes the product; this split describes the work. 20 tools
-remain.
+remain — the same 20 as above, counted the other way: Ring 2's 7 + Ring 3's 9 +
+Ring 4's 4. **Change one of these tables and check the other still adds up.**
 
 | Shape                             | Count | Where it goes                                                  |
 | --------------------------------- | ----- | -------------------------------------------------------------- |
