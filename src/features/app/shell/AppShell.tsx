@@ -134,9 +134,17 @@ export function AppShell() {
      rules behind the matching media query, so CSS decides when it takes effect.
      Deriving it here from a window.innerHeight read during render both went
      stale on rotation and never matched a phone in landscape (which is wide
-     enough to leave `isMobile`). */
+     enough to leave `isMobile`).
+
+     The top inset is paid once, here, rather than per-component: box-sizing is
+     border-box, so the frame still measures exactly 100dvh and its content box
+     starts below the status bar — which holds the mobile topbar, the desktop
+     topbar and the sidebar clear of it together. Only non-zero in an installed
+     PWA (the manifest is `display: standalone`); Safari's own chrome already
+     reserves that space when browsing normally. The bottom inset is paid by
+     MobileNav, and the horizontal ones by body in base.css. */
   return (
-    <div className="surface-app landscape-compact flex h-dvh flex-col overflow-hidden bg-bg font-sans text-text">
+    <div className="surface-app landscape-compact flex h-dvh flex-col overflow-hidden bg-bg pt-[env(safe-area-inset-top)] font-sans text-text">
       {isMobile && (
         <MobileTopbar
           title={title}

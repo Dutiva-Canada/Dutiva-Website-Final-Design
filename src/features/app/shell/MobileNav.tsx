@@ -31,7 +31,7 @@ export function MobileTopbar({
     <header className="flex h-[56px] shrink-0 items-center justify-between border-b border-border bg-surface px-[14px]">
       {/* min-h/min-w 44px on every control: the icons stay their design size,
           but the hit area meets the iOS 44pt touch-target floor instead of the
-          ~30px box a bare 6px pad around an 19px glyph produced. */}
+          ~30px box a bare 6px pad around a 19px glyph produced. */}
       <button
         ref={triggerRef}
         type="button"
