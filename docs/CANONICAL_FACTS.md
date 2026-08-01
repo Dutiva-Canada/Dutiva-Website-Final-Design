@@ -12,13 +12,24 @@ this codebase_, so keeping them next to the code is what stops them drifting aga
 Where this file disagrees with the code, **the code wins** and this file gets
 corrected. When you change one of the values below, update this file in the same PR.
 
-**The rule is enforced.** `npm run check` derives every code-backed row below
-from the code and fails when the two disagree — so this file cannot quietly
-decay the way the Drive documents it replaced did. Two halves:
-`src/canonicalFacts.test.ts` for the rows backed by TypeScript values, and
-`scripts/check-canonical-facts.mjs` (`npm run check:facts`) for the brand
-rows, whose values live in CSS that Vitest cannot read. Adding a code-backed
-fact here means adding its check to one of them.
+**Most of the rule is enforced.** `npm run check` derives these rows from the
+code and fails when the two disagree, so they cannot quietly decay the way the
+Drive documents they replaced did:
+
+- **Templates shipped**, **Jurisdictions**, **Pricing**, **Annual billing**,
+  **Beta state**, **Law-change monitoring** (both the audit date and the
+  "not confirmed working" claim itself) — `src/canonicalFacts.test.ts`.
+- **Brand gold**, **Brand navy** — `scripts/check-canonical-facts.mjs`
+  (`npm run check:facts`), separate because their values live in CSS that
+  Vitest cannot read.
+- **Contact address** — partly. The retired addresses in §6 are enforced; that
+  `support@` is the published one is not.
+
+**Rings live** and **Languages** are maintained by hand — no check would catch
+them drifting. Treat them the way you treat the "Company and legal" table
+below: true because someone confirmed it, not because CI did. Adding a
+code-backed fact here means adding its check to one of the two files above,
+and adding it to this list.
 
 A mirror of this document lives in Drive as `Dutiva_Canonical_Facts_2026-07` for
 people who don't read the repo. Re-export it when this file changes.
@@ -36,8 +47,8 @@ people who don't read the repo. Re-export it when this file changes.
 | Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30) | `src/features/app/guidance/monitoringCoverage.ts`                       |
 | Contact address       | **support@dutiva.ca**                                                       | the published support address; retired ones stay retired (§6, enforced) |
 | Languages             | EN + FR, both surfaces, prerendered per locale                              | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
-| Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                  | `src/styles/tokens.css`                                                 |
-| Brand navy            | `#0d1b2a` ground, `#081019` deep                                            | `tokens.css` (ground), `surfaces.css` / `patterns.css` (deep)           |
+| Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                  | `tokens.css` `--gold-gradient`, `--gold-on-dark`                        |
+| Brand navy            | `#0d1b2a` ground, `#081019` deep                                            | `tokens.css` `--dutiva-navy`; `surfaces.css` `.surface-marketing --bg`  |
 
 ## Company and legal
 

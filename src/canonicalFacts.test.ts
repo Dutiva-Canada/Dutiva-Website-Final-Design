@@ -4,6 +4,7 @@ import { docTemplates } from '@/features/app/documents/data/templates'
 import {
   COVERAGE_AUDITED_ON,
   MONITORING_COVERAGE,
+  noSupportedJurisdictionCovered,
 } from '@/features/app/guidance/monitoringCoverage'
 
 /**
@@ -88,13 +89,20 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
     expect(templates).toContain(tids[tids.length - 1])
   })
 
-  it('states the supported jurisdiction count and every code', () => {
+  it('states the supported jurisdiction count and exactly those codes', () => {
     const jurisdictions = row('Jurisdictions')
     expect(boldNumbers(jurisdictions)).toContain(MONITORING_COVERAGE.length)
 
-    for (const { jurisdiction } of MONITORING_COVERAGE) {
-      expect(jurisdictions).toContain(jurisdiction)
-    }
+    /* Compared as a set against the backticked codes in the source cell, not
+       with `toContain` per code: substring checks pass while the row also
+       lists a jurisdiction the product dropped, which is the direction that
+       actually misleads — claiming coverage that does not exist. */
+    const documented = [...(cells(jurisdictions)[2] ?? '').matchAll(/`([A-Z]{2,3})`/g)]
+      .map((m) => m[1])
+      .sort()
+    const supported = MONITORING_COVERAGE.map((c) => c.jurisdiction).sort()
+
+    expect(documented).toEqual(supported)
   })
 
   it('states every paid plan price, and no price that is not a plan', () => {
@@ -121,8 +129,29 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
     expect(beta).toContain('not sold')
   })
 
-  it('cites the current law-monitoring coverage audit date', () => {
-    expect(row('Law-change monitoring')).toContain(COVERAGE_AUDITED_ON)
+  it('states the law-monitoring claim the coverage data actually supports', () => {
+    const monitoring = row('Law-change monitoring')
+    expect(monitoring).toContain(COVERAGE_AUDITED_ON)
+
+    /* The date alone is not the load-bearing part. The row asserts that *no*
+       supported jurisdiction has confirmed detection, and that is the
+       sentence customers and the Knowledge panel rely on. The day a source
+       strategy lands and a jurisdiction flips to `active`, this row becomes
+       false in the reassuring direction — the one a compliance product can
+       least afford — so the claim is checked against the data, not just
+       dated. */
+    if (noSupportedJurisdictionCovered()) {
+      expect(monitoring.toLowerCase()).toContain('not confirmed working')
+    } else {
+      const active = MONITORING_COVERAGE.filter((c) => c.status === 'active').map(
+        (c) => c.jurisdiction,
+      )
+      throw new Error(
+        `${active.join(', ')} now has confirmed detection, so "Not confirmed working for ` +
+          'any supported jurisdiction" is no longer true. Update the row, ' +
+          'monitoringCoverage.ts and CANONICAL_FACTS §5 together.',
+      )
+    }
   })
 })
 

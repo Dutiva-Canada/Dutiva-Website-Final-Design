@@ -21,6 +21,17 @@ describe('duration figures', () => {
     ['huit semaines de préavis', 'French written cardinal'],
     ['dans les 30 jours', 'French deadline in days'],
     ['trois mois de service continu', 'French months'],
+    /* Regressions: every one of these passed the first version of this
+       detector, whose cardinal list stopped at sixty, required the unit to
+       be adjacent, and had no singular French `an`. */
+    ['ninety days to respond', 'tens beyond sixty'],
+    ['3 business days', 'qualifier between quantity and unit'],
+    ['30 calendar days', 'qualifier between quantity and unit'],
+    ['one hundred hours', 'chained cardinals'],
+    ['two hundred and fifty hours', 'chained cardinals with "and"'],
+    ['une absence de 1 an', 'French singular an'],
+    ['a 30-minute meal break', 'ESA eating period, stated in minutes'],
+    ['10 jours ouvrables', 'French qualifier follows the unit'],
   ])('flags %j (%s)', (text) => {
     expect(mentionsEditorialFigure(text)).toBe(true)
   })
@@ -30,6 +41,10 @@ describe('duration figures', () => {
     ['Confirm the deadline against the statute before you rely on it.'],
     ["Le préavis varie selon l'ancienneté; vérifiez le barème applicable."],
     ['Document the decision the same day you make it.'],
+    /* The qualifier gap is an allowlist, not "any word or two", so ordinary
+       prose that puts a cardinal near a unit does not trip it. */
+    ['one of the days that matters most'],
+    ['Review it once a year, or whenever the law moves.'],
   ])('leaves figure-free guidance alone: %j', (text) => {
     expect(mentionsEditorialFigure(text)).toBe(false)
   })

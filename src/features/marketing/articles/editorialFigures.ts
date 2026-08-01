@@ -65,6 +65,11 @@ const CARDINALS = [
   'thirty',
   'forty',
   'fifty',
+  'seventy',
+  'eighty',
+  'ninety',
+  'hundred',
+  'thousand',
   'sixty',
   // French
   'deux',
@@ -86,6 +91,36 @@ const CARDINALS = [
   'quarante',
   'cinquante',
   'soixante',
+  'cent',
+  'cents',
+  'mille',
+]
+
+/**
+ * Words allowed between the quantity and the unit.
+ *
+ * English puts the qualifier in front of the noun ("3 business days"), which
+ * would otherwise break adjacency and let a deadline count through. French
+ * puts it after ("10 jours ouvrables"), so the quantity and unit are already
+ * adjacent there and no French entries are needed.
+ *
+ * An allowlist rather than "any word or two": a general gap would match "one
+ * of the days" and similar ordinary prose.
+ */
+const QUALIFIERS = [
+  'business',
+  'working',
+  'work',
+  'calendar',
+  'consecutive',
+  'clear',
+  'full',
+  'additional',
+  'further',
+  'regular',
+  'complete',
+  'paid',
+  'unpaid',
 ]
 
 /** Duration units a statutory entitlement or deadline is measured in. */
@@ -95,19 +130,35 @@ const UNITS = [
   'days?',
   'years?',
   'hours?',
-  // French
+  /* Minutes matter: the ESA's eating-period entitlement is stated in them,
+     so "a 30-minute break" is a statutory figure like any other. */
+  'minutes?',
+  /* French. Singular `an` is included so "1 an" is caught; a unit is only
+     ever reached directly after a quantity, so the English article "an"
+     cannot match on its own. */
   'semaines?',
   'mois',
   'jours?',
-  'ans',
+  'ans?',
   'ann[ée]es?',
   'heures?',
 ]
 
-const DURATION = new RegExp(
-  `\\b(?:\\d{1,4}|${CARDINALS.join('|')})[\\s -]*(?:${UNITS.join('|')})\\b`,
-  'i',
-)
+/**
+ * A quantity: digits, or a chain of cardinals ("one hundred", "seventy-five",
+ * "deux cents").
+ *
+ * Chained rather than enumerated because a flat list is always one compound
+ * away from a hole — the first version of this file stopped at sixty and let
+ * "ninety days" and "one hundred hours" straight through.
+ */
+const CARDINAL = `(?:${CARDINALS.join('|')})`
+const QUANTITY = `(?:\\d{1,4}|${CARDINAL}(?:[\\s-]+(?:(?:and|et)[\\s-]+)?${CARDINAL})*)`
+
+/** Allowlisted qualifiers sitting between the quantity and the unit. */
+const GAP = `(?:[\\s-]+(?:${QUALIFIERS.join('|')}))*[\\s-]*`
+
+const DURATION = new RegExp(`\\b${QUANTITY}${GAP}(?:${UNITS.join('|')})\\b`, 'i')
 
 /**
  * Money in any form the corpus could plausibly use.
