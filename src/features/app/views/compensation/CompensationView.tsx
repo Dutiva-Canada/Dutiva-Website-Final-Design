@@ -9,7 +9,9 @@ import { statusChipClass } from '@/components/chips'
 import { money } from '@/lib/money'
 import { useRail } from '@/features/app/rail/railContext'
 import { usePayRail } from '@/features/app/rail/useEntityRails'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { compensationMessages as M } from '@/i18n/messages/compensation'
+import { CompensationProductionView } from './CompensationProductionView'
 
 /**
  * Compensation view — restricted-module banner, payroll stat tiles, the
@@ -17,6 +19,11 @@ import { compensationMessages as M } from '@/i18n/messages/compensation'
  * per-employee compensation overview (table on desktop/tablet, row cards on
  * mobile). Port of the prototype's `isCompensationView` markup +
  * `buildCompensationView()` / `askAboutComp()` (App v2.dc.html).
+ *
+ * Production renders the real records (CompensationProductionView,
+ * public.hr_compensation_records) instead of the Northgate fixtures below.
+ * The fixture `market` figure has no production counterpart on purpose —
+ * see the production view's header.
  */
 
 interface CompRow {
@@ -47,6 +54,12 @@ const belowMarketCount = rows.filter((row) => row.delta < -4).length
 const GRID_COLS = 'grid-cols-[2.2fr_1.6fr_0.9fr_1.1fr_1fr_34px]'
 
 export function CompensationView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <CompensationProductionView />
+  return <CompensationDemoView />
+}
+
+function CompensationDemoView() {
   const { x } = useI18n()
   const navigate = useNavigate()
   const { openRail } = useRail()

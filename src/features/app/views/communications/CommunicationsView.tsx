@@ -8,13 +8,20 @@ import type { Communication, CommunicationDetail } from '@/data'
 import { statusChipClass } from '@/components/chips'
 import { useRail } from '@/features/app/rail/railContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { communicationsMessages as M } from '@/i18n/messages/communications'
+import { CommunicationsProductionView } from './CommunicationsProductionView'
 
 /**
  * Communications view — the announcement pipeline with Advisor review
  * dimensions, linked entities, and the sensitive-send review gate. Port of
  * the prototype's `isCommunicationsView` markup + `buildCommunicationsView()`
  * / `sendCommunication()` / `markCommSent()` (App v2.dc.html).
+ *
+ * Production renders the real log (CommunicationsProductionView,
+ * public.hr_communications) instead of the fixtures below. The review
+ * dimensions do not cross over — nothing performs that analysis, so they stay
+ * a demo device. See the production view's header.
  */
 
 /** View display order from the prototype's `buildCommunicationsView()`. */
@@ -31,6 +38,12 @@ const dimLabels: Record<(typeof DIM_KEYS)[number], Bi> = {
 }
 
 export function CommunicationsView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <CommunicationsProductionView />
+  return <CommunicationsDemoView />
+}
+
+function CommunicationsDemoView() {
   const { x, lang } = useI18n()
   const navigate = useNavigate()
   const { openRail, closeRail } = useRail()

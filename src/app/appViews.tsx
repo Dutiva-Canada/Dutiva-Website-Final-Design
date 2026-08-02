@@ -17,7 +17,8 @@ import { ModeGate } from '@/features/app/workspaceMode/ModeGate'
  * the real guidance panel), settings (hosts the toggle), and the Document
  * Studio screens (the template catalog is real product content — only the
  * fixture repository is gated). Remove a view's gate when it gains real
- * persistence.
+ * persistence — communications, compensation and wellbeing came off this way
+ * (migrations 0039–0041) and now dispatch on mode themselves.
  */
 function gated(view: ReactNode) {
   return <ModeGate>{view}</ModeGate>
@@ -99,9 +100,14 @@ export const appViewRoutes: RouteObject[] = [
   /* Founder/operator dashboard — admin-gated in the views + the edge function. */
   { path: 'support/admin', element: <SupportAdminView /> },
   { path: 'support/admin/:ticketId', element: <SupportAdminTicket /> },
-  { path: 'communications', element: gated(<CommunicationsView />) },
-  { path: 'compensation', element: gated(<CompensationView />) },
-  { path: 'wellbeing', element: gated(<WellbeingView />) },
+  /* Communications, Compensation and Wellbeing each handle both modes
+     themselves (real persistence in production — migrations 0040, 0039,
+     0041). Their production views are deliberately narrower than the demo:
+     no Advisor review chips, no market salary benchmark, and no per-person
+     wellbeing signals, because the product performs none of those. */
+  { path: 'communications', element: <CommunicationsView /> },
+  { path: 'compensation', element: <CompensationView /> },
+  { path: 'wellbeing', element: <WellbeingView /> },
   /* /app/tasks and /app/calendar redirect to their Planning sub-routes */
   { path: 'tasks', element: <Navigate to="/app/planning/tasks" replace /> },
   { path: 'calendar', element: <Navigate to="/app/planning/calendar" replace /> },

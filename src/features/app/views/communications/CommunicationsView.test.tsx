@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { ADVISOR_STREAM_TICK_MS, ADVISOR_THINK_MS } from '@/features/app/advisor/useAdvisorEngine'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
+import { mockProductionWorkspace } from '@/test/productionWorkspace'
 import { CommunicationsView } from './CommunicationsView'
 
 function renderView() {
@@ -106,5 +107,140 @@ describe('CommunicationsView', () => {
     /* The province and audience surface as rail context chips. */
     expect(screen.getByText('Multi-province')).toBeInTheDocument()
     expect(screen.getByText('All employees · 94 people')).toBeInTheDocument()
+  })
+})
+
+describe('CommunicationsView in production mode', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  const ROW = {
+    id: 'comm-1',
+    title: 'Restructuring announcement',
+    audience: 'All staff',
+    channel: 'email',
+    status: 'scheduled',
+    scheduled_for: '2026-09-01',
+    sent_on: null,
+    template_tid: 'T36',
+    note: 'Managers briefed first.',
+  }
+
+  function mockComms(initial: Record<string, unknown>[]) {
+    const rows = [...initial]
+    const insert = vi.fn((row: Record<string, unknown>) => ({
+      select: () => ({
+        single: () => {
+          const created = {
+            id: `comm-${rows.length + 1}`,
+            title: row.title,
+            audience: row.audience ?? null,
+            channel: row.channel,
+            status: row.status,
+            scheduled_for: row.scheduled_for ?? null,
+            sent_on: null,
+            template_tid: row.template_tid ?? null,
+            note: row.note ?? null,
+          }
+          rows.unshift(created)
+          return Promise.resolve({ data: created, error: null })
+        },
+      }),
+    }))
+    const update = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) }))
+    mockProductionWorkspace({
+      tables: {
+        hr_communications: () => ({
+          select: () => ({
+            eq: () => ({ order: () => Promise.resolve({ data: rows, error: null }) }),
+          }),
+          insert,
+          update,
+        }),
+      },
+    })
+    vi.resetModules()
+    return { insert, update }
+  }
+
+  it('renders the real log instead of the fixtures, and links the Ring 3 template', async () => {
+    mockComms([ROW])
+    const { renderApp: renderFresh } = await import('@/test/renderApp')
+    const { CommunicationsView: View } = await import('./CommunicationsView')
+
+    renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
+
+    expect(await screen.findByText('Restructuring announcement')).toBeInTheDocument()
+    expect(screen.getByText('1 message')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Team restructuring announcement/ })).toHaveAttribute(
+      'href',
+      '/app/documents/templates/T36',
+    )
+  })
+
+  /* The reason this module was rewritten rather than ported: the demo scored
+     every message on tone/legal/clarity/policy, and nothing in the product
+     performs that analysis. A green "Legal ✓" is a claim, not decoration. */
+  it('shows no Advisor review dimensions', async () => {
+    mockComms([ROW])
+    const { renderApp: renderFresh } = await import('@/test/renderApp')
+    const { CommunicationsView: View } = await import('./CommunicationsView')
+
+    renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
+    await screen.findByText('Restructuring announcement')
+
+    for (const dim of [/^Tone/, /^Legal/, /^Clarity/, /^Policy/]) {
+      expect(screen.queryByText(dim)).not.toBeInTheDocument()
+    }
+  })
+
+  /* And it never claims to deliver anything. */
+  it('marks a message sent as a record, saying plainly that Dutiva does not send', async () => {
+    const { update } = mockComms([ROW])
+    const { renderApp: renderFresh } = await import('@/test/renderApp')
+    const { CommunicationsView: View } = await import('./CommunicationsView')
+
+    renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
+    await screen.findByText('Restructuring announcement')
+
+    expect(
+      screen.getByText(/Dutiva does not deliver messages — marking one sent logs that you did\./),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Send' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mark as sent' }))
+    await waitFor(() => expect(update).toHaveBeenCalled())
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'sent', sent_on: expect.any(String) }),
+    )
+    await waitFor(() => expect(screen.getByText('Sent')).toBeInTheDocument())
+  })
+
+  it('logs a new message', async () => {
+    const { insert } = mockComms([])
+    const { renderApp: renderFresh } = await import('@/test/renderApp')
+    const { CommunicationsView: View } = await import('./CommunicationsView')
+
+    renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
+
+    expect(await screen.findByText('No messages logged yet')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Log a message' }))
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Office closure' } })
+    fireEvent.change(screen.getByLabelText('Channel'), { target: { value: 'intranet' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(insert).toHaveBeenCalled())
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organization_id: 'org-1',
+        title: 'Office closure',
+        channel: 'intranet',
+        status: 'draft',
+      }),
+    )
+    await waitFor(() => expect(screen.getByText('Office closure')).toBeInTheDocument())
   })
 })

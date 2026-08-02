@@ -5,30 +5,37 @@ import type { LandingMessageKey } from '../useLanding'
 import { IconChip } from './IconChip'
 
 /**
- * `roadmap: true` marks a module that is not shipped capability.
- * Compensation, Communications and Wellbeing exist in the app only as
- * prototype surfaces on demo fixtures, gated off in a production workspace
- * (`gated(…)` in src/app/appViews.tsx), so CANONICAL_FACTS §4 requires they be
- * presented as roadmap. The other four are real: compliance monitoring, people
- * and cases, the knowledge base, and analytics all run on live data.
+ * `roadmap: true` marks a module that is not shipped capability. **Nothing
+ * carries it today** — the flag and the note below are kept because the next
+ * module added will need them, not because everything here is aspirational.
  *
- * **These three chips are the modules, not the rings, and the rings being
- * complete does not promote them.** Rings 2, 3 and 4 ship as templates in
- * Document Studio, guides under `/app/knowledge` and flows under
- * `/app/workflows` — all of which the knowledge and monitoring chips already
- * cover. The name collision is the trap CANONICAL_FACTS §4 spells out: do not
- * drop `roadmap` here on the strength of a ring being finished. It comes off
- * when these three surfaces run on real workspace data.
+ * Compensation, Communications and Wellbeing were the last three, and they
+ * came off roadmap when they gained real persistence (migrations 0039–0041):
+ * each now dispatches to a production view on org-scoped tables rather than
+ * rendering demo fixtures behind `gated(…)`.
+ *
+ * **Their production views are narrower than their demos, deliberately.** No
+ * market salary benchmark, no Advisor review chips on a message, no
+ * per-person wellbeing signals — the product performs none of those, and each
+ * view's header says so. If marketing copy for these three ever describes a
+ * capability, check it against the view rather than against the demo.
+ *
+ * Still true, and still the trap CANONICAL_FACTS §4 spells out: **a chip is a
+ * module, not a ring.** Rings 2, 3 and 4 ship as templates in Document Studio,
+ * guides under `/app/knowledge` and flows under `/app/workflows`. A ring being
+ * complete was never what promoted a chip, and is not what promoted these.
  */
 const MODULES: { icon: LucideIcon; label: LandingMessageKey; roadmap?: true }[] = [
   { icon: ShieldCheck, label: 'landing_mod1_label' },
   { icon: Users, label: 'landing_mod2_label' },
   { icon: BookOpen, label: 'landing_mod3_label' },
-  { icon: Banknote, label: 'landing_mod4_label', roadmap: true },
-  { icon: Send, label: 'landing_mod5_label', roadmap: true },
-  { icon: Activity, label: 'landing_mod6_label', roadmap: true },
+  { icon: Banknote, label: 'landing_mod4_label' },
+  { icon: Send, label: 'landing_mod5_label' },
+  { icon: Activity, label: 'landing_mod6_label' },
   { icon: BarChart3, label: 'landing_mod7_label' },
 ]
+
+const hasRoadmapModule = MODULES.some((m) => m.roadmap === true)
 
 /** "One workspace" band — Advisor on top of day-to-day HR modules. */
 export function Modules() {
@@ -52,7 +59,13 @@ export function Modules() {
             />
           ))}
         </div>
-        <p className="mt-3.5 text-sm leading-6 text-text-muted">{lt('landing_mod_roadmap_note')}</p>
+        {/* The note explains the Roadmap chip, so it goes when no chip has
+            one — otherwise it points at a marker that is not on the page. */}
+        {hasRoadmapModule && (
+          <p className="mt-3.5 text-sm leading-6 text-text-muted">
+            {lt('landing_mod_roadmap_note')}
+          </p>
+        )}
       </div>
     </section>
   )
