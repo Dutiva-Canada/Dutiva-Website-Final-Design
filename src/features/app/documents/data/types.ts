@@ -71,7 +71,15 @@ export type TemplateSubject = 'candidate' | 'employee' | 'org' | 'external'
 
 export type QuestionType = 'text' | 'textarea' | 'date' | 'number' | 'select' | 'radio'
 
-export type PreviewBlockType = 'title' | 'meta' | 'para' | 'clause' | 'sig' | 'ack' | 'note'
+/**
+ * `fill` is a prompt the *reader* answers by hand — a heading, the guidance
+ * under it, and ruled space. Added for T44, which is issued blank because the
+ * wizard is employer-side and the plan is the employee's to write: rendering
+ * its prompts as `clause` produced explanatory prose with nowhere to put an
+ * answer, so the form could not actually be completed.
+ */
+export type PreviewBlockType =
+  'title' | 'meta' | 'para' | 'clause' | 'sig' | 'ack' | 'note' | 'fill'
 
 /** Chip tones used by the doclib status maps (superset of the app ramp). */
 export type DocChipTone = 'ok' | 'warn' | 'risk' | 'info' | 'neutral' | 'gold'
@@ -152,6 +160,8 @@ export interface PreviewBlock {
   roles?: Bi[]
   /** Callout severity (type 'note' only). */
   tone?: 'info' | 'risk'
+  /** Ruled lines to leave for a handwritten answer (type 'fill' only). */
+  lines?: number
   when?: ClauseGate
 }
 

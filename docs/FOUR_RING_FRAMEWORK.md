@@ -348,6 +348,23 @@ two-clause preview, so the template promised a document it did not produce,
 and there was no statement of what is _not_ harassment, which is the omission
 that makes managers afraid to manage.
 
+**A prompt the reader answers needs somewhere to write — `fill`.** Issuing
+T44 blank was right; rendering its prompts as `clause` was not, because
+`DocPaper` renders a clause as a heading and a paragraph and `PreviewBlock`
+had no response area. The delivered form was explanatory prose followed by
+signature lines, with nowhere to put an answer. `fill` is a heading, its
+guidance in italic, and `lines` ruled rows. Reach for it whenever a generated
+document asks its reader for something rather than telling them something.
+
+**A free-text answer merged into a policy needs a floor when the law sets
+one.** T13 asks how often the policy is reviewed and merged the answer
+verbatim, so "every four years" produced a policy that reads as compliant and
+is not — Ontario requires an annual review of the harassment programme and the
+federal Regulations require one at least every three years. The hint now names
+both, and `when.juris` clauses state the applicable minimum inside the
+document. The general form: where a merge field can be filled with an answer
+the law forbids, the document says what the law requires beside it.
+
 **T44 generates blank, and that is the design.** Review caught the first
 draft asking the wizard for the employee's own answers — `GenerateScreen` is
 employer-side, so a field for "what makes work harder" has an owner, HR lead

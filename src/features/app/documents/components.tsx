@@ -242,6 +242,30 @@ export function DocPaper({
                 </p>
               </div>
             )
+          case 'fill':
+            /* A prompt for the reader to answer by hand. The ruled lines are
+               the point — without them this is prose the reader cannot
+               respond to. */
+            return (
+              <div key={key} className="mt-3">
+                {block.heading && (
+                  <div className="text-[12px] font-bold">
+                    {block.n !== undefined ? `${block.n}. ` : ''}
+                    {d(block.heading)}
+                  </div>
+                )}
+                {text && (
+                  <p className="mt-0.5 text-[11.5px] text-text-muted italic">
+                    <MergeText text={text} values={values} />
+                  </p>
+                )}
+                <div className="mt-2 flex flex-col gap-[14px]" aria-hidden="true">
+                  {Array.from({ length: block.lines ?? 3 }, (_, i) => (
+                    <div key={i} className="border-b border-border" />
+                  ))}
+                </div>
+              </div>
+            )
           case 'ack':
             return (
               <p key={key} className="mt-4 italic">

@@ -142,10 +142,14 @@ CSA-certified, CSA-compliant, or an assessment against the Standard.
 The parental leave guide states no durations, notice periods or benefit
 amounts, by design (§6). Do not add figures to it.
 
-The wellness action plan (T44) is **not a medical record and not an
-accommodation**, and must not be described as either. It collects no
-diagnosis, completing one is voluntary, and it is filed under `wellbeing`
-rather than `accommodation` for exactly that reason.
+The wellness action plan (T44) **requests no diagnosis and is not an
+accommodation** — that is the claim to make, and it is narrower than it looks.
+The template asks nothing about a condition and issues blank for the employee
+to complete, but nothing stops someone volunteering health information in free
+text, so a completed plan must not be described as guaranteed non-medical.
+Treat every returned plan as sensitive personal information. It is filed under
+`wellbeing` rather than `accommodation` because completing one implies neither
+a disability nor a request.
 
 **Ring 3, Internal Communications, is complete** — nine templates (T35–T43) in
 Document Studio's Internal communications category, covering layoff and

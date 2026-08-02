@@ -205,8 +205,8 @@ export const tplT13: DocTemplate = {
         fr: 'p. ex. chaque année, et après tout incident.',
       },
       hint: {
-        en: 'Several jurisdictions require a review on a set cycle. Write the cycle you will actually keep — a policy dated four years ago is evidence on its own.',
-        fr: 'Plusieurs juridictions imposent une révision périodique. Inscrivez le cycle que vous respecterez réellement — une politique datée de quatre ans constitue une preuve en soi.',
+        en: 'This is a floor, not a preference. Ontario requires an annual review of the harassment programme, and the federal Regulations require one at least every three years — so "every four years" is not a slower choice, it is non-compliance. Write the cycle you will actually keep, at least as often as your jurisdiction requires; the clause below states the minimum that applies to you.',
+        fr: 'Il s’agit d’un seuil, non d’une préférence. L’Ontario exige une révision annuelle du programme contre le harcèlement et le règlement fédéral en exige une au moins tous les trois ans — « tous les quatre ans » n’est donc pas un choix plus espacé, mais un manquement. Inscrivez le cycle que vous respecterez réellement, au moins aussi souvent que l’exige votre juridiction; la clause ci-dessous énonce le minimum qui vous est applicable.',
       },
     },
   ],
@@ -382,6 +382,36 @@ export const tplT13: DocTemplate = {
       type: 'clause',
       n: 11,
       when: {
+        juris: 'ON',
+      },
+      heading: {
+        en: 'The review cycle the law requires here',
+        fr: 'Le cycle de révision exigé par la loi ici',
+      },
+      text: {
+        en: 'Whatever cycle is written above, the Occupational Health and Safety Act requires this programme to be reviewed at least annually. A longer interval does not replace that obligation, and a policy last reviewed beyond it is evidence in its own right.',
+        fr: 'Quel que soit le cycle indiqué ci-dessus, la Loi sur la santé et la sécurité au travail exige que le présent programme soit révisé au moins une fois l’an. Un intervalle plus long ne remplace pas cette obligation, et une politique dont la dernière révision la dépasse constitue une preuve en soi.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 11,
+      when: {
+        juris: 'QC',
+      },
+      heading: {
+        en: 'Keeping this current',
+        fr: 'Garder la politique à jour',
+      },
+      text: {
+        en: 'The Act respecting labour standards requires the policy to exist and to be made available to employees rather than fixing a review interval. Review it on the cycle above and whenever an incident, a legislative change or a change to the workplace makes it out of date — an unreviewed policy is hard to describe as a reasonable step to prevent harassment.',
+        fr: 'La Loi sur les normes du travail exige que la politique existe et soit rendue disponible au personnel plutôt que de fixer un intervalle de révision. Révisez-la selon le cycle indiqué ci-dessus et chaque fois qu’un incident, une modification législative ou un changement au milieu de travail la rend désuète — une politique jamais révisée se qualifie difficilement de moyen raisonnable pour prévenir le harcèlement.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 11,
+      when: {
         juris: 'FED',
       },
       heading: {
@@ -389,8 +419,8 @@ export const tplT13: DocTemplate = {
         fr: 'Le processus de règlement fédéral',
       },
       text: {
-        en: 'This workplace is federally regulated. Where what is reported is a harassment or violence occurrence, the Work Place Harassment and Violence Prevention Regulations set the process and its timelines — negotiated resolution, conciliation where both parties agree to it, and an investigation the principal party may require — and they protect the identity of the parties and witnesses throughout. Those Regulations also require this policy to be developed and reviewed jointly with the policy committee or health and safety representative. That is a step {{org}} must carry out — issuing this document does not perform it, and this policy should not be published until it has been.',
-        fr: 'Le présent milieu de travail est de compétence fédérale. Lorsque le signalement porte sur un incident de harcèlement ou de violence, le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail fixe le processus et ses délais — résolution négociée, conciliation lorsque les deux parties y consentent, et enquête que la partie principale peut exiger — et il protège l’identité des parties et des témoins tout au long. Ce règlement exige également que la présente politique soit élaborée et révisée conjointement avec le comité d’orientation ou le représentant en santé et sécurité. Il s’agit d’une étape que {{org}} doit accomplir — produire le présent document ne l’accomplit pas, et cette politique ne devrait pas être publiée tant que ce n’est pas fait.',
+        en: 'This workplace is federally regulated. Where what is reported is a harassment or violence occurrence, the Work Place Harassment and Violence Prevention Regulations set the process and its timelines — negotiated resolution, conciliation where both parties agree to it, and an investigation the principal party may require — and they protect the identity of the parties and witnesses throughout. Those Regulations also require this policy to be reviewed at least every three years, and to be developed and reviewed jointly with the policy committee or health and safety representative. That is a step {{org}} must carry out — issuing this document does not perform it, and this policy should not be published until it has been.',
+        fr: 'Le présent milieu de travail est de compétence fédérale. Lorsque le signalement porte sur un incident de harcèlement ou de violence, le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail fixe le processus et ses délais — résolution négociée, conciliation lorsque les deux parties y consentent, et enquête que la partie principale peut exiger — et il protège l’identité des parties et des témoins tout au long. Ce règlement exige également que la présente politique soit révisée au moins tous les trois ans et qu’elle soit élaborée et révisée conjointement avec le comité d’orientation ou le représentant en santé et sécurité. Il s’agit d’une étape que {{org}} doit accomplir — produire le présent document ne l’accomplit pas, et cette politique ne devrait pas être publiée tant que ce n’est pas fait.',
       },
     },
     {

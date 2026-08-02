@@ -186,8 +186,9 @@ export const tplT44: DocTemplate = {
       },
     },
     {
-      type: 'clause',
+      type: 'fill',
       n: 1,
+      lines: 4,
       heading: {
         en: 'What helps me work well',
         fr: 'Ce qui m’aide à bien travailler',
@@ -198,8 +199,9 @@ export const tplT44: DocTemplate = {
       },
     },
     {
-      type: 'clause',
+      type: 'fill',
       n: 2,
+      lines: 4,
       heading: {
         en: 'What makes it harder',
         fr: 'Ce qui rend les choses plus difficiles',
@@ -210,8 +212,9 @@ export const tplT44: DocTemplate = {
       },
     },
     {
-      type: 'clause',
+      type: 'fill',
       n: 3,
+      lines: 3,
       heading: {
         en: 'What you might notice first',
         fr: 'Ce que vous pourriez remarquer en premier',
@@ -222,8 +225,9 @@ export const tplT44: DocTemplate = {
       },
     },
     {
-      type: 'clause',
+      type: 'fill',
       n: 4,
+      lines: 4,
       heading: {
         en: 'What I would like you to do then',
         fr: 'Ce que je souhaite que vous fassiez alors',
@@ -234,8 +238,9 @@ export const tplT44: DocTemplate = {
       },
     },
     {
-      type: 'clause',
+      type: 'fill',
       n: 5,
+      lines: 2,
       heading: {
         en: 'Who I agree may see this',
         fr: 'Qui j’accepte de laisser consulter ce plan',
@@ -265,8 +270,8 @@ export const tplT44: DocTemplate = {
         fr: 'Ce que ce plan n’est pas',
       },
       text: {
-        en: 'It is not a medical document and no diagnosis is requested anywhere in it. It is not an accommodation, and completing it does not mean you have asked for one or have a disability. If what you write shows that the work needs to change, that is an accommodation matter — and it does not wait for you to make a formal request: once {{org}} knows, or ought reasonably to know, the duty has started. Nothing here replaces or delays that.',
-        fr: 'Il ne s’agit pas d’un document médical et aucun diagnostic n’y est demandé. Il ne s’agit pas d’un accommodement, et le remplir ne signifie pas que vous en avez demandé un ni que vous avez un handicap. Si ce que vous écrivez montre que le travail doit changer, il s’agit d’une question d’accommodement — et elle n’attend pas une demande formelle de votre part : dès que {{org}} sait, ou devrait raisonnablement savoir, l’obligation est enclenchée. Rien ici ne la remplace ni ne la retarde.',
+        en: 'No diagnosis is requested anywhere in this form, and nothing here asks you for one. What you choose to write is yours — if you do mention something about your health, it is treated as sensitive personal information and handled as clause 6 sets out. This is not an accommodation, and completing it does not mean you have asked for one or have a disability. If what you write shows that the work needs to change, that is an accommodation matter — and it does not wait for you to make a formal request: once {{org}} knows, or ought reasonably to know, the duty has started. Nothing here replaces or delays that.',
+        fr: 'Aucun diagnostic n’est demandé dans le présent formulaire et rien ici ne vous en réclame. Ce que vous choisissez d’écrire vous appartient — si vous mentionnez un élément touchant votre santé, il est traité comme un renseignement personnel sensible et selon la clause 6. Il ne s’agit pas d’un accommodement, et le remplir ne signifie pas que vous en avez demandé un ni que vous avez un handicap. Si ce que vous écrivez montre que le travail doit changer, il s’agit d’une question d’accommodement — et elle n’attend pas une demande formelle de votre part : dès que {{org}} sait, ou devrait raisonnablement savoir, l’obligation est enclenchée. Rien ici ne la remplace ni ne la retarde.',
       },
     },
     {

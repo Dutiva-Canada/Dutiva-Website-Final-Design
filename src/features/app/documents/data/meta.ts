@@ -167,8 +167,8 @@ export const templateCategories: TemplateCategory[] = [
       fr: 'Mieux-être',
     },
     desc: {
-      en: 'Voluntary, employee-owned plans for staying well at work — not medical records, and not accommodations.',
-      fr: 'Plans volontaires, appartenant à la personne salariée, pour rester bien au travail — ni dossiers médicaux, ni accommodements.',
+      en: 'Voluntary, employee-owned plans for staying well at work. They request no diagnosis, and they are not accommodations.',
+      fr: 'Plans volontaires, appartenant à la personne salariée, pour rester bien au travail. Ils ne demandent aucun diagnostic et ne constituent pas des accommodements.',
     },
   },
   /* AUTHORED IN-REPO (not from the handoff) — Ring 3, see
