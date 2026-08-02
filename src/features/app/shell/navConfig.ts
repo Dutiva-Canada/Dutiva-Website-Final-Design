@@ -18,6 +18,7 @@ import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { cases, employeeDetails, employees } from '@/data'
+import { VIEW_LABELS, isDoclibStudioPath } from './navLabels'
 
 /**
  * Sidebar navigation model — order, grouping, icons and badges verbatim from
@@ -141,51 +142,10 @@ export const NAV_GROUPS: NavGroup[] = [
   },
 ]
 
-/** Active when the route is the item or one of its children (/app/cases/:id …). */
-export function isNavActive(to: string, pathname: string): boolean {
-  return pathname === to || pathname.startsWith(`${to}/`)
-}
-
-/* Studio's subroutes (catalogue → generate flow), as opposed to the
-   Repository (index + :docId). Single source of truth for both the topbar
-   title below and the Repository/Studio tab strip (DocumentsLayout.tsx). */
-const DOCLIB_STUDIO_SUBPATHS = new Set(['studio', 'templates', 'generate'])
-
-export function isDoclibStudioPath(pathname: string): boolean {
-  const parts = pathname.replace(/^\/app\/?/, '').split('/')
-  return parts[0] === 'documents' && DOCLIB_STUDIO_SUBPATHS.has(parts[1] ?? '')
-}
-
-/* Topbar / mobile-topbar route titles (prototype `viewLabels`). */
-const VIEW_LABELS: Record<string, Bi> = {
-  home: M.shell_v_home,
-  advisor: M.shell_v_advisor,
-  workflows: M.shell_v_workflows,
-  cases: M.shell_v_cases,
-  employees: M.shell_v_employees,
-  compliance: M.shell_v_compliance,
-  policies: M.shell_v_policies,
-  reports: M.shell_v_reports,
-  templates: M.shell_v_templates,
-  knowledge: M.shell_v_knowledge,
-  settings: M.shell_v_settings,
-  compensation: M.shell_v_compensation,
-  wellbeing: M.shell_v_wellbeing,
-  communications: M.shell_v_communications,
-  planning: M.shell_nav_planning,
-}
-
-/**
- * Like viewLabelFor, but always the module's own label — no fixture-employee
- * name special case. Used by ModeGate to title production empty states, where
- * surfacing a fixture person's name would itself be a demo-data leak.
- */
-export function moduleLabelFor(pathname: string): Bi {
-  const segment = pathname.replace(/^\/app\/?/, '').split('/')[0] ?? ''
-  if (segment === 'documents') return M.shell_nav_library
-  if (segment === 'planning') return M.shell_nav_planning
-  return VIEW_LABELS[segment] ?? M.shell_v_home
-}
+/* The pure route vocabulary lives in navLabels.ts and is re-exported here so
+   call sites keep one import. ModeGate imports it from there directly, not
+   through this module — see that file for why the seam exists. */
+export { VIEW_LABELS, isDoclibStudioPath, isNavActive, moduleLabelFor } from './navLabels'
 
 export function viewLabelFor(pathname: string): Bi {
   const parts = pathname.replace(/^\/app\/?/, '').split('/')

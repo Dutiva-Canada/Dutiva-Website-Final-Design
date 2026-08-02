@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 import type { Plugin } from 'vite'
@@ -53,6 +54,51 @@ function devSourceLocation(): Plugin {
   }
 }
 
+/**
+ * Every npm package reachable from `roots` through `dependencies` — the tree
+ * that ships when those roots are imported. Used to keep a dependency tree out
+ * of the eager `vendor` chunk without hand-maintaining the member list: the
+ * markdown renderer alone pulls 99 packages (micromark, mdast-util-*,
+ * hast-util-*, unified, …), and a list that long drifts the first time a
+ * plugin is added.
+ *
+ * Peer dependencies are deliberately not followed — react is a peer of
+ * react-markdown, and swallowing it would empty the vendor chunk. `keepInVendor`
+ * is the belt to that braces: a package named there is never excluded, however
+ * it was reached.
+ */
+function dependencyClosure(roots: readonly string[], keepInVendor: readonly string[]): Set<string> {
+  const keep = new Set(keepInVendor)
+  const seen = new Set<string>()
+  const queue = [...roots]
+  while (queue.length) {
+    const name = queue.pop()!
+    if (seen.has(name) || keep.has(name)) continue
+    seen.add(name)
+    let pkg: { dependencies?: Record<string, string> }
+    try {
+      pkg = JSON.parse(
+        readFileSync(
+          fileURLToPath(new URL(`./node_modules/${name}/package.json`, import.meta.url)),
+          'utf8',
+        ),
+      )
+    } catch {
+      continue // not installed (optional/platform dep) — nothing to exclude
+    }
+    queue.push(...Object.keys(pkg.dependencies ?? {}))
+  }
+  return seen
+}
+
+/** `a/b` and `c` → `(?:a[\\/]b|c)`, safe to embed in the vendor group's test. */
+function packageAlternation(names: Iterable<string>): string {
+  const escaped = [...names]
+    .sort()
+    .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\//g, '[\\\\/]'))
+  return `(?:${escaped.join('|')})`
+}
+
 /** Depth-first walk over a Babel AST, visiting every node with a `type`. */
 function walkAst(node: any, visit: (n: any) => void): void {
   if (!node || typeof node !== 'object') return
@@ -66,6 +112,15 @@ function walkAst(node: any, visit: (n: any) => void): void {
     walkAst(node[key], visit)
   }
 }
+
+/* The markdown renderer's dependency tree, as a regex alternation for the
+   vendor group's test below. Computed once at config load. */
+const MARKDOWN_TREE = packageAlternation(
+  dependencyClosure(
+    ['react-markdown', 'remark-gfm'],
+    ['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler'],
+  ),
+)
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
@@ -114,6 +169,19 @@ export default defineConfig(({ command }) => {
              or preload it. */
           codeSplitting: {
             groups: [
+              /* The i18n catalogue is one chunk on purpose. messages/index.ts
+                 merges 42 feature modules into a single object and every
+                 surface reads it synchronously through `t()`, so all 42 are in
+                 the eager graph regardless. Left to default chunking they
+                 became 25+ separate files, each modulepreloaded from every
+                 prerendered page — the same bytes bought with 25 extra
+                 round-trips on the critical path of a landing page. Grouping
+                 changes no code: it only stops splitting what is always
+                 fetched together. */
+              {
+                name: 'messages',
+                test: /[\\/]src[\\/]i18n[\\/]messages[\\/]/,
+              },
               /* @supabase is excluded from vendor so default chunking keeps it
                  with its only importers (the lazy app surface and /pricing) —
                  prerendered marketing pages never download or preload it. A
@@ -127,10 +195,23 @@ export default defineConfig(({ command }) => {
                  imports ChatChart dynamically, so left ungrouped those modules
                  form an on-demand chunk fetched the first time a reply
                  actually contains a chart. Naming them as a group instead
-                 makes the chunk static, and AdvisorView links it eagerly. */
+                 makes the chunk static, and AdvisorView links it eagerly.
+
+                 react-markdown's tree (MARKDOWN_TREE) is excluded on the same
+                 grounds: ~158kB parsing Markdown for Advisor replies, reached
+                 only through ChatMarkdown, which only the lazy Advisor surface
+                 renders. In vendor it rode the eager entry graph, so every
+                 marketing visitor downloaded a Markdown parser to read a
+                 landing page. It is computed rather than listed because the
+                 tree is 99 packages deep. */
               {
                 name: 'vendor',
-                test: /node_modules[\\/](?!@supabase[\\/])(?!(?:recharts|victory-vendor|d3-[a-z-]+|internmap|@reduxjs[\\/]toolkit|react-redux|reselect|immer|use-sync-external-store|es-toolkit|decimal\.js-light|eventemitter3)[\\/])/,
+                test: new RegExp(
+                  `node_modules[\\\\/](?!@supabase[\\\\/])(?!${MARKDOWN_TREE}[\\\\/])` +
+                    `(?!(?:recharts|victory-vendor|d3-[a-z-]+|internmap|@reduxjs[\\\\/]toolkit` +
+                    `|react-redux|reselect|immer|use-sync-external-store|es-toolkit` +
+                    `|decimal\\.js-light|eventemitter3)[\\\\/])`,
+                ),
               },
             ],
           },
