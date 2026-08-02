@@ -152,6 +152,25 @@ export const templateCategories: TemplateCategory[] = [
       fr: 'Le processus d’obligation d’accommodement, de la demande au plan documenté.',
     },
   },
+  /* AUTHORED IN-REPO (not from the handoff) — Ring 2 Pillar C, see
+     docs/FOUR_RING_FRAMEWORK.md. Deliberately not filed under `accommodation`:
+     a wellness action plan is voluntary and preventive, and filing it beside
+     the duty-to-accommodate documents would state that an employee who
+     completed one has a disability and asked for something. Both are false,
+     and it is the same misfiling that put T19/T20 under `discipline`. */
+  {
+    id: 'wellbeing',
+    order: 8,
+    icon: 'sprout',
+    name: {
+      en: 'Wellbeing',
+      fr: 'Mieux-être',
+    },
+    desc: {
+      en: 'Voluntary, employee-owned plans for staying well at work. They request no diagnosis, and they are not accommodations.',
+      fr: 'Plans volontaires, appartenant à la personne salariée, pour rester bien au travail. Ils ne demandent aucun diagnostic et ne constituent pas des accommodements.',
+    },
+  },
   /* AUTHORED IN-REPO (not from the handoff) — Ring 3, see
      docs/FOUR_RING_FRAMEWORK.md. Last in the order because it cuts across the
      lifecycle rather than sitting at a point in it: every other category is
@@ -160,7 +179,7 @@ export const templateCategories: TemplateCategory[] = [
      to hold on to when adding one. */
   {
     id: 'communications',
-    order: 8,
+    order: 9,
     icon: 'megaphone',
     name: {
       en: 'Internal communications',

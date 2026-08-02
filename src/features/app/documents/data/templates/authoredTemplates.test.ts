@@ -144,10 +144,25 @@ describe.each(TIDS)('%s', (tid) => {
   })
 })
 
-/* The whole catalogue, not just the authored half. A guard that covered T21 up
-   would have left 16 shipped documents free to drift — which is exactly how
-   three different disclaimer wordings got into the catalogue unnoticed. */
-describe.each(allTemplates.map((t) => t.tid))('%s disclaimer', (tid) => {
+/* These run over the whole catalogue, not just the authored half. A guard that
+   covered T21 up would have left 16 shipped documents free to drift — which is
+   exactly how three different disclaimer wordings got in unnoticed. */
+describe.each(allTemplates.map((t) => t.tid))('%s (whole catalogue)', (tid) => {
+  it('numbers its clauses once each, in every jurisdiction', () => {
+    /* Gated alternatives share a number by design — one of them renders. Two
+       clauses that render *together* and share one do not: the document shows
+       two clause 11s, and `blockKey` derives a React key from the number, so
+       they also collide. Found in review after jurisdiction-gated clauses were
+       added either side of an existing one. */
+    const tpl = template(tid)
+    for (const jurisdiction of JURISDICTIONS) {
+      const ns = resolveBlocks(tpl, { jurisdiction, headcount: 38, unionized: false })
+        .filter((b) => b.n !== undefined)
+        .map((b) => b.n)
+      expect(new Set(ns).size, `${tid} ${jurisdiction} repeats a clause number`).toBe(ns.length)
+    }
+  })
+
   it('carries the standing disclaimer verbatim, in a note of its own', () => {
     /* CONVENTIONS.md says never retype it. A template carries it as a `note`
        block rather than through the shared `Disclaimer` component, so "never

@@ -33,17 +33,16 @@ previous rings more useful. They are not tiers of a price list, and no plan in
 ## What is built
 
 **Ring 1 — the document catalogue** (`catalogue.ts`), now covering every tool
-the April framework listed for it. The catalogue is 43 templates in total,
-T01…T43, nine of which are Ring 3. Plus the Advisor,
+the April framework listed for it. The catalogue is 44 templates in total,
+T01…T44, nine of which are Ring 3. Plus the Advisor,
 the compliance register, cases, employees, policies and tasks. This is the
 product.
 
-**Ring 2 — Pillars A, B and D complete, plus one tool of Pillar C.** Six
-accommodation tools (four Document Studio templates, a guided flow, a
-reference guide), four leave-management tools (two templates, a flow, a
-guide), four mental health tools (a flow and three reference guides), and the
-psychological safety self-check. Three tools of Pillar C remain, and they are
-the only Ring 2 work outstanding.
+**Ring 2 — complete.** Six accommodation tools (Pillar B), four
+leave-management tools (Pillar D), four mental health tools (Pillar A), and
+four psychological safety tools (Pillar C): the self-check, the respectful
+workplace policy, the bystander intervention guide and the wellness action
+plan.
 
 **Ring 3 — complete.** Nine templates (T35–T43) in the new Internal
 communications category: layoff and restructuring, policy rollout, crisis
@@ -201,11 +200,6 @@ text.
 
 Nothing below is built. Counts are the framework's own.
 
-**Ring 2, remaining pillars — 3 tools.** Pillar C, Psychological Safety
-(3 of 4): respectful workplace policy, bystander intervention guide, wellness
-action plan — the self-check is built, and the policy is a special case, see
-below. Pillars A, B and D are complete.
-
 ### Pillar C's respectful workplace policy overlaps T13 — build it by widening T13
 
 The framework lists it as "comprehensive policy covering harassment,
@@ -312,8 +306,116 @@ written. A figure in a guide is a figure someone has to re-audit annually, and
 the year nobody does is the year it misleads.
 
 **Ring 4, Compensation & Financial Literacy — 4 tools.** Total compensation
-summary, salary review letter, pay stub guide, RRSP & TFSA guide. Ring 3 is
-complete, see below.
+summary, salary review letter, pay stub guide, RRSP & TFSA guide. **This is
+all that remains.** Rings 1, 2 and 3 are complete, see below.
+
+## Ring 2, Pillar C — Psychological safety
+
+Complete. The self-check came first (see below); the other three landed once
+the generator decision unblocked the policy.
+
+| Tool                         | Where                                       | State     |
+| ---------------------------- | ------------------------------------------- | --------- |
+| Psychological safety check   | `/app/workflows/psychological-safety-check` | **Built** |
+| Respectful workplace policy  | T13, widened                                | **Built** |
+| Bystander intervention guide | `/app/knowledge/bystander-intervention`     | **Built** |
+| Wellness action plan         | T44                                         | **Built** |
+
+**Do not paraphrase a statutory test in copy that renders everywhere.** T13's
+prohibited-conduct clause first restated Ontario's "known or ought reasonably
+to be known to be unwelcome" for all three jurisdictions — dropping "a course
+of vexatious conduct" from the Ontario test in the process, and stating it at
+all for Québec and federal workplaces, whose definitions differ materially.
+The fix is the T24 pattern: the shared clause says what {{org}} prohibits as
+its own standard and says plainly that it is wider than the legal minimum,
+and three `when.juris` clauses carry the actual statutory definition. Québec's
+single-serious-incident branch requires a lasting harmful effect, and the
+federal definition requires neither a course of conduct nor a lasting effect —
+those are not paraphrases of one rule.
+
+**A generated document must not certify a step the product cannot see.** The
+federal clause said this policy "is developed and reviewed jointly with the
+policy committee" — which the wizard never asks about, so generating T13 for
+a federal employer produced a false statement of compliance. It states the
+requirement now and says issuing the document does not perform it.
+
+**The policy was built by widening T13, as this doc said to.** #126 found the
+overlap and #127 recorded why it could not be closed then: T13 is a generated
+file whose generator does not run, and the fix needed that decision taken
+first. It was taken in #128. Widening it also closed two defects that had
+nothing to do with Pillar C — `includes` advertised seven sections against a
+two-clause preview, so the template promised a document it did not produce,
+and there was no statement of what is _not_ harassment, which is the omission
+that makes managers afraid to manage.
+
+**A template that says it is the legally required policy has to be one, or
+say what it is missing.** T13's description claimed it was required by law in
+every jurisdiction Dutiva covers — true of the obligation, not of the
+document. Québec prescribes content beyond it (risk identification and
+control, social activities, protection measures, complaint handling and
+handler training, two-year record retention) and the federal Regulations
+prescribe their own list (the parties' roles, the assessment's risk-factor
+summary, emergency procedures, training, Part II recourse). The document lists
+those in `when.juris` clauses rather than inventing them, a risk note says not
+to publish it as the statutory policy until they are added, and the
+description no longer implies completeness. **Before describing any template
+as satisfying a statutory requirement, check the prescribed content list —
+covering the subject is not the same as meeting the requirement.**
+
+**`required` on a question was decoration.** The wizard rendered an asterisk
+and advanced anyway, so a document could be created with its required merge
+fields blank and shipped to a customer with unfilled placeholders in it. Next
+and Create now gate on it, and the missing fields are named rather than the
+button silently disabling. This was catalogue-wide, not a T44 problem.
+
+**A prompt the reader answers needs somewhere to write — `fill`.** Issuing
+T44 blank was right; rendering its prompts as `clause` was not, because
+`DocPaper` renders a clause as a heading and a paragraph and `PreviewBlock`
+had no response area. The delivered form was explanatory prose followed by
+signature lines, with nowhere to put an answer. `fill` is a heading, its
+guidance in italic, and `lines` ruled rows. Reach for it whenever a generated
+document asks its reader for something rather than telling them something.
+
+**A free-text answer merged into a policy needs a floor when the law sets
+one.** T13 asks how often the policy is reviewed and merged the answer
+verbatim, so "every four years" produced a policy that reads as compliant and
+is not — Ontario requires an annual review of the harassment programme and the
+federal Regulations require one at least every three years. The hint now names
+both, and `when.juris` clauses state the applicable minimum inside the
+document. The general form: where a merge field can be filled with an answer
+the law forbids, the document says what the law requires beside it.
+
+**T44 generates blank, and that is the design.** Review caught the first
+draft asking the wizard for the employee's own answers — `GenerateScreen` is
+employer-side, so a field for "what makes work harder" has an owner, HR lead
+or manager authoring someone else's health-adjacent data. The three questions
+left are the only ones an employer legitimately fills in: whose plan it is,
+when to look at it again, who to give it back to. If an employee
+self-completion path is ever built, T44 is the template to revisit.
+
+The copy says "no diagnosis is requested" rather than claiming the result is
+never a medical record — nothing stops someone volunteering one in free text,
+so the manager note says to treat whatever comes back as sensitive personal
+information either way. That distinction between what a form asks for and what
+it may receive is worth carrying into any future intake document.
+
+**T44 is also not in `accommodation`, deliberately.**
+Filing a wellness plan beside the duty-to-accommodate documents asserts that
+whoever completed one has a disability and asked for an adjustment. Neither
+follows, and it is the same misfiling that once put T19/T20 under
+`discipline` — so it has its own `wellbeing` category. The questions ask what
+helps at work and never what is wrong: there is no field for a condition, a
+diagnosis or a treatment, deliberately, because a box marked "nature of
+condition" gets filled in.
+
+**The bystander guide is the only tool in the product written for the
+colleague rather than the employer**, and it is written as options rather than
+as a duty. A guide that says you must intervene produces either nothing or an
+escalation the person was not equipped for; four options, any of which counts,
+is what makes the quiet ones usable. It creates no obligation to intervene,
+because an employer whose policy disciplines a silent bystander has invented
+an offence out of someone else's misconduct and shifted its own duty onto a
+witness.
 
 ## Ring 3 — Internal communications
 
@@ -452,20 +554,20 @@ the sake of a round number.
 
 ### Grouped by what they cost to build
 
-The ring split describes the product; this split describes the work. 7 tools
-remain — the same 7 as above, counted the other way: Ring 2's 3 + Ring 4's 4.
+The ring split describes the product; this split describes the work. 4 tools
+remain — the same 4 as above, counted the other way: all of Ring 4.
 **Change one of these tables and check the other still adds up.**
 
 | Shape                             | Count | Where it goes                                                  |
 | --------------------------------- | ----- | -------------------------------------------------------------- |
-| Generated templates               | 4     | `data/templates/`, the shape T21–T43 established               |
-| Reference guides / guidance notes | 3     | `reference/data/`, the shape the limitations guide established |
+| Generated templates               | 2     | `data/templates/`, the shape T21–T44 established               |
+| Reference guides / guidance notes | 2     | `reference/data/`, the shape the limitations guide established |
 | Checklists and decision flows     | 0     | `flows/data/`, the shape the accommodation flow established    |
 
-Every remaining flow is built. What is left is Ring 2's Pillar C (the
-respectful workplace policy, which means widening T13 — see above — plus the
-bystander intervention guide and the wellness action plan) and the whole of
-Ring 4 (two templates, two guides).
+Every remaining flow is built, and every remaining pillar is complete. What is
+left is Ring 4: the total compensation summary and the salary review letter as
+templates, the pay-stub and RRSP/TFSA explainers as guides — and both of those
+guides fall squarely under the figure rule the parental leave guide set.
 
 **Every remaining tool now has a home and a worked example.** No machinery is
 outstanding: templates, reference guides, decision flows and scored
@@ -529,7 +631,7 @@ four places. Treat the Drive document as superseded on all four.
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | All 14 jurisdictions, every ring                | Three — ON, QC, FED                                                                                                                    |
 | $39/month flat                                  | Free · Starter $24 · Growth $49 · Pro $99, and paid plans are not sold during beta                                                     |
-| 47 tools at launch                              | 43 templates ship; the 47 counted a launch state that did not happen                                                                   |
+| 47 tools at launch                              | 44 templates ship; the 47 counted a launch state that did not happen                                                                   |
 | Month-numbered build schedule off a launch date | Both published launch dates have passed. Tie sequencing to product state, never a calendar date (`CANONICAL_FACTS.md` § Launch status) |
 
 Its Ring 1 inventory did not match what shipped either. Of the 18 tools it
@@ -567,7 +669,7 @@ Drive document undercounts the product, not the other way round.
 
 1. Check this file and `CANONICAL_FACTS.md` first.
 2. Pick the surface by shape, and follow the worked example already there:
-   - **a document** → `data/templates/`, following T21–T43. Numbering
+   - **a document** → `data/templates/`, following T21–T44. Numbering
      continues from the highest tid in `catalogue.ts` — **check both
      sources**, because `data/templates/` and `customTemplates.ts` share one
      tid space and doclib silently wins the lookup in `DocStudioProvider`.

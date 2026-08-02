@@ -653,6 +653,15 @@ function GenerateWizard({
 
   const employeeRequired = template.subject === 'employee'
   const contextReady = !employeeRequired || wiz.employeeId !== undefined
+  /* A question marked `required` was only ever decorated with an asterisk —
+     the wizard advanced and created regardless, so a document could be saved
+     with its required merge fields blank and render as unfilled placeholders
+     in the customer's copy. Gate on it, and say which ones are missing rather
+     than disabling a button for no visible reason. */
+  const missingRequired = template.questions.filter(
+    (q) => q.required && (wiz.answers[q.id] ?? '').trim() === '',
+  )
+  const questionsReady = missingRequired.length === 0
   const employeeCases = cases.filter(
     (c) => wiz.employeeId === undefined || c.employeeId === wiz.employeeId,
   )
@@ -818,6 +827,16 @@ function GenerateWizard({
             />
           )}
 
+          {wiz.step > 0 && !questionsReady && (
+            <div
+              className="rounded-[10px] border border-warn-border bg-warn-bg px-[12px] py-[9px] text-[12px] text-warn-fg"
+              aria-live="polite"
+            >
+              <span className="font-semibold">{t('doclib_gen_missing_required')}</span>{' '}
+              {missingRequired.map((q) => x(q.label)).join(', ')}
+            </div>
+          )}
+
           {/* Back / Next / Save */}
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -828,14 +847,14 @@ function GenerateWizard({
             {wiz.step < 2 ? (
               <button
                 type="button"
-                disabled={wiz.step === 0 && !contextReady}
+                disabled={(wiz.step === 0 && !contextReady) || (wiz.step === 1 && !questionsReady)}
                 onClick={() => goStep(wiz.step + 1)}
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-[9px] bg-navy px-[12px] py-[7px] text-[12.5px] font-semibold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {t('doclib_gen_next')}
               </button>
             ) : (
-              <ActBtn variant="primary" onClick={saveToRepository}>
+              <ActBtn variant="primary" onClick={saveToRepository} disabled={!questionsReady}>
                 {t('doclib_gen_createDoc')}
               </ActBtn>
             )}

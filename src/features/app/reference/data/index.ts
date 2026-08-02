@@ -1,4 +1,5 @@
 import type { ReferenceGuide } from '../guideModel'
+import { bystanderInterventionGuide } from './bystanderIntervention'
 import { eapReferralGuide } from './eapReferral'
 import { functionalLimitationsGuide } from './functionalLimitations'
 import { managerConversationsGuide } from './managerConversations'
@@ -16,6 +17,7 @@ export const referenceGuides: ReferenceGuide[] = [
   managerConversationsGuide,
   eapReferralGuide,
   returnAfterMentalHealthLeaveGuide,
+  bystanderInterventionGuide,
 ]
 
 export const guideBySlug = new Map(referenceGuides.map((g) => [g.slug, g]))

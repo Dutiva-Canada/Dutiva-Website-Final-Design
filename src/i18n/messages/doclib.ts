@@ -115,6 +115,10 @@ export const doclibMessages = defineMessages({
   doclib_gen_saved: { en: 'All changes saved', fr: 'Modifications enregistrées' },
   doclib_gen_unsaved: { en: 'Unsaved changes', fr: 'Modifications non enregistrées' },
   doclib_gen_createDoc: { en: 'Save to repository', fr: 'Enregistrer au dépôt' },
+  doclib_gen_missing_required: {
+    en: 'Still needed before this can be created:',
+    fr: 'Encore requis avant la création :',
+  },
   doclib_gen_required: { en: 'Required', fr: 'Requis' },
   doclib_gen_cancel: { en: 'Cancel', fr: 'Annuler' },
   doclib_gen_riskLine: { en: 'Risk level', fr: 'Niveau de risque' },

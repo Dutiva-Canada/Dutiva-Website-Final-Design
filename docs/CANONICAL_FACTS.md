@@ -36,19 +36,19 @@ people who don't read the repo. Re-export it when this file changes.
 
 ## Verified against the product
 
-| Fact                  | Value                                                                            | Source of truth                                                         |
-| --------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Templates shipped     | **43** — T01…T43                                                                 | `src/features/app/documents/catalogue.ts`                               |
-| Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)               | jurisdiction codes `ON`, `QC`, `FED`                                    |
-| Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                     | `src/config/plans.ts` → `PLANS`                                         |
-| Annual billing        | 10 of 12 months charged (two months free)                                        | `ANNUAL_MONTHS_BILLED`                                                  |
-| Beta state            | Paid plans **shown but not sold**                                                | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
-| Rings live            | **Rings 1 and 3; Ring 2 Pillars A, B and D, plus part of C.** Ring 4 is roadmap. | `docs/FOUR_RING_FRAMEWORK.md`                                           |
-| Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30)      | `src/features/app/guidance/monitoringCoverage.ts`                       |
-| Contact address       | **support@dutiva.ca**                                                            | the published support address; retired ones stay retired (§6, enforced) |
-| Languages             | EN + FR, both surfaces, prerendered per locale                                   | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
-| Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                       | `tokens.css` `--gold-gradient`, `--gold-on-dark`                        |
-| Brand navy            | `#0d1b2a` ground, `#081019` deep                                                 | `tokens.css` `--dutiva-navy`; `surfaces.css` `.surface-marketing --bg`  |
+| Fact                  | Value                                                                       | Source of truth                                                         |
+| --------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Templates shipped     | **44** — T01…T44                                                            | `src/features/app/documents/catalogue.ts`                               |
+| Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)          | jurisdiction codes `ON`, `QC`, `FED`                                    |
+| Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                | `src/config/plans.ts` → `PLANS`                                         |
+| Annual billing        | 10 of 12 months charged (two months free)                                   | `ANNUAL_MONTHS_BILLED`                                                  |
+| Beta state            | Paid plans **shown but not sold**                                           | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
+| Rings live            | **Rings 1, 2 and 3 complete.** Ring 4 is roadmap.                           | `docs/FOUR_RING_FRAMEWORK.md`                                           |
+| Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30) | `src/features/app/guidance/monitoringCoverage.ts`                       |
+| Contact address       | **support@dutiva.ca**                                                       | the published support address; retired ones stay retired (§6, enforced) |
+| Languages             | EN + FR, both surfaces, prerendered per locale                              | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
+| Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                  | `tokens.css` `--gold-gradient`, `--gold-on-dark`                        |
+| Brand navy            | `#0d1b2a` ground, `#081019` deep                                            | `tokens.css` `--dutiva-navy`; `surfaces.css` `.surface-marketing --bg`  |
 
 ## Company and legal
 
@@ -100,7 +100,7 @@ not the outcome, until that resolves.
 
 ### 3. Counts
 
-**43** templates — not 47, and no longer 16 either: the count has moved, so state
+**44** templates — not 47, and no longer 16 either: the count has moved, so state
 it from `catalogue.ts` rather than from memory or from any Drive document. **3**
 jurisdictions — not 4 or 14. Federally regulated remote work is a supported
 _scenario_ under `FED`, not a fourth jurisdiction. Alberta and BC stay labelled
@@ -109,8 +109,8 @@ roadmap.
 ### 4. Rings 2–4 as shipped
 
 Ring 1 exists, and as of August 2026 covers every tool the April framework
-listed for it (T25–T32 closed the last eight gaps). Of Rings 2–4 the shipped
-work is three complete pillars of Ring 2:
+listed for it (T25–T32 closed the last eight gaps). **Ring 2 is complete** —
+all four pillars:
 
 - **Pillar A, Mental Health & EAP readiness** — the mental health response
   checklist at `/app/workflows/mental-health-response`, and three guides at
@@ -125,8 +125,10 @@ work is three complete pillars of Ring 2:
   `/app/workflows/leave-of-absence`, and the parental leave guide at
   `/app/knowledge/parental-leave`.
 
-Plus **one tool of Pillar C**, the psychological safety self-check at
-`/app/workflows/psychological-safety-check`.
+- **Pillar C, Psychological Safety** — the self-check at
+  `/app/workflows/psychological-safety-check`, the respectful workplace policy
+  (T13, widened to cover inclusion), the bystander intervention guide at
+  `/app/knowledge/bystander-intervention`, and the wellness action plan (T44).
 
 None of Pillar A is clinical, and it must not be described as though it were.
 The flow triages what an employer should do next; it does not screen, assess
@@ -140,7 +142,14 @@ CSA-certified, CSA-compliant, or an assessment against the Standard.
 The parental leave guide states no durations, notice periods or benefit
 amounts, by design (§6). Do not add figures to it.
 
-The rest of Pillar C does not exist.
+The wellness action plan (T44) **requests no diagnosis and is not an
+accommodation** — that is the claim to make, and it is narrower than it looks.
+The template asks nothing about a condition and issues blank for the employee
+to complete, but nothing stops someone volunteering health information in free
+text, so a completed plan must not be described as guaranteed non-medical.
+Treat every returned plan as sensitive personal information. It is filed under
+`wellbeing` rather than `accommodation` because completing one implies neither
+a disability nor a request.
 
 **Ring 3, Internal Communications, is complete** — nine templates (T35–T43) in
 Document Studio's Internal communications category, covering layoff and
