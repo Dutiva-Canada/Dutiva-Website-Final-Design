@@ -38,12 +38,12 @@ people who don't read the repo. Re-export it when this file changes.
 
 | Fact                  | Value                                                                       | Source of truth                                                         |
 | --------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Templates shipped     | **44** — T01…T44                                                            | `src/features/app/documents/catalogue.ts`                               |
+| Templates shipped     | **46** — T01…T46                                                            | `src/features/app/documents/catalogue.ts`                               |
 | Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)          | jurisdiction codes `ON`, `QC`, `FED`                                    |
 | Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                | `src/config/plans.ts` → `PLANS`                                         |
 | Annual billing        | 10 of 12 months charged (two months free)                                   | `ANNUAL_MONTHS_BILLED`                                                  |
 | Beta state            | Paid plans **shown but not sold**                                           | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
-| Rings live            | **Rings 1, 2 and 3 complete.** Ring 4 is roadmap.                           | `docs/FOUR_RING_FRAMEWORK.md`                                           |
+| Rings live            | **All four rings complete.**                                                | `docs/FOUR_RING_FRAMEWORK.md`                                           |
 | Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30) | `src/features/app/guidance/monitoringCoverage.ts`                       |
 | Contact address       | **support@dutiva.ca**                                                       | the published support address; retired ones stay retired (§6, enforced) |
 | Languages             | EN + FR, both surfaces, prerendered per locale                              | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
@@ -100,7 +100,7 @@ not the outcome, until that resolves.
 
 ### 3. Counts
 
-**44** templates — not 47, and no longer 16 either: the count has moved, so state
+**46** templates — not 47, and no longer 16 either: the count has moved, so state
 it from `catalogue.ts` rather than from memory or from any Drive document. **3**
 jurisdictions — not 4 or 14. Federally regulated remote work is a supported
 _scenario_ under `FED`, not a fourth jurisdiction. Alberta and BC stay labelled
@@ -140,7 +140,10 @@ thirteen psychosocial factors the Standard names. Never describe it as
 CSA-certified, CSA-compliant, or an assessment against the Standard.
 
 The parental leave guide states no durations, notice periods or benefit
-amounts, by design (§6). Do not add figures to it.
+amounts, by design (§6). The same applies to the two Ring 4 guides: the pay
+statement guide states no rates, maximums or thresholds, and the RRSP/TFSA
+guide states no contribution limits, penalty rates or ages. Do not add figures
+to any of the three.
 
 The wellness action plan (T44) **requests no diagnosis and is not an
 accommodation** — that is the claim to make, and it is narrower than it looks.
@@ -155,12 +158,24 @@ a disability nor a request.
 Document Studio's Internal communications category, covering layoff and
 restructuring, policy rollout, and crisis communications.
 
-Ring 4 is roadmap. The Compensation, Communications and Wellbeing modules in
-the app are prototype surfaces on demo fixtures, gated off in a production
-workspace. **They are still not Ring 3**, even now that Ring 3 exists: the
-`/app/communications` module is a ported prototype, and the ring is the nine
-templates. Do not describe that module as shipped capability.
-`docs/FOUR_RING_FRAMEWORK.md` holds the tool-by-tool state.
+**Ring 4, Compensation & Financial Literacy, is complete** — the total
+compensation summary (T45) and salary review letter (T46) in Document Studio's
+Compensation category, the pay statement guide at `/app/knowledge/pay-statement`,
+and the RRSP/TFSA guide at `/app/knowledge/retirement-savings`.
+
+The RRSP/TFSA guide is **educational, not financial advice**, and that is the
+claim to make about it. It explains how the two accounts are taxed and what a
+group plan commits an employer to; it does not recommend an account, an amount
+or an investment, and it says in its own copy that the employer is not the
+reader's adviser. Never describe it, or the product, as offering financial
+advice or financial planning.
+
+The Compensation, Communications and Wellbeing modules in the app remain
+prototype surfaces on demo fixtures, gated off in a production workspace.
+**They are still not Rings 3 and 4**, even now that both exist: the
+`/app/communications` and `/app/compensation` modules are ported prototypes,
+and the rings are the templates and guides. Do not describe those modules as
+shipped capability. `docs/FOUR_RING_FRAMEWORK.md` holds the tool-by-tool state.
 
 ### 5. "Dutiva monitors the law and tells you when it changes"
 

@@ -4,6 +4,8 @@ import { eapReferralGuide } from './eapReferral'
 import { functionalLimitationsGuide } from './functionalLimitations'
 import { managerConversationsGuide } from './managerConversations'
 import { parentalLeaveGuide } from './parentalLeave'
+import { payStatementGuide } from './payStatement'
+import { retirementSavingsGuide } from './retirementSavings'
 import { returnAfterMentalHealthLeaveGuide } from './returnAfterMentalHealthLeave'
 
 /**
@@ -18,6 +20,8 @@ export const referenceGuides: ReferenceGuide[] = [
   eapReferralGuide,
   returnAfterMentalHealthLeaveGuide,
   bystanderInterventionGuide,
+  payStatementGuide,
+  retirementSavingsGuide,
 ]
 
 export const guideBySlug = new Map(referenceGuides.map((g) => [g.slug, g]))

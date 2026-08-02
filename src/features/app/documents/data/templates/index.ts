@@ -54,6 +54,11 @@ import { tplT42 } from './t42-departure-announcement'
 import { tplT43 } from './t43-incident-communication'
 /* Ring 2, Pillar C — the `wellbeing` category. */
 import { tplT44 } from './t44-wellness-action-plan'
+/* Ring 4, Compensation — the `compensation` category. These report rather than
+   vary: neither changes the contract, which is what keeps them out of
+   `changes`. See the category header in ../meta.ts. */
+import { tplT45 } from './t45-total-compensation-summary'
+import { tplT46 } from './t46-salary-review-letter'
 import type { DocTemplate } from '../types'
 
 export const docTemplates: DocTemplate[] = [
@@ -97,6 +102,8 @@ export const docTemplates: DocTemplate[] = [
   tplT42,
   tplT43,
   tplT44,
+  tplT45,
+  tplT46,
 ]
 
 export const templateByTid = new Map(docTemplates.map((t) => [t.tid, t]))
