@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabaseClient'
 import type { Lang } from '@/i18n/core'
 import { pick } from '@/i18n/core'
 import type { SupportCategory } from '@/config/support'
-import { articlePlainText } from './help/helpCenterData'
+import { articlePlainText } from './help/helpContent'
 import type { HelpArticle } from './help/helpCenterData'
 
 /**

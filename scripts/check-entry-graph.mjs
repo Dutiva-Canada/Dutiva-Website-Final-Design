@@ -46,7 +46,19 @@ const PAGE = path.join(dist, 'index.html')
 
 /** Ceilings. Raise deliberately, with a note saying what earned the room. */
 const MAX_PRELOADS = 8 // 5 as of 2026-08-02
-const MAX_EAGER_KB = 900 // 850.5 as of 2026-08-02
+const MAX_EAGER_KB = 700 // 665.1 after splitting the editorial prose out (was 850.5)
+
+/**
+ * Long-form prose that must stay out of the eager graph. Each of these is
+ * reachable from `src/seo/routes.ts` — which the router imports — through a
+ * record the registry reads for slugs and titles. Put the body back on that
+ * record and every public page downloads the whole corpus to render a heading.
+ */
+const PROSE_MODULES = [
+  'src/features/marketing/articles/blogContent.ts',
+  'src/features/marketing/articles/guideContent.ts',
+  'src/features/support/help/helpContent.ts',
+]
 
 /**
  * Workspace modules the route table cannot avoid touching statically: the
@@ -167,6 +179,15 @@ for (const file of eager) {
     }
     if (module.startsWith('src/data/')) {
       fixtures.push({ file, module })
+      continue
+    }
+    if (PROSE_MODULES.includes(module)) {
+      fail(
+        `${file} pulls ${module} into the eager graph — that is article prose, and the only ` +
+          'thing the SEO registry needs from an article is its slug. Read bodies through the ' +
+          'content module from a lazy route, and never re-export it from an index the router ' +
+          'can reach.',
+      )
       continue
     }
     if (module.startsWith('src/features/app/') && !ALLOWED_APP_MODULES.has(module)) {

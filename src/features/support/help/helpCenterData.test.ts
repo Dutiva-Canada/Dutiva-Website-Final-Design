@@ -6,6 +6,7 @@ import {
   helpArticlesByCategory,
   helpCategory,
 } from './helpCenterData'
+import { HELP_SECTIONS, articlePlainText, helpArticleSections } from './helpContent'
 import type { HelpBlock, HelpCategoryId } from './helpCenterData'
 
 const CATEGORY_IDS = new Set<HelpCategoryId>(HELP_CATEGORIES.map((c) => c.id))
@@ -67,5 +68,34 @@ describe('groupHelpBlocks', () => {
     expect(groups.map((g) => g.kind)).toEqual(['p', 'list', 'p'])
     const list = groups[1]
     expect(list?.kind === 'list' && list.items).toHaveLength(2)
+  })
+})
+
+describe('metadata and content stay in step', () => {
+  /* A help article is authored in two files now — the record in
+     helpCenterData.ts, the body in helpContent.ts — so that the router does
+     not carry the whole Help Centre (see helpContent.ts). Nothing about a
+     half-finished article is visible in review: a record with no body renders
+     a title over an empty page, and a body with no record has no URL. */
+  it('every article has a body, and every body has an article', () => {
+    const slugs = HELP_ARTICLES.map((a) => a.slug).sort()
+    expect(Object.keys(HELP_SECTIONS).sort()).toEqual(slugs)
+  })
+
+  it('no article resolves to an empty body', () => {
+    for (const article of HELP_ARTICLES) {
+      const sections = helpArticleSections(article.slug)
+      expect(sections.length).toBeGreaterThan(0)
+      expect(sections.every((s) => s.blocks.length > 0)).toBe(true)
+    }
+  })
+
+  it('articlePlainText still reaches the body, in both languages', () => {
+    /* It is the grounding context the first-line answer helper sends to the
+       model; silently emptying it would degrade answers with nothing failing. */
+    for (const article of HELP_ARTICLES) {
+      expect(articlePlainText(article, 'en').length).toBeGreaterThan(80)
+      expect(articlePlainText(article, 'fr').length).toBeGreaterThan(80)
+    }
   })
 })

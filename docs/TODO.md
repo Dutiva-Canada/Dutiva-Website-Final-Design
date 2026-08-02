@@ -311,28 +311,21 @@ The fix is to make the constraint a type: surface-scoped key types, the shape
 data structures that carry keys. That is a per-feature migration of call sites,
 not a chunking change — which is why it is its own item.
 
-**EF6b — 200kB of article prose is in the eager entry chunk.** _Build._ The
-router imports `@/seo/routes`, which imports `ALL_ARTICLES` for
-`allPublicPages()`, which `alternatePathFor` calls on every public page to find
-the other locale's URL. It needs slugs; it gets `blogArticles.ts` (89kB) and
-`guideArticles.ts` (111kB) in full, plus `helpCenterData.ts` (32kB). That is
-essentially the whole 248kB entry chunk, and it is the largest single item left
-on the critical path — bigger than EF6a.
+**EF6b — Done.** The router imported `@/seo/routes`, which read every article
+and help article to build `allPublicPages()` — it needs slugs, and it was
+getting `blogArticles.ts` (89kB), `guideArticles.ts` (111kB) and
+`helpCenterData.ts` (32kB) in full. Prose is now split from the records it
+hangs off, keyed by English slug, in `blogContent.ts` / `guideContent.ts` /
+`helpContent.ts`. Every consumer — `ArticlePage`, `HelpArticlePage`, Help
+Centre search, the support first-line helper — is behind a lazy route, so the
+imports stay static and prerendering is unchanged.
 
-Unlike EF6a this has no type blocker, and no SSR complexity either: `Article`
-splits into metadata (slug, frSlug, title, summary, updated — everything
-`allPublicPages()` reads) and `sections` (the prose), keyed by slug. Only
-`ArticlePage` needs sections, and `ArticlePage` is already a lazy route, so it
-can import the content map **statically** and the bodies land in its chunk. No
-Suspense, no async render, no change to prerendering.
-
-Cost is that it moves ~200kB of authored content between files, so it wants a
-codemod rather than hand-editing, plus a test asserting the metadata slugs and
-the content keys match exactly in both directions — an article with metadata
-and no content is an empty page. The existing guards are unusually good here:
-`validate-seo.mjs` already fails the build on a prerendered page with
-insubstantial body text, and `articles.test.ts` already walks every block for
-the no-figures rule.
+Entry chunk 248kB → 62kB; eager graph 850kB → 665kB. The move was done with a
+codemod copying verbatim source ranges, and verified by comparing every
+authored string literal against `git HEAD`: 786 article strings and 76 help
+strings, identical. `check-entry-graph.mjs` now bars the three content modules
+by name, and parity tests assert the metadata and content key sets match in
+both directions per collection.
 
 **EF7 — The legacy document fixture was never migrated.** `src/data/documents.ts`
 still exists alongside the doclib catalogue, with five templates that have no

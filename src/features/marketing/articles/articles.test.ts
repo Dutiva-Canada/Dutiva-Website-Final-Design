@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ALL_ARTICLES } from './index'
 import type { Article } from './articleModel'
+import { articleSections, BLOG_SECTIONS, GUIDE_SECTIONS } from './content'
 import { editorialFigureIn } from './editorialFigures'
 
 /**
@@ -39,7 +40,7 @@ function strings(article: Article): { where: string; text: string }[] {
     { where: `${where} (fr)`, text: text.fr },
   ])
 
-  article.sections.forEach((section, s) => {
+  articleSections(article.collection, article.slug).forEach((section, s) => {
     if (section.heading) {
       out.push({ where: `section ${s} heading (en)`, text: section.heading.en })
       out.push({ where: `section ${s} heading (fr)`, text: section.heading.fr })
@@ -69,6 +70,40 @@ describe('editorial rule: articles publish no statutory figures', () => {
       })
 
       expect(offenders).toEqual([])
+    },
+  )
+})
+
+describe('metadata and content stay in step', () => {
+  /* An article is authored in two files — metadata in blogArticles.ts /
+     guideArticles.ts, prose in blogContent.ts / guideContent.ts — because the
+     prose must not reach the router's import graph (articleModel.ts explains
+     why). That split is the one thing here a reviewer cannot see: metadata
+     with no sections renders a title over an empty page, and sections with no
+     metadata is prose with no URL and no way to reach it. Both directions are
+     asserted, per collection, so a half-finished article fails rather than
+     ships. */
+  const collections = [
+    { name: 'guide', sections: GUIDE_SECTIONS },
+    { name: 'blog', sections: BLOG_SECTIONS },
+  ] as const
+
+  it.each(collections)('$name metadata and sections cover the same slugs', ({ name, sections }) => {
+    const metaSlugs = ALL_ARTICLES.filter((a) => a.collection === name)
+      .map((a) => a.slug)
+      .sort()
+    expect(Object.keys(sections).sort()).toEqual(metaSlugs)
+  })
+
+  it.each(ALL_ARTICLES.map((article) => [article.slug, article] as const))(
+    '%s has a non-empty body',
+    (_slug, article) => {
+      const sections = articleSections(article.collection, article.slug)
+      expect(sections.length).toBeGreaterThan(0)
+      /* `articleSections` returns [] for an unknown slug rather than throwing,
+         so the page degrades instead of crashing — which also means a missing
+         body would otherwise pass silently. */
+      expect(sections.every((section) => section.blocks.length > 0)).toBe(true)
     },
   )
 })

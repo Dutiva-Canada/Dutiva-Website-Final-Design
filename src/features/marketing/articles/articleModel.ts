@@ -85,8 +85,27 @@ export interface Article {
   title: Bi
   /** One-line blurb for cards and the SEO meta description. */
   summary: Bi
-  sections: ArticleSection[]
 }
+
+/**
+ * An article's prose is deliberately **not** a field on `Article`. The SEO
+ * registry (`src/seo/routes.ts`) reads every article to build
+ * `allPublicPages()`, and the router imports that registry — so anything
+ * hanging off this interface is in the eager entry graph of every public page.
+ * With the sections inline that was ~200kB of prose downloaded to render a
+ * landing page.
+ *
+ * Bodies live in `blogContent.ts` / `guideContent.ts`, keyed by English slug,
+ * and are reached through `articleSections()` in `./content` — a module only
+ * `ArticlePage` imports. `ArticlePage` is a lazy route, so the prose rides its
+ * chunk and still resolves synchronously during prerender.
+ *
+ * The cost of the split is that an article is now authored in two places.
+ * `articles.test.ts` asserts the two key sets match exactly in both
+ * directions: metadata with no sections renders a title over nothing, and
+ * sections with no metadata is a page with no URL.
+ */
+export type ArticleSectionsBySlug = Record<string, readonly ArticleSection[]>
 
 export const p = (en: string, fr: string): ArticleBlock => ({ type: 'p', text: bi(en, fr) })
 export const li = (en: string, fr: string): ArticleBlock => ({ type: 'li', text: bi(en, fr) })
