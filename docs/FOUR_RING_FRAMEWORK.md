@@ -57,23 +57,23 @@ reference guides, `/app/knowledge/pay-statement` and
 `/app/knowledge/retirement-savings`.
 
 The `/app/communications`, `/app/compensation` and `/app/wellbeing` modules
-are **not** Rings 3, 4 and 2. They are prototype surfaces ported from the App
-v2 design handoff, running on demo fixtures, wrapped in `gated(…)` at
-`src/app/appViews.tsx` so a production workspace renders an empty state.
-Nothing in them is a ring tool, none is wired to persistence, and describing
-them as shipped capability is the specific claim `CANONICAL_FACTS.md` §4
-forbids.
+are **not** Rings 3, 4 and 2 — they never were, and wiring them did not make
+them so. They are now org-scoped registers on real persistence (migrations
+0039–0041), no longer `gated(…)` prototypes on demo fixtures, but a module and
+a ring share a name and nothing else. The rings are the templates, guides and
+flows.
 
-**Every ring now has a module whose name matches it, and none of those modules
-is the ring.** This was a nuisance when Ring 3 landed and it is a trap now that
-all four have: a reader who sees "all four rings complete" in this file and
-three chips marked roadmap on the landing page will be tempted to reconcile
-them by promoting the chips. Do not. The rings ship as templates in Document
-Studio, guides under `/app/knowledge` and flows under `/app/workflows`; the
-modules come off roadmap when they run on real workspace data, which is a
-separate piece of work nobody has started. The note on `MODULES` in
+**Every ring has a module whose name matches it, and none of those modules is
+the ring.** That was a nuisance when Ring 3 landed and it stays a trap now: the
+next person to read "all four rings complete" beside a Compensation module will
+be tempted to treat one as evidence for the other. The note on `MODULES` in
 `src/features/marketing/sections/Modules.tsx` says the same thing at the place
 the mistake would be made.
+
+**Wiring the three modules is where the framework's honesty rules bit hardest**
+— see "Wiring the prototype modules" below. Each production view is
+deliberately narrower than the demo it replaced, because three of the demo's
+features were capabilities the product does not have.
 
 ### Where the catalogue puts things
 
@@ -647,6 +647,69 @@ point from the other side: an employer contribution to a group plan is a
 taxable benefit, so gaining one can lower net pay in the same period, which is
 the most predictable surprise in compensation and the one to disclose when the
 benefit is announced rather than when the first person calls.
+
+## Wiring the prototype modules
+
+The `/app/compensation`, `/app/communications` and `/app/wellbeing` surfaces
+were ported from the App v2 design handoff, ran on demo fixtures, and rendered
+an empty state in a production workspace. They are now on real per-tenant
+tables — migrations 0039, 0040 and 0041, following the
+employees / hr_cases / hr_policies shape — and each view dispatches on
+workspace mode the way `PoliciesView` does.
+
+| Module         | Table                      | Migration |
+| -------------- | -------------------------- | --------- |
+| Compensation   | `hr_compensation_records`  | 0039      |
+| Communications | `hr_communications`        | 0040      |
+| Wellbeing      | `hr_wellbeing_initiatives` | 0041      |
+
+**The reusable lesson is what did NOT get wired.** A prototype is a drawing of
+a product, and three of the things these ones drew were capabilities Dutiva
+does not have. Persisting them would have converted a fixture's decoration
+into a stored claim — which is the exact shape of every canonical-facts
+violation this repo has had.
+
+_No market salary data._ The compensation fixture carried a `market` figure per
+person and rendered a "vs market" percentage from it. There is no
+salary-survey source in the product and buying one was not in scope, so the
+comparison is against `band_midpoint` — the employer's own number, entered by
+them. A record without one shows **no comparison**, never 0%: zero would read
+as "exactly at midpoint", which is a claim the employer never made. That
+distinction is a test, not a convention.
+
+_No review of a message._ The communications fixture scored every announcement
+on tone, legal, clarity and policy. Nothing analyses a draft. A green
+"Legal ✓" stored against a message nobody reviewed is worse than no chip at
+all, so the dimensions stayed in the demo. They come back when an Advisor pass
+over a draft actually exists — with its own columns and its own timestamps, so
+a stale review cannot read as a fresh one.
+
+_No send._ The fixture's Send button never sent anything, and neither does the
+product. The production action is "Mark as sent", it records that the employer
+sent something, and a line under the list says so rather than leaving it
+implied.
+
+_And no wellbeing signals — the one that mattered most._ The wellbeing fixture
+listed named employees with a source, a confidence level and a sensitivity
+rating: inferred health information about identifiable people, held by their
+employer, on a score. `hr_wellbeing_initiatives` has **no employee reference,
+and must never gain one.** Ring 2 is built on the opposite commitment — the
+psychological safety self-check asks the employer what they have put in place
+rather than how staff feel, and T44 requests no diagnosis. A signals table
+contradicts both, and `CANONICAL_FACTS.md` §4 already says Pillar A is not
+clinical. So the production module is a register of the support an employer
+**offers**: what is in place, who owns it, when it is next reviewed. Support
+for a named person belongs on the accommodation path, where there is a request
+and the employee takes part rather than being the subject of an inference.
+
+Both the migration header and a test enforce that last one. The test asserts
+the returned rows carry no person-shaped key and that the selected columns
+contain no `employee` — so adding the column fails CI rather than review.
+
+**The general rule, worth applying to any future port: a prototype shows what
+a product would look like if it could do the thing. Before persisting a field,
+ask what would have to be true for it to be filled honestly — and if the
+answer is a capability that does not exist, the field is a claim, not data.**
 
 ## Grouped by what they cost to build
 

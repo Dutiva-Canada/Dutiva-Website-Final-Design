@@ -170,12 +170,33 @@ or an investment, and it says in its own copy that the employer is not the
 reader's adviser. Never describe it, or the product, as offering financial
 advice or financial planning.
 
-The Compensation, Communications and Wellbeing modules in the app remain
-prototype surfaces on demo fixtures, gated off in a production workspace.
-**They are still not Rings 3 and 4**, even now that both exist: the
-`/app/communications` and `/app/compensation` modules are ported prototypes,
-and the rings are the templates and guides. Do not describe those modules as
-shipped capability. `docs/FOUR_RING_FRAMEWORK.md` holds the tool-by-tool state.
+The Compensation, Communications and Wellbeing modules are now on real
+persistence (migrations 0039–0041) and are no longer gated. **They are still
+not Rings 3 and 4** — a module and a ring share a name and nothing else. The
+rings are the templates, guides and flows; the modules are org-scoped registers
+in the app. Describe them separately, and `docs/FOUR_RING_FRAMEWORK.md` holds
+the tool-by-tool state of the rings.
+
+**Each production module is narrower than the demo it replaced, and the
+differences are claims, not omissions.** State them plainly rather than letting
+the old prototype set expectations:
+
+- **Compensation states no market rate.** Dutiva has no salary-survey source.
+  Comparison is against a band midpoint the employer enters themselves, and a
+  record without one shows no comparison at all — never a 0%. Do not describe
+  the product as benchmarking pay against market.
+- **Communications performs no review of a message.** The prototype's
+  tone / legal / clarity / policy chips are demo-only and are not persisted:
+  nothing analyses a draft, so a stored "passed legal review" would be false.
+  Marking a message sent **records** that the employer sent it — Dutiva has no
+  delivery path and must never be described as sending communications.
+- **Wellbeing records no information about individuals.** The prototype's
+  per-person "support signals" with confidence and sensitivity ratings do not
+  exist in production: `hr_wellbeing_initiatives` has no employee reference by
+  design, and one must not be added. The module is a register of the support an
+  employer offers. Never describe Dutiva as detecting, inferring or monitoring
+  employee wellbeing, distress or health — it does none of those, and Ring 2 is
+  built on the opposite commitment (see the non-clinical note above).
 
 ### 5. "Dutiva monitors the law and tells you when it changes"
 

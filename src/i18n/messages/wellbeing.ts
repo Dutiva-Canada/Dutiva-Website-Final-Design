@@ -54,4 +54,79 @@ export const wellbeingMessages = defineMessages({
     fr: 'Rédiger un message de suivi',
   },
   wellbeing_context_topic: { en: 'Wellbeing', fr: 'Bien-être' },
+  /* ── Production mode (real persistence, migration 0041) ──────────────────
+     A register of what the employer offers — never a list of who is
+     struggling. See the migration header. [FR self-authored.] */
+  wellbeing_prod_loading: {
+    en: 'Loading wellbeing register…',
+    fr: 'Chargement du registre de mieux-être…',
+  },
+  wellbeing_prod_count_one: { en: 'initiative', fr: 'initiative' },
+  wellbeing_prod_count_many: { en: 'initiatives', fr: 'initiatives' },
+  wellbeing_prod_add: { en: 'Add initiative', fr: 'Ajouter une initiative' },
+  wellbeing_prod_save: { en: 'Save', fr: 'Enregistrer' },
+  wellbeing_prod_cancel: { en: 'Cancel', fr: 'Annuler' },
+  wellbeing_prod_name: { en: 'Name', fr: 'Nom' },
+  wellbeing_prod_kind: { en: 'Type', fr: 'Type' },
+  wellbeing_prod_status: { en: 'Status', fr: 'Statut' },
+  wellbeing_prod_owner: { en: 'Owner', fr: 'Responsable' },
+  wellbeing_prod_review_date: { en: 'Next review', fr: 'Prochaine révision' },
+  wellbeing_prod_note: { en: 'Note', fr: 'Note' },
+  wellbeing_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  wellbeing_prod_active_label: { en: 'Active supports', fr: 'Soutiens actifs' },
+  wellbeing_prod_overdue_label: { en: 'Reviews overdue', fr: 'Révisions en retard' },
+  wellbeing_prod_review_prefix: { en: 'Review by ', fr: 'À réviser d’ici le ' },
+  wellbeing_prod_overdue_chip: { en: 'Review overdue', fr: 'Révision en retard' },
+  wellbeing_prod_status_aria: { en: 'Initiative status', fr: 'Statut de l’initiative' },
+  wellbeing_prod_kind_eap: { en: 'Employee assistance', fr: 'Aide aux employés' },
+  wellbeing_prod_kind_training: { en: 'Training', fr: 'Formation' },
+  wellbeing_prod_kind_policy: { en: 'Policy', fr: 'Politique' },
+  wellbeing_prod_kind_check_in: { en: 'Check-in practice', fr: 'Pratique de suivi' },
+  wellbeing_prod_kind_accommodation_support: {
+    en: 'Accommodation support',
+    fr: 'Soutien à l’accommodement',
+  },
+  wellbeing_prod_kind_other: { en: 'Other', fr: 'Autre' },
+  wellbeing_prod_status_planned: { en: 'Planned', fr: 'Planifiée' },
+  wellbeing_prod_status_active: { en: 'Active', fr: 'Active' },
+  wellbeing_prod_status_paused: { en: 'Paused', fr: 'En pause' },
+  wellbeing_prod_status_retired: { en: 'Retired', fr: 'Retirée' },
+  wellbeing_prod_added: { en: 'Initiative added', fr: 'Initiative ajoutée' },
+  wellbeing_prod_add_failed: {
+    en: 'Couldn’t add the initiative. Try again.',
+    fr: 'Impossible d’ajouter l’initiative. Réessayez.',
+  },
+  wellbeing_prod_removed: { en: 'Initiative removed', fr: 'Initiative retirée' },
+  wellbeing_prod_remove_failed: {
+    en: 'Couldn’t remove the initiative.',
+    fr: 'Impossible de retirer l’initiative.',
+  },
+  wellbeing_prod_status_updated: { en: 'Status updated', fr: 'Statut mis à jour' },
+  wellbeing_prod_status_update_failed: {
+    en: 'Couldn’t update the initiative.',
+    fr: 'Impossible de mettre à jour l’initiative.',
+  },
+  wellbeing_prod_error: {
+    en: 'Couldn’t load the wellbeing register.',
+    fr: 'Impossible de charger le registre de mieux-être.',
+  },
+  wellbeing_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  wellbeing_prod_empty_title: {
+    en: 'No initiatives recorded yet',
+    fr: 'Aucune initiative consignée',
+  },
+  wellbeing_prod_empty_body: {
+    en: 'Record the supports you offer — an assistance programme, a manager training, a check-in practice — and when each is next reviewed.',
+    fr: 'Consignez les soutiens que vous offrez — un programme d’aide, une formation des gestionnaires, une pratique de suivi — et la date de leur prochaine révision.',
+  },
+  /* Replaces the demo's usage-limits banner, which described a signal
+     detector. This says what the register is and what it is not. */
+  wellbeing_prod_banner: {
+    en: 'A register of the support you offer. Dutiva records no health information about individuals and detects no signals about anyone.',
+    fr: 'Un registre du soutien que vous offrez. Dutiva ne consigne aucun renseignement de santé sur les personnes et ne détecte aucun signal concernant qui que ce soit.',
+  },
+  wellbeing_prod_accommodation_note: {
+    en: 'Support for a named person belongs in a case, where there is a request and the employee takes part.',
+    fr: 'Le soutien à une personne nommée relève d’un dossier, où il y a une demande et où l’employé(e) participe.',
+  },
 })

@@ -66,4 +66,67 @@ export const compensationMessages = defineMessages({
     en: 'Ask Advisor about pay',
     fr: 'Demander au Conseiller à propos de la rémunération', // [FR self-authored]
   },
+  /* ── Production mode (real persistence, migration 0039) ──────────────────
+     The demo's "vs market" column has no production equivalent: Dutiva has
+     no salary-survey source, so the comparison here is against the band
+     midpoint the employer enters themselves. [FR self-authored throughout.] */
+  comp_prod_loading: { en: 'Loading compensation…', fr: 'Chargement de la rémunération…' },
+  comp_prod_count_one: { en: 'record', fr: 'dossier' },
+  comp_prod_count_many: { en: 'records', fr: 'dossiers' },
+  comp_prod_add: { en: 'Add record', fr: 'Ajouter un dossier' },
+  comp_prod_save: { en: 'Save', fr: 'Enregistrer' },
+  comp_prod_cancel: { en: 'Cancel', fr: 'Annuler' },
+  comp_prod_employee: { en: 'Employee', fr: 'Employé(e)' },
+  comp_prod_base_salary: { en: 'Base salary', fr: 'Salaire de base' },
+  comp_prod_band: { en: 'Pay band', fr: 'Échelle salariale' },
+  comp_prod_band_midpoint: {
+    en: 'Band midpoint (optional)',
+    fr: 'Point milieu de l’échelle (facultatif)',
+  },
+  comp_prod_effective_date: { en: 'Effective date', fr: 'Date d’entrée en vigueur' },
+  comp_prod_note: { en: 'Note', fr: 'Note' },
+  comp_prod_vs_midpoint: { en: 'vs band midpoint', fr: 'p/r au point milieu' },
+  comp_prod_no_midpoint: { en: 'No midpoint set', fr: 'Aucun point milieu défini' },
+  comp_prod_total_payroll: { en: 'Recorded base payroll', fr: 'Masse salariale de base consignée' },
+  comp_prod_below_midpoint: {
+    en: 'Below their band midpoint',
+    fr: 'Sous le point milieu de leur échelle',
+  },
+  comp_prod_records: { en: 'Records', fr: 'Dossiers' },
+  comp_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  comp_prod_added: { en: 'Compensation record added', fr: 'Dossier de rémunération ajouté' },
+  comp_prod_add_failed: {
+    en: 'Couldn’t add the record. Try again.',
+    fr: 'Impossible d’ajouter le dossier. Réessayez.',
+  },
+  comp_prod_removed: { en: 'Record removed', fr: 'Dossier retiré' },
+  comp_prod_remove_failed: {
+    en: 'Couldn’t remove the record.',
+    fr: 'Impossible de retirer le dossier.',
+  },
+  comp_prod_error: {
+    en: 'Couldn’t load compensation records.',
+    fr: 'Impossible de charger les dossiers de rémunération.',
+  },
+  comp_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  comp_prod_empty_title: { en: 'No compensation records yet', fr: 'Aucun dossier de rémunération' },
+  comp_prod_empty_body: {
+    en: 'Add a record for an employee to track base pay against your own bands.',
+    fr: 'Ajoutez un dossier pour un(e) employé(e) afin de suivre le salaire de base par rapport à vos propres échelles.',
+  },
+  comp_prod_no_employees: {
+    en: 'Add someone to your employee roster first — a compensation record belongs to a person.',
+    fr: 'Ajoutez d’abord une personne à votre effectif — un dossier de rémunération appartient à une personne.',
+  },
+  /* The banner replaces the demo's audit-log claim, which the product does
+     not yet make good on for this module. This one states only what the
+     migration's RLS actually enforces. */
+  comp_prod_banner: {
+    en: 'Restricted module — only workspace owners and admins can read or change compensation records.',
+    fr: 'Module restreint — seuls les propriétaires et administrateurs de l’espace de travail peuvent consulter ou modifier les dossiers de rémunération.',
+  },
+  comp_prod_market_note: {
+    en: 'Comparisons use the band midpoint you enter. Dutiva does not supply market salary data.',
+    fr: 'Les comparaisons utilisent le point milieu que vous saisissez. Dutiva ne fournit pas de données salariales de marché.',
+  },
 })

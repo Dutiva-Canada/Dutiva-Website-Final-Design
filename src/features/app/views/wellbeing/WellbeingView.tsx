@@ -4,7 +4,9 @@ import { useI18n } from '@/i18n/context'
 import { employees, supportSignals } from '@/data'
 import { statusChipClass } from '@/components/chips'
 import { useWellbeingRail } from '@/features/app/rail/useEntityRails'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { wellbeingMessages as M } from '@/i18n/messages/wellbeing'
+import { WellbeingProductionView } from './WellbeingProductionView'
 
 /**
  * Wellbeing & support view — support signals with explicitly non-diagnostic
@@ -12,12 +14,24 @@ import { wellbeingMessages as M } from '@/i18n/messages/wellbeing'
  * sensitivity), recommended supportive actions, and the "Handle with care"
  * check-in rail. Port of the prototype's `isWellbeingView` markup +
  * `buildWellbeingView()` / `askAboutWellbeing()` (App v2.dc.html).
+ *
+ * Production renders a register of the support the employer offers
+ * (WellbeingProductionView, public.hr_wellbeing_initiatives). **The signals
+ * below do not cross over, and that is the design** — they are inferred
+ * health information about named people, which is the one thing Ring 2 is
+ * built not to record. See migration 0041's header.
  */
 
 /** Prototype `followCount: '2'` — a fixed figure in the handoff. */
 const FOLLOW_UPS_THIS_WEEK = '2'
 
 export function WellbeingView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <WellbeingProductionView />
+  return <WellbeingDemoView />
+}
+
+function WellbeingDemoView() {
   const { x } = useI18n()
   const navigate = useNavigate()
   /* Prototype `askAboutWellbeing(emp)` — the shared non-diagnostic check-in rail. */
