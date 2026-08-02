@@ -323,16 +323,19 @@ export function ActBtn({
   variant = 'ghost',
   onClick,
   children,
+  disabled,
 }: {
   readonly variant?: keyof typeof ACTBTN_VARIANT
   readonly onClick: () => void
   readonly children: ReactNode
+  readonly disabled?: boolean
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-[9px] px-[12px] py-[7px] text-[12.5px] font-semibold transition-colors ${ACTBTN_VARIANT[variant]}`}
+      disabled={disabled}
+      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-[9px] px-[12px] py-[7px] text-[12.5px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${ACTBTN_VARIANT[variant]}`}
     >
       {children}
     </button>

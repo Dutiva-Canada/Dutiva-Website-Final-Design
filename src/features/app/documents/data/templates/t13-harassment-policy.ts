@@ -36,8 +36,8 @@ export const tplT13: DocTemplate = {
     fr: 'Politique sur le respect en milieu de travail',
   },
   desc: {
-    en: 'Required by law in every jurisdiction Dutiva covers. Covers harassment, discrimination and violence, what respect looks like day to day, and how a report is handled.',
-    fr: 'Exigée par la loi dans chaque juridiction couverte par Dutiva. Vise le harcèlement, la discrimination et la violence, le respect au quotidien, et le traitement d’un signalement.',
+    en: 'The base policy every jurisdiction Dutiva covers requires — harassment, discrimination and violence, what respect looks like day to day, and how a report is handled. Québec and federal workplaces prescribe further content the document lists for you to add.',
+    fr: 'La politique de base exigée dans chaque juridiction couverte par Dutiva — harcèlement, discrimination et violence, respect au quotidien et traitement d’un signalement. Le Québec et le régime fédéral prescrivent du contenu additionnel que le document énumère pour que vous l’ajoutiez.',
   },
   jurisdictions: ['ON', 'QC', 'FED'],
   risk: 'medium',
@@ -374,8 +374,38 @@ export const tplT13: DocTemplate = {
         fr: 'Soutien, formation et révision',
       },
       text: {
-        en: '{{support_resources}} That support is open to everyone involved, including the person a complaint is about. Everyone who works here is trained on this policy when they join and when it changes, and managers are trained on what to do when something is reported to them. This policy is reviewed {{review_cycle}}.',
-        fr: '{{support_resources}} Ce soutien est offert à toutes les personnes concernées, y compris celle visée par une plainte. Toute personne qui travaille ici reçoit une formation sur la présente politique à son arrivée et à chaque modification, et les gestionnaires sont formés sur la conduite à tenir lorsqu’un signalement leur est adressé. La présente politique est révisée {{review_cycle}}.',
+        en: 'Support available to anyone involved: {{support_resources}}. It is open to everyone involved, including the person a complaint is about. Everyone who works here is trained on this policy when they join and when it changes, and managers are trained on what to do when something is reported to them. This policy is reviewed {{review_cycle}}.',
+        fr: 'Soutien offert aux personnes concernées : {{support_resources}}. Il est offert à toutes les personnes concernées, y compris celle visée par une plainte. Toute personne qui travaille ici reçoit une formation sur la présente politique à son arrivée et à chaque modification, et les gestionnaires sont formés sur la conduite à tenir lorsqu’un signalement leur est adressé. La présente politique est révisée {{review_cycle}}.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 11,
+      when: {
+        juris: 'QC',
+      },
+      heading: {
+        en: 'What Québec requires this policy to add',
+        fr: 'Ce que le Québec exige d’ajouter à la présente politique',
+      },
+      text: {
+        en: 'The Act respecting labour standards prescribes content beyond what is above, and a policy without it is incomplete however well the rest reads. Add, before publishing: the methods used to identify and control the risks of psychological harassment, including harassment of a sexual nature; how work-related social activities are handled; the measures protecting anyone involved in a complaint; how a complaint is received, handled and followed up, and the training given to whoever handles one. Complaint records must also be kept for at least two years. This document does not supply those — it lists them so nothing is published missing one.',
+        fr: 'La Loi sur les normes du travail prescrit du contenu au-delà de ce qui précède, et une politique qui en est dépourvue demeure incomplète, si bien rédigé soit le reste. Ajoutez, avant publication : les méthodes utilisées pour identifier et contrôler les risques de harcèlement psychologique, y compris à caractère sexuel; le traitement réservé aux activités sociales liées au travail; les mesures protégeant les personnes concernées par une plainte; les modalités de réception, de traitement et de suivi d’une plainte, ainsi que la formation donnée aux personnes qui la traitent. Les documents relatifs à une plainte doivent en outre être conservés au moins deux ans. Le présent document ne fournit pas ces éléments — il les énumère pour que rien ne soit publié sans eux.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 11,
+      when: {
+        juris: 'FED',
+      },
+      heading: {
+        en: 'What the federal Regulations require this policy to add',
+        fr: 'Ce que le règlement fédéral exige d’ajouter à la présente politique',
+      },
+      text: {
+        en: 'The Work Place Harassment and Violence Prevention Regulations prescribe the elements a prevention policy must contain, and this document does not supply all of them. Add, before publishing: the respective roles of the employer, the applicable partner, the designated recipient and the parties; a summary of the risk factors the workplace assessment identified and the measures taken; the emergency procedures where an occurrence poses an immediate danger; the training that will be provided; and how an employee can exercise the recourses available under the Canada Labour Code, Part II. Note also that the whole policy must be developed and reviewed jointly, which the next clause covers.',
+        fr: 'Le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail prescrit les éléments que doit contenir une politique de prévention, et le présent document ne les fournit pas tous. Ajoutez, avant publication : les rôles respectifs de l’employeur, du partenaire concerné, du destinataire désigné et des parties; un sommaire des facteurs de risque relevés par l’évaluation du lieu de travail et des mesures prises; les procédures d’urgence lorsqu’un incident présente un danger immédiat; la formation qui sera offerte; et la façon dont un employé peut exercer les recours prévus au Code canadien du travail, Partie II. Notez également que l’ensemble de la politique doit être élaboré et révisé conjointement, ce que couvre la clause suivante.',
       },
     },
     {
@@ -436,6 +466,14 @@ export const tplT13: DocTemplate = {
       text: {
         en: 'Generated from your answers as a starting point.',
         fr: 'Généré à partir de vos réponses comme point de départ.',
+      },
+    },
+    {
+      type: 'note',
+      tone: 'risk',
+      text: {
+        en: 'This is a base policy, not a finished statutory one everywhere. Ontario’s programme requirements are met by what is above plus the training and complaint procedure it describes; Québec and the federal regime each prescribe further content, which the clauses above list rather than supply. Do not publish this as your required policy until those elements have been added and — federally — until it has been developed jointly with the policy committee or health and safety representative.',
+        fr: 'Il s’agit d’une politique de base, et non d’une politique légale achevée partout. Les exigences ontariennes relatives au programme sont satisfaites par ce qui précède, assorti de la formation et de la procédure de plainte qui y sont décrites; le Québec et le régime fédéral prescrivent chacun du contenu additionnel, que les clauses ci-dessus énumèrent sans le fournir. Ne publiez pas le présent texte comme votre politique obligatoire tant que ces éléments n’ont pas été ajoutés et, au fédéral, tant qu’elle n’a pas été élaborée conjointement avec le comité d’orientation ou le représentant en santé et sécurité.',
       },
     },
     {

@@ -348,6 +348,26 @@ two-clause preview, so the template promised a document it did not produce,
 and there was no statement of what is _not_ harassment, which is the omission
 that makes managers afraid to manage.
 
+**A template that says it is the legally required policy has to be one, or
+say what it is missing.** T13's description claimed it was required by law in
+every jurisdiction Dutiva covers — true of the obligation, not of the
+document. Québec prescribes content beyond it (risk identification and
+control, social activities, protection measures, complaint handling and
+handler training, two-year record retention) and the federal Regulations
+prescribe their own list (the parties' roles, the assessment's risk-factor
+summary, emergency procedures, training, Part II recourse). The document lists
+those in `when.juris` clauses rather than inventing them, a risk note says not
+to publish it as the statutory policy until they are added, and the
+description no longer implies completeness. **Before describing any template
+as satisfying a statutory requirement, check the prescribed content list —
+covering the subject is not the same as meeting the requirement.**
+
+**`required` on a question was decoration.** The wizard rendered an asterisk
+and advanced anyway, so a document could be created with its required merge
+fields blank and shipped to a customer with unfilled placeholders in it. Next
+and Create now gate on it, and the missing fields are named rather than the
+button silently disabling. This was catalogue-wide, not a T44 problem.
+
 **A prompt the reader answers needs somewhere to write — `fill`.** Issuing
 T44 blank was right; rendering its prompts as `clause` was not, because
 `DocPaper` renders a clause as a heading and a paragraph and `PreviewBlock`

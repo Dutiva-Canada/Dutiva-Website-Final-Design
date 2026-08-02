@@ -16,6 +16,36 @@ const renderWizard = (templateId: string) =>
     { route: `/app/documents/generate/${templateId}`, path: PATH },
   )
 
+/**
+ * Answer every required question of a template, and report how many distinct
+ * merge-backed fields that filled. Derived from the template rather than
+ * listed, so a question added later is answered here too.
+ */
+const fillRequired = (templateId: string): number => {
+  const tpl = [...templateByTid.values()].find((t) => t.id === templateId)
+  if (!tpl) throw new Error(`missing template ${templateId}`)
+  let filled = 0
+  for (const q of tpl.questions) {
+    if (!q.required) continue
+    if (q.type === 'radio') {
+      /* A radio renders as a row of buttons with no associated control, so
+         `getByLabelText` cannot reach it — click the first option instead. */
+      const first = q.options?.[0]
+      if (!first) throw new Error(`radio ${q.id} has no options`)
+      fireEvent.click(screen.getByRole('button', { name: first.label.en }))
+    } else {
+      const field = screen.getByLabelText(
+        new RegExp(`^${q.label.en.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)}`),
+      )
+      const value =
+        q.type === 'select' ? (q.options?.[0]?.value ?? '') : q.type === 'date' ? '2026-09-01' : 'x'
+      fireEvent.change(field, { target: { value } })
+    }
+    filled += 1
+  }
+  return filled
+}
+
 describe('GenerateScreen', () => {
   it('renders the context step for T01 with jurisdiction/language toggles and the org strip', async () => {
     renderWizard('tpl_t01')
@@ -64,20 +94,34 @@ describe('GenerateScreen', () => {
     expect(await screen.findByText('All changes saved', {}, { timeout: 2500 })).toBeInTheDocument()
   })
 
+  it('will not advance past the questions until every required one is answered', async () => {
+    /* `required` was decoration only: the wizard advanced and created
+       regardless, so a document could be saved with its required merge fields
+       blank and render as unfilled placeholders in the customer's copy. */
+    renderWizard('tpl_t01')
+    await screen.findByText('Generate · Offer of employment letter')
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+
+    const next = () => screen.getByRole('button', { name: 'Next' })
+    expect(next()).toBeDisabled()
+    expect(screen.getByText('Still needed before this can be created:')).toBeInTheDocument()
+
+    fillRequired('tpl_t01')
+    expect(next()).toBeEnabled()
+  })
+
   it('shows fill progress and risk/review posture on the review step', async () => {
     renderWizard('tpl_t01')
     await screen.findByText('Generate · Offer of employment letter')
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    fireEvent.change(screen.getByPlaceholderText('e.g. Gabriel Dubois'), {
-      target: { value: 'Gabriel Dubois' },
-    })
+    const filled = fillRequired('tpl_t01')
     fireEvent.click(screen.getByRole('button', { name: 'Next' }))
 
     const t01 = templateByTid.get('T01')
     if (!t01) throw new Error('fixture template T01 missing')
     const { total } = fillProgress(t01, {})
-    expect(screen.getByText(`1/${total}`)).toBeInTheDocument()
+    expect(screen.getByText(`${filled}/${total}`)).toBeInTheDocument()
     expect(screen.getByText('fields filled')).toBeInTheDocument()
 
     expect(screen.getByText('Low risk')).toBeInTheDocument()
@@ -134,9 +178,7 @@ describe('GenerateScreen', () => {
       setField('Notice / pay in lieu', '2')
 
       /* 6 completed years → 6 weeks under ESA s.57. */
-      expect(screen.getByRole('alert')).toHaveTextContent(
-        /Below the statutory minimum of 6 weeks/,
-      )
+      expect(screen.getByRole('alert')).toHaveTextContent(/Below the statutory minimum of 6 weeks/)
     })
 
     it('confirms a figure that meets the minimum, without alarm', async () => {

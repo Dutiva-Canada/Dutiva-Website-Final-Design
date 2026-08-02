@@ -124,8 +124,8 @@ export const tplT44: DocTemplate = {
       type: 'text',
       required: true,
       hint: {
-        en: 'The only detail the employer fills in. Everything else on this plan is written by the person it belongs to.',
-        fr: 'Le seul renseignement rempli par l’employeur. Tout le reste du plan est rédigé par la personne à qui il appartient.',
+        en: 'This section is the routing and identifying detail only — whose plan it is, when to revisit, who to return it to. Every answer in the plan itself is written by the person it belongs to.',
+        fr: 'Cette section ne contient que les renseignements d’identification et d’acheminement — à qui appartient le plan, quand le revoir, à qui le remettre. Toutes les réponses du plan lui-même sont rédigées par la personne à qui il appartient.',
       },
     },
     {
