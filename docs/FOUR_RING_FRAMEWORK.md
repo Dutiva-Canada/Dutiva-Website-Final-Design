@@ -32,10 +32,13 @@ previous rings more useful. They are not tiers of a price list, and no plan in
 
 ## What is built
 
-**Ring 1 — the document catalogue** (`catalogue.ts`), now covering every tool
-the April framework listed for it. The catalogue is 44 templates in total,
-T01…T44, nine of which are Ring 3. Plus the Advisor,
-the compliance register, cases, employees, policies and tasks. This is the
+**All four rings are complete.** Every tool the April framework listed now
+exists, and this section is the record of where each one lives.
+
+**Ring 1 — the document catalogue** (`catalogue.ts`), covering every tool the
+April framework listed for it. The catalogue is 46 templates in total,
+T01…T46 — nine of them Ring 3, two of them Ring 4. Plus the Advisor, the
+compliance register, cases, employees, policies and tasks. This is the
 product.
 
 **Ring 2 — complete.** Six accommodation tools (Pillar B), four
@@ -48,7 +51,10 @@ plan.
 communications category: layoff and restructuring, policy rollout, crisis
 communications.
 
-**Ring 4 — nothing.**
+**Ring 4 — complete.** Two templates in the new Compensation category — the
+total compensation summary (T45) and the salary review letter (T46) — and two
+reference guides, `/app/knowledge/pay-statement` and
+`/app/knowledge/retirement-savings`.
 
 The `/app/communications`, `/app/compensation` and `/app/wellbeing` modules
 are **not** Rings 3, 4 and 2. They are prototype surfaces ported from the App
@@ -58,22 +64,36 @@ Nothing in them is a ring tool, none is wired to persistence, and describing
 them as shipped capability is the specific claim `CANONICAL_FACTS.md` §4
 forbids.
 
-**This gets more confusing now that Ring 3 exists, not less.** Ring 3 is the
-nine templates in Document Studio. `/app/communications` is still a ported
-prototype on fixtures and is still not it, and the fact that the names now
-match makes the claim easier to make by accident.
+**Every ring now has a module whose name matches it, and none of those modules
+is the ring.** This was a nuisance when Ring 3 landed and it is a trap now that
+all four have: a reader who sees "all four rings complete" in this file and
+three chips marked roadmap on the landing page will be tempted to reconcile
+them by promoting the chips. Do not. The rings ship as templates in Document
+Studio, guides under `/app/knowledge` and flows under `/app/workflows`; the
+modules come off roadmap when they run on real workspace data, which is a
+separate piece of work nobody has started. The note on `MODULES` in
+`src/features/marketing/sections/Modules.tsx` says the same thing at the place
+the mistake would be made.
 
 ### Where the catalogue puts things
 
 Categories are ordered as the employment lifecycle, not by when they were
 added: hiring → changes → agreements → policies → discipline → accommodation
-→ termination, with **internal communications** last. Three are authored
-in-repo. **Accommodation** holds Ring 2 Pillar B and the Ring 1 document it
-produces. **Employment changes** exists because the framework's Ring 1 has an
-"Employment Changes" group that had no home in the handoff's five categories —
-part of why its two documents were never built. **Internal communications** is
-Ring 3, and it is last because it does not sit at a point in the lifecycle at
-all: it cuts across every one of them.
+→ termination → wellbeing → compensation, with **internal communications**
+last. Five of the ten are authored in-repo.
+
+- **Accommodation** holds Ring 2 Pillar B and the Ring 1 document it produces.
+- **Employment changes** exists because the framework's Ring 1 has an
+  "Employment Changes" group that had no home in the handoff's five categories
+  — part of why its two documents were never built.
+- **Wellbeing** holds the wellness action plan, and is separate from
+  accommodation because completing a plan implies neither a disability nor a
+  request.
+- **Compensation** is Ring 4, and the boundary against **changes** is that
+  these documents report rather than vary. T26 stays in changes because
+  confirming a new title or rate is a variation of the contract.
+- **Internal communications** is Ring 3, and it is last because it does not
+  sit at a point in the lifecycle at all: it cuts across every one of them.
 
 ## Ring 2, Pillar B — Accommodation
 
@@ -196,35 +216,38 @@ enforces it for `/guides`. The same caution applies and it is a judgement
 call: name the statute, describe the shape of the rule, point at the official
 text.
 
-## The rest of Rings 2–4
+## The pillars and rings, tool by tool
 
-Nothing below is built. Counts are the framework's own.
+Everything below is built. Each section records where the tools live and what
+was learned building them — the reusable part, not a changelog. Counts, where
+they appear, are the framework's own.
 
-### Pillar C's respectful workplace policy overlaps T13 — build it by widening T13
+### Pillar C's respectful workplace policy overlapped T13 — it was built by widening T13
 
-The framework lists it as "comprehensive policy covering harassment,
-discrimination, and inclusion". Most of that is the harassment, discrimination
-& violence policy already in the catalogue as **T13** — same subject, same
-audience, and a policy every jurisdiction Dutiva covers requires by statute.
-Not all of it: T13 carries no inclusion content, so the framework's third
-dimension is genuinely unbuilt, which is why this stays counted as remaining
-rather than done.
+Kept because the reasoning generalises. The framework listed the tool as
+"comprehensive policy covering harassment, discrimination, and inclusion", and
+most of that was the harassment, discrimination & violence policy already in
+the catalogue as **T13** — same subject, same audience, and a policy every
+jurisdiction Dutiva covers requires by statute. Only the inclusion dimension
+was genuinely missing.
 
-**When it is built, widen T13. Do not mint a companion policy.** Two
-overlapping conduct policies in front of the same employer is the
+**So it was widened rather than companioned, and that is the rule to keep.**
+Two overlapping conduct policies in front of the same employer is the
 near-duplicate problem the accommodation category already had once (T19 beside
 T23), and an inclusion clause that lives apart from the harassment policy is
 the clause nobody reads.
 
-That is more than an authoring job, and worth knowing before it is picked up.
-T13 is a **generated** file — `t13-harassment-policy.ts` carries the
-`do not hand-edit / regenerate with scripts/generate-doclib.mjs` header — and
+It was also more than an authoring job, which is why it took three PRs to
+land. `t13-harassment-policy.ts` carried a
+`do not hand-edit / regenerate with scripts/generate-doclib.mjs` header, and
 the generator does not run: dead Windows paths, and its source JSON was never
-committed. It is also thin, two clauses against the eight or nine the authored
-templates carry. So widening it means first deciding whether T13 moves to
-hand-maintained the way `data/templates/` already is, or the generator is
-repaired. Take that decision deliberately; do not resolve it by quietly editing
-a file that says not to.
+committed. Widening T13 meant first deciding whether it moved to
+hand-maintained the way `data/templates/` already is, or the generator was
+repaired. **That decision was taken deliberately rather than resolved by
+quietly editing a file that says not to** — the generator's own header states
+it is a one-shot import, so T01–T16 are hand-maintained now and say so. If
+another generated file ever blocks a tool the same way, take the same route:
+settle the ownership question in its own commit, then author.
 
 ### Ring 2, Pillar A — Mental health & EAP readiness
 
@@ -301,13 +324,9 @@ protection and income replacement are separate systems with separate
 administrators, which is the part that does not go stale — and sends the
 reader to the ministry and to Service Canada or QPIP for anything numeric.
 
-Apply the same rule to Ring 4's pay-stub and RRSP/TFSA guides when they are
-written. A figure in a guide is a figure someone has to re-audit annually, and
-the year nobody does is the year it misleads.
-
-**Ring 4, Compensation & Financial Literacy — 4 tools.** Total compensation
-summary, salary review letter, pay stub guide, RRSP & TFSA guide. **This is
-all that remains.** Rings 1, 2 and 3 are complete, see below.
+The same rule now governs both Ring 4 guides, and it bound harder there —
+see below. A figure in a guide is a figure someone has to re-audit annually,
+and the year nobody does is the year it misleads.
 
 ## Ring 2, Pillar C — Psychological safety
 
@@ -416,6 +435,31 @@ is what makes the quiet ones usable. It creates no obligation to intervene,
 because an employer whose policy disciplines a silent bystander has invented
 an offence out of someone else's misconduct and shifted its own duty onto a
 witness.
+
+### The psychological safety self-check
+
+Pillar C's scored assessment, at `/app/workflows/psychological-safety-check` —
+thirteen rated questions banded into a result with a per-factor breakdown.
+Building it is what added scoring to the flow engine, so the last piece of
+machinery Rings 2–4 needed now exists.
+
+**Read this before touching its content.** CSA Z1003-13 is a copyrighted
+standard published by the CSA Group, and none of its assessment instrument is
+reproduced — not in whole, not in paraphrase. What is used is the set of
+thirteen psychosocial factors it identifies, which are named and described in
+freely published material about it; every question is written from scratch.
+The copy never describes a run as an audit against the Standard, a measure of
+conformance, or any kind of certification, and a test asserts the disclaimer is
+on the page. Keep both of those true.
+
+It also asks the employer what they have put in place — not how their staff
+feel. An anonymous employee survey is a different instrument with different
+ethics (consent, anonymity, a duty to act on what it surfaces), and shipping
+one under this label would be the wrong tool wearing the right name.
+
+The framework asks for fifteen questions; there are thirteen, one per factor.
+Padding two factors into four questions would have weighted them double for
+the sake of a round number.
 
 ## Ring 3 — Internal communications
 
@@ -527,60 +571,111 @@ worked around per template. Apply it wherever answers meet `mergeSegments`;
 `engine.test.ts` holds every merged select in the catalogue to resolving in
 both languages.
 
-### The psychological safety self-check
+## Ring 4 — Compensation & financial literacy
 
-Pillar C's scored assessment, at `/app/workflows/psychological-safety-check` —
-thirteen rated questions banded into a result with a per-factor breakdown.
-Building it is what added scoring to the flow engine, so the last piece of
-machinery Rings 2–4 needed now exists.
+All four built: two templates in a new `compensation` category, and two
+reference guides.
 
-**Read this before touching its content.** CSA Z1003-13 is a copyrighted
-standard published by the CSA Group, and none of its assessment instrument is
-reproduced — not in whole, not in paraphrase. What is used is the set of
-thirteen psychosocial factors it identifies, which are named and described in
-freely published material about it; every question is written from scratch.
-The copy never describes a run as an audit against the Standard, a measure of
-conformance, or any kind of certification, and a test asserts the disclaimer is
-on the page. Keep both of those true.
+| Tool                       | Where                               | State     |
+| -------------------------- | ----------------------------------- | --------- |
+| Total compensation summary | T45                                 | **Built** |
+| Salary review letter       | T46                                 | **Built** |
+| Pay stub guide             | `/app/knowledge/pay-statement`      | **Built** |
+| RRSP & TFSA guide          | `/app/knowledge/retirement-savings` | **Built** |
 
-It also asks the employer what they have put in place — not how their staff
-feel. An anonymous employee survey is a different instrument with different
-ethics (consent, anonymity, a duty to act on what it surfaces), and shipping
-one under this label would be the wrong tool wearing the right name.
+**The `compensation` category exists because these report rather than vary.**
+That is the whole boundary against `changes`, and it is the test for anything
+added here later: a total compensation summary changes nothing, and a salary
+review letter frequently reports that nothing changed. T26 stays in `changes`
+because confirming a new title or a new rate is a variation of the contract.
+The category sits ninth in the lifecycle order, before communications.
 
-The framework asks for fifteen questions; there are thirteen, one per factor.
-Padding two factors into four questions would have weighted them double for
-the sake of a round number.
+**T45 does not total, and that is the design.** A total compensation statement
+is normally written to make a number look larger than the salary, and the
+usual way there is to add in the employer's own costs — its share of statutory
+payroll contributions, its insurance premiums, the cost of the office. None of
+that is money the employee receives. Employees compare the headline to their
+bank account, and the gap is what they remember, so the document keeps pay,
+benefits provided and employer contributions in three separate sections and
+sums none of them. The generalisable form: **a number an employee cannot spend
+does not go in the same column as one they can.**
 
-### Grouped by what they cost to build
+**T46 is built around the no-increase letter, because that is the one nobody
+writes.** Employers either say nothing and let the silence land in a pay
+period, or bury it under a paragraph about business conditions that reads as a
+preamble to bad news the reader has already guessed. The document says the
+outcome in the first line, gives the actual reason, and says what would change
+it. Its risk note carries the part an HR author will not think of unprompted:
+a pay decision has to rest on the work, and a pattern of outcomes that tracks a
+protected ground is a problem whatever any individual letter says.
 
-The ring split describes the product; this split describes the work. 4 tools
-remain — the same 4 as above, counted the other way: all of Ring 4.
-**Change one of these tables and check the other still adds up.**
+**T46 hands off rather than absorbing.** Where a review produces an increase,
+T46 reports it and T26 varies the terms — a new title, a new reporting line, a
+change to the contract itself. Running a no-increase year through T26 produces
+a promotion letter with its fields empty; running an actual promotion through
+T46 produces a report of a change that was never documented as one. Reporting
+a rate and varying a contract are different acts and stay different documents.
 
-| Shape                             | Count | Where it goes                                                  |
-| --------------------------------- | ----- | -------------------------------------------------------------- |
-| Generated templates               | 2     | `data/templates/`, the shape T21–T44 established               |
-| Reference guides / guidance notes | 2     | `reference/data/`, the shape the limitations guide established |
-| Checklists and decision flows     | 0     | `flows/data/`, the shape the accommodation flow established    |
+**Both guides are figure-free, under the rule the parental leave guide set** —
+and it bound harder here than anywhere. Nearly everything a reader wants a
+number for in payroll or registered savings is set annually: contribution
+rates, maximums, exemptions, brackets, limits, penalty rates, the age an RRSP
+must convert. The pay statement guide teaches the structure instead — which
+deductions are required and which need written authorization, what the
+statement must contain, and why a taxable benefit lowers net pay — and sends
+the reader to the revenue agencies for anything numeric. That structure is
+also the part employers actually get wrong.
 
-Every remaining flow is built, and every remaining pillar is complete. What is
-left is Ring 4: the total compensation summary and the salary review letter as
-templates, the pay-stub and RRSP/TFSA explainers as guides — and both of those
-guides fall squarely under the figure rule the parental leave guide set.
+**The RRSP/TFSA guide is bound by a second rule the others are not: an
+employer is not a financial adviser.** Explaining how an account is taxed is
+education; telling an employee which account to use, how much to contribute or
+what to hold in it is advice, given by the party that signs their pay cheque to
+someone who cannot weigh it neutrally. So the guide's longest section is the
+one about where the employer's answer ends, and it names a destination for
+every question it declines — "I can't advise on that" lands badly alone and
+well when it ends with who can. **If any future tool touches an employee's own
+money, health or legal position, write the boundary section first and the
+content around it.** `CANONICAL_FACTS.md` §4 now carries the claim to make
+about this guide, which is that it is educational and not financial advice.
 
-**Every remaining tool now has a home and a worked example.** No machinery is
-outstanding: templates, reference guides, decision flows and scored
+**The two Ring 4 halves point at each other, and that was worth the extra
+pass.** The pay statement guide's "your cost is not their deduction" section
+exists because T45 is where employer contributions belong and a pay stub is
+where they do not — an employer contribution printed on a statement reads as
+something taken from the employee. The RRSP/TFSA guide makes the matching
+point from the other side: an employer contribution to a group plan is a
+taxable benefit, so gaining one can lower net pay in the same period, which is
+the most predictable surprise in compensation and the one to disclose when the
+benefit is announced rather than when the first person calls.
+
+## Grouped by what they cost to build
+
+The ring split describes the product; this split describes the work. **0 tools
+remain.** The table is kept as the map of where each shape lives, because the
+next tool anyone adds will be one of these three and will go in one of these
+three directories.
+
+| Shape                             | Where it goes                                                  |
+| --------------------------------- | -------------------------------------------------------------- |
+| Generated templates               | `data/templates/`, the shape T21–T46 established               |
+| Reference guides / guidance notes | `reference/data/`, the shape the limitations guide established |
+| Checklists and decision flows     | `flows/data/`, the shape the accommodation flow established    |
+
+**Every tool had a home and a worked example by the end, and that is what made
+the last stretch fast.** Templates, reference guides, decision flows and scored
 assessments each have a directory and something shipped to copy from. Before
-the surfaces existed, 12 of these were blocked on code that did not exist and
-the answer to "where would this go?" was nothing.
+those surfaces existed, 12 of these tools were blocked on code that did not
+exist and the answer to "where would this go?" was nothing. If a future tool
+does not fit one of the three shapes, building the surface first was the right
+call then and remains it.
 
-So what remains is authoring — and authoring is where the real constraint is.
-These are legal-adjacent documents in a compliance product. Across four PRs,
-every legal error was caught by review and none by CI: the tests here check
-graph shape, merge fields, bilingual completeness and jurisdiction scoping,
-and none of them can tell you a statute is characterised correctly. Budget for
-review, not just writing.
+The real constraint was never the machinery — it was the authoring. These are
+legal-adjacent documents in a compliance product, and across every PR in this
+sequence, **every legal error was caught by review and none by CI**: the tests
+here check graph shape, merge fields, bilingual completeness and jurisdiction
+scoping, and none of them can tell you a statute is characterised correctly.
+Budget for review, not just writing. That does not change now the rings are
+finished; it applies to the next amendment to any of these files.
 
 ## Standing constraints on any ring tool
 
@@ -617,10 +712,16 @@ review, not just writing.
 5. **Compliance-oriented, never compliant.** No "legally compliant",
    "guaranteed compliant", or "legal advice".
 6. **Figures.** Public editorial content states no statutory figures
-   (AGENTS.md). In-product tools are not covered by that rule, but Ring 4's
-   pay-stub and RRSP/TFSA guides and Ring 2's parental-leave guide are
-   inherently figure-heavy and would need annual maintenance. **Decide the
-   policy before authoring them**, not after.
+   (AGENTS.md). In-product tools are not covered by that rule, but the three
+   inherently figure-heavy guides — parental leave, pay statement, RRSP/TFSA —
+   all settled on the same answer: **no figures**, name the statute or the
+   agency and send the reader to the current source. Follow it for anything
+   whose numbers are set annually. A figure in a guide is one somebody has to
+   re-audit every year, and the year nobody does is the year it misleads.
+7. **Not an adviser.** The product does not give legal, medical or financial
+   advice, and a tool that edges toward one states its own boundary in its own
+   copy — see the RRSP/TFSA guide, whose longest section is where the
+   employer's answer ends.
 
 ## Corrections to the April 2026 Drive document
 
@@ -631,7 +732,7 @@ four places. Treat the Drive document as superseded on all four.
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | All 14 jurisdictions, every ring                | Three — ON, QC, FED                                                                                                                    |
 | $39/month flat                                  | Free · Starter $24 · Growth $49 · Pro $99, and paid plans are not sold during beta                                                     |
-| 47 tools at launch                              | 44 templates ship; the 47 counted a launch state that did not happen                                                                   |
+| 47 tools at launch                              | 46 templates ship; the 47 counted a launch state that did not happen                                                                   |
 | Month-numbered build schedule off a launch date | Both published launch dates have passed. Tie sequencing to product state, never a calendar date (`CANONICAL_FACTS.md` § Launch status) |
 
 Its Ring 1 inventory did not match what shipped either. Of the 18 tools it
@@ -669,7 +770,7 @@ Drive document undercounts the product, not the other way round.
 
 1. Check this file and `CANONICAL_FACTS.md` first.
 2. Pick the surface by shape, and follow the worked example already there:
-   - **a document** → `data/templates/`, following T21–T44. Numbering
+   - **a document** → `data/templates/`, following T21–T46. Numbering
      continues from the highest tid in `catalogue.ts` — **check both
      sources**, because `data/templates/` and `customTemplates.ts` share one
      tid space and doclib silently wins the lookup in `DocStudioProvider`.
@@ -688,3 +789,10 @@ Drive document undercounts the product, not the other way round.
 3. Update the template count row in `CANONICAL_FACTS.md` in the same PR; the
    test derives it from `catalogue.ts` and fails on drift.
 4. Update the state tables here.
+5. **Check for overlap before authoring, not in review.** When a proposed tool
+   sounds like something already shipped, it usually is. That check changed the
+   answer five times across this sequence — T13, Pillar A's support checklist,
+   the return-to-work document, T39 against the `ack` blocks, and T46 against
+   T26 — and every time the right move was to widen, re-scope or hand off
+   rather than mint a near-duplicate. Two overlapping documents in front of one
+   employer is worse than one imperfect document.

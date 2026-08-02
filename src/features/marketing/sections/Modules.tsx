@@ -8,10 +8,17 @@ import { IconChip } from './IconChip'
  * `roadmap: true` marks a module that is not shipped capability.
  * Compensation, Communications and Wellbeing exist in the app only as
  * prototype surfaces on demo fixtures, gated off in a production workspace
- * (`gated(…)` in src/app/appViews.tsx) — they are Rings 4, 3 and 2, and
- * CANONICAL_FACTS §4 requires those be presented as roadmap. The other four
- * are real: compliance monitoring, people and cases, the knowledge base, and
- * analytics all run on live data.
+ * (`gated(…)` in src/app/appViews.tsx), so CANONICAL_FACTS §4 requires they be
+ * presented as roadmap. The other four are real: compliance monitoring, people
+ * and cases, the knowledge base, and analytics all run on live data.
+ *
+ * **These three chips are the modules, not the rings, and the rings being
+ * complete does not promote them.** Rings 2, 3 and 4 ship as templates in
+ * Document Studio, guides under `/app/knowledge` and flows under
+ * `/app/workflows` — all of which the knowledge and monitoring chips already
+ * cover. The name collision is the trap CANONICAL_FACTS §4 spells out: do not
+ * drop `roadmap` here on the strength of a ring being finished. It comes off
+ * when these three surfaces run on real workspace data.
  */
 const MODULES: { icon: LucideIcon; label: LandingMessageKey; roadmap?: true }[] = [
   { icon: ShieldCheck, label: 'landing_mod1_label' },

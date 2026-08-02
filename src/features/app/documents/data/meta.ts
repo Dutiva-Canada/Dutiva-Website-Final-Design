@@ -171,6 +171,26 @@ export const templateCategories: TemplateCategory[] = [
       fr: 'Plans volontaires, appartenant à la personne salariée, pour rester bien au travail. Ils ne demandent aucun diagnostic et ne constituent pas des accommodements.',
     },
   },
+  /* AUTHORED IN-REPO (not from the handoff) — Ring 4, see
+     docs/FOUR_RING_FRAMEWORK.md. Separate from `changes` because these
+     documents report rather than vary: a total compensation summary changes
+     nothing, and a salary review letter frequently reports that nothing
+     changed. T26 stays in `changes` because confirming a new role or rate is
+     a variation of the contract, which is a different act with different
+     consequences. */
+  {
+    id: 'compensation',
+    order: 9,
+    icon: 'wallet',
+    name: {
+      en: 'Compensation',
+      fr: 'Rémunération',
+    },
+    desc: {
+      en: 'What someone is paid and what else they receive, stated without creating an entitlement that was not already there.',
+      fr: 'Ce qu’une personne reçoit en rémunération et en avantages, énoncé sans créer de droit qui n’existait pas déjà.',
+    },
+  },
   /* AUTHORED IN-REPO (not from the handoff) — Ring 3, see
      docs/FOUR_RING_FRAMEWORK.md. Last in the order because it cuts across the
      lifecycle rather than sitting at a point in it: every other category is
@@ -179,7 +199,7 @@ export const templateCategories: TemplateCategory[] = [
      to hold on to when adding one. */
   {
     id: 'communications',
-    order: 9,
+    order: 10,
     icon: 'megaphone',
     name: {
       en: 'Internal communications',
