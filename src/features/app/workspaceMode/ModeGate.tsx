@@ -1,7 +1,11 @@
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
-import { moduleLabelFor } from '@/features/app/shell/navConfig'
+/* navLabels, not navConfig: navConfig value-imports the demo fixtures for its
+   sidebar badge counts, and ModeGate sits in the eager entry graph (routes →
+   appViews → ModeGate), so importing it from there ships 113kB of fixtures to
+   every marketing visitor. */
+import { moduleLabelFor } from '@/features/app/shell/navLabels'
 import { useWorkspaceMode } from './workspaceModeContext'
 import { ProductionEmptyState } from './ProductionEmptyState'
 

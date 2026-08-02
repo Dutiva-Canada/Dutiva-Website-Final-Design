@@ -251,11 +251,23 @@ entirely — Justice Canada XML — so these two need the same treatment, not a
 retry. Until then `monitoringCoverage.ts` says so on the Knowledge panel, signed
 out included. (PRs #105, #106)
 
+Re-probed 2026-08-02: `ontario.ca`, `canada.ca`, `laws-lois.justice.gc.ca` and
+`legisquebec.gouv.qc.ca` all fail at the egress proxy, so even evaluating a
+replacement source needs the allowlist in L1 first.
+
 **EF3 — Export-trail follow-ups.** An in-app admin viewer over `export_events`
 (the trail is read through service-role tooling today); the Advisor chat "Copy"
 button and on-screen text are unwatermarked, since watermarking starts at
 export; and downloads should move to short-lived signed URLs if Supabase Storage
 ever holds real files. [EXPORT_PROTECTION.md](EXPORT_PROTECTION.md). (PR #102)
+
+The viewer is not just a screen: `0033` enables RLS on `export_events` with
+**no policies at all**, deliberately — service-role only, so today nothing
+signed-in can read a row. Building the viewer means either an admin `select`
+policy (the shape `0011` already uses for guidance/law_updates) or an
+admin-gated edge function. That is a decision about the audit table's security
+posture and should be taken on purpose, not inherited from whichever is easier
+to write.
 
 **EF4 — Annual billing is unwired below the surface.** `create-checkout-session`
 knows only `STRIPE_PRICE_*_MONTHLY` (verified 2026-08-02). The annual toggle is
@@ -269,10 +281,22 @@ server-side, so the fallback is what resolves the plan. A real fix means an
 extra Stripe API call from inside the webhook. Recorded as short-of-intent, not
 broken. (BILLING_BETA_AUDIT § Still open)
 
-**EF6 — The entry graph is broad and react-markdown rides on it.** `main`
-preloads 32 chunks including app-only ones like `cases` and `employees`, so
-react-markdown's +158 kB could not be deferred by chunking alone. Narrowing the
-entry graph is the actual fix and predates that PR. (PR #114)
+**EF6 — Done.** The entry graph was broad because three things rode it: the
+`vendor` group carried react-markdown's 157kB parser tree; `messages/index.ts`
+split into 25+ tiny chunks that were each modulepreloaded; and `routes.tsx` →
+`appViews.tsx` → `ModeGate` → `navConfig` → `@/data` put 113kB of demo HR
+fixtures in front of every landing page. 34 preloads → 5, and 1121kB → 850kB
+raw. `scripts/check-entry-graph.mjs` now fails the build on a regression,
+reading membership from the build's own source maps.
+
+**What is left on it:** the i18n catalogue is now one 232kB chunk and still
+fully eager, because `t()` is synchronous and `messages/index.ts` merges all 42
+feature modules into one object. Splitting marketing from app messages would
+take roughly 150kB more off the marketing critical path, but it means a mutable
+registry the lazy app surface registers into — and a message that resolves to
+`undefined` is a blank string on screen in a bilingual compliance product.
+Worth doing deliberately, with a test that every `MessageKey` resolves, not as
+part of a chunking pass.
 
 **EF7 — The legacy document fixture was never migrated.** `src/data/documents.ts`
 still exists alongside the doclib catalogue, with five templates that have no

@@ -257,3 +257,19 @@ component / `t('disclaimer')`.
 - Colocate tests as `*.test.ts(x)` next to the unit under test.
 - Prefer semantic tokens and shared primitives over copy-pasted styles; keep
   components small and per-view folders self-contained.
+
+### The eager entry graph is budgeted
+
+`npm run build` runs `scripts/check-entry-graph.mjs`, which fails on what a
+first-time visitor to a public page downloads before anything is interactive:
+the entry chunk plus every `modulepreload`. It bars the workspace
+(`src/features/app/**`, outside a short allowlist), the demo fixtures
+(`src/data/**`), and three dependency trees (react-markdown, Supabase,
+recharts) from that set, and caps the preload count and raw bytes.
+
+This is not a micro-optimisation rule. Every view is already `lazy()`, so the
+split looks correct in the source and breaks in the output: a single non-lazy
+import from a module the router touches drags its whole tree onto the marketing
+critical path, and nothing else notices. If the check fires, the fix is almost
+always to import the pure part rather than to widen the allowlist —
+`shell/navLabels.ts` exists for exactly that reason.
