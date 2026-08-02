@@ -3,6 +3,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
 import { ALL_ARTICLES, BLOG_ARTICLES, GUIDE_ARTICLES, articlePath } from '../articles'
+import { articleSections } from '../articles/content'
 import { BlogArticlePage, GuideArticlePage } from './ArticlePage'
 
 const [firstGuide] = GUIDE_ARTICLES
@@ -20,7 +21,7 @@ describe('ArticlePage', () => {
     expect(main.getAllByRole('heading', { level: 1 })).toHaveLength(1)
     expect(main.getByText(guide.summary.en)).toBeInTheDocument()
     /* First body paragraph is rendered, not just the card metadata. */
-    const firstBlock = guide.sections[0]!.blocks[0]!
+    const firstBlock = articleSections(guide.collection, guide.slug)[0]!.blocks[0]!
     expect(main.getByText(firstBlock.text.en)).toBeInTheDocument()
     expect(
       within(screen.getByRole('navigation', { name: 'Breadcrumb' })).getByRole('link', {
@@ -71,7 +72,7 @@ describe('ArticlePage', () => {
 
   it('gives every article enough body copy to be worth indexing', () => {
     for (const article of ALL_ARTICLES) {
-      const words = article.sections
+      const words = articleSections(article.collection, article.slug)
         .flatMap((s) => s.blocks.map((b) => b.text.en))
         .join(' ')
         .split(/\s+/).length

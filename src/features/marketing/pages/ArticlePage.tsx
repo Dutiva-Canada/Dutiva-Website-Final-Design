@@ -11,6 +11,9 @@ import {
   relatedArticles,
 } from '@/features/marketing/articles'
 import type { ArticleCollection } from '@/features/marketing/articles'
+/* The prose, kept out of `articles/index` so the router does not carry it —
+   see articles/content.ts. This route is lazy, so it lands in this chunk. */
+import { articleSections } from '@/features/marketing/articles/content'
 import { Breadcrumbs, MarketingPageShell } from './MarketingPage'
 
 /**
@@ -83,7 +86,7 @@ export function ArticlePage({ collection }: { readonly collection: ArticleCollec
         </h1>
         <p className="mt-3.5 text-lg leading-[1.6] text-text-2">{x(article.summary)}</p>
 
-        {article.sections.map((section, sectionIndex) => (
+        {articleSections(collection, article.slug).map((section, sectionIndex) => (
           <section key={section.heading ? x(section.heading) : `s${sectionIndex}`}>
             {section.heading && (
               <h2 className="mt-8 font-display text-[1.1875rem] font-semibold tracking-[-0.01em] text-text">

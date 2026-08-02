@@ -15,6 +15,9 @@ import {
   helpArticlesByCategory,
   helpCategory,
 } from '@/features/support/help/helpCenterData'
+/* Bodies live outside the article record so the router does not carry the
+   whole Help Centre — see help/helpContent.ts. This route is lazy. */
+import { helpArticleSections } from '@/features/support/help/helpContent'
 import { HelpfulnessWidget } from '@/features/support/help/HelpfulnessWidget'
 import { HelpContactCta } from '@/features/support/help/HelpContactCta'
 import { MarketingPageShell } from './MarketingPage'
@@ -79,7 +82,7 @@ export function HelpArticlePage() {
         </h1>
         <p className="mt-3.5 text-lg leading-[1.6] text-text-2">{x(article.summary)}</p>
 
-        {article.sections.map((section, sectionIndex) => (
+        {helpArticleSections(article.slug).map((section, sectionIndex) => (
           <section key={section.heading ? x(section.heading) : `s${sectionIndex}`}>
             {section.heading && (
               <h2 className="mt-8 font-display text-[1.1875rem] font-semibold tracking-[-0.01em] text-text">

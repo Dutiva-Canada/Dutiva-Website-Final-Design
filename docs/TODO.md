@@ -289,20 +289,58 @@ fixtures in front of every landing page. 34 preloads → 5, and 1121kB → 850kB
 raw. `scripts/check-entry-graph.mjs` now fails the build on a regression,
 reading membership from the build's own source maps.
 
-**What is left on it:** the i18n catalogue is now one 232kB chunk and still
-fully eager, because `t()` is synchronous and `messages/index.ts` merges all 42
-feature modules into one object. Splitting marketing from app messages would
-take roughly 150kB more off the marketing critical path, but it means a mutable
-registry the lazy app surface registers into — and a message that resolves to
-`undefined` is a blank string on screen in a bilingual compliance product.
-Worth doing deliberately, with a test that every `MessageKey` resolves, not as
-part of a chunking pass.
+**EF6a — Split the message catalogue by surface.** _Blocked on a type, not on
+effort._ The i18n catalogue is now one 232kB chunk and still fully eager.
+Usage splits cleanly — 27 modules are read only by the workspace (~170kB of
+source), 10 only by marketing, 5 by both — and the provider seam already exists
+(`ForcedLangProvider` is the public surface, `LangProvider` the app), so
+`buildLangContextValue` could take the catalogue as an argument and no mutable
+registry is needed.
+
+The blocker is that **`t()` is called with computed keys**, so what a marketing
+page can reach is not a set anyone can enumerate. `src/config/plans.ts` types
+plan copy as `MessageKey` and points at `landing_*` keys; `LegalHubPage` and
+`AboutPage` resolve `row.titleKey` / `value.bodyKey` out of data. A test that
+"every `MessageKey` resolves" — the guard suggested when this was first
+written — cannot be written for a split catalogue, because the reachable set is
+the whole union by construction, and `t()` on a missing key throws rather than
+degrading.
+
+The fix is to make the constraint a type: surface-scoped key types, the shape
+`useLanding`'s `lt()` / `LandingMessageKey` already uses, pushed through the
+data structures that carry keys. That is a per-feature migration of call sites,
+not a chunking change — which is why it is its own item.
+
+**EF6b — Done.** The router imported `@/seo/routes`, which read every article
+and help article to build `allPublicPages()` — it needs slugs, and it was
+getting `blogArticles.ts` (89kB), `guideArticles.ts` (111kB) and
+`helpCenterData.ts` (32kB) in full. Prose is now split from the records it
+hangs off, keyed by English slug, in `blogContent.ts` / `guideContent.ts` /
+`helpContent.ts`. Every consumer — `ArticlePage`, `HelpArticlePage`, Help
+Centre search, the support first-line helper — is behind a lazy route, so the
+imports stay static and prerendering is unchanged.
+
+Entry chunk 248kB → 62kB; eager graph 850kB → 665kB. The move was done with a
+codemod copying verbatim source ranges, and verified by comparing every
+authored string literal against `git HEAD`: 786 article strings and 76 help
+strings, identical. `check-entry-graph.mjs` now bars the three content modules
+by name, and parity tests assert the metadata and content key sets match in
+both directions per collection.
 
 **EF7 — The legacy document fixture was never migrated.** `src/data/documents.ts`
 still exists alongside the doclib catalogue, with five templates that have no
 doclib match; `PoliciesView.tsx` and `searchCorpus.ts` were explicitly left out
 of the unification. Additive by design — but two sources for one concept is the
 shape of the drift this repo keeps correcting elsewhere. (PR #33)
+
+It is a live fallback, not dead weight: `DocStudioProvider` and
+`resolveDocTitle` both try the doclib set by tid and fall back to
+`documentTemplatesByKey` when there is no match, which is what keeps those five
+templates reachable. So deleting the file removes five templates from Document
+Studio. Closing this means authoring them into the doclib catalogue — legal
+content in a compliance product, which per
+[FOUR_RING_FRAMEWORK.md](FOUR_RING_FRAMEWORK.md) needs review budget, not just
+engineering time — or deciding they should go, which is a product call.
 
 **EF8 — Paid-area gating by plan does not exist.** `/app` is gated by invite,
 not by plan; the pricing page and Stripe plumbing are real but nothing reads a

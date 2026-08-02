@@ -1,6 +1,7 @@
 import type { Lang } from '@/i18n/core'
 import { pick } from '@/i18n/core'
 import { HELP_ARTICLES, helpCategory } from './helpCenterData'
+import { articlePlainText } from './helpContent'
 import type { HelpArticle } from './helpCenterData'
 
 /**
@@ -16,11 +17,7 @@ import type { HelpArticle } from './helpCenterData'
 
 /** Lowercase and strip diacritics (U+0300–U+036F) for locale-tolerant matching. */
 export function normalizeText(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim()
+  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 }
 
 interface Indexed {
@@ -32,10 +29,9 @@ interface Indexed {
 }
 
 function indexArticle(article: HelpArticle, lang: Lang): Indexed {
-  const bodyText = article.sections
-    .flatMap((s) => [...(s.heading ? [s.heading] : []), ...s.blocks.map((b) => b.text)])
-    .map((t) => pick(t, lang))
-    .join(' ')
+  /* Bodies come from helpContent, not from the article record — see that
+     module for why they are not a field on HelpArticle. */
+  const bodyText = articlePlainText(article, lang)
   const rest = [
     article.keywords ? pick(article.keywords, lang) : '',
     pick(helpCategory(article.category).title, lang),
