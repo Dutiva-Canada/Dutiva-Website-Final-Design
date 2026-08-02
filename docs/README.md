@@ -20,6 +20,16 @@ the rows backed by TypeScript values, and `scripts/check-canonical-facts.mjs`
 (`npm run check:facts`) for the brand rows, which live in CSS that Vitest
 cannot read. Adding a code-backed fact means adding its check.
 
+## What is still open
+
+| Document           | What it settles                                                                                                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [TODO.md](TODO.md) | Every open item, swept from the "still staged" / "not done" notes in PRs #1–#132 and the docs below. Separates owner actions (a secret, a filing) from decisions, blockers and build work. |
+
+Each PR here records what it did not do. `TODO.md` is where those notes
+accumulate — add to it when a PR leaves something open, and delete the entry
+when the thing is done.
+
 ## What is true, and how we keep it true
 
 Dutiva is a compliance product, so a wrong fact is a product defect. These
