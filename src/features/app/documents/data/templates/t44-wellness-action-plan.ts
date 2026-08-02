@@ -6,21 +6,32 @@
    **This one belongs to the employee, and that changes how it is built.**
    Every other template in the catalogue is the employer's document about a
    person. This is a person's document about themselves, handed to a manager
-   so the manager knows what helps. Getting that backwards produces a
-   health questionnaire with the employer's name on it, which is both the
-   wrong instrument and a privacy problem the employer created for itself.
+   so the manager knows what helps.
 
-   So: the questions ask what would help at work, never what is wrong. There
-   is no field for a condition, a diagnosis or a treatment, and there is
-   deliberately nowhere to put one — a template with a "nature of condition"
-   box gets that box filled in. What an employer needs to act on is the
-   limitation and the support, which is the same rule the functional
-   limitations guide sets out for accommodation.
+   **So it generates blank, and that is the design rather than an omission.**
+   The first draft asked the wizard for the employee's answers, which review
+   caught: `GenerateScreen` is employer-side — an owner, HR lead or manager
+   picks an employee and types into it — so a template with fields for "what
+   makes work harder" has the employer authoring someone else's health-adjacent
+   data. The three questions here are the only ones an employer legitimately
+   fills in: whose plan it is, when to look at it again, and who to give it
+   back to. Everything else prints as a prompt with space under it.
 
-   It is also not an accommodation, and the copy says so twice. A plan filed
-   as one asserts that the employee has a disability and requested an
-   adjustment, neither of which completing this implies. Where an
-   accommodation is needed, T21 starts it and this is not a substitute. */
+   If an employee self-completion path is ever built, this is the template to
+   revisit — but a blank form is the honest shape until then, not a stopgap.
+
+   No diagnosis is requested anywhere, deliberately: a box marked "nature of
+   condition" gets that box filled in. What the product cannot do is stop
+   someone volunteering one in free text, so the copy says "no diagnosis is
+   requested" rather than claiming the result is never a medical record, and
+   the manager note says to treat whatever comes back as sensitive personal
+   information either way.
+
+   It is also not an accommodation, and the copy says so — but it does not say
+   the accommodation process waits for a formal request, because it does not:
+   the duty starts when the employer knows or ought reasonably to know. An
+   earlier draft said "starts with an accommodation request", which
+   contradicted this file's own jurisdiction notes. */
 import { DOC_DISCLAIMER_NOTE } from '../meta'
 import type { DocTemplate } from '../types'
 
@@ -36,8 +47,8 @@ export const tplT44: DocTemplate = {
     fr: 'Plan d’action pour le mieux-être',
   },
   desc: {
-    en: 'An employee’s own plan for staying well at work — what helps, what the early signs are, and what they want their manager to do. Voluntary, and never a medical record.',
-    fr: 'Le plan personnel d’une personne salariée pour rester bien au travail : ce qui aide, les signes précurseurs et ce qu’elle attend de son gestionnaire. Volontaire, et jamais un dossier médical.',
+    en: 'An employee’s own plan for staying well at work — what helps, what the early signs are, and what they want their manager to do. Voluntary, issued blank for the employee to fill in, and no diagnosis is ever requested.',
+    fr: 'Le plan personnel d’une personne salariée pour rester bien au travail : ce qui aide, les signes précurseurs et ce qu’elle attend de son gestionnaire. Volontaire, remis vierge pour que la personne le remplisse, et aucun diagnostic n’y est jamais demandé.',
   },
   jurisdictions: ['ON', 'QC', 'FED'],
   risk: 'medium',
@@ -55,8 +66,8 @@ export const tplT44: DocTemplate = {
       fr: 'Volontaire — nul ne peut être tenu d’en remplir un, et refuser n’entraîne aucune conséquence',
     },
     {
-      en: 'Privacy — no diagnosis is collected, and the plan is stored apart from the personnel file',
-      fr: 'Vie privée — aucun diagnostic n’est recueilli et le plan est conservé hors du dossier d’employé',
+      en: 'Privacy — no diagnosis is requested, and a completed plan is sensitive personal information',
+      fr: 'Vie privée — aucun diagnostic n’est demandé, et un plan rempli constitue un renseignement personnel sensible',
     },
     {
       en: 'Not an accommodation, and not a substitute for one',
@@ -103,132 +114,52 @@ export const tplT44: DocTemplate = {
     {
       id: 'employee_name',
       section: {
-        en: 'You',
-        fr: 'Vous',
+        en: 'Who it is for',
+        fr: 'Pour qui',
       },
       label: {
-        en: 'Your name',
-        fr: 'Votre nom',
+        en: 'Employee name',
+        fr: 'Nom de la personne salariée',
       },
       type: 'text',
       required: true,
-    },
-    {
-      id: 'keeps_well',
-      section: {
-        en: 'What works',
-        fr: 'Ce qui fonctionne',
-      },
-      label: {
-        en: 'What helps you work well',
-        fr: 'Ce qui vous aide à bien travailler',
-      },
-      type: 'textarea',
-      required: true,
-      placeholder: {
-        en: 'Working patterns, notice before changes, a quiet space, regular one-to-ones — whatever actually helps.',
-        fr: 'Rythme de travail, préavis avant les changements, un espace calme, des rencontres régulières — ce qui aide réellement.',
-      },
       hint: {
-        en: 'Start here rather than with problems. Most of a useful plan is a list of ordinary things that already work, which is also the part a manager can act on immediately.',
-        fr: 'Commencez par là plutôt que par les problèmes. L’essentiel d’un plan utile est une liste de choses ordinaires qui fonctionnent déjà, et c’est aussi la partie sur laquelle un gestionnaire peut agir tout de suite.',
-      },
-    },
-    {
-      id: 'makes_harder',
-      section: {
-        en: 'What works',
-        fr: 'Ce qui fonctionne',
-      },
-      label: {
-        en: 'What makes work harder for you',
-        fr: 'Ce qui rend le travail plus difficile pour vous',
-      },
-      type: 'textarea',
-      required: true,
-      placeholder: {
-        en: 'Situations, patterns or demands that make things harder — described as they affect your work.',
-        fr: 'Situations, habitudes ou exigences qui compliquent les choses — décrites selon leur effet sur votre travail.',
-      },
-      hint: {
-        en: 'Describe the effect at work, not the cause. You are never asked for a diagnosis here, you do not have to give one, and nobody may ask you for one on the strength of this form.',
-        fr: 'Décrivez l’effet au travail, non la cause. On ne vous demande jamais de diagnostic ici, vous n’avez pas à en fournir, et personne ne peut vous en demander un sur la foi du présent formulaire.',
-      },
-    },
-    {
-      id: 'early_signs',
-      section: {
-        en: 'If things slip',
-        fr: 'Si les choses se dégradent',
-      },
-      label: {
-        en: 'What others might notice first',
-        fr: 'Ce que les autres pourraient remarquer en premier',
-      },
-      type: 'textarea',
-      required: true,
-      placeholder: {
-        en: 'The changes you would want someone to spot — in your work, your hours, how much you say.',
-        fr: 'Les changements que vous voudriez qu’on remarque — dans votre travail, vos horaires, votre participation.',
-      },
-    },
-    {
-      id: 'what_helps_then',
-      section: {
-        en: 'If things slip',
-        fr: 'Si les choses se dégradent',
-      },
-      label: {
-        en: 'What you want done if that happens',
-        fr: 'Ce que vous souhaitez qu’on fasse alors',
-      },
-      type: 'textarea',
-      required: true,
-      placeholder: {
-        en: 'Who to speak to you, how, and what you would rather they did not do.',
-        fr: 'Qui doit vous en parler, comment, et ce que vous préféreriez qu’on ne fasse pas.',
-      },
-      hint: {
-        en: 'Written now, this is the instruction your future self would struggle to give. "Ask me directly and privately" and "do not raise it in a team meeting" are both useful answers.',
-        fr: 'Rédigée maintenant, c’est la consigne que vous auriez du mal à donner le moment venu. « Parlez-m’en directement et en privé » et « n’abordez pas le sujet en réunion d’équipe » sont deux réponses utiles.',
-      },
-    },
-    {
-      id: 'shared_with',
-      section: {
-        en: 'Who sees this',
-        fr: 'Qui le consulte',
-      },
-      label: {
-        en: 'Who you agree may see this plan',
-        fr: 'Qui vous acceptez de laisser consulter ce plan',
-      },
-      type: 'textarea',
-      required: true,
-      placeholder: {
-        en: 'Name them. "My manager only" is a complete answer.',
-        fr: 'Nommez-les. « Mon gestionnaire seulement » est une réponse complète.',
-      },
-      hint: {
-        en: 'Your choice, and it is respected. If it later has to go further — to arrange cover, or because someone else has to act — you are told before that happens.',
-        fr: 'C’est votre choix et il est respecté. Si le plan devait ensuite circuler davantage — pour organiser un remplacement ou parce qu’une autre personne doit agir — vous en serez informé(e) au préalable.',
+        en: 'The only detail the employer fills in. Everything else on this plan is written by the person it belongs to.',
+        fr: 'Le seul renseignement rempli par l’employeur. Tout le reste du plan est rédigé par la personne à qui il appartient.',
       },
     },
     {
       id: 'review_on',
       section: {
-        en: 'Who sees this',
-        fr: 'Qui le consulte',
+        en: 'Who it is for',
+        fr: 'Pour qui',
       },
       label: {
-        en: 'When you will look at this again',
-        fr: 'Quand vous le reverrez',
+        en: 'Suggested date to look at it again',
+        fr: 'Date suggérée pour le revoir',
       },
       type: 'date',
       required: true,
       hint: {
-        en: 'A plan nobody revisits describes a job that has since changed. Put a date on it.',
-        fr: 'Un plan que personne ne revoit décrit un poste qui a changé depuis. Fixez-lui une date.',
+        en: 'A suggestion, which the employee can change. A plan nobody revisits describes a job that has since changed.',
+        fr: 'Une suggestion, que la personne peut modifier. Un plan que personne ne revoit décrit un poste qui a changé depuis.',
+      },
+    },
+    {
+      id: 'return_to',
+      section: {
+        en: 'Who it is for',
+        fr: 'Pour qui',
+      },
+      label: {
+        en: 'Who to give the completed plan to',
+        fr: 'À qui remettre le plan rempli',
+      },
+      type: 'text',
+      required: true,
+      placeholder: {
+        en: 'Usually their own manager — and say if there is an alternative.',
+        fr: 'Habituellement leur gestionnaire — précisez s’il existe une autre option.',
       },
     },
   ],
@@ -243,15 +174,15 @@ export const tplT44: DocTemplate = {
     {
       type: 'meta',
       text: {
-        en: '{{employee_name}} · {{org}} · {{today}} · Confidential · To be reviewed {{review_on}}',
-        fr: '{{employee_name}} · {{org}} · {{today}} · Confidentiel · À revoir le {{review_on}}',
+        en: 'For {{employee_name}} to complete · {{org}} · Issued {{today}} · Suggested review {{review_on}}',
+        fr: 'À remplir par {{employee_name}} · {{org}} · Émis le {{today}} · Révision suggérée le {{review_on}}',
       },
     },
     {
       type: 'para',
       text: {
-        en: 'This plan belongs to {{employee_name}}. They wrote it, they decide what is in it, and they can change or withdraw it at any time. Completing one is voluntary — nobody is asked to explain why they have not.',
-        fr: 'Le présent plan appartient à {{employee_name}}. Cette personne l’a rédigé, décide de son contenu et peut le modifier ou le retirer en tout temps. Le remplir est volontaire — nul n’a à justifier de ne pas l’avoir fait.',
+        en: 'This plan belongs to you. It is issued blank because nobody else should be writing your answers — fill in as much or as little as you want, in your own words, and leave anything you would rather not say. Completing it is entirely voluntary and you will not be asked why if you do not. When you are ready, give it to {{return_to}}. You can change it or take it back at any time.',
+        fr: 'Le présent plan vous appartient. Il est remis vierge parce que personne d’autre ne devrait rédiger vos réponses — remplissez-en autant ou aussi peu que vous le souhaitez, dans vos mots, et laissez de côté ce que vous préférez taire. Le remplir est entièrement volontaire et on ne vous demandera pas pourquoi si vous ne le faites pas. Lorsque vous serez prêt(e), remettez-le à {{return_to}}. Vous pouvez le modifier ou le reprendre en tout temps.',
       },
     },
     {
@@ -262,8 +193,8 @@ export const tplT44: DocTemplate = {
         fr: 'Ce qui m’aide à bien travailler',
       },
       text: {
-        en: '{{keeps_well}}',
-        fr: '{{keeps_well}}',
+        en: 'Working patterns, notice before changes, a quiet space, regular one-to-ones — whatever actually helps. Most of a useful plan is a list of ordinary things that already work, and it is the part a manager can act on straight away.',
+        fr: 'Rythme de travail, préavis avant les changements, un espace calme, des rencontres régulières — ce qui aide réellement. L’essentiel d’un plan utile est une liste de choses ordinaires qui fonctionnent déjà, et c’est la partie sur laquelle un gestionnaire peut agir tout de suite.',
       },
     },
     {
@@ -274,8 +205,8 @@ export const tplT44: DocTemplate = {
         fr: 'Ce qui rend les choses plus difficiles',
       },
       text: {
-        en: '{{makes_harder}}',
-        fr: '{{makes_harder}}',
+        en: 'Situations or demands that make work harder, described by how they affect your work. You are not asked for a diagnosis anywhere on this form, you do not have to give one, and nobody may ask you for one because you completed it.',
+        fr: 'Les situations ou exigences qui compliquent le travail, décrites par leur effet sur celui-ci. Aucun diagnostic ne vous est demandé nulle part sur ce formulaire, vous n’avez pas à en fournir, et personne ne peut vous en demander un parce que vous l’avez rempli.',
       },
     },
     {
@@ -286,44 +217,56 @@ export const tplT44: DocTemplate = {
         fr: 'Ce que vous pourriez remarquer en premier',
       },
       text: {
-        en: '{{early_signs}}',
-        fr: '{{early_signs}}',
+        en: 'The changes you would want someone to spot — in your work, your hours, how much you say in a meeting.',
+        fr: 'Les changements que vous voudriez qu’on remarque — dans votre travail, vos horaires, votre participation aux réunions.',
       },
     },
     {
       type: 'clause',
       n: 4,
       heading: {
-        en: 'What I would like you to do',
-        fr: 'Ce que je souhaite que vous fassiez',
+        en: 'What I would like you to do then',
+        fr: 'Ce que je souhaite que vous fassiez alors',
       },
       text: {
-        en: '{{what_helps_then}}',
-        fr: '{{what_helps_then}}',
+        en: 'Who should speak to you, how, and what you would rather they did not do. Written now, this is the instruction your future self would struggle to give — "ask me directly and privately" and "do not raise it in a team meeting" are both useful answers.',
+        fr: 'Qui doit vous en parler, comment, et ce que vous préféreriez qu’on ne fasse pas. Rédigée maintenant, c’est la consigne que vous auriez du mal à donner le moment venu — « parlez-m’en directement et en privé » et « n’abordez pas le sujet en réunion d’équipe » sont deux réponses utiles.',
       },
     },
     {
       type: 'clause',
       n: 5,
       heading: {
-        en: 'Who may see this',
-        fr: 'Qui peut le consulter',
+        en: 'Who I agree may see this',
+        fr: 'Qui j’accepte de laisser consulter ce plan',
       },
       text: {
-        en: '{{shared_with}} This plan is kept separately from the personnel file and is not part of any performance record. It is not shared further without telling {{employee_name}} first, and it is returned or destroyed on request.',
-        fr: '{{shared_with}} Le présent plan est conservé séparément du dossier d’employé et ne fait partie d’aucun dossier de rendement. Il n’est pas diffusé plus largement sans en informer d’abord {{employee_name}}, et il est remis ou détruit sur demande.',
+        en: 'Name them — "my manager only" is a complete answer. Your choice is respected. If it later has to go further, to arrange cover or because someone else has to act, you are told before that happens.',
+        fr: 'Nommez-les — « mon gestionnaire seulement » est une réponse complète. Votre choix est respecté. Si le plan doit ensuite circuler davantage, pour organiser un remplacement ou parce qu’une autre personne doit agir, vous en serez informé(e) au préalable.',
       },
     },
     {
       type: 'clause',
       n: 6,
       heading: {
+        en: 'How this is handled',
+        fr: 'Comment ce plan est traité',
+      },
+      text: {
+        en: 'A completed plan is treated as sensitive personal information: kept separately from the personnel file, never part of a performance record, and seen only by the people named above. We will tell you before sharing it further, and we will return or destroy it if you ask. Two honest limits on that — where the law requires us to disclose or to keep a record, we will, and where something in it must be acted on we may have to involve someone you did not name. In either case we tell you.',
+        fr: 'Un plan rempli est traité comme un renseignement personnel sensible : conservé séparément du dossier d’employé, jamais versé à un dossier de rendement, et consulté uniquement par les personnes nommées ci-dessus. Nous vous informerons avant de le diffuser plus largement et nous vous le remettrons ou le détruirons sur demande. Deux limites honnêtes à cela : lorsque la loi nous oblige à divulguer ou à conserver un dossier, nous le ferons, et lorsqu’un élément appelle une intervention, nous pourrions devoir impliquer une personne que vous n’avez pas nommée. Dans les deux cas, nous vous en informons.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 7,
+      heading: {
         en: 'What this is not',
         fr: 'Ce que ce plan n’est pas',
       },
       text: {
-        en: 'This is not a medical document, and no diagnosis was asked for or given. It is not an accommodation, and completing it does not mean {{employee_name}} has asked for one or has a disability. Where an adjustment to the work is needed, that is a separate process that starts with an accommodation request — this plan neither replaces it nor delays it.',
-        fr: 'Il ne s’agit pas d’un document médical, et aucun diagnostic n’a été demandé ni fourni. Il ne s’agit pas d’un accommodement, et le fait de le remplir ne signifie pas que {{employee_name}} en a demandé un ni qu’elle a un handicap. Lorsqu’un ajustement du travail est nécessaire, il relève d’un processus distinct qui débute par une demande d’accommodement — le présent plan ne le remplace ni ne le retarde.',
+        en: 'It is not a medical document and no diagnosis is requested anywhere in it. It is not an accommodation, and completing it does not mean you have asked for one or have a disability. If what you write shows that the work needs to change, that is an accommodation matter — and it does not wait for you to make a formal request: once {{org}} knows, or ought reasonably to know, the duty has started. Nothing here replaces or delays that.',
+        fr: 'Il ne s’agit pas d’un document médical et aucun diagnostic n’y est demandé. Il ne s’agit pas d’un accommodement, et le remplir ne signifie pas que vous en avez demandé un ni que vous avez un handicap. Si ce que vous écrivez montre que le travail doit changer, il s’agit d’une question d’accommodement — et elle n’attend pas une demande formelle de votre part : dès que {{org}} sait, ou devrait raisonnablement savoir, l’obligation est enclenchée. Rien ici ne la remplace ni ne la retarde.',
       },
     },
     {
@@ -347,8 +290,8 @@ export const tplT44: DocTemplate = {
       type: 'note',
       tone: 'risk',
       text: {
-        en: 'For the manager receiving this. You may not require anyone to complete one, and declining must carry no consequence. Do not ask what condition lies behind any of it — the plan is built so that question never has to be asked. And read what it says: if it describes a need for the work to change, the duty to accommodate has started whatever this document is called; if it describes conduct by a colleague, that is a harassment matter with its own obligations and timelines, and filing this instead of acting on it is the error to avoid.',
-        fr: 'À l’intention du gestionnaire qui le reçoit. Vous ne pouvez exiger de quiconque qu’il en remplisse un, et un refus ne doit entraîner aucune conséquence. Ne demandez pas quel trouble se cache derrière son contenu — le plan est conçu pour que cette question n’ait jamais à être posée. Et lisez ce qui y est écrit : s’il fait état d’un besoin de modifier le travail, l’obligation d’accommodement est enclenchée quel que soit le nom du document; s’il décrit les comportements d’un collègue, il s’agit d’une question de harcèlement assortie de ses propres obligations et délais, et le classer au lieu d’agir est l’erreur à éviter.',
+        en: 'For the manager issuing this. Hand it over blank — do not fill any of it in on someone’s behalf, and do not ask what condition sits behind any answer. You may not require anyone to complete one, and declining must carry no consequence. When you get it back, read what it says: if it describes a need for the work to change, the duty to accommodate has started whatever the document is called; if it describes conduct by a colleague, that is a harassment matter with its own obligations and timelines, and filing this instead of acting is the error to avoid. Treat whatever the employee chose to write as sensitive personal information, including anything about their health they volunteered without being asked.',
+        fr: 'À l’intention du gestionnaire qui le remet. Remettez-le vierge — n’en remplissez aucune partie au nom de quelqu’un et ne demandez pas quel trouble se cache derrière une réponse. Vous ne pouvez exiger de quiconque qu’il en remplisse un, et un refus ne doit entraîner aucune conséquence. À sa réception, lisez ce qui y est écrit : s’il fait état d’un besoin de modifier le travail, l’obligation d’accommodement est enclenchée quel que soit le nom du document; s’il décrit les comportements d’un collègue, il s’agit d’une question de harcèlement assortie de ses propres obligations et délais, et le classer au lieu d’agir est l’erreur à éviter. Traitez tout ce que la personne a choisi d’écrire comme un renseignement personnel sensible, y compris ce qu’elle aurait volontairement révélé sur sa santé sans qu’on le lui demande.',
       },
     },
     {

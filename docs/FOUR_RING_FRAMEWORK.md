@@ -321,6 +321,24 @@ the generator decision unblocked the policy.
 | Bystander intervention guide | `/app/knowledge/bystander-intervention`     | **Built** |
 | Wellness action plan         | T44                                         | **Built** |
 
+**Do not paraphrase a statutory test in copy that renders everywhere.** T13's
+prohibited-conduct clause first restated Ontario's "known or ought reasonably
+to be known to be unwelcome" for all three jurisdictions — dropping "a course
+of vexatious conduct" from the Ontario test in the process, and stating it at
+all for Québec and federal workplaces, whose definitions differ materially.
+The fix is the T24 pattern: the shared clause says what {{org}} prohibits as
+its own standard and says plainly that it is wider than the legal minimum,
+and three `when.juris` clauses carry the actual statutory definition. Québec's
+single-serious-incident branch requires a lasting harmful effect, and the
+federal definition requires neither a course of conduct nor a lasting effect —
+those are not paraphrases of one rule.
+
+**A generated document must not certify a step the product cannot see.** The
+federal clause said this policy "is developed and reviewed jointly with the
+policy committee" — which the wizard never asks about, so generating T13 for
+a federal employer produced a false statement of compliance. It states the
+requirement now and says issuing the document does not perform it.
+
 **The policy was built by widening T13, as this doc said to.** #126 found the
 overlap and #127 recorded why it could not be closed then: T13 is a generated
 file whose generator does not run, and the fix needed that decision taken
@@ -330,7 +348,21 @@ two-clause preview, so the template promised a document it did not produce,
 and there was no statement of what is _not_ harassment, which is the omission
 that makes managers afraid to manage.
 
-**T44 belongs to the employee, and that is why it is not in `accommodation`.**
+**T44 generates blank, and that is the design.** Review caught the first
+draft asking the wizard for the employee's own answers — `GenerateScreen` is
+employer-side, so a field for "what makes work harder" has an owner, HR lead
+or manager authoring someone else's health-adjacent data. The three questions
+left are the only ones an employer legitimately fills in: whose plan it is,
+when to look at it again, who to give it back to. If an employee
+self-completion path is ever built, T44 is the template to revisit.
+
+The copy says "no diagnosis is requested" rather than claiming the result is
+never a medical record — nothing stops someone volunteering one in free text,
+so the manager note says to treat whatever comes back as sensitive personal
+information either way. That distinction between what a form asks for and what
+it may receive is worth carrying into any future intake document.
+
+**T44 is also not in `accommodation`, deliberately.**
 Filing a wellness plan beside the duty-to-accommodate documents asserts that
 whoever completed one has a disability and asked for an adjustment. Neither
 follows, and it is the same misfiling that once put T19/T20 under

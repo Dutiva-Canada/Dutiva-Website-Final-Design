@@ -1,12 +1,12 @@
 /* Originally GENERATED from the HR Documents Library handoff (dutiva-data.js)
-   by scripts/generate-doclib.mjs. **That generator is retired** — its own
+   by scripts/generate-doclib.mjs. That generator is retired — its own
    header says so, its source JSON was never committed, and it fails at the
    first read. The "regenerate rather than edit" instruction it left here
    pointed at a process that no longer exists, so this file is hand-maintained
    like the rest of the catalogue. Edit it deliberately and keep the FR in
    step; docs/FOUR_RING_FRAMEWORK.md records why.
 
-   **Widened in v5 to be Ring 2 Pillar C's respectful workplace policy.** The
+   Widened in v5 to be Ring 2 Pillar C's respectful workplace policy. The
    framework asks for a policy "covering harassment, discrimination, and
    inclusion", and #126 recorded that the first two were already here and the
    third was not — so the tool stayed outstanding rather than being counted
@@ -69,8 +69,8 @@ export const tplT13: DocTemplate = {
       fr: 'Deux lois s’appliquent. La Loi sur la santé et la sécurité au travail exige un programme écrit contre le harcèlement et la violence, la formation des travailleurs et une procédure de plainte définie — y compris une voie qui ne passe pas par le gestionnaire de la personne. Le Code des droits de la personne définit la discrimination et établit les motifs protégés auxquels renvoie la présente politique; c’est la liste du Code qui fait foi, alors consultez-la plutôt que toute liste reproduite ailleurs.',
     },
     QC: {
-      en: 'The Act respecting labour standards requires an employer to adopt a psychological harassment prevention and complaint-handling policy and to make it available to employees, and psychological harassment there expressly includes sexual harassment. Note that a single serious incident can constitute harassment — a policy written as though a pattern is required understates the law. The Charter of human rights and freedoms sets the protected grounds. The policy must be available in French.',
-      fr: 'La Loi sur les normes du travail oblige l’employeur à adopter une politique de prévention du harcèlement psychologique et de traitement des plaintes et à la rendre disponible au personnel, et le harcèlement psychologique y comprend expressément le harcèlement sexuel. Notez qu’une seule conduite grave peut constituer du harcèlement — une politique rédigée comme si une répétition était requise sous-estime la loi. La Charte des droits et libertés de la personne établit les motifs protégés. La politique doit être disponible en français.',
+      en: 'The Act respecting labour standards requires an employer to adopt a psychological harassment prevention and complaint-handling policy and to make it available to employees, and psychological harassment there expressly includes sexual harassment. Note that a single serious incident can constitute harassment where it produces a lasting harmful effect — a policy written as though a pattern is always required understates the law, and one written as though seriousness alone suffices overstates it. The Charter of human rights and freedoms sets the protected grounds. The policy must be available in French.',
+      fr: 'La Loi sur les normes du travail oblige l’employeur à adopter une politique de prévention du harcèlement psychologique et de traitement des plaintes et à la rendre disponible au personnel, et le harcèlement psychologique y comprend expressément le harcèlement sexuel. Notez qu’une seule conduite grave peut constituer du harcèlement lorsqu’elle produit un effet nocif continu — une politique rédigée comme si une répétition était toujours requise sous-estime la loi, et une politique laissant croire que la gravité suffit la surestime. La Charte des droits et libertés de la personne établit les motifs protégés. La politique doit être disponible en français.',
     },
     FED: {
       en: 'The Work Place Harassment and Violence Prevention Regulations require the policy to be developed and reviewed jointly with the policy committee or health and safety representative — an employer-written policy circulated for comment does not satisfy that. They also require a workplace assessment, training, and a resolution process with prescribed timelines, and they protect the identity of the parties throughout. The Canadian Human Rights Act sets the protected grounds.',
@@ -245,13 +245,58 @@ export const tplT13: DocTemplate = {
         fr: 'Ce qui est interdit',
       },
       text: {
-        en: 'Harassment — comment or conduct that is known, or ought reasonably to be known, to be unwelcome. Sexual harassment, including unwelcome advances, comments about someone’s body or private life, and the display or sending of sexual material. Discrimination, meaning treating someone adversely on a ground the human rights legislation applying to this workplace protects. And violence, including threats and attempts, whether or not anyone is hurt. The grounds and definitions that bind us are the ones in the legislation named in this policy’s jurisdiction notes, not a list we chose.',
-        fr: 'Le harcèlement — des propos ou des comportements dont on sait ou devrait raisonnablement savoir qu’ils sont importuns. Le harcèlement sexuel, y compris les avances importunes, les commentaires sur le corps ou la vie privée d’une personne, et l’affichage ou l’envoi de matériel à caractère sexuel. La discrimination, soit un traitement défavorable fondé sur un motif protégé par la législation en droits de la personne applicable à ce milieu. Et la violence, y compris les menaces et les tentatives, qu’il y ait blessure ou non. Les motifs et définitions qui nous lient sont ceux de la législation nommée dans les notes par juridiction de la présente politique, et non une liste de notre choix.',
+        en: 'As a matter of this policy {{org}} prohibits: harassment, including comment or conduct directed at someone that is unwelcome; sexual harassment, including unwelcome advances, comments about someone’s body or private life, and the display or sending of sexual material; discrimination, meaning treating someone adversely on a ground the human rights legislation applying to this workplace protects; and violence, including threats and attempts, whether or not anyone is hurt. This is the standard we hold ourselves to and it is deliberately wider than the legal minimum — conduct can breach this policy without meeting the statutory test. The statutory definition, which is what the law measures, is set out in the next clause.',
+        fr: 'Au titre de la présente politique, {{org}} interdit : le harcèlement, soit des propos ou comportements importuns dirigés vers une personne; le harcèlement sexuel, y compris les avances importunes, les commentaires sur le corps ou la vie privée d’une personne et l’affichage ou l’envoi de matériel à caractère sexuel; la discrimination, soit un traitement défavorable fondé sur un motif protégé par la législation en droits de la personne applicable à ce milieu; et la violence, y compris les menaces et les tentatives, qu’il y ait blessure ou non. Il s’agit de la norme que nous nous donnons et elle est volontairement plus large que le minimum légal — un comportement peut contrevenir à la présente politique sans satisfaire au critère prévu par la loi. La définition légale, celle que la loi applique, figure à la clause suivante.',
       },
     },
     {
       type: 'clause',
       n: 3,
+      when: {
+        juris: 'ON',
+      },
+      heading: {
+        en: 'The definition the law uses here',
+        fr: 'La définition retenue par la loi ici',
+      },
+      text: {
+        en: 'Under the Occupational Health and Safety Act, workplace harassment means engaging in a course of vexatious comment or conduct against a worker in a workplace that is known or ought reasonably to be known to be unwelcome — and it includes workplace sexual harassment. Note "a course of": a single remark will usually breach this policy without meeting that statutory test. Workplace violence has its own definition, covering the exercise or attempted exercise of physical force that causes or could cause injury, and a statement or behaviour a worker could reasonably interpret as a threat to do so. Discrimination is defined by the Human Rights Code, which is also where the protected grounds are set out.',
+        fr: 'Sous le régime de la Loi sur la santé et la sécurité au travail, le harcèlement au travail s’entend du fait pour une personne d’adopter une ligne de conduite caractérisée par des remarques ou des gestes vexatoires contre un travailleur dans un lieu de travail, lorsqu’elle sait ou devrait raisonnablement savoir que cette conduite est importune — et il comprend le harcèlement sexuel au travail. Notez « une ligne de conduite » : une remarque isolée contreviendra généralement à la présente politique sans satisfaire à ce critère légal. La violence au travail a sa propre définition, qui vise l’emploi ou la tentative d’emploi d’une force physique causant ou pouvant causer un préjudice, ainsi que les propos ou comportements qu’un travailleur pourrait raisonnablement interpréter comme une menace en ce sens. La discrimination est définie par le Code des droits de la personne, qui énonce aussi les motifs protégés.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 3,
+      when: {
+        juris: 'QC',
+      },
+      heading: {
+        en: 'The definition the law uses here',
+        fr: 'La définition retenue par la loi ici',
+      },
+      text: {
+        en: 'Under the Act respecting labour standards, psychological harassment means vexatious behaviour manifesting itself in repeated and hostile or unwanted conduct, verbal comments, actions or gestures, that affects an employee’s dignity or psychological or physical integrity and results in a harmful work environment. It expressly includes conduct of a sexual nature. A single serious incident can also amount to psychological harassment, but only where it produces a lasting harmful effect — seriousness alone is not the test. Discrimination is governed by the Charter of human rights and freedoms, which sets the protected grounds.',
+        fr: 'Sous le régime de la Loi sur les normes du travail, le harcèlement psychologique s’entend d’une conduite vexatoire se manifestant par des comportements, des paroles, des actes ou des gestes répétés, hostiles ou non désirés, qui porte atteinte à la dignité ou à l’intégrité psychologique ou physique de la personne salariée et entraîne un milieu de travail néfaste. Il comprend expressément les conduites à caractère sexuel. Une seule conduite grave peut également constituer du harcèlement psychologique, mais uniquement lorsqu’elle produit un effet nocif continu — la gravité seule ne suffit pas. La discrimination relève de la Charte des droits et libertés de la personne, qui établit les motifs protégés.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 3,
+      when: {
+        juris: 'FED',
+      },
+      heading: {
+        en: 'The definition the law uses here',
+        fr: 'La définition retenue par la loi ici',
+      },
+      text: {
+        en: 'Under the Canada Labour Code, harassment and violence is defined as one thing rather than two: any action, conduct or comment, including of a sexual nature, that can reasonably be expected to cause offence, humiliation or other physical or psychological injury or illness to an employee. That is broader than the tests used provincially — it requires no course of conduct and no lasting effect. Discrimination is governed by the Canadian Human Rights Act, which sets the protected grounds.',
+        fr: 'Sous le régime du Code canadien du travail, le harcèlement et la violence sont définis comme une seule notion plutôt que deux : tout acte, comportement ou propos, y compris de nature sexuelle, dont on peut raisonnablement s’attendre à ce qu’il offense ou humilie un employé ou lui cause une blessure ou une maladie, physique ou psychologique. C’est plus large que les critères applicables en province — aucune ligne de conduite ni effet durable n’est exigé. La discrimination relève de la Loi canadienne sur les droits de la personne, qui établit les motifs protégés.',
+      },
+    },
+    {
+      type: 'clause',
+      n: 4,
       heading: {
         en: 'What respect looks like here',
         fr: 'Ce à quoi ressemble le respect ici',
@@ -263,7 +308,7 @@ export const tplT13: DocTemplate = {
     },
     {
       type: 'clause',
-      n: 4,
+      n: 5,
       heading: {
         en: 'What is not harassment',
         fr: 'Ce qui ne constitue pas du harcèlement',
@@ -275,7 +320,7 @@ export const tplT13: DocTemplate = {
     },
     {
       type: 'clause',
-      n: 5,
+      n: 6,
       heading: {
         en: 'How to report',
         fr: 'Comment signaler',
@@ -287,7 +332,7 @@ export const tplT13: DocTemplate = {
     },
     {
       type: 'clause',
-      n: 6,
+      n: 7,
       heading: {
         en: 'Confidentiality, and its limits',
         fr: 'La confidentialité et ses limites',
@@ -299,7 +344,7 @@ export const tplT13: DocTemplate = {
     },
     {
       type: 'clause',
-      n: 7,
+      n: 8,
       heading: {
         en: 'What happens after a report',
         fr: 'Ce qui suit un signalement',
@@ -311,7 +356,7 @@ export const tplT13: DocTemplate = {
     },
     {
       type: 'clause',
-      n: 8,
+      n: 9,
       heading: {
         en: 'No reprisal',
         fr: 'Aucune représaille',
@@ -323,7 +368,7 @@ export const tplT13: DocTemplate = {
     },
     {
       type: 'clause',
-      n: 9,
+      n: 10,
       heading: {
         en: 'Support, training and review',
         fr: 'Soutien, formation et révision',
@@ -335,7 +380,7 @@ export const tplT13: DocTemplate = {
     },
     {
       type: 'clause',
-      n: 10,
+      n: 11,
       when: {
         juris: 'FED',
       },
@@ -344,8 +389,8 @@ export const tplT13: DocTemplate = {
         fr: 'Le processus de règlement fédéral',
       },
       text: {
-        en: 'This workplace is federally regulated. Where what is reported is a harassment or violence occurrence, the Work Place Harassment and Violence Prevention Regulations set the process and its timelines — negotiated resolution, conciliation where both parties agree to it, and an investigation the principal party may require — and they protect the identity of the parties and witnesses throughout. This policy is developed and reviewed jointly with the policy committee or health and safety representative, as those Regulations require.',
-        fr: 'Le présent milieu de travail est de compétence fédérale. Lorsque le signalement porte sur un incident de harcèlement ou de violence, le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail fixe le processus et ses délais — résolution négociée, conciliation lorsque les deux parties y consentent, et enquête que la partie principale peut exiger — et il protège l’identité des parties et des témoins tout au long. La présente politique est élaborée et révisée conjointement avec le comité d’orientation ou le représentant en santé et sécurité, comme l’exige ce règlement.',
+        en: 'This workplace is federally regulated. Where what is reported is a harassment or violence occurrence, the Work Place Harassment and Violence Prevention Regulations set the process and its timelines — negotiated resolution, conciliation where both parties agree to it, and an investigation the principal party may require — and they protect the identity of the parties and witnesses throughout. Those Regulations also require this policy to be developed and reviewed jointly with the policy committee or health and safety representative. That is a step {{org}} must carry out — issuing this document does not perform it, and this policy should not be published until it has been.',
+        fr: 'Le présent milieu de travail est de compétence fédérale. Lorsque le signalement porte sur un incident de harcèlement ou de violence, le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail fixe le processus et ses délais — résolution négociée, conciliation lorsque les deux parties y consentent, et enquête que la partie principale peut exiger — et il protège l’identité des parties et des témoins tout au long. Ce règlement exige également que la présente politique soit élaborée et révisée conjointement avec le comité d’orientation ou le représentant en santé et sécurité. Il s’agit d’une étape que {{org}} doit accomplir — produire le présent document ne l’accomplit pas, et cette politique ne devrait pas être publiée tant que ce n’est pas fait.',
       },
     },
     {
