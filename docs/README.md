@@ -22,13 +22,15 @@ cannot read. Adding a code-backed fact means adding its check.
 
 ## What is still open
 
-| Document           | What it settles                                                                                                                                                                            |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [TODO.md](TODO.md) | Every open item, swept from the "still staged" / "not done" notes in PRs #1–#132 and the docs below. Separates owner actions (a secret, a filing) from decisions, blockers and build work. |
+| Document                             | What it settles                                                                                                                                                                            |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [TODO.md](TODO.md)                   | Every open item, swept from the "still staged" / "not done" notes in PRs #1–#132 and the docs below. Separates owner actions (a secret, a filing) from decisions, blockers and build work. |
+| [DEVIN_PROMPTS.md](DEVIN_PROMPTS.md) | The delegable half of `TODO.md`, written as fourteen self-contained agent prompts — plus the owner actions that no agent can close, and why.                                               |
 
 Each PR here records what it did not do. `TODO.md` is where those notes
 accumulate — add to it when a PR leaves something open, and delete the entry
-when the thing is done.
+when the thing is done. `DEVIN_PROMPTS.md` is derived from it and goes stale
+the moment an item closes; when you close one, delete its prompt too.
 
 ## What is true, and how we keep it true
 
