@@ -17,7 +17,7 @@ import {
 import type { BillingPeriod, PlanDefinition } from '@/config/plans'
 import { PLAN_COMPARISON } from '@/config/planComparison'
 import type { ComparisonCell } from '@/config/planComparison'
-import type { MessageKey } from '@/i18n/messages'
+import type { MarketingMessageKey } from '@/i18n/messages'
 import { Disclaimer } from '@/components/Disclaimer'
 import { Seo } from '@/seo/Seo'
 import { usePublicPath } from '@/seo/usePublicPath'
@@ -282,7 +282,7 @@ function ComparisonTable({ priceFor }: { readonly priceFor: (plan: PlanDefinitio
   )
 }
 
-const FAQ_ITEMS: { q: MessageKey; a: MessageKey }[] = [
+const FAQ_ITEMS: { q: MarketingMessageKey; a: MarketingMessageKey }[] = [
   { q: 'pricing_faq_legal_q', a: 'pricing_faq_legal_a' },
   { q: 'pricing_faq_jur_q', a: 'pricing_faq_jur_a' },
   { q: 'pricing_faq_billing_q', a: 'pricing_faq_billing_a' },

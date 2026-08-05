@@ -1,11 +1,11 @@
 import { HeartHandshake, Leaf, MapPin, Scale, ShieldCheck } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import type { MessageKey } from '@/i18n/messages'
+import type { MarketingMessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
-const VALUES: { icon: LucideIcon; titleKey: MessageKey; bodyKey: MessageKey }[] = [
+const VALUES: { icon: LucideIcon; titleKey: MarketingMessageKey; bodyKey: MarketingMessageKey }[] = [
   { icon: Scale, titleKey: 'about_v1t', bodyKey: 'about_v1p' },
   { icon: HeartHandshake, titleKey: 'about_v2t', bodyKey: 'about_v2p' },
   { icon: ShieldCheck, titleKey: 'about_v3t', bodyKey: 'about_v3p' },

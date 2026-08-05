@@ -1,4 +1,4 @@
-import type { MessageKey } from '@/i18n/messages'
+import type { SharedMessageKey } from '@/i18n/messages'
 
 export type PlanId = 'free' | 'starter' | 'growth' | 'pro'
 
@@ -6,10 +6,10 @@ export interface PlanDefinition {
   id: PlanId
   /** Monthly price in CAD; 0 for the free plan. */
   monthlyPrice: number
-  nameKey: MessageKey
-  descKey: MessageKey
-  featureKeys: MessageKey[]
-  ctaKey: MessageKey
+  nameKey: SharedMessageKey
+  descKey: SharedMessageKey
+  featureKeys: SharedMessageKey[]
+  ctaKey: SharedMessageKey
   popular?: boolean
   /**
    * Env var name the `create-checkout-session` Supabase function reads the
