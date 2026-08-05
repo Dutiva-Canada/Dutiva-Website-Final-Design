@@ -52,18 +52,66 @@ people who don't read the repo. Re-export it when this file changes.
 
 ## Company and legal
 
-Confirmed by the founder, July 2026. Rows marked **unverified** come from Business
-Plan v1.6 only and have not been checked against a filing.
+Confirmed by the founder, July 2026. The three rows that were **unverified** were
+checked against the actual registries on **2026-08-04** — see the provenance notes
+below the table, which carry the identifiers that let anyone re-check each in one
+lookup.
 
-| Fact              | Value                                                  | Confidence                                  |
-| ----------------- | ------------------------------------------------------ | ------------------------------------------- |
-| Legal name        | Dutiva Canada Inc.                                     | consistent everywhere                       |
-| Registered office | 2967 Dundas St. W., Suite 1485, Toronto, ON M6P 1Z2    | confirmed — use in legal/corporate contexts |
-| Operating city    | Ottawa, Ontario                                        | confirmed — use in marketing/press contexts |
-| Founder           | Martin Constantineau, Founder & CEO — always full name | confirmed                                   |
-| Incorporation     | Federal (CBCA), 27 March 2026                          | **unverified**                              |
-| Trademark         | CIPO application, classes 009/035/041/042/044          | **unverified**                              |
-| Business phone    | 1 (800) 349-0297                                       | **unverified** — absent from the site       |
+| Fact              | Value                                                                 | Confidence                                      |
+| ----------------- | --------------------------------------------------------------------- | ----------------------------------------------- |
+| Legal name        | Dutiva Canada Inc.                                                    | confirmed — Corporations Canada, 2026-08-04     |
+| Registered office | 2967 Dundas St. W., Suite 1485, Toronto, ON M6P 1Z2                   | confirmed — matches the registry record         |
+| Operating city    | Ottawa, Ontario                                                       | confirmed — use in marketing/press contexts     |
+| Founder           | Martin Constantineau, Founder & CEO — always full name                | confirmed — sole director of record             |
+| Incorporation     | Federal (CBCA), 27 March 2026 — corporation no. **1780679-5**, Active | confirmed — Certificate of Incorporation        |
+| Trademark         | CIPO **application** no. **2465617**, classes 009/035/041/042/044     | confirmed — application, **not** a registration |
+| Business phone    | 1 (800) 349-0297                                                      | **unverified** — no public source attributes it |
+
+**Incorporation — confirmed.** Corporations Canada's Federal Corporation Search
+records a _Certificate of Incorporation_ dated **2026-03-27**, which confirms the
+claimed date directly rather than by inference. Corporation number **1780679-5**;
+business number 792875577RC0001; governing legislation "Canada Business
+Corporations Act – 2026-03-27"; status **Active**; annual filings not in default
+(2027 not yet due). The anniversary date of 03-27 is a second, independent
+confirmation — Corporations Canada defines it as the date the corporation was
+created under the CBCA. Corporate name history shows a single row with no prior
+name. Identity is not in doubt: the federal search for "dutiva" returns exactly
+one corporation, its registered office matches the row above, and its sole
+director is the founder named above. The French record corroborates
+("Certificat de constitution en société, 2026-03-27").
+
+**Trademark — confirmed, and the distinction matters.** CIPO application
+**2465617** for the word mark _Dutiva_ (standard characters), **filed
+2026-03-27**. CIPO Status **FORMALIZED**; TM5 status LIVE/APPLICATION/Awaiting
+Examination. There is **no registration number and no registration date** — the
+mark is an application, not a registered trademark, and public copy must never
+imply otherwise. The recorded classes **009/035/041/042/044 match CIPO exactly**
+(CIPO displays them unpadded as 9, 35, 41, 42, 44). Dutiva Canada Inc. holds
+exactly one trademark record — there is no separate logo or design-mark filing.
+
+> **Not previously recorded anywhere, and worth knowing:** CIPO's Action History
+> shows a **Pre-Assessment Letter sent 2026-04-09 with the comment "Goods or
+> Services Not Acceptable."** As of the last action on the file, the goods and
+> services wording has been objected to and the application is not clean. That
+> does not change what may be claimed today — an application is an application
+> either way — but it is a live prosecution issue with a response deadline, and
+> nothing in this repo or the business plan mentions it.
+
+A sweep for confusingly similar third-party marks found no conflict that is both
+close in sound or appearance **and** in an overlapping field. A copy audit of the
+working tree found no overclaim: there is no `®` character anywhere in the repo
+(ts/tsx/md/json) and no "registered trademark" / "marque déposée" in shipped copy.
+
+**Business phone — still unverified, and probably unverifiable.** No public
+authoritative source lists 1 (800) 349-0297, and no source of any kind attributes
+it to Dutiva; dutiva.ca publishes no phone number at all, and the Corporations
+Canada record has no telephone field. Searched 2026-08-04: the number itself in
+three formats, `site:dutiva.ca` for it, a general Dutiva-contact search, and the
+live contact page. A toll-free number is registered to a carrier rather than
+published in a public registry, so this may not be confirmable from outside — the
+founder is the authority on whether it is provisioned and answered. It remains
+blocking for any directory listing that requires a phone number
+(SEO playbook item 2).
 
 ## Launch status
 

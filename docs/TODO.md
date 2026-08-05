@@ -214,11 +214,27 @@ payroll threshold the Document Studio wizard does not collect, and there is no
 reviewed severance schedule to read against. Closing it means either collecting
 the payroll figure or accepting that severance stays a flag. (PR #110)
 
-**L8 — Four unverified canonical facts.** Incorporation date, trademark status
-and business phone each trace to a single document and have never been checked
-against a filing; CANONICAL_FACTS records them as unverified rather than
-asserting them. The phone number also blocks any directory listing that requires
-one. (PR #103, SEO playbook item 2)
+**L8a — The business phone is still unverified, and may be unverifiable.**
+_Owner._ Incorporation and trademark were checked against the registries on
+2026-08-04 and are now confirmed in
+[CANONICAL_FACTS.md](CANONICAL_FACTS.md) with the identifiers that let anyone
+re-check them (corporation no. 1780679-5; CIPO application no. 2465617). The
+phone number is the one that did not resolve: no public authoritative source
+lists 1 (800) 349-0297 and none attributes it to Dutiva, dutiva.ca publishes no
+phone number, and the Corporations Canada record has no telephone field. A
+toll-free number is registered to a carrier rather than a public registry, so
+this may not be confirmable from outside — the founder is the authority on
+whether it is provisioned and answered. Still blocking any directory listing
+that requires a phone number (SEO playbook item 2).
+
+**L8b — The trademark application has an open CIPO objection.** _Owner._ Not
+previously recorded anywhere. CIPO's Action History on application 2465617 shows
+a **Pre-Assessment Letter sent 2026-04-09, "Goods or Services Not Acceptable"** —
+so as of the last action on the file the goods and services wording has been
+objected to. This does not change what may be claimed today (an application is
+an application either way, and the repo's copy is clean — no `®`, no "registered
+trademark" anywhere), but it is a live prosecution matter with a response
+deadline that nothing in this repo or the business plan mentions.
 
 **L9 — Drive template hygiene.** T01, T02 and T04 went to `Legal Review` as
 `_polished` drafts in June 2026 and never returned to the `ON/EN` folder, which
