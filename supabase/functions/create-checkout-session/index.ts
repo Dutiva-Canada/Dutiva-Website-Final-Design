@@ -32,15 +32,41 @@ function json(body: unknown, status = 200) {
 const ALLOWED_PLANS = ['starter', 'growth', 'pro'] as const
 type PlanId = (typeof ALLOWED_PLANS)[number]
 
-const PRICE_ENV_KEYS: Record<PlanId, string> = {
-  starter: 'STRIPE_PRICE_STARTER_MONTHLY',
-  growth: 'STRIPE_PRICE_GROWTH_MONTHLY',
-  pro: 'STRIPE_PRICE_PRO_MONTHLY',
+/**
+ * Mirrors `BillingPeriod` in src/config/plans.ts. Deno functions cannot import
+ * from src/, so this is a deliberate duplicate — keep the two in step.
+ */
+const ALLOWED_PERIODS = ['monthly', 'annual'] as const
+type BillingPeriod = (typeof ALLOWED_PERIODS)[number]
+
+const PRICE_ENV_KEYS: Record<BillingPeriod, Record<PlanId, string>> = {
+  monthly: {
+    starter: 'STRIPE_PRICE_STARTER_MONTHLY',
+    growth: 'STRIPE_PRICE_GROWTH_MONTHLY',
+    pro: 'STRIPE_PRICE_PRO_MONTHLY',
+  },
+  annual: {
+    starter: 'STRIPE_PRICE_STARTER_ANNUAL',
+    growth: 'STRIPE_PRICE_GROWTH_ANNUAL',
+    pro: 'STRIPE_PRICE_PRO_ANNUAL',
+  },
 }
 
 function normalizePlan(value: unknown): PlanId | null {
   const plan = String(value ?? '').toLowerCase()
   return (ALLOWED_PLANS as readonly string[]).includes(plan) ? (plan as PlanId) : null
+}
+
+/**
+ * Absent or unrecognized reads as `monthly`, which is what every caller sent
+ * before the annual path existed. Failing closed to the cheaper interval is the
+ * safe direction: the alternative would bill a year up front on a typo.
+ */
+function normalizePeriod(value: unknown): BillingPeriod {
+  const period = String(value ?? '').toLowerCase()
+  return (ALLOWED_PERIODS as readonly string[]).includes(period)
+    ? (period as BillingPeriod)
+    : 'monthly'
 }
 
 async function stripePost(path: string, params: Record<string, string>, secretKey: string) {
@@ -90,7 +116,7 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  let body: { plan?: string }
+  let body: { plan?: string; billingPeriod?: string; period?: string }
   try {
     body = await req.json()
   } catch {
@@ -99,9 +125,19 @@ Deno.serve(async (req: Request) => {
 
   const plan = normalizePlan(body.plan)
   if (!plan) return json({ error: 'Invalid plan.' }, 400)
+  /* `billingPeriod` is the key PricingPage.tsx already sends; `period` is
+     accepted as an alias so a caller using the shorter name is not silently
+     billed monthly. Anything else falls back to monthly — see normalizePeriod. */
+  const period = normalizePeriod(body.billingPeriod ?? body.period)
 
-  const priceId = Deno.env.get(PRICE_ENV_KEYS[plan])
-  if (!priceId) return json({ error: 'Missing Stripe price ID for requested plan.' }, 503)
+  const priceId = Deno.env.get(PRICE_ENV_KEYS[period][plan])
+  /* 503 rather than a fallback to the monthly price: silently billing a
+     different interval than the customer chose is worse than not starting the
+     checkout at all. Until the annual price IDs exist in Stripe, an annual
+     request fails loudly and visibly. */
+  if (!priceId) {
+    return json({ error: `Missing Stripe price ID for the ${period} ${plan} plan.` }, 503)
+  }
 
   const { data: profile } = await adminClient
     .from('profiles')
@@ -134,10 +170,10 @@ Deno.serve(async (req: Request) => {
       cancel_url: `${siteUrl}/pricing?checkout=cancelled`,
       'metadata[user_id]': user.id,
       'metadata[plan]': plan,
-      'metadata[billing_interval]': 'monthly',
+      'metadata[billing_interval]': period,
       'subscription_data[metadata][user_id]': user.id,
       'subscription_data[metadata][plan]': plan,
-      'subscription_data[metadata][billing_interval]': 'monthly',
+      'subscription_data[metadata][billing_interval]': period,
     },
     stripeKey,
   )

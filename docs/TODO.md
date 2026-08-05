@@ -262,17 +262,28 @@ admin-gated edge function. That is a decision about the audit table's security
 posture and should be taken on purpose, not inherited from whichever is easier
 to write.
 
-**EF4 — Annual billing is unwired below the surface.** `create-checkout-session`
-knows only `STRIPE_PRICE_*_MONTHLY` (verified 2026-08-02). The annual toggle is
-hidden while paid plans are disabled, so nothing is broken today — but
-re-enabling annual pricing means wiring the annual price IDs first, and
-confirming the "two months free" convention. (PRs #66, #96)
+**EF4a — Annual billing needs its Stripe objects and migration 0043.** _Owner._
+The code half is done: `create-checkout-session` resolves
+`STRIPE_PRICE_*_ANNUAL`, the webhook's price lookup maps the annual ids, and
+`getCheckoutProfilePatch` records the real interval instead of hardcoding
+`monthly`. Three things outside this repo remain, and annual checkout does not
+work until all three land: create the annual Price objects in Stripe (yearly
+recurring, charging `ANNUAL_MONTHS_BILLED` = 10 months' worth), set the three
+env vars, and **apply migration `0043`** — without it
+`profiles.billing_period` may still reject `'annual'`, which would take the
+money and lose the entitlement. The function fails closed with a 503 meanwhile,
+and `PricingPage`'s annual guard turns that into an intelligible notice; remove
+that guard only once this is done. Folded into OA11.
 
-**EF5 — `inferCheckoutPrice` reads `session.line_items`, which webhooks never
-carry.** Not an active bug: this repo's own checkout always sets `metadata.plan`
-server-side, so the fallback is what resolves the plan. A real fix means an
-extra Stripe API call from inside the webhook. Recorded as short-of-intent, not
-broken. (BILLING_BETA_AUDIT § Still open)
+**EF4b — The live `billing_period` constraint is unknown.** _Verify._ `0013`
+declares `check (billing_period in ('monthly'))` but was never applied under its
+own name — the live `profiles` came from the predecessor repo, as
+`0024_reconcile_billing_schema.sql` records. So nobody knows what the project
+actually enforces on that column. `0043` is written defensively (drop-if-exists
+then add, 0024's pattern) and works under any of those cases, but if the live
+table carries a differently _named_ check the drop will miss it and the old one
+will still reject `'annual'`. The migration ends with the `pg_constraint` query
+to settle it. This is the same blind spot as V1.
 
 **EF6 — Done.** The entry graph was broad because three things rode it: the
 `vendor` group carried react-markdown's 157kB parser tree; `messages/index.ts`
@@ -378,6 +389,7 @@ does not resurrect them.
 
 | Item                                        | Closed by                                                                           |
 | ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| EF5 — `inferCheckoutPrice`'s dead branch    | Deleted; server-set metadata is the checkout path's documented single source        |
 | L1 — primary sources "unreachable"          | Not a network block — a bot filter on the fetching tool; run from a workstation     |
 | L2 — WI1 federal leaves omission            | Pregnancy loss leave confirmed and added; "placement of a child" **does not exist** |
 | L3 — WI3 Ontario minimum wage               | All four Oct-2026 special-category rates verified twice and added                   |

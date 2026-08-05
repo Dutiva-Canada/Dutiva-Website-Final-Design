@@ -1,14 +1,18 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { getCheckoutProfilePatch, getSubscriptionProfileUpdate, stringId } from './billing-event.ts'
-import type { PriceLookup } from './billing-event.ts'
+import type { BillingPeriod, PriceLookup } from './billing-event.ts'
 import { verifyStripeSignature } from './verify-signature.ts'
 
 /**
  * Stripe webhook handler — keeps `public.profiles` in sync with Stripe.
  * Ported from the production dutiva-website repo's stripe-webhook function,
- * narrowed to this repo's three paid plans (starter/growth/pro, monthly
- * billing only — see src/config/plans.ts).
+ * narrowed to this repo's three paid plans (starter/growth/pro, monthly or
+ * annual — see src/config/plans.ts).
+ *
+ * Annual is wired but not reachable: `PAID_PLANS_DISABLED_DURING_BETA` is true,
+ * so nothing on /pricing is purchasable and the annual toggle is hidden. The
+ * annual price ids also do not exist in Stripe yet (TODO.md OA11).
  *
  * An internal Dutiva account never has Stripe events to process for it: the
  * paywall bypass (src/lib/billing/adminAccess.ts) is checked before
@@ -16,10 +20,13 @@ import { verifyStripeSignature } from './verify-signature.ts'
  * for that account in the first place.
  */
 
-const PRICE_ENV_KEYS: Record<string, { plan: string }> = {
-  STRIPE_PRICE_STARTER_MONTHLY: { plan: 'starter' },
-  STRIPE_PRICE_GROWTH_MONTHLY: { plan: 'growth' },
-  STRIPE_PRICE_PRO_MONTHLY: { plan: 'pro' },
+const PRICE_ENV_KEYS: Record<string, { plan: string; billingPeriod: BillingPeriod }> = {
+  STRIPE_PRICE_STARTER_MONTHLY: { plan: 'starter', billingPeriod: 'monthly' },
+  STRIPE_PRICE_GROWTH_MONTHLY: { plan: 'growth', billingPeriod: 'monthly' },
+  STRIPE_PRICE_PRO_MONTHLY: { plan: 'pro', billingPeriod: 'monthly' },
+  STRIPE_PRICE_STARTER_ANNUAL: { plan: 'starter', billingPeriod: 'annual' },
+  STRIPE_PRICE_GROWTH_ANNUAL: { plan: 'growth', billingPeriod: 'annual' },
+  STRIPE_PRICE_PRO_ANNUAL: { plan: 'pro', billingPeriod: 'annual' },
 }
 
 function json(body: Record<string, unknown>, status = 200) {
@@ -33,7 +40,7 @@ function buildPriceLookup(): PriceLookup {
   const lookup: PriceLookup = {}
   for (const [envKey, match] of Object.entries(PRICE_ENV_KEYS)) {
     const priceId = Deno.env.get(envKey)?.trim()
-    if (priceId) lookup[priceId] = { plan: match.plan, billingPeriod: 'monthly' }
+    if (priceId) lookup[priceId] = { plan: match.plan, billingPeriod: match.billingPeriod }
   }
   return lookup
 }
@@ -145,7 +152,7 @@ Deno.serve(async (req: Request) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object
-    const { userId, email, updates } = getCheckoutProfilePatch(session, priceLookup)
+    const { userId, email, updates } = getCheckoutProfilePatch(session)
 
     if (!updates.stripe_customer_id) {
       console.warn('[stripe-webhook] checkout.session.completed: customer is not a string ID.')
