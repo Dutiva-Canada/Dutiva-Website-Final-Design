@@ -200,19 +200,50 @@ only a full re-read of the page will.
 flips a row to `reviewed`, and that gate has never been exercised. Unverified
 here — the live table was not reachable from this session.
 
-**L6 — Québec and Federal notice bands.** _Blocked (qualified legal review)._
-`NOTICE_SCHEDULES` in `src/features/app/advisor/safety/statutoryNotice.ts` has
-`bands: null` for QC (LNT s. 82) and FED (CLC Part III s. 230), verified
-2026-08-02. Ontario is populated. `null` means "hedge", never zero — so the
-Advisor's safety backstop and Document Studio's statutory-floor check both
-decline to state a figure in two of three supported jurisdictions. A test
-asserts they never report "below" there, which is the correct failure mode and
-also the reason this gap is easy to forget. (PRs #78, #110)
+**L6 — Québec and Federal notice bands: the pack is built, awaiting a
+signature.** _Blocked (qualified legal review) — but the research is done._
+`NOTICE_SCHEDULES` still has `bands: null` for QC and FED, and stays that way
+until a qualified reviewer signs off;
+[notice-bands-review-pack.md](notice-bands-review-pack.md) is what makes that a
+one-hour reading job rather than a research project. It carries LNT s. 82 and
+CLC s. 230(1.1) quoted verbatim in both languages, the proposed band arrays in
+the file's exact shape with step-by-step derivations, every carve-out a flat
+table cannot express, and a sign-off block.
 
-**L7 — ESA s. 64 severance is flagged, not computed.** Eligibility turns on a
-payroll threshold the Document Studio wizard does not collect, and there is no
-reviewed severance schedule to read against. Closing it means either collecting
-the payroll figure or accepting that severance stays a flag. (PR #110)
+Two findings in it decide the question and were not visible from the code:
+
+- **Québec's band is only a floor.** CCQ art. 2091 reasonable notice sits on top
+  of s. 82 (preserved expressly by s. 82 ¶4) and is non-renounceable under
+  art. 2092, so presenting the band as "the notice a Québec employee gets" is
+  materially misleading. A technically correct table can still be the wrong
+  thing to ship. s. 82 is also literally ambiguous at exactly 5 and 10 years, in
+  **both** language editions — so the Charter's French-prevails tiebreaker
+  cannot resolve it, and only CNESST's non-binding administrative reading does.
+- **The federal picture is due to change silently.** 2018, c. 27, ss. 479–484
+  are enacted but **not yet in force**; they would make group termination
+  _displace_ the s. 230(1.1) band table (with an 8-week floor) rather than add
+  to it. A federal table shipped today becomes wrong for group terminations the
+  day those are proclaimed, with no change to the in-force consolidated text.
+  If FED is approved, attach a monitoring commitment to the sign-off.
+
+(PRs #78, #110)
+
+**L7 — ESA s. 64 severance: three options written up, awaiting a choice.**
+_Decision._ Severance does not fit `NOTICE_SCHEDULES` at all — it is continuous
+and proportional rather than banded, its gate is a property of the employer
+(the $2.5M payroll test) and of the event (50 employments severed in six months
+on a permanent closure) rather than of tenure, and it carries a 26-week ceiling
+the shape has no field for. Adding it means changing the type, not adding a row.
+Options A (collect payroll and compute), B (collect payroll, gate eligibility
+only — recommended) and C (severance stays a flag, which is defensible) are
+written up concretely in
+[notice-bands-review-pack.md § 3](notice-bands-review-pack.md).
+
+Sourcing caveat carried forward: ss. 63–65 could **not** be quoted from the
+consolidated statute — Ontario e-Laws serves statute text through a client-side
+app, and `/print`, a version-pinned URL and an XML `Accept` header all return
+the same shell. The substance came from ontario.ca's official ESA guide and
+needs checking against the statute. (This independently confirms EF2.) (PR #110)
 
 **L8a — The business phone is still unverified, and may be unverifiable.**
 _Owner._ Incorporation and trademark were checked against the registries on
