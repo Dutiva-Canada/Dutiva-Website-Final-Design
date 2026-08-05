@@ -171,36 +171,29 @@ The corpus rule is that every statutory figure comes from a direct fetch of an
 official government page, fetched twice — once to author, once to verify
 independently. Everything in this section is gated on that rule.
 
-**L1 — Restore primary-source access, then run the amendment tranche.**
-_Blocked._ On 2026-08-02 every official host (`canada.ca`, `ontario.ca`,
-`cnesst.gouv.qc.ca`, `legisquebec.gouv.qc.ca`, `chrc-ccdp.gc.ca`, `cdpdj.qc.ca`)
-was refused at the egress proxy with a 403 on CONNECT, along with the
-`web.archive.org` and `canlii.org` fallbacks. The environment's network policy
-is fixed when the environment is created, so unblocking this means allowlisting
-those domains **and starting a new session**. Blocks L2, L3 and L4.
-[advisor-corpus-verification-2026-08-02.md](advisor-corpus-verification-2026-08-02.md).
-(PR #132)
+**L1a — Apply the corpus amendment tranche.** _Owner._ L1–L4 are closed on the
+authoring side: the 2026-08-02 block was **environmental, not real**. Run from a
+workstation rather than a sandbox, every official host answers — three of them
+(`canada.ca`, `cnesst.gouv.qc.ca`, `legisquebec.gouv.qc.ca`) simply need a
+browser `User-Agent`, which is a bot filter on the fetching tool and not a
+network policy. Nothing needs allowlisting and no new session is required; the
+next verification cycle should be run from a workstation.
+`0042_corpus_amendment_tranche_2026_08_04.sql` is authored and **unapplied**.
+After applying it, run the retrieval smoke test through `match_advisor_guidance`
+for the amended topics in EN and FR — `fts`/`fts_fr` recompute on UPDATE, but
+nothing proves the amended rows still rank.
+[advisor-guidance-corpus-2026-08-04.md](advisor-guidance-corpus-2026-08-04.md).
 
-**L2 — WI1: federal statutory leaves may be incomplete.** _Blocked by L1._ The
-concern is omission, not error — Pregnancy Loss Leave and Leave for the
-Placement of a Child are both reported by secondary sources and neither is in
-the chunk. Confirm existence, duration, paid days, service threshold, claim
-window and in-force date from the official page, and re-read the whole page for
-anything else added since 2026-07-27.
-
-**L3 — WI3: Ontario minimum wage, special categories.** _Blocked by L1 —
-time-sensitive._ The chunk carries the general rate correctly but gives
-special-category rates only for the period ending **2026-09-30**, so it goes
-stale on **2026-10-01**. That is roughly two months out from this sweep. The
-whole minimum-wage cluster is the highest-churn part of the corpus and this
-cycle's check was snippet-based, so re-verify all of it from primary sources in
-the same pass.
-
-**L4 — WI2: CNESST URL normalization.** _Blocked by L1._ Two competing path
-forms cite the same two CNESST pages across four rows. Settling it means
-following the live redirects to see which form CNESST serves canonically;
-guessing bakes link rot into the citations. Scope is 4 of the 12 CNESST-citing
-rows, not all of them.
+**L1b — Four federal leaves are still unauthored.** _Build._ The 2026-08-04
+tranche added pregnancy loss, family violence and traditional Aboriginal
+practices to the `[FED] leaves` chunk. Court or jury duty, reserve-force leave
+(24 months in 60), leave for work-related illness and injury, and
+maternity-related reassignment are on the official page, absent from the chunk,
+and were left for a later tranche rather than padding one row past useful
+retrieval length. Note what this cost: the page's `Date modified` is 2026-05-13
+and the chunk was authored 2026-07-27, so these are **authoring omissions, not
+later amendments** — a change-detection watcher would never surface them, and
+only a full re-read of the page will.
 
 **L5 — Corpus review gate.** _Blocked (human review)._ Every row in
 `advisor_guidance_chunks` is `review_status: machine_curated`. Only a human
@@ -383,20 +376,24 @@ Sweeping 132 PR bodies turns up items that read as open in one PR and were
 closed two PRs later. These are settled; the note is here so the next sweep
 does not resurrect them.
 
-| Item                                        | Closed by                                                               |
-| ------------------------------------------- | ----------------------------------------------------------------------- |
-| V2 — `0021`'s "not yet applied" banner      | Both conditions had lapsed; banner rewritten with the real state        |
-| V3 — was PR #101's crisis framing lost?     | Not lost. Every change is on `main` as `214f0eb`; verified line by line |
-| Annual toggle advertised an unbuyable price | #96 — hidden while paid plans are disabled                              |
-| CASL consent not recorded at signup         | #109 — `0037_beta_signups_consent_record`                               |
-| `scan_status` documented an intention       | #115 — `support-attachment-scan` and the release rules                  |
-| Support entry-point sweep, CAPTCHA          | #115                                                                    |
-| `/blog` and `/guides` cards linked nowhere  | #113 — twelve bilingual article pages                                   |
-| French corpus body missing on 40 rows       | #99 / `0032` — `content_fr` non-null on 42/42                           |
-| "Regenerate with `generate-doclib.mjs`"     | #128 — the generator does not run; headers now say hand-maintained      |
-| Rings 2, 3 and 4 listed as roadmap          | #121–#131 — all four rings complete                                     |
-| AI usage unmetered during an open beta      | #90 / #91 — guardrails live 2026-07-28                                  |
-| Client error reporting inert                | #92 — `0019` applied, `report-error` deployed (but see OA6)             |
+| Item                                        | Closed by                                                                           |
+| ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| L1 — primary sources "unreachable"          | Not a network block — a bot filter on the fetching tool; run from a workstation     |
+| L2 — WI1 federal leaves omission            | Pregnancy loss leave confirmed and added; "placement of a child" **does not exist** |
+| L3 — WI3 Ontario minimum wage               | All four Oct-2026 special-category rates verified twice and added                   |
+| L4 — WI2 CNESST URL normalization           | SHORT form is canonical (301 trace); fixed per-URL, never by prefix                 |
+| V2 — `0021`'s "not yet applied" banner      | Both conditions had lapsed; banner rewritten with the real state                    |
+| V3 — was PR #101's crisis framing lost?     | Not lost. Every change is on `main` as `214f0eb`; verified line by line             |
+| Annual toggle advertised an unbuyable price | #96 — hidden while paid plans are disabled                                          |
+| CASL consent not recorded at signup         | #109 — `0037_beta_signups_consent_record`                                           |
+| `scan_status` documented an intention       | #115 — `support-attachment-scan` and the release rules                              |
+| Support entry-point sweep, CAPTCHA          | #115                                                                                |
+| `/blog` and `/guides` cards linked nowhere  | #113 — twelve bilingual article pages                                               |
+| French corpus body missing on 40 rows       | #99 / `0032` — `content_fr` non-null on 42/42                                       |
+| "Regenerate with `generate-doclib.mjs`"     | #128 — the generator does not run; headers now say hand-maintained                  |
+| Rings 2, 3 and 4 listed as roadmap          | #121–#131 — all four rings complete                                                 |
+| AI usage unmetered during an open beta      | #90 / #91 — guardrails live 2026-07-28                                              |
+| Client error reporting inert                | #92 — `0019` applied, `report-error` deployed (but see OA6)                         |
 
 ---
 
