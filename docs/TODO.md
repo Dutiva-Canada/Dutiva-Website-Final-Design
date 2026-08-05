@@ -363,24 +363,17 @@ for pixels and this one specifies a star. A design call, not a bug. (PR #118)
 
 ## 5. Verification and hygiene
 
-**V1 — Migration drift against the live project is unchecked in-session.**
-`npm run check:migrations` only compares against the project when
-`SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` are set; otherwise it
-enforces filename discipline alone. Migrations `0033`–`0041` (export audit, cron
-locks, law-monitor schedule, consent record, attachment scan, and the three
-`hr_*` module tables) are in the repo; whether all are applied was not verified
-here.
-
-**V2 — `0021_drop_doclib_demo_schema.sql` still carries a "not yet applied"
-banner.** It was staged deliberately for deploy-then-drop ordering. Either apply
-it and update the banner, or record why it is still staged — a stale banner is
-how the last round of "applied?" confusion started. (PR #73)
-
-**V3 — PR #101 was closed without merging.** "Expand the grounding corpus;
-polish crisis-turn framing", with an empty description. Confirm whether its
-crisis-turn framing changes were superseded by later work or simply lost. (Also
-closed unmerged and correctly so: #60/#61, duplicates of #59; #86, review-only
-for commits already on `main`.)
+**V1 — Migration drift is unchecked in CI, and now says so.** _Owner._ Confirmed
+2026-08-04: `gh secret list` returns empty, so neither `SUPABASE_ACCESS_TOKEN`
+nor `SUPABASE_PROJECT_REF` is set on this repository and the drift half of
+`check:migrations` has been skipping on **every** CI run — a required check
+going green on the exact meaning "drift unchecked". The repo half is closed:
+the script now raises a GitHub warning annotation and a job-summary entry when
+it skips, so the skip is visible where results are read rather than in a log
+(`announceSkippedDriftCheck`). What remains is an owner action — set both
+secrets as repository secrets and the step starts enforcing with no code
+change. Until then, whether migrations `0033`–`0041` are applied is still
+unverified.
 
 ---
 
@@ -390,18 +383,20 @@ Sweeping 132 PR bodies turns up items that read as open in one PR and were
 closed two PRs later. These are settled; the note is here so the next sweep
 does not resurrect them.
 
-| Item                                        | Closed by                                                          |
-| ------------------------------------------- | ------------------------------------------------------------------ |
-| Annual toggle advertised an unbuyable price | #96 — hidden while paid plans are disabled                         |
-| CASL consent not recorded at signup         | #109 — `0037_beta_signups_consent_record`                          |
-| `scan_status` documented an intention       | #115 — `support-attachment-scan` and the release rules             |
-| Support entry-point sweep, CAPTCHA          | #115                                                               |
-| `/blog` and `/guides` cards linked nowhere  | #113 — twelve bilingual article pages                              |
-| French corpus body missing on 40 rows       | #99 / `0032` — `content_fr` non-null on 42/42                      |
-| "Regenerate with `generate-doclib.mjs`"     | #128 — the generator does not run; headers now say hand-maintained |
-| Rings 2, 3 and 4 listed as roadmap          | #121–#131 — all four rings complete                                |
-| AI usage unmetered during an open beta      | #90 / #91 — guardrails live 2026-07-28                             |
-| Client error reporting inert                | #92 — `0019` applied, `report-error` deployed (but see OA6)        |
+| Item                                        | Closed by                                                               |
+| ------------------------------------------- | ----------------------------------------------------------------------- |
+| V2 — `0021`'s "not yet applied" banner      | Both conditions had lapsed; banner rewritten with the real state        |
+| V3 — was PR #101's crisis framing lost?     | Not lost. Every change is on `main` as `214f0eb`; verified line by line |
+| Annual toggle advertised an unbuyable price | #96 — hidden while paid plans are disabled                              |
+| CASL consent not recorded at signup         | #109 — `0037_beta_signups_consent_record`                               |
+| `scan_status` documented an intention       | #115 — `support-attachment-scan` and the release rules                  |
+| Support entry-point sweep, CAPTCHA          | #115                                                                    |
+| `/blog` and `/guides` cards linked nowhere  | #113 — twelve bilingual article pages                                   |
+| French corpus body missing on 40 rows       | #99 / `0032` — `content_fr` non-null on 42/42                           |
+| "Regenerate with `generate-doclib.mjs`"     | #128 — the generator does not run; headers now say hand-maintained      |
+| Rings 2, 3 and 4 listed as roadmap          | #121–#131 — all four rings complete                                     |
+| AI usage unmetered during an open beta      | #90 / #91 — guardrails live 2026-07-28                                  |
+| Client error reporting inert                | #92 — `0019` applied, `report-error` deployed (but see OA6)             |
 
 ---
 

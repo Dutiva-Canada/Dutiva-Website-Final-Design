@@ -27,13 +27,16 @@
  *
  * Drift needs SUPABASE_ACCESS_TOKEN (a personal access token) and
  * SUPABASE_PROJECT_REF. In CI, add them as repository secrets and the step
- * starts enforcing on its own — no code change needed.
+ * starts enforcing on its own — no code change needed. Until they exist the
+ * drift half skips, and on GitHub Actions that skip is announced as a warning
+ * annotation and a job-summary entry so a green check is never mistaken for a
+ * verified one (see announceSkippedDriftCheck).
  *
  * Dependency-free on purpose: Node's global fetch only, so this cannot rot
  * behind a package upgrade.
  */
 
-import { readdir } from 'node:fs/promises'
+import { appendFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -116,14 +119,57 @@ if (filenameProblems === 0) {
 
 /* ── 2. Drift against the live project ────────────────────────────────────── */
 
+/**
+ * A skipped drift check must not read as a passed one.
+ *
+ * Locally the console line below is the whole audience and that is fine. In CI
+ * it is not: the step exits 0, the required check goes green, and the single
+ * line saying nothing was compared sits in a log nobody opens. That is this
+ * script's own failure mode reproduced in its reporting — a green signal whose
+ * real meaning is "unchecked", which is exactly the class of silence the header
+ * comment above says this file exists to end.
+ *
+ * So on GitHub Actions, put it where results are actually read: a warning
+ * annotation (surfaced on the run and on the PR) plus a job-summary entry.
+ * Neither fails the build — forks and local checkouts legitimately hold no
+ * credentials, and failing them would be worse — but neither can be missed.
+ */
+async function announceSkippedDriftCheck(message) {
+  if (process.env.GITHUB_ACTIONS !== 'true') return
+
+  /* Workflow-command syntax; GitHub renders this as an annotation. */
+  console.log(`::warning title=Migration drift unchecked::${message}`)
+
+  const summaryPath = process.env.GITHUB_STEP_SUMMARY
+  if (!summaryPath) return
+  try {
+    await appendFile(
+      summaryPath,
+      '### Migration drift: UNCHECKED\n\n' +
+        `${message}\n\n` +
+        'Set `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` as repository ' +
+        'secrets to turn this step into a real check.\n\n',
+    )
+  } catch (error) {
+    /* The summary file is a convenience. Never fail a build over it. */
+    console.log(`check-migrations: could not write the CI job summary — ${error.message}`)
+  }
+}
+
 const token = process.env.SUPABASE_ACCESS_TOKEN
 const projectRef = process.env.SUPABASE_PROJECT_REF
 
 if (!token || !projectRef) {
+  const message =
+    'Nothing compared the repo against the live project, so a green result on ' +
+    'this step means "drift unchecked", not "no drift". A migration present in ' +
+    'the repo but never applied leaves the feature that depends on it silently ' +
+    'inert in production.'
   console.log(
     'check-migrations: drift check skipped — set SUPABASE_ACCESS_TOKEN and ' +
       'SUPABASE_PROJECT_REF to compare the repo against the live project.',
   )
+  await announceSkippedDriftCheck(message)
 } else {
   let applied
   try {
