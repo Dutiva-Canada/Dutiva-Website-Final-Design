@@ -376,6 +376,41 @@ The fix is to make the constraint a type: surface-scoped key types, the shape
 data structures that carry keys. That is a per-feature migration of call sites,
 not a chunking change — which is why it is its own item.
 
+**Update 2026-08-04 — the type foundation is in; the split is not.** The three
+scopes now exist in `src/i18n/messages/index.ts`, derived from module groupings
+rather than hand-listed: `WorkspaceMessageKey`, `MarketingMessageKey`,
+`SharedMessageKey`. The grouping is **empirical** — every key in every module
+was matched against every non-test source file and the consumers classified by
+path: **29 modules workspace-only, 9 marketing-only, 4 genuinely shared**
+(`common`, `landing`, `support`, `helpCenter`), 2225 keys total. Every
+key-carrying structure is annotated (`plans.ts`, `planComparison.ts`, the About
+/ FAQ / Known-Limitations / Pricing / Template-Usage pages, and the two
+Documents screens). `scopes.test.ts` guards the scopes staying disjoint with
+`@ts-expect-error` assertions that fail the build if a boundary stops being
+enforced — deliberately **not** the "every key resolves" test, which cannot work
+here.
+
+Measured, not estimated: `messages-*.js` is **237kB of the 671kB eager graph —
+35% of what every first-time visitor downloads**, and workspace-only modules are
+~70% of the catalogue's keys. So the prize is roughly **165kB off every page**.
+
+**Two things still block the actual split**, and both are now specific:
+
+1. **`t()` itself is still typed `MessageKey`.** The scoped types constrain
+   structures that _carry_ keys; they do not yet constrain a direct
+   `t('about_h1')` from a workspace component, which would compile and then
+   throw under a split. Making `t()` surface-aware means threading the scope
+   through `useI18n()` at every call site — the genuinely large half.
+2. **`src/seo/routes.ts` imports the whole catalogue** and is reached eagerly
+   from `src/app/routes.tsx`, so no provider change reduces the eager graph
+   until it takes marketing keys only. It needs `messages[row.titleKey]` for
+   arbitrary rows, which is the computed-key problem in its worst form.
+
+When the split lands, add the message modules to `check-entry-graph.mjs`'s
+barred list the way `PROSE_MODULES` bars article prose. **It is deliberately not
+added now** — the catalogue is still legitimately eager, so the bar would fail
+the build on the first commit rather than the last.
+
 **EF6b — Done.** The router imported `@/seo/routes`, which read every article
 and help article to build `allPublicPages()` — it needs slugs, and it was
 getting `blogArticles.ts` (89kB), `guideArticles.ts` (111kB) and

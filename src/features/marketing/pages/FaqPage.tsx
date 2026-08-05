@@ -1,10 +1,10 @@
 import { ChevronDown } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import type { MessageKey } from '@/i18n/messages'
+import type { MarketingMessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
-const GROUPS: { titleKey: MessageKey; items: { q: MessageKey; a: MessageKey }[] }[] = [
+const GROUPS: { titleKey: MarketingMessageKey; items: { q: MarketingMessageKey; a: MarketingMessageKey }[] }[] = [
   {
     titleKey: 'faq_g_title',
     items: [

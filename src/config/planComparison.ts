@@ -1,21 +1,21 @@
-import type { MessageKey } from '@/i18n/messages'
+import type { MarketingMessageKey } from '@/i18n/messages'
 import type { PlanId } from './plans'
 
 /**
  * A comparison cell:
  *   - `true`  → included (rendered as a check),
  *   - `false` → not included (rendered as a dash),
- *   - a `MessageKey` → a short qualifier ("Core", "Priority", "1 document", …).
+ *   - a `MarketingMessageKey` → a short qualifier ("Core", "Priority", "1 document", …).
  */
-export type ComparisonCell = boolean | MessageKey
+export type ComparisonCell = boolean | MarketingMessageKey
 
 export interface ComparisonRow {
-  labelKey: MessageKey
+  labelKey: MarketingMessageKey
   cells: Record<PlanId, ComparisonCell>
 }
 
 export interface ComparisonGroup {
-  headingKey: MessageKey
+  headingKey: MarketingMessageKey
   rows: ComparisonRow[]
 }
 
