@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   getCheckoutProfilePatch,
   getSubscriptionProfileUpdate,
-  inferCheckoutPrice,
+  normalizeBillingPeriod,
   normalizePlan,
   normalizeSubscriptionStatus,
   stringId,
@@ -12,6 +12,9 @@ const priceLookup = {
   price_starter_monthly: { plan: 'starter', billingPeriod: 'monthly' as const },
   price_growth_monthly: { plan: 'growth', billingPeriod: 'monthly' as const },
   price_pro_monthly: { plan: 'pro', billingPeriod: 'monthly' as const },
+  price_starter_annual: { plan: 'starter', billingPeriod: 'annual' as const },
+  price_growth_annual: { plan: 'growth', billingPeriod: 'annual' as const },
+  price_pro_annual: { plan: 'pro', billingPeriod: 'annual' as const },
 }
 
 describe('stripe webhook billing event helpers', () => {
@@ -27,15 +30,19 @@ describe('stripe webhook billing event helpers', () => {
     expect(normalizePlan('enterprise')).toBeNull()
   })
 
+  it('normalizes billing periods and rejects unknown ones', () => {
+    expect(normalizeBillingPeriod('Annual')).toBe('annual')
+    expect(normalizeBillingPeriod('monthly')).toBe('monthly')
+    expect(normalizeBillingPeriod('weekly')).toBeNull()
+    expect(normalizeBillingPeriod(undefined)).toBeNull()
+  })
+
   it('falls back to the free plan for unrecognized metadata.plan', () => {
-    const patch = getCheckoutProfilePatch(
-      {
-        customer: 'cus_old',
-        subscription: 'sub_old',
-        metadata: { user_id: 'user_old', plan: 'enterprise' },
-      },
-      priceLookup,
-    )
+    const patch = getCheckoutProfilePatch({
+      customer: 'cus_old',
+      subscription: 'sub_old',
+      metadata: { user_id: 'user_old', plan: 'enterprise' },
+    })
 
     expect(patch).toEqual({
       userId: 'user_old',
@@ -50,24 +57,25 @@ describe('stripe webhook billing event helpers', () => {
     })
   })
 
-  it('prefers the actual purchased price over client-editable metadata.plan', () => {
-    const patch = getCheckoutProfilePatch(
-      {
-        client_reference_id: 'user_from_pricing_table',
-        customer: { id: 'cus_new' },
-        subscription: { id: 'sub_new' },
-        customer_details: { email: 'buyer@example.com' },
-        line_items: { data: [{ price: { id: 'price_growth_monthly' } }] },
-        metadata: { plan: 'starter' },
-      },
-      priceLookup,
-    )
+  /* EF5. A checkout webhook NEVER carries line_items — it is an expandable
+     field. The old code read it anyway and always got null, so metadata was
+     doing the work unacknowledged. This asserts the resolved behaviour: even
+     when a line_items payload is synthesized, server-set metadata decides. */
+  it('resolves the checkout plan from server-set metadata, ignoring line_items', () => {
+    const patch = getCheckoutProfilePatch({
+      client_reference_id: 'user_from_pricing_table',
+      customer: { id: 'cus_new' },
+      subscription: { id: 'sub_new' },
+      customer_details: { email: 'buyer@example.com' },
+      line_items: { data: [{ price: { id: 'price_growth_monthly' } }] },
+      metadata: { plan: 'starter', billing_interval: 'monthly' },
+    })
 
     expect(patch).toEqual({
       userId: 'user_from_pricing_table',
       email: 'buyer@example.com',
       updates: {
-        plan: 'growth',
+        plan: 'starter',
         subscription_status: 'active',
         billing_period: 'monthly',
         stripe_customer_id: 'cus_new',
@@ -76,28 +84,40 @@ describe('stripe webhook billing event helpers', () => {
     })
   })
 
+  it('records an annual checkout as annual', () => {
+    const patch = getCheckoutProfilePatch({
+      customer: 'cus_annual',
+      subscription: 'sub_annual',
+      metadata: { user_id: 'user_annual', plan: 'pro', billing_interval: 'annual' },
+    })
+
+    expect(patch.updates.plan).toBe('pro')
+    expect(patch.updates.billing_period).toBe('annual')
+  })
+
+  /* Sessions created before the annual path existed carry no billing_interval;
+     reading that as monthly matches what those checkouts actually were. */
+  it('treats a checkout with no billing_interval as monthly', () => {
+    const patch = getCheckoutProfilePatch({
+      customer: 'cus_legacy',
+      subscription: 'sub_legacy',
+      metadata: { user_id: 'user_legacy', plan: 'growth' },
+    })
+
+    expect(patch.updates.billing_period).toBe('monthly')
+  })
+
   it('falls back to checkout email when no user id is available', () => {
-    const patch = getCheckoutProfilePatch(
-      {
-        customer: 'cus_email',
-        subscription: 'sub_email',
-        customer_email: 'buyer@example.com',
-        line_items: { data: [{ price: 'price_pro_monthly' }] },
-      },
-      priceLookup,
-    )
+    const patch = getCheckoutProfilePatch({
+      customer: 'cus_email',
+      subscription: 'sub_email',
+      customer_email: 'buyer@example.com',
+      metadata: { plan: 'pro' },
+    })
 
     expect(patch.userId).toBeNull()
     expect(patch.email).toBe('buyer@example.com')
     expect(patch.updates.plan).toBe('pro')
-  })
-
-  it('infers prices from checkout line items', () => {
-    expect(
-      inferCheckoutPrice({
-        line_items: { data: [{ price: { id: 'price_growth_monthly' } }] },
-      }),
-    ).toBe('price_growth_monthly')
   })
 
   it('updates subscription events from price id, keeping the reported status', () => {
@@ -116,10 +136,48 @@ describe('stripe webhook billing event helpers', () => {
       customerId: 'cus_123',
       updates: {
         plan: 'starter',
+        billing_period: 'monthly',
         subscription_status: 'past_due',
         stripe_subscription_id: 'sub_123',
       },
     })
+  })
+
+  /* Unlike a checkout session, subscription payloads DO carry the price — so
+     this is the event where price-authoritative resolution genuinely works, and
+     where a dashboard-side switch to an annual price reaches us at all. */
+  it('prefers the subscribed annual price over a stale monthly metadata hint', () => {
+    const result = getSubscriptionProfileUpdate(
+      {
+        id: 'sub_up',
+        customer: 'cus_up',
+        status: 'active',
+        items: { data: [{ price: { id: 'price_pro_annual' } }] },
+        metadata: { plan: 'starter', billing_interval: 'monthly' },
+      },
+      priceLookup,
+    )
+
+    expect(result.updates.plan).toBe('pro')
+    expect(result.updates.billing_period).toBe('annual')
+  })
+
+  /* Absent, not defaulted: an unrecognized price must not quietly rewrite a
+     stored 'annual' back to 'monthly'. */
+  it('omits billing_period entirely when the price is unrecognized and metadata is silent', () => {
+    const result = getSubscriptionProfileUpdate(
+      {
+        id: 'sub_unknown',
+        customer: 'cus_unknown',
+        status: 'active',
+        items: { data: [{ price: { id: 'price_not_in_lookup' } }] },
+        metadata: {},
+      },
+      priceLookup,
+    )
+
+    expect(result.updates).not.toHaveProperty('billing_period')
+    expect(result.updates).not.toHaveProperty('plan')
   })
   it('maps Stripe statuses onto the ones profiles accepts, failing closed', () => {
     /* The check constraint on profiles.subscription_status accepts only these
