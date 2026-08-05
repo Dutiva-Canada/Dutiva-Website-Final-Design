@@ -13,12 +13,16 @@ export type LandingMessageKey = keyof typeof landing
  *
  * It is a convenience, **not an isolation boundary**. `landing` is spread into
  * the global catalogue like every other module, and it has to be: plan copy in
- * `src/config/plans.ts` is typed `MessageKey` and points at `landing_*` keys
- * (`landing_free_desc`, `landing_starter_desc`, …), which the app-side
- * `PlanGate` resolves through `t()`. Dropping it from the catalogue would
- * break a workspace component, not just this page — so the landing module is
- * shared copy that happens to have a typed accessor, and any plan to split the
- * catalogue by surface has to account for it.
+ * `src/config/plans.ts` points at `landing_*` keys (`landing_free_desc`,
+ * `landing_starter_desc`, …), which the app-side `PlanGate` resolves through
+ * `t()`. Dropping it from the catalogue would break a workspace component, not
+ * just this page.
+ *
+ * That is now recorded in the type system rather than only in this comment:
+ * `landing` sits in the **shared** group in `src/i18n/messages/index.ts`, and
+ * `plans.ts` is typed `SharedMessageKey` — so moving `landing` to the marketing
+ * group is a compile error at `PlanGate`, not a blank page in production.
+ * `src/i18n/messages/scopes.test.ts` guards the three scopes staying disjoint.
  */
 export function useLanding() {
   const i18n = useI18n()

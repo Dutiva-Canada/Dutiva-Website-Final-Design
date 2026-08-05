@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Archive, FileText, Lock, Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
-import type { MessageKey } from '@/i18n/messages'
+import type { WorkspaceMessageKey } from '@/i18n/messages'
 import { useDoclib } from '../doclibContext'
 import { can } from '../engine'
 import { DocChip, JurisdictionPill, Skel } from '../components'
@@ -47,7 +47,7 @@ const JURISDICTIONS: Jurisdiction[] = ['ON', 'QC', 'FED']
 
 type GroupKey = 'none' | 'employee' | 'status' | 'category'
 const GROUP_KEYS: GroupKey[] = ['none', 'employee', 'status', 'category']
-const GROUP_LABEL_KEY: Record<GroupKey, MessageKey> = {
+const GROUP_LABEL_KEY: Record<GroupKey, WorkspaceMessageKey> = {
   none: 'doclib_repo_groupNone',
   employee: 'doclib_repo_groupEmployee',
   status: 'doclib_repo_groupStatus',

@@ -5,7 +5,7 @@ import { ChevronLeft, Lock, TriangleAlert } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi } from '@/i18n/core'
 import type { Bi, Lang } from '@/i18n/core'
-import type { MessageKey } from '@/i18n/messages'
+import type { WorkspaceMessageKey } from '@/i18n/messages'
 import { doclibMessages } from '@/i18n/messages/doclib'
 import { dotToneClass } from '@/components/chips'
 import { Disclaimer } from '@/components/Disclaimer'
@@ -56,7 +56,7 @@ const TABS = [
   ['versions', 'doclib_docd_tabVersions'],
   ['recipients', 'doclib_docd_tabRecipients'],
   ['audit', 'doclib_docd_tabAudit'],
-] as const satisfies ReadonlyArray<readonly [string, MessageKey]>
+] as const satisfies ReadonlyArray<readonly [string, WorkspaceMessageKey]>
 
 type TabKey = (typeof TABS)[number][0]
 
@@ -64,7 +64,7 @@ type TabKey = (typeof TABS)[number][0]
 const EDIT_TOAST: Bi = bi('Editing in the guided flow', 'Modification dans le flux guidé')
 
 interface ActionConfig {
-  label: MessageKey
+  label: WorkspaceMessageKey
   toast: Bi
   tone: ToastTone
   variant: 'primary' | 'ghost' | 'danger'
