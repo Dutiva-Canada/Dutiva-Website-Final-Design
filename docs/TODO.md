@@ -171,36 +171,29 @@ The corpus rule is that every statutory figure comes from a direct fetch of an
 official government page, fetched twice — once to author, once to verify
 independently. Everything in this section is gated on that rule.
 
-**L1 — Restore primary-source access, then run the amendment tranche.**
-_Blocked._ On 2026-08-02 every official host (`canada.ca`, `ontario.ca`,
-`cnesst.gouv.qc.ca`, `legisquebec.gouv.qc.ca`, `chrc-ccdp.gc.ca`, `cdpdj.qc.ca`)
-was refused at the egress proxy with a 403 on CONNECT, along with the
-`web.archive.org` and `canlii.org` fallbacks. The environment's network policy
-is fixed when the environment is created, so unblocking this means allowlisting
-those domains **and starting a new session**. Blocks L2, L3 and L4.
-[advisor-corpus-verification-2026-08-02.md](advisor-corpus-verification-2026-08-02.md).
-(PR #132)
+**L1a — Apply the corpus amendment tranche.** _Owner._ L1–L4 are closed on the
+authoring side: the 2026-08-02 block was **environmental, not real**. Run from a
+workstation rather than a sandbox, every official host answers — three of them
+(`canada.ca`, `cnesst.gouv.qc.ca`, `legisquebec.gouv.qc.ca`) simply need a
+browser `User-Agent`, which is a bot filter on the fetching tool and not a
+network policy. Nothing needs allowlisting and no new session is required; the
+next verification cycle should be run from a workstation.
+`0042_corpus_amendment_tranche_2026_08_04.sql` is authored and **unapplied**.
+After applying it, run the retrieval smoke test through `match_advisor_guidance`
+for the amended topics in EN and FR — `fts`/`fts_fr` recompute on UPDATE, but
+nothing proves the amended rows still rank.
+[advisor-guidance-corpus-2026-08-04.md](advisor-guidance-corpus-2026-08-04.md).
 
-**L2 — WI1: federal statutory leaves may be incomplete.** _Blocked by L1._ The
-concern is omission, not error — Pregnancy Loss Leave and Leave for the
-Placement of a Child are both reported by secondary sources and neither is in
-the chunk. Confirm existence, duration, paid days, service threshold, claim
-window and in-force date from the official page, and re-read the whole page for
-anything else added since 2026-07-27.
-
-**L3 — WI3: Ontario minimum wage, special categories.** _Blocked by L1 —
-time-sensitive._ The chunk carries the general rate correctly but gives
-special-category rates only for the period ending **2026-09-30**, so it goes
-stale on **2026-10-01**. That is roughly two months out from this sweep. The
-whole minimum-wage cluster is the highest-churn part of the corpus and this
-cycle's check was snippet-based, so re-verify all of it from primary sources in
-the same pass.
-
-**L4 — WI2: CNESST URL normalization.** _Blocked by L1._ Two competing path
-forms cite the same two CNESST pages across four rows. Settling it means
-following the live redirects to see which form CNESST serves canonically;
-guessing bakes link rot into the citations. Scope is 4 of the 12 CNESST-citing
-rows, not all of them.
+**L1b — Four federal leaves are still unauthored.** _Build._ The 2026-08-04
+tranche added pregnancy loss, family violence and traditional Aboriginal
+practices to the `[FED] leaves` chunk. Court or jury duty, reserve-force leave
+(24 months in 60), leave for work-related illness and injury, and
+maternity-related reassignment are on the official page, absent from the chunk,
+and were left for a later tranche rather than padding one row past useful
+retrieval length. Note what this cost: the page's `Date modified` is 2026-05-13
+and the chunk was authored 2026-07-27, so these are **authoring omissions, not
+later amendments** — a change-detection watcher would never surface them, and
+only a full re-read of the page will.
 
 **L5 — Corpus review gate.** _Blocked (human review)._ Every row in
 `advisor_guidance_chunks` is `review_status: machine_curated`. Only a human
@@ -221,11 +214,27 @@ payroll threshold the Document Studio wizard does not collect, and there is no
 reviewed severance schedule to read against. Closing it means either collecting
 the payroll figure or accepting that severance stays a flag. (PR #110)
 
-**L8 — Four unverified canonical facts.** Incorporation date, trademark status
-and business phone each trace to a single document and have never been checked
-against a filing; CANONICAL_FACTS records them as unverified rather than
-asserting them. The phone number also blocks any directory listing that requires
-one. (PR #103, SEO playbook item 2)
+**L8a — The business phone is still unverified, and may be unverifiable.**
+_Owner._ Incorporation and trademark were checked against the registries on
+2026-08-04 and are now confirmed in
+[CANONICAL_FACTS.md](CANONICAL_FACTS.md) with the identifiers that let anyone
+re-check them (corporation no. 1780679-5; CIPO application no. 2465617). The
+phone number is the one that did not resolve: no public authoritative source
+lists 1 (800) 349-0297 and none attributes it to Dutiva, dutiva.ca publishes no
+phone number, and the Corporations Canada record has no telephone field. A
+toll-free number is registered to a carrier rather than a public registry, so
+this may not be confirmable from outside — the founder is the authority on
+whether it is provisioned and answered. Still blocking any directory listing
+that requires a phone number (SEO playbook item 2).
+
+**L8b — The trademark application has an open CIPO objection.** _Owner._ Not
+previously recorded anywhere. CIPO's Action History on application 2465617 shows
+a **Pre-Assessment Letter sent 2026-04-09, "Goods or Services Not Acceptable"** —
+so as of the last action on the file the goods and services wording has been
+objected to. This does not change what may be claimed today (an application is
+an application either way, and the repo's copy is clean — no `®`, no "registered
+trademark" anywhere), but it is a live prosecution matter with a response
+deadline that nothing in this repo or the business plan mentions.
 
 **L9 — Drive template hygiene.** T01, T02 and T04 went to `Legal Review` as
 `_polished` drafts in June 2026 and never returned to the `ON/EN` folder, which
@@ -244,16 +253,30 @@ every session so far lacked a JWT it could create. Expect exactly one
 `ai_telemetry_events` row, `completed`, with a token count. A row stranded at
 `started` means the usage claim landed and finalize did not. (PRs #87, #90)
 
-**EF2 — Ontario and Québec are unmonitorable, and that is a sourcing problem.**
-Ontario's source loads statute text in the browser; Québec's refuses automated
-requests (verified UA-independent). Fixing Federal took a different data source
-entirely — Justice Canada XML — so these two need the same treatment, not a
-retry. Until then `monitoringCoverage.ts` says so on the Knowledge panel, signed
-out included. (PRs #105, #106)
+**EF2 — Ontario and Québec ARE monitorable; the sources are found, not built.**
+_Build._ Reclassified 2026-08-04. The "unmonitorable" conclusion does not
+survive contact with the sources, and it was wrong on both counts:
 
-Re-probed 2026-08-02: `ontario.ca`, `canada.ca`, `laws-lois.justice.gc.ca` and
-`legisquebec.gouv.qc.ca` all fail at the egress proxy, so even evaluating a
-replacement source needs the allowlist in L1 first.
+- **Ontario** has a real JSON API —
+  `ontario.ca/laws/api/v2/legislation/en/act-versions/statute/{id}` — byte-stable
+  across six fetches including cache-busted, with confirmed ids for the ESA,
+  OHSA, Human Rights Code and AODA. The SPA-shell finding was correct about the
+  HTML pages and simply not the whole surface.
+- **Québec** was never UA-independent: the refusal is a CloudFront WAF rule keyed
+  on `User-Agent`, and a 403/200 split was observed on identical URLs seconds
+  apart. Better still, Données Québec publishes a first-party machine-readable
+  legislative corpus whose status files **name the statutes that changed**.
+
+The evaluation — including the rejected candidates, the two mandatory Ontario
+health checks, and the guardrail that whole-page hashing of LégisQuébec
+guarantees a daily false alert — is in
+[LAW_MONITORING.md § Sourcing evaluation](LAW_MONITORING.md).
+
+**What remains is the implementation**: the fetch, change detection, schedule
+entry and coverage record, in the shape the Justice Canada XML path established.
+Until that lands and is proven, `monitoringCoverage.ts` keeps telling customers
+the truth about the gap — do not soften that wording ahead of the code.
+(PRs #105, #106)
 
 **EF3 — Export-trail follow-ups.** An in-app admin viewer over `export_events`
 (the trail is read through service-role tooling today); the Advisor chat "Copy"
@@ -269,17 +292,28 @@ admin-gated edge function. That is a decision about the audit table's security
 posture and should be taken on purpose, not inherited from whichever is easier
 to write.
 
-**EF4 — Annual billing is unwired below the surface.** `create-checkout-session`
-knows only `STRIPE_PRICE_*_MONTHLY` (verified 2026-08-02). The annual toggle is
-hidden while paid plans are disabled, so nothing is broken today — but
-re-enabling annual pricing means wiring the annual price IDs first, and
-confirming the "two months free" convention. (PRs #66, #96)
+**EF4a — Annual billing needs its Stripe objects and migration 0043.** _Owner._
+The code half is done: `create-checkout-session` resolves
+`STRIPE_PRICE_*_ANNUAL`, the webhook's price lookup maps the annual ids, and
+`getCheckoutProfilePatch` records the real interval instead of hardcoding
+`monthly`. Three things outside this repo remain, and annual checkout does not
+work until all three land: create the annual Price objects in Stripe (yearly
+recurring, charging `ANNUAL_MONTHS_BILLED` = 10 months' worth), set the three
+env vars, and **apply migration `0043`** — without it
+`profiles.billing_period` may still reject `'annual'`, which would take the
+money and lose the entitlement. The function fails closed with a 503 meanwhile,
+and `PricingPage`'s annual guard turns that into an intelligible notice; remove
+that guard only once this is done. Folded into OA11.
 
-**EF5 — `inferCheckoutPrice` reads `session.line_items`, which webhooks never
-carry.** Not an active bug: this repo's own checkout always sets `metadata.plan`
-server-side, so the fallback is what resolves the plan. A real fix means an
-extra Stripe API call from inside the webhook. Recorded as short-of-intent, not
-broken. (BILLING_BETA_AUDIT § Still open)
+**EF4b — The live `billing_period` constraint is unknown.** _Verify._ `0013`
+declares `check (billing_period in ('monthly'))` but was never applied under its
+own name — the live `profiles` came from the predecessor repo, as
+`0024_reconcile_billing_schema.sql` records. So nobody knows what the project
+actually enforces on that column. `0043` is written defensively (drop-if-exists
+then add, 0024's pattern) and works under any of those cases, but if the live
+table carries a differently _named_ check the drop will miss it and the old one
+will still reject `'annual'`. The migration ends with the `pg_constraint` query
+to settle it. This is the same blind spot as V1.
 
 **EF6 — Done.** The entry graph was broad because three things rode it: the
 `vendor` group carried react-markdown's 157kB parser tree; `messages/index.ts`
@@ -383,20 +417,25 @@ Sweeping 132 PR bodies turns up items that read as open in one PR and were
 closed two PRs later. These are settled; the note is here so the next sweep
 does not resurrect them.
 
-| Item                                        | Closed by                                                               |
-| ------------------------------------------- | ----------------------------------------------------------------------- |
-| V2 — `0021`'s "not yet applied" banner      | Both conditions had lapsed; banner rewritten with the real state        |
-| V3 — was PR #101's crisis framing lost?     | Not lost. Every change is on `main` as `214f0eb`; verified line by line |
-| Annual toggle advertised an unbuyable price | #96 — hidden while paid plans are disabled                              |
-| CASL consent not recorded at signup         | #109 — `0037_beta_signups_consent_record`                               |
-| `scan_status` documented an intention       | #115 — `support-attachment-scan` and the release rules                  |
-| Support entry-point sweep, CAPTCHA          | #115                                                                    |
-| `/blog` and `/guides` cards linked nowhere  | #113 — twelve bilingual article pages                                   |
-| French corpus body missing on 40 rows       | #99 / `0032` — `content_fr` non-null on 42/42                           |
-| "Regenerate with `generate-doclib.mjs`"     | #128 — the generator does not run; headers now say hand-maintained      |
-| Rings 2, 3 and 4 listed as roadmap          | #121–#131 — all four rings complete                                     |
-| AI usage unmetered during an open beta      | #90 / #91 — guardrails live 2026-07-28                                  |
-| Client error reporting inert                | #92 — `0019` applied, `report-error` deployed (but see OA6)             |
+| Item                                        | Closed by                                                                           |
+| ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| EF5 — `inferCheckoutPrice`'s dead branch    | Deleted; server-set metadata is the checkout path's documented single source        |
+| L1 — primary sources "unreachable"          | Not a network block — a bot filter on the fetching tool; run from a workstation     |
+| L2 — WI1 federal leaves omission            | Pregnancy loss leave confirmed and added; "placement of a child" **does not exist** |
+| L3 — WI3 Ontario minimum wage               | All four Oct-2026 special-category rates verified twice and added                   |
+| L4 — WI2 CNESST URL normalization           | SHORT form is canonical (301 trace); fixed per-URL, never by prefix                 |
+| V2 — `0021`'s "not yet applied" banner      | Both conditions had lapsed; banner rewritten with the real state                    |
+| V3 — was PR #101's crisis framing lost?     | Not lost. Every change is on `main` as `214f0eb`; verified line by line             |
+| Annual toggle advertised an unbuyable price | #96 — hidden while paid plans are disabled                                          |
+| CASL consent not recorded at signup         | #109 — `0037_beta_signups_consent_record`                                           |
+| `scan_status` documented an intention       | #115 — `support-attachment-scan` and the release rules                              |
+| Support entry-point sweep, CAPTCHA          | #115                                                                                |
+| `/blog` and `/guides` cards linked nowhere  | #113 — twelve bilingual article pages                                               |
+| French corpus body missing on 40 rows       | #99 / `0032` — `content_fr` non-null on 42/42                                       |
+| "Regenerate with `generate-doclib.mjs`"     | #128 — the generator does not run; headers now say hand-maintained                  |
+| Rings 2, 3 and 4 listed as roadmap          | #121–#131 — all four rings complete                                                 |
+| AI usage unmetered during an open beta      | #90 / #91 — guardrails live 2026-07-28                                              |
+| Client error reporting inert                | #92 — `0019` applied, `report-error` deployed (but see OA6)                         |
 
 ---
 
