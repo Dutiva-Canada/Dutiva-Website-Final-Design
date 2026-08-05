@@ -8,12 +8,12 @@ it is actually running, and what to do when it isn't.
 `supabase/functions/monitor-law-changes/` sweeps **19 legislation pages across
 all 14 Canadian jurisdictions** once a day and records what it finds:
 
-| Event | Meaning |
-| --- | --- |
-| `first_seen` | Page added to monitoring; baseline hash captured. |
-| `change` | Extracted text hash differs from the last sweep — with a plain-English summary of what it means for employers. |
-| `redirect` | Page moved permanently; monitoring auto-follows to the new URL. |
-| `broken` | Page unreachable for 3 consecutive sweeps. Past that threshold the function asks the model for a replacement URL and accepts it only if it passes the host allowlist **and** resolves. |
+| Event        | Meaning                                                                                                                                                                                |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `first_seen` | Page added to monitoring; baseline hash captured.                                                                                                                                      |
+| `change`     | Extracted text hash differs from the last sweep — with a plain-English summary of what it means for employers.                                                                         |
+| `redirect`   | Page moved permanently; monitoring auto-follows to the new URL.                                                                                                                        |
+| `broken`     | Page unreachable for 3 consecutive sweeps. Past that threshold the function asks the model for a replacement URL and accepts it only if it passes the host allowlist **and** resolves. |
 
 Two tables carry the state, both created directly on the project rather than by
 a migration in this repo (the `0003` / `0011` / `0026` policy migrations guard
@@ -37,10 +37,10 @@ monitor** — do not let a monitored jurisdiction imply supported coverage.
 
 Two strategies, chosen per source by `PageConfig.source`:
 
-| Strategy | Used for | How it decides "changed" |
-| --- | --- | --- |
-| `html` | Everything except federal | SHA-256 over the extracted page text, gated by the content-sanity check. |
-| `justice-xml` | Canada Labour Code, Canadian Human Rights Act | Reads `lims:lastAmendedDate` from the root `<Statute>` element. |
+| Strategy      | Used for                                      | How it decides "changed"                                                 |
+| ------------- | --------------------------------------------- | ------------------------------------------------------------------------ |
+| `html`        | Everything except federal                     | SHA-256 over the extracted page text, gated by the content-sanity check. |
+| `justice-xml` | Canada Labour Code, Canadian Human Rights Act | Reads `lims:lastAmendedDate` from the root `<Statute>` element.          |
 
 **Prefer `justice-xml` wherever a jurisdiction offers equivalent data.** Hashing
 asks "did these bytes move?", which is a proxy for the real question and wrong
@@ -107,12 +107,12 @@ One query, service-role (SQL editor):
 select * from public.law_monitor_status();
 ```
 
-| Column | Healthy value |
-| --- | --- |
-| `secret_configured` | `true` |
-| `job_scheduled` | `true` |
-| `hours_since_check` | `< 48` |
-| `broken_pages` | ideally `0`; a few is normal — governments move URLs |
+| Column              | Healthy value                                        |
+| ------------------- | ---------------------------------------------------- |
+| `secret_configured` | `true`                                               |
+| `job_scheduled`     | `true`                                               |
+| `hours_since_check` | `< 48`                                               |
+| `broken_pages`      | ideally `0`; a few is normal — governments move URLs |
 
 `hours_since_check` is the number that matters. If it climbs past ~48, the
 monitor is not running.
@@ -145,7 +145,7 @@ The Knowledge panel reads `law_updates` through two filters, both in
 `fetchRecentLawUpdates()`:
 
 - **`event_type = 'change'` only.** `first_seen`, `redirect` and `broken` are
-  records about *Dutiva's own monitoring*, not legal news. `broken` matters
+  records about _Dutiva's own monitoring_, not legal news. `broken` matters
   most: a sweep after the content-sanity guard produces a burst of them, and
   "a Dutiva scraper failed" is alarming and useless in a customer's panel.
 - **Supported jurisdictions only** (ON/QC/FED, by the monitor's display names).
@@ -192,16 +192,16 @@ modes below.
 **`is_broken` said 5 of 19. The real number of pages returning usable
 legislation was far lower.**
 
-| Jurisdiction | Observed | Why it matters |
-| --- | --- | --- |
-| **Ontario** (ESA, HRC, WSIA) | HTTP 200, JavaScript app shell | **The worst case.** After tag-stripping, all three statutes reduce to the *same* 422 characters of boilerplate with no statute text. The hash is stable, so an ESA amendment can never trigger a change — while a routine redeploy of ontario.ca would fire a false one. Ontario detection was structurally non-functional and reporting "no change" the whole time. |
-| **Quebec** (LNT, Charter) | HTTP 403, CloudFront | Datacenter IPs are blocked. Verified that User-Agent makes no difference — the honest bot UA, a `Mozilla/5.0 (compatible; …)` UA and a full browser UA all return the identical 919-byte block. |
-| **Nova Scotia** | **HTTP 200** + 244-byte F5 "Request Rejected" body | Served the WAF rejection *with a success status*, so it recorded as healthy. |
-| **Yukon, Nunavut** | HTTP 403, Cloudflare "Just a moment…" | A JS challenge; no server-side fetch can solve it. |
-| **Saskatchewan** | DNS failure — `qp.gov.sk.ca` no longer resolves | Worse, the documented fallback (`publications.saskatchewan.ca` product 73330) resolves to **"Gazette Part II, June 5, 2015"** — the wrong document entirely, not the Employment Act. |
-| **PEI / NL / Alberta** | 404 / 500 / 400 | Ordinary URL rot. |
-| **Manitoba, New Brunswick, NWT** | HTTP 200, real content | Genuinely working. |
-| **Federal, BC** | Connection-level error from the probe client | **Inconclusive.** `pg_net` is not the edge function's `fetch`, and both were succeeding as of 2026-06-08. Re-verify from a real sweep before drawing a conclusion. |
+| Jurisdiction                     | Observed                                           | Why it matters                                                                                                                                                                                                                                                                                                                                                       |
+| -------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ontario** (ESA, HRC, WSIA)     | HTTP 200, JavaScript app shell                     | **The worst case.** After tag-stripping, all three statutes reduce to the _same_ 422 characters of boilerplate with no statute text. The hash is stable, so an ESA amendment can never trigger a change — while a routine redeploy of ontario.ca would fire a false one. Ontario detection was structurally non-functional and reporting "no change" the whole time. |
+| **Quebec** (LNT, Charter)        | HTTP 403, CloudFront                               | Datacenter IPs are blocked. Verified that User-Agent makes no difference — the honest bot UA, a `Mozilla/5.0 (compatible; …)` UA and a full browser UA all return the identical 919-byte block.                                                                                                                                                                      |
+| **Nova Scotia**                  | **HTTP 200** + 244-byte F5 "Request Rejected" body | Served the WAF rejection _with a success status_, so it recorded as healthy.                                                                                                                                                                                                                                                                                         |
+| **Yukon, Nunavut**               | HTTP 403, Cloudflare "Just a moment…"              | A JS challenge; no server-side fetch can solve it.                                                                                                                                                                                                                                                                                                                   |
+| **Saskatchewan**                 | DNS failure — `qp.gov.sk.ca` no longer resolves    | Worse, the documented fallback (`publications.saskatchewan.ca` product 73330) resolves to **"Gazette Part II, June 5, 2015"** — the wrong document entirely, not the Employment Act.                                                                                                                                                                                 |
+| **PEI / NL / Alberta**           | 404 / 500 / 400                                    | Ordinary URL rot.                                                                                                                                                                                                                                                                                                                                                    |
+| **Manitoba, New Brunswick, NWT** | HTTP 200, real content                             | Genuinely working.                                                                                                                                                                                                                                                                                                                                                   |
+| **Federal, BC**                  | Connection-level error from the probe client       | **Inconclusive.** `pg_net` is not the edge function's `fetch`, and both were succeeding as of 2026-06-08. Re-verify from a real sweep before drawing a conclusion.                                                                                                                                                                                                   |
 
 Status codes and response bodies above are reliable; connection-level failures
 are not, for the reason in the last row.
@@ -220,7 +220,7 @@ the correction, not a regression.
 ### Official feeds — investigated 2026-07-30
 
 Before spending anything on a proxy or a licence, we checked whether these
-jurisdictions publish legislation in a form *meant* to be consumed by software.
+jurisdictions publish legislation in a form _meant_ to be consumed by software.
 Scraping rendered HTML is the worst available option; an official feed is more
 accurate, cheaper, and cannot be bot-blocked because consumption is the point.
 
@@ -232,19 +232,19 @@ bilingual (`eng/` and `fra/`), under the
 mirrored on the Open Government Portal as a bulk dataset. Verified by direct
 fetch:
 
-| File | Act | Last amended (in the document) |
-| --- | --- | --- |
-| `eng/acts/L-2.xml` | Canada Labour Code | 2025-12-12 |
-| `eng/acts/H-6.xml` | Canadian Human Rights Act | 2024-08-19 |
+| File               | Act                       | Last amended (in the document) |
+| ------------------ | ------------------------- | ------------------------------ |
+| `eng/acts/L-2.xml` | Canada Labour Code        | 2025-12-12                     |
+| `eng/acts/H-6.xml` | Canadian Human Rights Act | 2024-08-19                     |
 
 Three things make this strictly better than hashing HTML:
 
 1. **No blocking.** `raw.githubusercontent.com` serves plain files — no WAF, no
    JS shell, no IP reputation check.
-2. **The amendment date is *in the document*.** We can read "last amended"
+2. **The amendment date is _in the document_.** We can read "last amended"
    directly instead of inferring change from a hash diff, which removes both
    false positives (site redesigns) and false negatives entirely.
-3. **Git history is amendment history.** The commit that touched `L-2.xml` *is*
+3. **Git history is amendment history.** The commit that touched `L-2.xml` _is_
    the amendment event, with a date and a diff of the actual legal text.
 
 **Ontario: no official machine-readable feed found.** e-Laws publishes currency
@@ -254,7 +254,7 @@ evidence here is not proof — worth one direct question to Ontario's legislativ
 services before concluding it doesn't exist.
 
 **Québec: no free feed found; a paid official one exists.** LégisQuébec refused
-requests from both networks tried. The *Gazette officielle du Québec* Part 2
+requests from both networks tried. The _Gazette officielle du Québec_ Part 2
 (laws and regulations) publishes every Wednesday and is the official channel
 for enacted legislation; Publications du Québec sells a subscription — reported
 around $685/yr for Part 2, which should be confirmed directly rather than taken
@@ -283,6 +283,96 @@ options each carry a trade-off worth a deliberate choice:
 Until one is chosen, **treat Ontario and Quebec law-change detection as not
 working**, regardless of what the panel shows.
 
+## Sourcing evaluation for Ontario and Québec — 2026-08-04
+
+**Headline: the "Ontario and Québec are unmonitorable" conclusion does not
+survive contact with the sources.** Both jurisdictions have a machine-readable
+official artifact that clears the same bar Federal already meets — a change in
+it is evidence of an amendment, not merely evidence that a web server answered.
+This section is the evaluation, including what was rejected and why, so the next
+session does not re-probe any of it.
+
+**Nothing here is implemented.** This is the research half of EF2; the fetch,
+change detection, schedule entry and coverage record are not built, and
+`monitoringCoverage.ts` still tells customers the truth about the gap. Do not
+weaken that wording until a source is actually wired and proven.
+
+Everything below was probed live, and every candidate was **fetched twice and
+diffed** to rule out sources that churn on every request — the failure mode that
+turns a monitor into a daily false-alarm generator.
+
+### Ontario — the e-Laws act-versions API clears the bar
+
+```text
+https://www.ontario.ca/laws/api/v2/legislation/en/act-versions/statute/{id}
+```
+
+Byte-stable across six fetches including three cache-busted. Confirmed statute
+ids: `00e41` (ESA 2000), `90o01` (OHSA), `90h19` (Human Rights Code), `05a11`
+(AODA). Monitor a **normalized projection** — take
+`aggregations.all.versions.hits.hits.hits[]._source`, drop the response envelope
+(`took`, `_shards`, `timed_out`), sort deterministically, then hash. Alert on a
+new object with `state=current`, or a change to the current `dateFrom`: that is a
+coming-into-force event, which is what a compliance customer actually needs.
+
+Corroborate with `2_public_statutes_e.csv`, diffing the Legislation History cell
+per tracked statute. It is byte-stable and independent enough that agreement
+between the two means something — it catches _enactment_ of an amending act,
+which can precede coming into force, while the API catches the in-force event.
+
+**Two health checks, both non-optional.** Assert `versions.length > 0` for every
+tracked statute on every run — without it the monitor can go silently dead, and a
+zero-version result must be treated as an outage, never as "no change". And poll
+`/laws/api/v2/legislation/en/currency-date`, alarming if it fails to advance over
+a plausible window; it cannot say what changed, but it says the upstream is alive.
+
+**Rejected, with reasons:** the Ontario Gazette (rotating token, published weekly
+regardless of amendments, prose); `data.ontario.ca` (zero resources — the
+legislation entry is just a pointer); the statute HTML pages (SPA shell, which is
+the original EF2 finding and remains correct); the annotations ZIP (12 MB of
+binary `.doc` at whole-archive granularity — keep only as a manual research aid).
+
+### Québec — two sources clear the bar, and the premise was wrong twice over
+
+First, the blocking premise. **LégisQuébec is reachable**; the refusal is a
+CloudFront WAF rule keyed on `User-Agent`, not a policy of refusing automation.
+The earlier "verified UA-independent" finding does not reproduce — a 403/200 split
+was observed on identical URLs seconds apart.
+
+Preferred source: **Données Québec's CKAN API**, a first-party machine-readable
+legislative corpus that no previous pass on this item found.
+
+```text
+https://www.donneesquebec.ca/recherche/api/3/action/package_show?id=<lois-et-reglements-quebec>
+```
+
+~19.5 KB of JSON, byte-stable, no bot filter. Watch `resources[].last_modified`
+and the dated resource filename (e.g. `20260720_lois.zip`). When either moves,
+fetch the zip and read `Statutes_FR_Status.txt` / `Statutes_EN_Status.txt`, which
+**name the exact statutes whose status changed**, with an ISO date and a `J`
+(à jour) / `A` (abrogée) code — a named list of changed acts rather than a diff to
+interpret. Per-section `date-eev` attributes in the XML localize a change to the
+individual section. Release cadence looks roughly monthly with irregular interim
+releases.
+
+A cheaper leading signal, usable alongside it: a weekly **HEAD probe** of the
+Gazette officielle Part 2 PDF, where a 404→200 transition means a new issue. The
+signal is an HTTP status code, so there is no markup to churn and nothing to
+parse. Issues land Tuesdays (observed 21 Jul, 28 Jul, 4 Aug 2026), so probe
+Wednesday mornings.
+
+> **Guardrail — do not hash the LégisQuébec document HTML.** The page embeds a
+> request-date-derived `historique=YYYYMMDD` value hundreds of times; it was
+> observed flipping from `20260803` to `20260804` with no amendment. Whole-page
+> hashing guarantees a daily false alert, and the apparent stability of the plain
+> URL is only CloudFront caching. If LégisQuébec is used at all, store the
+> `integrity:Digest` and the "À jour au" date **per chapter** (N-1.1, S-2.1,
+> C-27, A-3.001, P-39.1) rather than hashing a page.
+
+**Rejected, with reasons:** the Tableau des modifications (frozen since 2020);
+the entrées-en-vigueur and non-en-vigueur tables (frozen since 2008 and 2016);
+any RSS feed (none exists for this purpose).
+
 ## Known gaps
 
 - **Nobody is told.** Events land in `law_updates` and wait to be read. There is
@@ -290,7 +380,7 @@ working**, regardless of what the panel shows.
   the CASL analysis and the open decisions are in
   [docs/LAW_CHANGE_NOTIFICATIONS.md](LAW_CHANGE_NOTIFICATIONS.md); the relevance
   filter it depends on is built and tested.
-- **Detection is page-level.** A hash change says *something* on the page moved,
+- **Detection is page-level.** A hash change says _something_ on the page moved,
   not which section. `raw_diff` holds the first 2000 characters for triage.
 - **Summaries are model-generated** and unreviewed. They orient a reader; they
   are not legal advice and must not be presented as authoritative.

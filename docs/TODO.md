@@ -253,16 +253,30 @@ every session so far lacked a JWT it could create. Expect exactly one
 `ai_telemetry_events` row, `completed`, with a token count. A row stranded at
 `started` means the usage claim landed and finalize did not. (PRs #87, #90)
 
-**EF2 — Ontario and Québec are unmonitorable, and that is a sourcing problem.**
-Ontario's source loads statute text in the browser; Québec's refuses automated
-requests (verified UA-independent). Fixing Federal took a different data source
-entirely — Justice Canada XML — so these two need the same treatment, not a
-retry. Until then `monitoringCoverage.ts` says so on the Knowledge panel, signed
-out included. (PRs #105, #106)
+**EF2 — Ontario and Québec ARE monitorable; the sources are found, not built.**
+_Build._ Reclassified 2026-08-04. The "unmonitorable" conclusion does not
+survive contact with the sources, and it was wrong on both counts:
 
-Re-probed 2026-08-02: `ontario.ca`, `canada.ca`, `laws-lois.justice.gc.ca` and
-`legisquebec.gouv.qc.ca` all fail at the egress proxy, so even evaluating a
-replacement source needs the allowlist in L1 first.
+- **Ontario** has a real JSON API —
+  `ontario.ca/laws/api/v2/legislation/en/act-versions/statute/{id}` — byte-stable
+  across six fetches including cache-busted, with confirmed ids for the ESA,
+  OHSA, Human Rights Code and AODA. The SPA-shell finding was correct about the
+  HTML pages and simply not the whole surface.
+- **Québec** was never UA-independent: the refusal is a CloudFront WAF rule keyed
+  on `User-Agent`, and a 403/200 split was observed on identical URLs seconds
+  apart. Better still, Données Québec publishes a first-party machine-readable
+  legislative corpus whose status files **name the statutes that changed**.
+
+The evaluation — including the rejected candidates, the two mandatory Ontario
+health checks, and the guardrail that whole-page hashing of LégisQuébec
+guarantees a daily false alert — is in
+[LAW_MONITORING.md § Sourcing evaluation](LAW_MONITORING.md).
+
+**What remains is the implementation**: the fetch, change detection, schedule
+entry and coverage record, in the shape the Justice Canada XML path established.
+Until that lands and is proven, `monitoringCoverage.ts` keeps telling customers
+the truth about the gap — do not soften that wording ahead of the code.
+(PRs #105, #106)
 
 **EF3 — Export-trail follow-ups.** An in-app admin viewer over `export_events`
 (the trail is read through service-role tooling today); the Advisor chat "Copy"
