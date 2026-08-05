@@ -35,6 +35,13 @@ jobs:
       #
       # This exists because three features shipped inert: a migration in the
       # repo but not on the project is invisible to every other check here.
+      #
+      # As of 2026-08-04 neither secret is set on this repository, so the drift
+      # half is skipping on every run. That is why the script now raises a
+      # warning annotation and a job-summary entry when it skips: this step
+      # going green currently means "drift unchecked", and the whole point of
+      # the step is that unchecked drift is what ships features inert. Setting
+      # both secrets turns it into a real check with no change here.
       - name: Migration drift
         run: npm run check:migrations
         env:
