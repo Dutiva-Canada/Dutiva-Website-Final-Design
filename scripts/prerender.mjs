@@ -160,14 +160,18 @@ ${sitemapUrls}
 /* Crawler policy (docs/SEO_GEO_IMPLEMENTATION.md):
    - Search discovery is welcome, including AI *search* crawlers that cite
      sources (OAI-SearchBot, Claude-SearchBot, PerplexityBot).
-   - Foundation-model *training* crawlers (GPTBot, ClaudeBot) are not opted
-     in — a deliberate, reversible policy choice.
+   - Foundation-model *training* crawlers are opted in (decided 2026-08-06,
+     D4): GPTBot (OpenAI), ClaudeBot (Anthropic), CCBot (Common Crawl),
+     Amazonbot (Amazon), Google-Extended (Google Gemini/Vertex). All get the
+     same private-path exclusions as everyone else. This is a deliberate,
+     reversible policy choice — to opt out, move a bot back to a Disallow: /
+     block.
    - Private app surfaces are excluded for every crawler. robots.txt is not
      a security boundary: /app is also noindex and behind authentication. */
 const PRIVATE_PATHS = ['/app', '/app/', '/app.html', '/404.html']
 const disallowBlock = PRIVATE_PATHS.map((p) => `Disallow: ${p}`).join('\n')
 const searchBots = ['OAI-SearchBot', 'Claude-SearchBot', 'PerplexityBot']
-const trainingBots = ['GPTBot', 'ClaudeBot']
+const trainingBots = ['GPTBot', 'ClaudeBot', 'CCBot', 'Amazonbot', 'Google-Extended']
 
 await writeFile(
   path.join(dist, 'robots.txt'),
@@ -181,9 +185,9 @@ await writeFile(
     '# AI search/retrieval crawlers (answer engines that cite sources):',
     '# welcome, with the same private-path exclusions as everyone else.',
     ...searchBots.flatMap((bot) => [`User-agent: ${bot}`, disallowBlock, '']),
-    '# Foundation-model TRAINING crawlers: not opted in (training is a',
-    '# separate decision from search discovery).',
-    ...trainingBots.flatMap((bot) => [`User-agent: ${bot}`, 'Disallow: /', '']),
+    '# Foundation-model TRAINING crawlers: opted in (decided 2026-08-06, D4).',
+    '# All get the same private-path exclusions as everyone else.',
+    ...trainingBots.flatMap((bot) => [`User-agent: ${bot}`, disallowBlock, '']),
     `Sitemap: ${SITE_ORIGIN}/sitemap.xml`,
     '',
   ].join('\n'),
