@@ -1,12 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import type { LangContextValue } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
 import { STATUS_LABELS, supportCategory } from '@/config/support'
-import { getSupportTicket, replyToSupportTicket } from '@/features/support/supportApi'
-import type { SupportMessageView, SupportTicketThread } from '@/features/support/supportApi'
+import {
+  confirmScheduledCall,
+  getScheduledCall,
+  getSupportTicket,
+  replyToSupportTicket,
+} from '@/features/support/supportApi'
+import type {
+  ScheduledCallView,
+  SupportMessageView,
+  SupportTicketThread,
+} from '@/features/support/supportApi'
 import { SupportAttachments } from '@/features/support/SupportAttachments'
 
 type State =
@@ -20,6 +30,89 @@ function formatDateTime(iso: string, lang: 'en' | 'fr'): string {
     dateStyle: 'medium',
     timeStyle: 'short',
   })
+}
+
+/** Proposed times to pick from, or the confirmed appointment once one is chosen. */
+function ScheduledCallPanel({ ticketId }: { readonly ticketId: string }) {
+  const { x, lang }: LangContextValue = useI18n()
+  const [call, setCall] = useState<ScheduledCallView | null>(null)
+  const [confirming, setConfirming] = useState<number | null>(null)
+  const [error, setError] = useState(false)
+
+  const load = useCallback(async () => {
+    setCall(await getScheduledCall(ticketId))
+  }, [ticketId])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  async function confirm(index: number) {
+    setConfirming(index)
+    setError(false)
+    try {
+      await confirmScheduledCall(ticketId, index)
+      await load()
+    } catch (e) {
+      console.error('support: confirm call failed', e)
+      setError(true)
+    } finally {
+      setConfirming(null)
+    }
+  }
+
+  if (!call) return null
+
+  return (
+    <div className="mb-[20px] rounded-[12px] border border-border bg-inset px-[16px] py-[14px]">
+      <h2 className="m-0 mb-[8px] text-[14px] font-semibold text-text">{x(M.support_call_heading)}</h2>
+
+      {call.status === 'proposed' && (
+        <>
+          <p className="m-0 mb-[10px] text-[13px] text-text-2">{x(M.support_call_choose_intro)}</p>
+          <ul className="m-0 flex list-none flex-col gap-[8px] p-0">
+            {call.proposedSlots.map((slot, i) => (
+              <li key={slot.start} className="flex flex-wrap items-center gap-[10px]">
+                <span className="text-[13.5px] font-medium text-text">{formatDateTime(slot.start, lang)}</span>
+                <button
+                  type="button"
+                  disabled={confirming !== null}
+                  onClick={() => void confirm(i)}
+                  className="cursor-pointer rounded-[8px] border-none bg-navy px-[14px] py-[6px] text-[12.5px] font-semibold text-white disabled:opacity-60"
+                >
+                  {confirming === i ? x(M.support_call_confirming) : x(M.support_call_confirm_button)}
+                </button>
+              </li>
+            ))}
+          </ul>
+          {error && (
+            <p role="alert" className="m-0 mt-[8px] text-[12.5px] text-risk-fg">
+              {x(M.support_call_error)}
+            </p>
+          )}
+        </>
+      )}
+
+      {(call.status === 'confirmed' || call.status === 'completed') && call.confirmedStart && (
+        <div>
+          <p className="m-0 mb-[4px] text-[14px] font-semibold text-text">
+            {x(M.support_call_confirmed_heading)}
+          </p>
+          <p className="m-0 text-[13.5px] text-text-2">{formatDateTime(call.confirmedStart, lang)}</p>
+          {call.meetLink && (
+            <a
+              href={call.meetLink}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-[8px] inline-block text-[13px] font-semibold text-navy underline"
+            >
+              {x(M.support_call_join_link)}
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function SupportTicketDetail() {
@@ -105,6 +198,8 @@ export function SupportTicketDetail() {
               {x(M.support_status_label)}: {x(STATUS_LABELS[state.ticket.status])}
             </p>
           </header>
+
+          <ScheduledCallPanel ticketId={state.ticket.id} />
 
           <ol className="m-0 mb-[22px] flex list-none flex-col gap-[12px] p-0">
             {state.ticket.messages.map((msg) => {

@@ -190,3 +190,75 @@ export async function replyToSupportTicket(
   if (error) throw error
   return toMessage(messageRowSchema.parse(data))
 }
+
+/* ── Scheduled call (TODO.md D3) ────────────────────────────────────────────
+   An admin proposes up to 3 candidate times (support-agent-action); the
+   customer picks one here. Reading is RLS-direct like the ticket/messages
+   above; confirming goes through support-confirm-call (service-role, checks
+   the caller is the ticket's own requester) because it also creates the
+   Google Calendar event server-side. */
+
+export interface ScheduledCallSlot {
+  start: string
+  end: string
+}
+
+export type ScheduledCallStatus = 'proposed' | 'confirmed' | 'completed' | 'cancelled'
+
+export interface ScheduledCallView {
+  id: string
+  proposedSlots: ScheduledCallSlot[]
+  durationMinutes: number
+  status: ScheduledCallStatus
+  confirmedStart: string | null
+  confirmedEnd: string | null
+  meetLink: string | null
+}
+
+const scheduledCallRowSchema = z.object({
+  id: z.string(),
+  proposed_slots: z.array(z.object({ start: z.string(), end: z.string() })),
+  duration_minutes: z.number(),
+  status: z.enum(['proposed', 'confirmed', 'completed', 'cancelled']),
+  confirmed_start: z.string().nullable(),
+  confirmed_end: z.string().nullable(),
+  meet_link: z.string().nullable(),
+})
+
+function toScheduledCall(row: z.infer<typeof scheduledCallRowSchema>): ScheduledCallView {
+  return {
+    id: row.id,
+    proposedSlots: row.proposed_slots,
+    durationMinutes: row.duration_minutes,
+    status: row.status,
+    confirmedStart: row.confirmed_start,
+    confirmedEnd: row.confirmed_end,
+    meetLink: row.meet_link,
+  }
+}
+
+export async function getScheduledCall(ticketId: string): Promise<ScheduledCallView | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from('support_scheduled_calls')
+    .select('id, proposed_slots, duration_minutes, status, confirmed_start, confirmed_end, meet_link')
+    .eq('ticket_id', ticketId)
+    .maybeSingle()
+  if (error) throw error
+  return data ? toScheduledCall(scheduledCallRowSchema.parse(data)) : null
+}
+
+export async function confirmScheduledCall(
+  ticketId: string,
+  slotIndex: number,
+): Promise<{ start: string; end: string; meetLink: string | null }> {
+  if (!supabase) throw new Error('Call confirmation is not available in this environment.')
+  const { data, error } = await supabase.functions.invoke('support-confirm-call', {
+    body: { ticket_id: ticketId, slot_index: slotIndex },
+  })
+  if (error) throw error
+  const parsed = z
+    .object({ data: z.object({ start: z.string(), end: z.string(), meet_link: z.string().nullable() }) })
+    .parse(data)
+  return { start: parsed.data.start, end: parsed.data.end, meetLink: parsed.data.meet_link }
+}

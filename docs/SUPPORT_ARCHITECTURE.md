@@ -438,11 +438,16 @@ email is the only route that actually works from there.
 - **Turn on CAPTCHA and attachment scanning** (operator config): both are built
   and inert until their secrets are set — see the runbook. Merging them did not
   arm them.
-- **Scheduled-call *scheduling* flow** — the forms already offer a scheduled call
-  as a preferred response method and triage can move a ticket to
-  `scheduled_call`, but the founder arranges the appointment manually. Booking
-  (availability, invitations, reminders) is unbuilt; it needs a calendar
-  decision first, not just code.
+- **Scheduled-call booking** (TODO.md D3, decided 2026-08-06: Google
+  Calendar, full loop) — **built, not deployed.** An admin proposes up to 3
+  candidate times on the ticket (`support-agent-action`'s `propose_call`);
+  the customer picks one from their own ticket view
+  (`support-confirm-call`), which creates a Google Calendar event with an
+  auto-generated Meet link. A 15-minute cron sweep
+  (`support-call-scheduler`) sends the one reminder this flow sends (~24h
+  ahead) and flags a call for a written follow-up once its end time has
+  passed. See [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md) for
+  the owner deployment steps — none of this runs until they're done.
 - **Support analytics** — privacy-conscious support/deflection events. Not built:
   the data model is a product decision (what to collect, anonymous vs
   user-scoped, retention), and collecting customer-behaviour data shouldn't be

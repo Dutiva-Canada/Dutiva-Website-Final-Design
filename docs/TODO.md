@@ -114,6 +114,20 @@ than urgent: `PAID_PLANS_DISABLED_DURING_BETA` is `true` in
 `create-checkout-session` failing closed is invisible. This becomes blocking the
 day paid plans are re-enabled.
 
+**OA12 — Scheduled-call booking: three deployment steps.** _Owner._ D3 was
+decided 2026-08-06 (Google Calendar, full loop) and built the same day —
+propose/confirm/remind/follow-up, migration `0045` applied. Three things
+outside this repo remain, each independently no-op until done: (1) a Google
+Cloud service account with Calendar access, shared to the target calendar,
+and its three secrets (`GOOGLE_CALENDAR_CLIENT_EMAIL` /
+`GOOGLE_CALENDAR_PRIVATE_KEY` / `GOOGLE_CALENDAR_ID`) — without them,
+confirmation still works, just without an automatic calendar invite; (2)
+deploying `support-agent-action` (extended), `support-confirm-call`, and
+`support-call-scheduler`; (3) the `support_scheduler_service_key` Vault
+secret the cron sweep needs to fire. See
+[SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md) for exact steps and
+`select * from public.support_call_scheduler_status();` to verify.
+
 ---
 
 ## 2. Decisions needed before anyone writes code
@@ -134,12 +148,6 @@ nothing sends. [LAW_CHANGE_NOTIFICATIONS.md § 4](LAW_CHANGE_NOTIFICATIONS.md).
 anonymous vs user-scoped, retention. `recordHelpfulness` is the single seam a
 sink would hook; nothing is transmitted today.
 [SUPPORT_ARCHITECTURE.md § Staged](SUPPORT_ARCHITECTURE.md). (PR #49)
-
-**D3 — Scheduled-call booking needs a calendar decision.** The intake forms
-already offer a scheduled call and triage can move a ticket to
-`scheduled_call`; the appointment itself is arranged by hand. Availability,
-invitations and reminders are unbuilt because the calendar choice is upstream of
-the code. (PRs #44, #46)
 
 **D4 — Training-crawler policy.** `scripts/prerender.mjs` still emits
 `Disallow: /` for `GPTBot` and `ClaudeBot` (verified 2026-08-02). It does not
@@ -398,6 +406,7 @@ does not resurrect them.
 | Item                                        | Closed by                                                                           |
 | ------------------------------------------- | ----------------------------------------------------------------------------------- |
 | EF6a — split the message catalogue by surface, and guard `t()`'s surface boundary | Catalogue source split into `workspace.ts`/`marketing.ts`/`shared.ts`; `vite.config.ts`'s `messages-workspace` group needed `includeDependenciesRecursively: false` to actually stop riding into the eager graph (671.3kB → 539.9kB, -131.4kB) — see that file's comment for the rolldown mechanism. `t()` itself is still typed `MessageKey`, not per-surface — `scripts/check-message-scopes.mjs` (`npm run check`) guards the same boundary a different way, by scanning every literal `t('key')` call against its file's surface, instead of retyping ~140 call sites for an equivalent guarantee. A *computed* key (`t(someVariable)`) is invisible to this script by construction, same as it always was — those are guarded at the data structure that carries the key (`plans.ts`, `legalHubData.ts`, etc.), which was already typed. |
+| D3 — scheduled-call booking calendar decision                                     | Decided 2026-08-06 (Google Calendar, full loop) and built the same day — see OA12 for what's left to deploy it. [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md). |
 | EF5 — `inferCheckoutPrice`'s dead branch    | Deleted; server-set metadata is the checkout path's documented single source        |
 | L1 — primary sources "unreachable"          | Not a network block — a bot filter on the fetching tool; run from a workstation     |
 | L2 — WI1 federal leaves omission            | Pregnancy loss leave confirmed and added; "placement of a child" **does not exist** |

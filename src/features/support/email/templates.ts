@@ -22,6 +22,8 @@ export type NotificationKind =
   | 'closed'
   | 'call_proposed'
   | 'call_confirmed'
+  | 'call_reminder'
+  | 'call_followup_needed'
   | 'privacy_ack'
   | 'accessibility_ack'
   | 'security_ack'
@@ -119,6 +121,19 @@ export function renderSupportEmail(kind: NotificationKind, ctx: EmailContext): R
         pick(lang, 'Your call is confirmed. The appointment details are on the ticket.', 'Votre appel est confirmé. Les détails du rendez-vous se trouvent dans le billet.'),
         refLine,
         pick(lang, 'A written summary will be added to the ticket afterward.', 'Un résumé écrit sera ajouté au billet par la suite.'),
+        viewLine,
+      ])
+    case 'call_reminder':
+      return compose(pick(lang, `Reminder: upcoming call for ${reference}`, `Rappel : appel à venir pour ${reference}`), [
+        pick(lang, 'This is a reminder of your upcoming scheduled call.', 'Ceci est un rappel de votre appel planifié à venir.'),
+        refLine,
+        pick(lang, 'The date, time and any video link are on the ticket.', 'La date, l’heure et le lien vidéo, le cas échéant, se trouvent dans le billet.'),
+        viewLine,
+      ])
+    case 'call_followup_needed':
+      return compose(pick(lang, `Follow-up needed: ${reference}`, `Suivi requis : ${reference}`), [
+        pick(lang, 'A scheduled call for this ticket has ended. Add a written summary and update the ticket status.', 'Un appel planifié pour ce billet est terminé. Ajoutez un résumé écrit et mettez à jour le statut du billet.'),
+        refLine,
         viewLine,
       ])
     case 'privacy_ack':
