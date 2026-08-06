@@ -260,30 +260,23 @@ every session so far lacked a JWT it could create. Expect exactly one
 `ai_telemetry_events` row, `completed`, with a token count. A row stranded at
 `started` means the usage claim landed and finalize did not. (PRs #87, #90)
 
-**EF2 — Ontario and Québec ARE monitorable; the sources are found, not built.**
-_Build._ Reclassified 2026-08-04. The "unmonitorable" conclusion does not
-survive contact with the sources, and it was wrong on both counts:
+**EF2 — Ontario and Québec fetch/detection code is built; it has never run
+live.** _Verify, then Owner._ Built 2026-08-05, in the shape the Justice
+Canada XML path established: `MONITORED_PAGES` now carries Ontario's ESA,
+Human Rights Code and WSIA on the confirmed `act-versions` API ids (`00e41`,
+`90h19`, `97w16`), and Quebec's LNT and Charter on Données Québec's CKAN
+dataset (`c8433300-f752-4815-8ea2-69cad416dd80`, "Lois" resource). See
+`ontarioApi.ts` / `quebecCkan.ts` and
+[LAW_MONITORING.md § Sourcing evaluation](LAW_MONITORING.md) for the sourcing
+this implements and what it deliberately does not yet do (per-statute
+drill-down into the Québec zip; independent liveness alarms for the two
+Ontario health checks beyond the per-fetch verdict).
 
-- **Ontario** has a real JSON API —
-  `ontario.ca/laws/api/v2/legislation/en/act-versions/statute/{id}` — byte-stable
-  across six fetches including cache-busted, with confirmed ids for the ESA,
-  OHSA, Human Rights Code and AODA. The SPA-shell finding was correct about the
-  HTML pages and simply not the whole surface.
-- **Québec** was never UA-independent: the refusal is a CloudFront WAF rule keyed
-  on `User-Agent`, and a 403/200 split was observed on identical URLs seconds
-  apart. Better still, Données Québec publishes a first-party machine-readable
-  legislative corpus whose status files **name the statutes that changed**.
-
-The evaluation — including the rejected candidates, the two mandatory Ontario
-health checks, and the guardrail that whole-page hashing of LégisQuébec
-guarantees a daily false alert — is in
-[LAW_MONITORING.md § Sourcing evaluation](LAW_MONITORING.md).
-
-**What remains is the implementation**: the fetch, change detection, schedule
-entry and coverage record, in the shape the Justice Canada XML path established.
-Until that lands and is proven, `monitoringCoverage.ts` keeps telling customers
-the truth about the gap — do not soften that wording ahead of the code.
-(PRs #105, #106)
+No session here can reach a deployed edge function or the cron schedule, so
+none of this has executed against the live APIs — it is unit-tested against
+captured real responses only. **Do not flip `monitoringCoverage.ts`'s
+ON/QC-unmonitored claim until a real scheduled sweep proves it**, the same
+discipline OA2 already applies to Federal. (PRs #105, #106)
 
 **EF3 — Export-trail follow-ups.** An in-app admin viewer over `export_events`
 (the trail is read through service-role tooling today); the Advisor chat "Copy"
