@@ -167,8 +167,13 @@ allowed with the same private-path exclusions as search crawlers.
 & AI policy updated. Reversible — move a bot back to `Disallow: /` to opt
 out of a specific provider's training. (PR #154)
 
-**D5 — Which business plan is the plan of record.** Two are live in Drive and
-neither is marked superseded. CANONICAL_FACTS § Open items 3. (PR #103)
+**D5 — Which business plan is the plan of record.** Decided 2026-08-06: the
+Beta Launch Brief (2026-07-20) is the plan of record. CANONICAL_FACTS §
+Positioning and § Open items 3 updated. _Owner action remaining (OA15):_
+mark the other business plan superseded in Drive, and correct the privacy
+claim in the Beta Launch Brief itself (it predates the architecture change
+that made "sensitive employee data is never stored on Dutiva servers" false
+— see CANONICAL_FACTS § Claims to stop making 1). (PR #155)
 
 **D6 — Is a non-figure linkable asset worth building.** A termination-notice
 calculator was proposed and ruled out: publishing notice periods violates the
