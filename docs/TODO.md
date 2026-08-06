@@ -51,19 +51,57 @@ and recording `first_seen` events. `monitoringCoverage.ts` flipped Federal from
 `CANONICAL_FACTS.md §5` updated to reflect that Federal detection is confirmed
 working while ON/QC remain unavailable. (PR #162)
 
-**OA3 — Turn support email on.** _Owner._ Verify a Resend sending domain, set
-`RESEND_API_KEY`, `SUPPORT_EMAIL_FROM`, `SUPPORT_NOTIFY_SECRET`, and schedule
-`support-notify` via pg_cron. Rows sit `pending` rather than dropping, so
-enabling it flushes the backlog. Set `RESEND_WEBHOOK_SECRET` at the same time or
-`resend-webhook` rejects every delivery receipt with a 503, leaving _sent_ and
-_delivered_ indistinguishable. [SUPPORT_RUNBOOK.md](SUPPORT_RUNBOOK.md).
-(PRs #43, #50, #51)
+**OA3 — Sending works; delivery receipts do not.** _Owner._ Verified
+2026-08-06: the two notifications raised by ticket `DUT-2026-000004`
+(`security_ack` to the customer, `operator_alert` to the operator) both went
+`sent` on the **first attempt** with no error, so `RESEND_API_KEY`,
+`SUPPORT_EMAIL_FROM` and `SUPPORT_NOTIFY_SECRET` are all set and the
+`support-notify-drain` cron is running clean every minute.
 
-**OA4 — Turn CAPTCHA on.** _Owner._ `CAPTCHA_SECRET_KEY` (edge-function secret)
-and `VITE_CAPTCHA_SITE_KEY` (client, baked in at build) must be set **together**
-and followed by a redeploy — the site key is compiled into the bundle, so
-rotating the secret alone breaks the public form. With neither set the check is
-a safe no-op. (PR #115)
+**What is left is the webhook half**, and it is the exact gap this entry
+always warned about: `delivery_status` is null on both rows, `webhook_events`
+is empty, and `resend-webhook` has **zero invocations in 24h of edge logs**.
+Resend is not calling it. So `sent` means "Resend accepted it" and nothing
+more — a bounce would be invisible. Register the webhook endpoint in Resend
+(pointing at `resend-webhook`) and set `RESEND_WEBHOOK_SECRET`; without the
+secret the function 503s every receipt.
+[SUPPORT_RUNBOOK.md](SUPPORT_RUNBOOK.md). (PRs #43, #50, #51)
+
+**OA4 — Turn CAPTCHA on.** _Owner._ Confirmed still outstanding 2026-08-06,
+unlike OA8: `https://dutiva.ca/contact` serves no CAPTCHA markup and no
+provider code appears in the entry bundle, and a public ticket
+(`DUT-2026-000004`) was created through that form with no challenge. The check
+is behaving as the safe no-op it was written to be.
+
+`CAPTCHA_SECRET_KEY` (edge-function secret) and `VITE_CAPTCHA_SITE_KEY`
+(client, baked in at build) must be set **together** and followed by a
+redeploy — the site key is compiled into the bundle, so rotating the secret
+alone breaks the public form. (PR #115)
+
+**OA17 — Two merged edge functions were never deployed.** _Owner._ The
+"merged is not deployed" gap in [AGENTS.md](../AGENTS.md), caught in
+production:
+
+- **`support-analytics-event`** — absent from the project. Edge logs show
+  `OPTIONS | 404 | …/support-analytics-event` at 21:39 UTC on 2026-08-06, the
+  moment a ticket was created through the public form. **Every support funnel
+  analytics event has been 404ing**, so D2 (PR #153) — the whole funnel, the
+  90-day raw retention, the daily rollups — has been recording nothing in
+  production while `0047` sat applied and the client dutifully posted events.
+- **`export-audit-trail`** — also absent, so `ExportAuditView` has no backend.
+
+Both exist in `supabase/functions/`. Deploy from the repo root, where
+`supabase/config.toml` now pins them:
+
+```
+npx supabase functions deploy support-analytics-event --project-ref khtwpxnvziiyplaflwru
+npx supabase functions deploy export-audit-trail --project-ref khtwpxnvziiyplaflwru
+```
+
+Note neither is listed in `config.toml`'s `[functions.*]` blocks, which only
+name the ten that need `verify_jwt = false`. Check what each one expects
+before deploying — `support-analytics-event` is called from the browser and
+will need `verify_jwt` set to match how it authenticates.
 
 **OA5 — Done.** Attachment scanning is on and proven end to end. Verified
 2026-08-06 with a real EICAR upload to ticket `DUT-2026-000004`: the row went
