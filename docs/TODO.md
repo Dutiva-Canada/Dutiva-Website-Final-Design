@@ -171,19 +171,6 @@ The corpus rule is that every statutory figure comes from a direct fetch of an
 official government page, fetched twice — once to author, once to verify
 independently. Everything in this section is gated on that rule.
 
-**L1a — Apply the corpus amendment tranche.** _Owner._ L1–L4 are closed on the
-authoring side: the 2026-08-02 block was **environmental, not real**. Run from a
-workstation rather than a sandbox, every official host answers — three of them
-(`canada.ca`, `cnesst.gouv.qc.ca`, `legisquebec.gouv.qc.ca`) simply need a
-browser `User-Agent`, which is a bot filter on the fetching tool and not a
-network policy. Nothing needs allowlisting and no new session is required; the
-next verification cycle should be run from a workstation.
-`0042_corpus_amendment_tranche_2026_08_04.sql` is authored and **unapplied**.
-After applying it, run the retrieval smoke test through `match_advisor_guidance`
-for the amended topics in EN and FR — `fts`/`fts_fr` recompute on UPDATE, but
-nothing proves the amended rows still rank.
-[advisor-guidance-corpus-2026-08-04.md](advisor-guidance-corpus-2026-08-04.md).
-
 **L1b — Four federal leaves are still unauthored.** _Build._ The 2026-08-04
 tranche added pregnancy loss, family violence and traditional Aboriginal
 practices to the `[FED] leaves` chunk. Court or jury duty, reserve-force leave
@@ -502,6 +489,7 @@ does not resurrect them.
 | Rings 2, 3 and 4 listed as roadmap          | #121–#131 — all four rings complete                                                 |
 | AI usage unmetered during an open beta      | #90 / #91 — guardrails live 2026-07-28                                              |
 | Client error reporting inert                | #92 — `0019` applied, `report-error` deployed (but see OA6)                         |
+| L1a — corpus tranche migration unapplied     | Applied `0042` 2026-08-05 via direct DB access; retrieval smoke test passing        |
 
 ---
 

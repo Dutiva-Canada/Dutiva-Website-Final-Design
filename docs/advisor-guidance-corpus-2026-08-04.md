@@ -207,13 +207,16 @@ English pages' own language-toggle hrefs.
 
 - **`review_status` unchanged.** Every row stays `machine_curated`. Only a human flips a row
   to `reviewed` (TODO.md **L5**), and that gate has still never been exercised.
-- **The migration is unapplied.** It is authored, not run — no session here can reach the
-  database. Applying it is an owner action.
-- **No retrieval smoke test.** The 07-29 snapshot's smoke-test table demonstrates that newly
-  amended chunks retrieve correctly through `match_advisor_guidance`; that needs the live
-  table, so it must be run after the migration is applied. **This is the one follow-up that
-  should not be skipped** — `fts` and `fts_fr` are stored generated columns and will
-  recompute on UPDATE, but nothing here proves the amended rows still rank for their topics.
+- **Update 2026-08-05 — the migration is applied.** Run against the live project via the
+  Supabase MCP tooling (this session had direct DB access, unlike prior ones). All five target
+  rows were confirmed to match the migration's `WHERE` clauses before the run and to carry the
+  new `content` / `content_fr` / `effective_note` / `retrieved_at` / `source_url` afterward.
+- **Update 2026-08-05 — retrieval smoke test run and passing.** Queried
+  `match_advisor_guidance` for each amended topic in both languages: `ON minimum_wage` and
+  `FED leaves` and `FED minimum_wage` each rank first for both their English and French query,
+  and the two re-pointed CNESST `QC termination_notice` / `QC severance` rows still surface in
+  the top 4 for a Québec termination-notice query. `fts`/`fts_fr` recomputed correctly on
+  `UPDATE`, as expected of stored generated columns.
 - **Québec berry piece rates not added.** CNESST publishes strawberry $1.32/kg and raspberry
   $4.93/kg, but hedges them with "At this time" / « actuellement » and gives **no effective
   date**. Adding them would mean either inventing an effective date or shipping a rate whose
