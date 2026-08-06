@@ -227,7 +227,12 @@ table shipped, because nothing flipped it. The `support-attachment-scan` worker
 configured it is a **safe no-op**: rows stay `pending`, downloads are unaffected,
 and turning it on later scans the backlog rather than blessing it.
 
-1. **Stand up a scan endpoint** (typically a ClamAV wrapper). It receives:
+1. **Stand up a scan endpoint.** One is in this repo, ready to deploy:
+   [`services/attachment-scanner`](../services/attachment-scanner/README.md) —
+   ClamAV plus a dependency-free Node service, sized for a Canadian region so
+   customer HR files are not shipped to a third-party scanner. Needs a **2 GB**
+   instance; clamd holds the signature database in RAM and is OOM-killed below
+   that. It receives:
 
    ```json
    { "url": "<5-minute signed URL>", "file_name": "…", "mime_type": "…",
@@ -242,14 +247,20 @@ and turning it on later scans the backlog rather than blessing it.
    - `SUPPORT_ATTACHMENT_SCAN_URL` — the endpoint. Setting this is what arms
      both the worker *and* the download gate.
    - `SUPPORT_ATTACHMENT_SCAN_KEY` — sent as `Authorization: Bearer`.
-3. **Apply `0038`** and **deploy `support-attachment-scan`**, then add the Vault
-   secret the cron job needs (the migration schedules the job every 10 minutes,
-   but it no-ops until the key exists):
+3. **Apply `0038` and `0048`**, and **deploy `support-attachment-scan`**. No
+   Vault step of its own: since `0048` the cron job authenticates with
+   `x-scan-secret` drawn from the existing `support_notify_secret`, the same
+   credential `support-notify-drain` uses. If that secret exists, the job is
+   already armed.
 
-   ```sql
-   select vault.create_secret('<service-role key>', 'attachment_scan_service_key',
-     'Service key used by the support-attachment-scan cron job');
-   ```
+   > `0038` originally had the job present the service-role key from a
+   > `attachment_scan_service_key` Vault secret. That never worked: this
+   > function is the one that compares the bearer to its own
+   > `SUPABASE_SERVICE_ROLE_KEY`, and the *legacy* service_role JWT is a valid
+   > credential that is not the same string the edge runtime injects — so every
+   > run 403'd while `attachment_scan_status()` cheerfully reported
+   > `secret_configured: true`. Verified and fixed 2026-08-06. That Vault key is
+   > now unused; it is left in place rather than dropped.
 
 4. **Verify** — one query answers "is this actually running?":
 
@@ -260,6 +271,18 @@ and turning it on later scans the backlog rather than blessing it.
    `secret_configured` and `job_scheduled` both true, `pending_count` falling,
    `last_scanned_at` recent. Upload a test attachment to a ticket and watch it
    go `pending → clean`.
+
+   `attachment_scan_status()` cannot see an HTTP failure, so confirm the call
+   itself is landing at least once — this is what would have caught the 403:
+
+   ```sql
+   select public.trigger_attachment_scan();
+   -- wait ~5s, then:
+   select status_code, content from net._http_response order by id desc limit 5;
+   ```
+
+   Expect `200` with `{"processed":…,"pending":…}` — or
+   `{"note":"no_scanner"}` while `SUPPORT_ATTACHMENT_SCAN_URL` is unset.
 
 **Once scanning is on, downloads are gated.** `support-attachment-action`
 refuses to sign anything that has not come back `clean` (HTTP 423) — including

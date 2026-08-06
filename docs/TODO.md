@@ -65,10 +65,40 @@ and followed by a redeploy — the site key is compiled into the bundle, so
 rotating the secret alone breaks the public form. With neither set the check is
 a safe no-op. (PR #115)
 
-**OA5 — Turn attachment scanning on.** _Owner._ `SUPPORT_ATTACHMENT_SCAN_URL` +
-`SUPPORT_ATTACHMENT_SCAN_KEY`, plus the `attachment_scan_service_key` Vault
-secret the pg_cron job reads. Until then every row stays `scan_status: pending`
-— which is the honest state, since `pending` has never meant clean. (PR #115)
+**OA5 — Turn attachment scanning on.** _Owner._ Deploy
+[`services/attachment-scanner`](../services/attachment-scanner/README.md) to a
+Canadian region, then set `SUPPORT_ATTACHMENT_SCAN_URL` +
+`SUPPORT_ATTACHMENT_SCAN_KEY` as edge-function secrets. Until then every row
+stays `scan_status: pending` — the honest state, since `pending` has never
+meant clean. (PR #115)
+
+The scanner is self-hosted deliberately: it fetches the actual bytes of
+customer HR attachments, which makes "whose servers do these touch" a
+compliance question (OA9, PIPEDA) rather than a vendor-selection one. A hosted
+API would have needed a translation service anyway — none of them return the
+`{status: clean|infected|unsupported}` shape
+[attachmentScan.ts](../src/features/support/attachmentScan.ts) requires, and
+every unrecognised body maps to `unknown`, so nothing would ever go `clean`.
+Two things to know before deploying: it needs a **2 GB** instance (clamd holds
+the signature DB in RAM; below that it is OOM-killed and every file comes back
+`scanner_unreachable`, which looks like a network fault and isn't), and
+**setting the URL arms the download gate as well as the worker** — verify the
+endpoint with curl first. `support_attachments` is currently empty, so there is
+no backlog to lock out; this is the cheapest moment to switch it on.
+
+The Vault half is done. Verified 2026-08-06: the cron job was firing every 10
+minutes and getting **403** on every run, because `support-attachment-scan` is
+the one function that compares the bearer to its own
+`SUPABASE_SERVICE_ROLE_KEY`, and the legacy service_role JWT that 0038 told the
+operator to store is a valid credential but not that same string. Migration
+`0048` switches the job to the `x-scan-secret` / `support_notify_secret` path
+that `support-notify-drain` already proves works; the trigger now returns
+`200 {"processed":0,"pending":0,"note":"no_scanner"}`, i.e. correctly inert
+pending the two secrets above. `attachment_scan_status()` was reporting
+`secret_configured: true` throughout and never saw this — it now checks the
+credential the job actually presents, and
+[SUPPORT_RUNBOOK.md](SUPPORT_RUNBOOK.md) gained the `net._http_response` check
+that would have caught it.
 
 **OA6 — Done.** Verified 2026-08-06 via Supabase MCP: the `report-error`
 function is not failing closed (48 rows in `client_error_reports`, latest
@@ -142,10 +172,18 @@ loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
 human-reviewed) and built the same day. Verified 2026-08-06 via Supabase MCP:
 - (1) **Done.** OA1/OA2 completed — the monitor is running and Federal
   detection is confirmed working.
-- (2) **Done.** `send-law-updates` edge function deployed (v1). Manual trigger
-  of `trigger_law_update_digest()` returned 200. `RESEND_API_KEY` /
-  `SUPPORT_OPERATOR_EMAIL` still need to be set (OA3) for emails to actually
-  send — until then, reviewed rows are left unrecorded, not dropped.
+- (2) **Done**, after a correction. `send-law-updates` deployed (v1).
+  The earlier note here said a manual trigger "returned 200" — that was wrong,
+  and wrong in the way this whole family of bugs is wrong: `trigger_…()`
+  returns void and pg_net is asynchronous, so what was observed was the SQL
+  succeeding, not the HTTP call. The call was in fact returning **401** every
+  time: 0046 sent `Authorization: Bearer …` while `send-law-updates` gates on
+  `x-notify-secret`. Fixed in `0049`; re-verified 2026-08-06 by reading
+  `net._http_response` rather than the trigger's return value —
+  `200 {"ok":true,"sent":false,"reason":"nothing_to_digest"}`.
+  `RESEND_API_KEY` / `SUPPORT_OPERATOR_EMAIL` still need to be set (OA3) for
+  emails to actually send — until then, reviewed rows are left unrecorded,
+  not dropped.
 - (3) **Done.** `law_update_digest_service_key` Vault secret created.
   `law_update_digest_status()` shows `secret_configured: true`,
   `job_scheduled: true`, `unreviewed_count: 18`.
@@ -154,19 +192,52 @@ human-reviewed) and built the same day. Verified 2026-08-06 via Supabase MCP:
   purpose, for a low-volume internal pilot. See
   [LAW_CHANGE_NOTIFICATIONS.md § 7](LAW_CHANGE_NOTIFICATIONS.md).
 
-**OA13 — Law-change digest: three deployment steps, plus the monitor itself.**
-_Owner._ D1 was decided 2026-08-06 (internal-only, weekly, human-reviewed) and
-built the same day — `send-law-updates`, `law_updates.review_status`,
-migration `0046` applied. What's left: (1) OA1/OA2 — without the monitor
-actually running for a jurisdiction, there is nothing to review or digest;
-(2) deploying `send-law-updates` and confirming `RESEND_API_KEY` /
-`SUPPORT_OPERATOR_EMAIL` are set (OA3); (3) the
-`law_update_digest_service_key` Vault secret the Monday cron needs to fire.
-Also: reviewing a row is direct SQL for now (`update law_updates set
-review_status = 'reviewed' where id = '<uuid>'`) — there is no admin UI, on
-purpose, for a low-volume internal pilot. See
-[LAW_CHANGE_NOTIFICATIONS.md § 7](LAW_CHANGE_NOTIFICATIONS.md) and
-`select * from public.law_update_digest_status();` to verify.
+**OA16 — Redeploy `monitor-law-changes` to close an auth bypass.** _Owner._
+The fix is committed in
+[monitor-law-changes/index.ts](../supabase/functions/monitor-law-changes/index.ts);
+it is **not deployed**, and deploying it is the last open piece of the
+2026-08-06 cron-auth audit.
+
+Until 2026-07-30 (#105) this function and `support-call-scheduler` shared an
+`isAuthorizedTrigger()` whose last branch base64-decoded the JWT payload and
+trusted `claims.role === 'service_role'` **without verifying the signature**.
+Both run `verify_jwt: false`, so that check was the only gate:
+`Bearer x.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.x` — a literal
+`{"role":"service_role"}`, no key involved — authenticated anyone on the
+internet. `support-call-scheduler` was fixed and redeployed (v2) the same day
+and is confirmed closed: legitimate trigger 200, forged token 403.
+`monitor-law-changes` is still exposed; the reachable impact is an
+unauthenticated 19-page government-site sweep and the model spend behind it,
+bounded by the 30-minute cron lock.
+
+**Why it wasn't deployed with the other one.** Deployed v18 (2026-07-31)
+predates #146, which reworks Ontario and Québec sourcing onto new APIs (220
+lines, plus `ontarioApi.ts` and `quebecCkan.ts`). Deploying from the repo ships
+that too — an unrelated, never-run change riding along inside a security fix,
+which is not a trade worth making silently.
+
+**Do it with the CLI, not the MCP tool.** This function is ~700 lines across
+four modules; the MCP deploy path requires passing every file's contents
+through the model, and a transcription slip there breaks law monitoring
+silently. The CLI reads from disk:
+
+```
+npx supabase login
+npx supabase functions deploy monitor-law-changes --project-ref khtwpxnvziiyplaflwru
+```
+
+That also makes shipping #146 an explicit choice — whatever is in the working
+tree is what goes. Afterwards, confirm the gate holds without paying for a
+sweep (a `PUT` is rejected before any work happens):
+
+```sql
+select net.http_post(
+  url := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/monitor-law-changes',
+  headers := jsonb_build_object('Authorization', 'Bearer x.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.x'),
+  body := '{}'::jsonb);
+-- then: select status_code, content from net._http_response order by id desc limit 1;
+-- expect 403
+```
 
 ---
 
