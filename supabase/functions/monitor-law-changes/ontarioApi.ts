@@ -87,11 +87,25 @@ export function assessOntarioActVersions(
     }
   }
 
+  /*
+   * Three levels of `hits`, and all three are load-bearing:
+   *   versions.hits      the top_hits sub-aggregation, which is *named* "hits"
+   *   versions.hits.hits the Elasticsearch response object { total, max_score, hits }
+   *   versions.hits.hits.hits  the array of documents
+   *
+   * This read was one level short until 2026-08-06, landing on the response
+   * object instead of the array. `Array.isArray` was therefore always false and
+   * every Ontario statute reported `no-versions` — indistinguishable from a real
+   * e-Laws outage. The unit fixture had the same level missing, so it agreed
+   * with the parser and the suite stayed green; only a live fetch showed it.
+   */
   const hits = (
     parsed as {
-      aggregations?: { all?: { versions?: { hits?: { hits?: { _source?: OntarioVersionSource }[] } } } }
+      aggregations?: {
+        all?: { versions?: { hits?: { hits?: { hits?: { _source?: OntarioVersionSource }[] } } } }
+      }
     }
-  )?.aggregations?.all?.versions?.hits?.hits
+  )?.aggregations?.all?.versions?.hits?.hits?.hits
 
   if (!Array.isArray(hits) || hits.length === 0) {
     return {
