@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Briefcase, House, ListChecks, Menu, Search, Star } from 'lucide-react'
+import { Briefcase, House, ListChecks, Menu, Search, Sparkle } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
@@ -13,7 +13,7 @@ import { isNavActive } from './navConfig'
 /**
  * Mobile (<768px) chrome — App v2 `showMobileTopbar` bar and the bottom
  * compact nav (`isMobileFrame` footer): Home · Case Files · Ask (raised navy
- * star) · Tasks · More.
+ * sparkle) · Tasks · More.
  */
 
 export function MobileTopbar({
@@ -126,7 +126,7 @@ export function MobileNav({
         className="flex flex-none flex-col items-center gap-[3px] px-[4px]"
       >
         <span className="mt-[-16px] flex h-[50px] w-[50px] items-center justify-center rounded-full border-[3px] border-surface bg-navy shadow-[0_6px_18px_-4px_rgba(31,58,95,0.5)]">
-          <Star size={22} strokeWidth={0} className="fill-gold-on-navy" aria-hidden="true" />
+          <Sparkle size={22} strokeWidth={0} className="fill-gold-on-navy" aria-hidden="true" />
         </span>
         <span className="text-[10px] font-semibold text-accent">{x(M.shell_tab_ask)}</span>
       </Link>
