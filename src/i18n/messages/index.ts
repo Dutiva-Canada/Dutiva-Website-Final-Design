@@ -42,23 +42,24 @@ export type { SharedMessageKey } from './shared'
  * **Adding a key to the wrong group is a type error at the call site, not a
  * blank string at runtime.** That is the whole point.
  *
- * ## What is NOT here yet, and why
+ * ## The eager-graph win, and what is still NOT here
  *
- * **This split does not yet reduce what a marketing visitor downloads** —
- * see TODO.md **EF6a**'s 2026-08-05 update for the full account. Splitting
- * `vite.config.ts`'s chunk grouping to match measured zero bytes moved: two
- * modules (`shell.ts`, `workspaceMode.ts`) are imported directly by files
- * that are eager for an unrelated reason (`navLabels.ts`,
- * `ProductionEmptyState.tsx`, both in `check-entry-graph.mjs`'s
- * `ALLOWED_APP_MODULES`), and excluding just those two from the grouping
- * rule didn't stop the bundler pulling them back in — unresolved, and
- * `vite.config.ts` still bundles everything under `src/i18n/messages/` as one
- * chunk as a result. The source-level split above is still worth having
- * (it's what let `routes.ts` stop depending on workspace keys, and it's the
- * foundation the next attempt should build on), but don't cite it as a bytes
- * win until the vite side actually is one.
+ * This split now *does* reduce what a marketing visitor downloads —
+ * `vite.config.ts`'s `codeSplitting.groups` mirrors this file's boundary
+ * (`messages-marketing` / `messages-workspace`), and the eager graph
+ * measured 671.3kB → 539.9kB (-131.4kB) once it did. Getting there needed
+ * one more fix beyond this file: two modules (`shell.ts`, `workspaceMode.ts`)
+ * are imported directly by files that are eager for an unrelated reason
+ * (`navLabels.ts`, `ProductionEmptyState.tsx`, both in
+ * `check-entry-graph.mjs`'s `ALLOWED_APP_MODULES`) — excluding them from the
+ * grouping rule's `test` alone did nothing, because rolldown's
+ * `includeDependenciesRecursively` (default `true`) pulls a matched
+ * module's dependencies in regardless of what their own id would exclude.
+ * Setting it to `false` on the workspace group was the actual fix; see
+ * `vite.config.ts` for the mechanics and TODO.md **EF6a** for the full
+ * account.
  *
- * `t()` itself is also still typed `MessageKey` at `useI18n()` — the scoped
+ * `t()` itself is still typed `MessageKey` at `useI18n()` — the scoped
  * types constrain structures that *carry* keys (`plans.ts`,
  * `planComparison.ts`, `legalHubData.ts`, the About/FAQ/Known-Limitations/
  * Pricing/Template-Usage pages, the two Documents screens), not yet a direct

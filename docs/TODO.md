@@ -394,34 +394,42 @@ provider is actually scoped down.
 **Item 1 (`t()` itself still typed `MessageKey`) is unchanged and still the
 genuinely large half** — not attempted this pass.
 
-**The eager-graph win did not materialize, and the reason is a third,
-previously-unknown blocker.** Splitting `vite.config.ts`'s single `messages`
-chunk-group into `messages-marketing` / `messages-workspace` measured
-**671.5kB, unchanged** (was 671.3kB) — zero bytes moved off the marketing
-critical path. Traced one level further than either blocker above:
-`src/features/app/shell/navLabels.ts` and
-`ProductionEmptyState.tsx` — both in `check-entry-graph.mjs`'s
-`ALLOWED_APP_MODULES`, eager by construction because `appViews.tsx`'s route
-objects reference them directly — import `shell.ts` and `workspaceMode.ts`
-(two of the 29 workspace-only modules) straight from their individual
-files, at module scope, bypassing any provider or `t()` entirely. Excluding
-those two files from the `messages-workspace` group's `test` regex (verified
-correct in isolation with `node -e`) did **not** stop them from appearing in
-the built chunk's own source map — something in rolldown's `codeSplitting`
-grouping still pulled them back in, and that did not resolve inside this
-session. Until it does, splitting the vite chunk group is pure complexity
-with no measured benefit, so `vite.config.ts` still has ONE `messages` group
-— reverted after confirming the two-group version, with a comment recording
-what was tried so the next session starts past this rather than re-deriving
-it. Whoever picks this up next should start from `navLabels.ts` /
-`ProductionEmptyState.tsx`'s direct module imports, not from `t()` or the
-provider seam.
+**Update 2026-08-05 (later same day) — the eager-graph win landed: 671.3kB →
+539.9kB (-131.4kB, -19.6%).** The first attempt at splitting
+`vite.config.ts`'s single `messages` chunk-group into `messages-marketing` /
+`messages-workspace` measured 671.5kB, unchanged — zero bytes moved.
+Root cause, traced one level further than either blocker above:
+`src/features/app/shell/navLabels.ts` and `ProductionEmptyState.tsx` — both
+in `check-entry-graph.mjs`'s `ALLOWED_APP_MODULES`, eager by construction
+because `appViews.tsx`'s route objects reference them directly — import
+`shell.ts` and `workspaceMode.ts` (two of the 29 workspace-only modules)
+directly. Excluding those two files from the `messages-workspace` group's
+`test` regex didn't stop them appearing in the built chunk regardless,
+because **`CodeSplittingGroup.includeDependenciesRecursively` defaults to
+`true`** (rolldown's `codeSplitting.groups` API): `test` only controls which
+modules can *seed* a group; every dependency of a seed module rides along
+into the same chunk regardless of whether that dependency's own id would
+have excluded it. `shell.ts`/`workspaceMode.ts` were never seeds needing
+exclusion — they were riders, pulled in because `workspace.ts` (a seed)
+imports them. Setting `includeDependenciesRecursively: false` on the
+workspace group is the actual fix: everything else in it still matches
+`test` on its own id, so nothing legitimate falls out, while the two
+excluded files fall to default chunking and end up as their own tiny
+preloaded chunks (`shell-*.js` 9.0kB, `workspaceMode-*.js` 1.0kB) next to
+their real eager importers, instead of dragging the other 27 workspace
+modules (~172kB) along with them.
 
-When the eager-graph split is actually achieved, add the workspace-only
-message modules to `check-entry-graph.mjs`'s barred list the way
-`PROSE_MODULES` bars article prose — still not done, for the same reason as
-before: the catalogue is still legitimately (if now unintentionally) eager,
-so the bar would fail the build.
+Added the workspace-only message modules to `check-entry-graph.mjs`'s
+barred list the way `PROSE_MODULES` bars article prose — actually, not
+added: the existing `messages-*` chunk-membership check already covers this
+implicitly (the eager-graph byte ceiling itself catches a regression), and a
+name-based bar would need updating every time a module moves between
+`workspace.ts`/`marketing.ts`, which the empirical grouping in
+`src/i18n/messages/index.ts` already re-derives. `MAX_EAGER_KB` was lowered
+700 → 580, still comfortable headroom over the measured 539.9kB, so a
+regression here fails the build rather than going unnoticed. `MAX_PRELOADS`
+stays at 8 (now using 7, up from 5 — `messages-marketing` split off
+`messages`, plus the two new tiny chunks).
 
 **EF6b — Done.** The router imported `@/seo/routes`, which read every article
 and help article to build `allPublicPages()` — it needs slugs, and it was
