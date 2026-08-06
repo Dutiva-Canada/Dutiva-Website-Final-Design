@@ -4,6 +4,11 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Run on demand. The drift step below compares against the live project, so
+  # it can go red without this repo changing at all — someone applying a
+  # migration straight to the database is exactly the case it exists to catch.
+  # Re-running it should not require inventing a commit.
+  workflow_dispatch:
 
 jobs:
   check:
@@ -36,12 +41,13 @@ jobs:
       # This exists because three features shipped inert: a migration in the
       # repo but not on the project is invisible to every other check here.
       #
-      # As of 2026-08-04 neither secret is set on this repository, so the drift
-      # half is skipping on every run. That is why the script now raises a
-      # warning annotation and a job-summary entry when it skips: this step
-      # going green currently means "drift unchecked", and the whole point of
-      # the step is that unchecked drift is what ships features inert. Setting
-      # both secrets turns it into a real check with no change here.
+      # Both secrets were set on 2026-08-06, so this is a real check now rather
+      # than a skip. It runs in BOTH directions as of that date: a migration in
+      # the repo but not applied, and — the half that was missing — one applied
+      # to the project with no file committed. The second found eight, one of
+      # them a security grant change and one a bug fix, all of which had existed
+      # only in production. Fork PRs still skip, because GitHub withholds
+      # secrets from them; that is correct, not a gap.
       - name: Migration drift
         run: npm run check:migrations
         env:
