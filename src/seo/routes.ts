@@ -6,7 +6,7 @@ import { HELP_ARTICLES } from '@/features/support/help/helpCenterData'
 import type { HelpArticle } from '@/features/support/help/helpCenterData'
 import { ALL_ARTICLES, articlePath } from '@/features/marketing/articles'
 import type { Article } from '@/features/marketing/articles'
-import { messages } from '@/i18n/messages'
+import { marketingMessages } from '@/i18n/messages/marketing'
 
 /**
  * The typed SEO route registry — the single source of truth for every public
@@ -52,8 +52,11 @@ export interface SeoRoute {
 }
 
 /** Bilingual page copy reused from the message catalogue, keeping metadata
-    aligned with the visible H1/intro copy it summarizes. */
-const t = (key: keyof typeof messages): Bi => messages[key]
+    aligned with the visible H1/intro copy it summarizes. Scoped to the
+    marketing catalogue (this file is entirely public-surface) rather than
+    the full merged one, so importing it does not pull workspace message
+    modules into the eager marketing bundle. */
+const t = (key: keyof typeof marketingMessages): Bi => marketingMessages[key]
 
 export const SEO_ROUTES: readonly SeoRoute[] = [
   {
@@ -237,11 +240,11 @@ export function legalDocPath(row: LegalHubRow, lang: Lang): string {
 
 /** Localized document title / short description from the message catalogue. */
 export function legalDocTitle(row: LegalHubRow, lang: Lang): string {
-  return pick(messages[row.titleKey], lang)
+  return pick(marketingMessages[row.titleKey], lang)
 }
 
 export function legalDocDescription(row: LegalHubRow, lang: Lang): string {
-  const desc = pick(messages[row.descKey], lang)
+  const desc = pick(marketingMessages[row.descKey], lang)
   return lang === 'fr'
     ? `${desc} — document officiel de Dutiva Canada Inc.`
     : `${desc} — official Dutiva Canada Inc. policy document.`

@@ -363,22 +363,65 @@ Measured, not estimated: `messages-*.js` is **237kB of the 671kB eager graph —
 35% of what every first-time visitor downloads**, and workspace-only modules are
 ~70% of the catalogue's keys. So the prize is roughly **165kB off every page**.
 
-**Two things still block the actual split**, and both are now specific:
+**Update 2026-08-05 — the source is split; the bytes are not, and the
+blocker has moved.** `src/i18n/messages/{workspace,marketing,shared}.ts` now
+exist as real files with their own imports (not just derived types):
+`workspace.ts` merges the 29 workspace-only modules + `shared.ts`,
+`marketing.ts` merges the 9 marketing-only modules + `shared.ts`, and
+`index.ts` composes both into the full `messages` for whatever still needs
+it. `ForcedLangProvider` and `src/seo/routes.ts` (item 2 above) now import
+`marketing.ts` directly instead of the merged index — that part of the
+computed-key blocker is closed, safely: every remaining runtime consumer of
+the full catalogue (`plans.ts`, `planComparison.ts`, `legalHubData.ts`'s
+`LegalHubKey`, the About/FAQ/Known-Limitations/Pricing/Template-Usage pages,
+the two Documents screens) was audited and already reads through a
+surface-scoped **type** rather than the runtime object, so none of them
+needed to change.
 
-1. **`t()` itself is still typed `MessageKey`.** The scoped types constrain
-   structures that _carry_ keys; they do not yet constrain a direct
-   `t('about_h1')` from a workspace component, which would compile and then
-   throw under a split. Making `t()` surface-aware means threading the scope
-   through `useI18n()` at every call site — the genuinely large half.
-2. **`src/seo/routes.ts` imports the whole catalogue** and is reached eagerly
-   from `src/app/routes.tsx`, so no provider change reduces the eager graph
-   until it takes marketing keys only. It needs `messages[row.titleKey]` for
-   arbitrary rows, which is the computed-key problem in its worst form.
+**`LangProvider` still passes the full `messages`, not `workspaceMessages`,
+on purpose — not an oversight.** `/app` is already behind a lazy route
+boundary (EF6/EF6b), so narrowing its catalogue has no eager-graph payoff,
+and `src/test/renderApp.tsx` — the render helper 17 marketing-page test files
+reuse for convenience, e.g. `TemplateUsagePage.test.tsx` — wraps
+`LangProvider`. Scoping it to `workspaceMessages` made every one of those
+tests fail on a marketing-only key with no bundle-size benefit to show for
+it; reverted once that surfaced. `buildLangContextValue()` now takes the
+catalogue as a parameter either way, and degrades (logs, returns the raw
+key) instead of throwing on a miss — direct mitigation for "`t()` on a
+missing key throws rather than degrading," independent of whether any
+provider is actually scoped down.
 
-When the split lands, add the message modules to `check-entry-graph.mjs`'s
-barred list the way `PROSE_MODULES` bars article prose. **It is deliberately not
-added now** — the catalogue is still legitimately eager, so the bar would fail
-the build on the first commit rather than the last.
+**Item 1 (`t()` itself still typed `MessageKey`) is unchanged and still the
+genuinely large half** — not attempted this pass.
+
+**The eager-graph win did not materialize, and the reason is a third,
+previously-unknown blocker.** Splitting `vite.config.ts`'s single `messages`
+chunk-group into `messages-marketing` / `messages-workspace` measured
+**671.5kB, unchanged** (was 671.3kB) — zero bytes moved off the marketing
+critical path. Traced one level further than either blocker above:
+`src/features/app/shell/navLabels.ts` and
+`ProductionEmptyState.tsx` — both in `check-entry-graph.mjs`'s
+`ALLOWED_APP_MODULES`, eager by construction because `appViews.tsx`'s route
+objects reference them directly — import `shell.ts` and `workspaceMode.ts`
+(two of the 29 workspace-only modules) straight from their individual
+files, at module scope, bypassing any provider or `t()` entirely. Excluding
+those two files from the `messages-workspace` group's `test` regex (verified
+correct in isolation with `node -e`) did **not** stop them from appearing in
+the built chunk's own source map — something in rolldown's `codeSplitting`
+grouping still pulled them back in, and that did not resolve inside this
+session. Until it does, splitting the vite chunk group is pure complexity
+with no measured benefit, so `vite.config.ts` still has ONE `messages` group
+— reverted after confirming the two-group version, with a comment recording
+what was tried so the next session starts past this rather than re-deriving
+it. Whoever picks this up next should start from `navLabels.ts` /
+`ProductionEmptyState.tsx`'s direct module imports, not from `t()` or the
+provider seam.
+
+When the eager-graph split is actually achieved, add the workspace-only
+message modules to `check-entry-graph.mjs`'s barred list the way
+`PROSE_MODULES` bars article prose — still not done, for the same reason as
+before: the catalogue is still legitimately (if now unintentionally) eager,
+so the bar would fail the build.
 
 **EF6b — Done.** The router imported `@/seo/routes`, which read every article
 and help article to build `allPublicPages()` — it needs slugs, and it was
