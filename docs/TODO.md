@@ -175,17 +175,25 @@ claim in the Beta Launch Brief itself (it predates the architecture change
 that made "sensitive employee data is never stored on Dutiva servers" false
 — see CANONICAL_FACTS § Claims to stop making 1). (PR #155)
 
-**D6 — Is a non-figure linkable asset worth building.** A termination-notice
-calculator was proposed and ruled out: publishing notice periods violates the
-editorial rule in `articleModel.ts`, which exists precisely because a wrong
-figure on an answer-engine-indexed page gets quoted onward without the
-disclaimer beside it. The link-earning gap that motivated it is still open.
-(PR #117)
+**D6 — Is a non-figure linkable asset worth building.** Decided 2026-08-06:
+yes — a jurisdiction-scoping questionnaire. Three questions determine
+whether Ontario (ESA), Quebec (LNT), or federal (Canada Labour Code)
+employment standards likely apply. No statutory figures (notice periods,
+thresholds, deadlines) — names the statute and links to the official text.
+Live at `/tools/jurisdiction-check` (EN) and `/fr/outils/verification-juridiction`
+(FR), prerendered and in the sitemap. The termination-notice calculator
+remains ruled out (publishing notice periods violates the editorial rule in
+`articleModel.ts`). (PR #156)
 
-**D7 — `/guides` vs `/blog` positioning.** The current copy is one session's
-read of what the twelve articles already are. If a real publishing cadence is
-planned, a dated blog becomes viable and the strings should change — they are
-the cheapest thing in that area to change. (PR #120)
+**D7 — `/guides` vs `/blog` positioning.** Decided 2026-08-06: no publishing
+cadence is planned; the current positioning holds. `/guides` = documents an
+employer produces (contracts, probation, accommodation, termination).
+`/blog` = obligations that apply before drafting (employment regime, required
+policies, records, leaves). Neither is dated, neither is "news" — a stale
+timestamp on a compliance page is worse than none. If a cadence is ever
+planned, the blog should become dated and the strings should change; the
+`articleModel.ts` comment already says to change the rule deliberately rather
+than letting one article quietly become the exception. (PR #157)
 
 ---
 

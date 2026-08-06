@@ -7,6 +7,7 @@ import { blogMessages } from './blog'
 import { tmplGuideMessages } from './templateUsage'
 import { limitsMessages } from './knownLimitations'
 import { legalHubMessages } from './legalHub'
+import { jurisdictionToolMessages } from './jurisdictionTool'
 import { sharedMessages } from './shared'
 
 /**
@@ -26,6 +27,7 @@ export const marketingMessages = {
   ...tmplGuideMessages,
   ...limitsMessages,
   ...legalHubMessages,
+  ...jurisdictionToolMessages,
   ...sharedMessages,
 } as const
 

@@ -40,6 +40,7 @@ export type SeoRouteId =
   | 'help'
   | 'contact'
   | 'status'
+  | 'jurisdictionTool'
 
 export interface SeoRoute {
   id: SeoRouteId
@@ -207,6 +208,19 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     description: {
       en: 'The current status of Dutiva’s services — platform, AI Advisor, HR documents, and support. Self-reported by the Dutiva team. Bilingual EN/FR.',
       fr: 'L’état actuel des services de Dutiva — plateforme, Conseiller IA, documents RH et soutien. Signalé par l’équipe de Dutiva. Bilingue FR/EN.',
+    },
+    indexable: true,
+  },
+  {
+    id: 'jurisdictionTool',
+    path: { en: '/tools/jurisdiction-check', fr: '/fr/outils/verification-juridiction' },
+    title: {
+      en: 'Which employment standards jurisdiction applies? — Free tool | Dutiva',
+      fr: 'Quelle juridiction en matière de normes d’emploi s’applique? — Outil gratuit | Dutiva',
+    },
+    description: {
+      en: 'A free tool that helps Canadian employers determine whether Ontario (ESA), Quebec (LNT), or federal (Canada Labour Code) employment standards likely apply to an employee. Three questions, no figures, links to the official statute. Bilingual EN/FR.',
+      fr: 'Un outil gratuit qui aide les employeurs canadiens à déterminer si les normes d’emploi de l’Ontario (LNE), du Québec (LNT) ou du fédéral (Code canadien du travail) s’appliquent probablement à un employé. Trois questions, aucun chiffre, liens vers la loi officielle. Bilingue FR/EN.',
     },
     indexable: true,
   },
