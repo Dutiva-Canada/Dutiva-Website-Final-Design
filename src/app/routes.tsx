@@ -28,6 +28,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const HelpArticlePage = lazy(() => import('@/features/marketing/pages/HelpArticlePage').then((m) => ({ default: m.HelpArticlePage })))
 /* prettier-ignore */ const ContactPage = lazy(() => import('@/features/marketing/pages/ContactPage').then((m) => ({ default: m.ContactPage })))
 /* prettier-ignore */ const StatusPage = lazy(() => import('@/features/marketing/pages/StatusPage').then((m) => ({ default: m.StatusPage })))
+/* prettier-ignore */ const JurisdictionToolPage = lazy(() => import('@/features/marketing/pages/JurisdictionToolPage').then((m) => ({ default: m.JurisdictionToolPage })))
 /* prettier-ignore */ const PricingShell = lazy(() => import('@/features/marketing/pages/PricingShell').then((m) => ({ default: m.PricingShell })))
 /* prettier-ignore */ const TemplatesPage = lazy(() => import('@/features/marketing/pages/TemplatesPage').then((m) => ({ default: m.TemplatesPage })))
 /* prettier-ignore */ const GuidesIndexPage = lazy(() => import('@/features/marketing/pages/GuidesIndexPage').then((m) => ({ default: m.GuidesIndexPage })))
@@ -85,6 +86,7 @@ function publicRoutes(lang: Lang): RouteObject {
       { path: `${p('help')}/:slug`, element: <HelpArticlePage /> },
       { path: p('contact'), element: <ContactPage /> },
       { path: p('status'), element: <StatusPage /> },
+      { path: p('jurisdictionTool'), element: <JurisdictionToolPage /> },
     ],
   }
 }

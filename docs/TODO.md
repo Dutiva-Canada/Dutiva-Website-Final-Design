@@ -175,12 +175,15 @@ claim in the Beta Launch Brief itself (it predates the architecture change
 that made "sensitive employee data is never stored on Dutiva servers" false
 — see CANONICAL_FACTS § Claims to stop making 1). (PR #155)
 
-**D6 — Is a non-figure linkable asset worth building.** A termination-notice
-calculator was proposed and ruled out: publishing notice periods violates the
-editorial rule in `articleModel.ts`, which exists precisely because a wrong
-figure on an answer-engine-indexed page gets quoted onward without the
-disclaimer beside it. The link-earning gap that motivated it is still open.
-(PR #117)
+**D6 — Is a non-figure linkable asset worth building.** Decided 2026-08-06:
+yes — a jurisdiction-scoping questionnaire. Three questions determine
+whether Ontario (ESA), Quebec (LNT), or federal (Canada Labour Code)
+employment standards likely apply. No statutory figures (notice periods,
+thresholds, deadlines) — names the statute and links to the official text.
+Live at `/tools/jurisdiction-check` (EN) and `/fr/outils/verification-juridiction`
+(FR), prerendered and in the sitemap. The termination-notice calculator
+remains ruled out (publishing notice periods violates the editorial rule in
+`articleModel.ts`). (PR #156)
 
 **D7 — `/guides` vs `/blog` positioning.** The current copy is one session's
 read of what the twelve articles already are. If a real publishing cadence is
