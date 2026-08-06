@@ -171,17 +171,6 @@ The corpus rule is that every statutory figure comes from a direct fetch of an
 official government page, fetched twice — once to author, once to verify
 independently. Everything in this section is gated on that rule.
 
-**L1b — Four federal leaves are still unauthored.** _Build._ The 2026-08-04
-tranche added pregnancy loss, family violence and traditional Aboriginal
-practices to the `[FED] leaves` chunk. Court or jury duty, reserve-force leave
-(24 months in 60), leave for work-related illness and injury, and
-maternity-related reassignment are on the official page, absent from the chunk,
-and were left for a later tranche rather than padding one row past useful
-retrieval length. Note what this cost: the page's `Date modified` is 2026-05-13
-and the chunk was authored 2026-07-27, so these are **authoring omissions, not
-later amendments** — a change-detection watcher would never surface them, and
-only a full re-read of the page will.
-
 **L5 — Corpus review gate.** _Blocked (human review)._ Every row in
 `advisor_guidance_chunks` is `review_status: machine_curated`. Only a human
 flips a row to `reviewed`, and that gate has never been exercised. Unverified
@@ -271,30 +260,23 @@ every session so far lacked a JWT it could create. Expect exactly one
 `ai_telemetry_events` row, `completed`, with a token count. A row stranded at
 `started` means the usage claim landed and finalize did not. (PRs #87, #90)
 
-**EF2 — Ontario and Québec ARE monitorable; the sources are found, not built.**
-_Build._ Reclassified 2026-08-04. The "unmonitorable" conclusion does not
-survive contact with the sources, and it was wrong on both counts:
+**EF2 — Ontario and Québec fetch/detection code is built; it has never run
+live.** _Verify, then Owner._ Built 2026-08-05, in the shape the Justice
+Canada XML path established: `MONITORED_PAGES` now carries Ontario's ESA,
+Human Rights Code and WSIA on the confirmed `act-versions` API ids (`00e41`,
+`90h19`, `97w16`), and Quebec's LNT and Charter on Données Québec's CKAN
+dataset (`c8433300-f752-4815-8ea2-69cad416dd80`, "Lois" resource). See
+`ontarioApi.ts` / `quebecCkan.ts` and
+[LAW_MONITORING.md § Sourcing evaluation](LAW_MONITORING.md) for the sourcing
+this implements and what it deliberately does not yet do (per-statute
+drill-down into the Québec zip; independent liveness alarms for the two
+Ontario health checks beyond the per-fetch verdict).
 
-- **Ontario** has a real JSON API —
-  `ontario.ca/laws/api/v2/legislation/en/act-versions/statute/{id}` — byte-stable
-  across six fetches including cache-busted, with confirmed ids for the ESA,
-  OHSA, Human Rights Code and AODA. The SPA-shell finding was correct about the
-  HTML pages and simply not the whole surface.
-- **Québec** was never UA-independent: the refusal is a CloudFront WAF rule keyed
-  on `User-Agent`, and a 403/200 split was observed on identical URLs seconds
-  apart. Better still, Données Québec publishes a first-party machine-readable
-  legislative corpus whose status files **name the statutes that changed**.
-
-The evaluation — including the rejected candidates, the two mandatory Ontario
-health checks, and the guardrail that whole-page hashing of LégisQuébec
-guarantees a daily false alert — is in
-[LAW_MONITORING.md § Sourcing evaluation](LAW_MONITORING.md).
-
-**What remains is the implementation**: the fetch, change detection, schedule
-entry and coverage record, in the shape the Justice Canada XML path established.
-Until that lands and is proven, `monitoringCoverage.ts` keeps telling customers
-the truth about the gap — do not soften that wording ahead of the code.
-(PRs #105, #106)
+No session here can reach a deployed edge function or the cron schedule, so
+none of this has executed against the live APIs — it is unit-tested against
+captured real responses only. **Do not flip `monitoringCoverage.ts`'s
+ON/QC-unmonitored claim until a real scheduled sweep proves it**, the same
+discipline OA2 already applies to Federal. (PRs #105, #106)
 
 **EF3 — Export-trail follow-ups.** An in-app admin viewer over `export_events`
 (the trail is read through service-role tooling today); the Advisor chat "Copy"
@@ -381,22 +363,65 @@ Measured, not estimated: `messages-*.js` is **237kB of the 671kB eager graph —
 35% of what every first-time visitor downloads**, and workspace-only modules are
 ~70% of the catalogue's keys. So the prize is roughly **165kB off every page**.
 
-**Two things still block the actual split**, and both are now specific:
+**Update 2026-08-05 — the source is split; the bytes are not, and the
+blocker has moved.** `src/i18n/messages/{workspace,marketing,shared}.ts` now
+exist as real files with their own imports (not just derived types):
+`workspace.ts` merges the 29 workspace-only modules + `shared.ts`,
+`marketing.ts` merges the 9 marketing-only modules + `shared.ts`, and
+`index.ts` composes both into the full `messages` for whatever still needs
+it. `ForcedLangProvider` and `src/seo/routes.ts` (item 2 above) now import
+`marketing.ts` directly instead of the merged index — that part of the
+computed-key blocker is closed, safely: every remaining runtime consumer of
+the full catalogue (`plans.ts`, `planComparison.ts`, `legalHubData.ts`'s
+`LegalHubKey`, the About/FAQ/Known-Limitations/Pricing/Template-Usage pages,
+the two Documents screens) was audited and already reads through a
+surface-scoped **type** rather than the runtime object, so none of them
+needed to change.
 
-1. **`t()` itself is still typed `MessageKey`.** The scoped types constrain
-   structures that _carry_ keys; they do not yet constrain a direct
-   `t('about_h1')` from a workspace component, which would compile and then
-   throw under a split. Making `t()` surface-aware means threading the scope
-   through `useI18n()` at every call site — the genuinely large half.
-2. **`src/seo/routes.ts` imports the whole catalogue** and is reached eagerly
-   from `src/app/routes.tsx`, so no provider change reduces the eager graph
-   until it takes marketing keys only. It needs `messages[row.titleKey]` for
-   arbitrary rows, which is the computed-key problem in its worst form.
+**`LangProvider` still passes the full `messages`, not `workspaceMessages`,
+on purpose — not an oversight.** `/app` is already behind a lazy route
+boundary (EF6/EF6b), so narrowing its catalogue has no eager-graph payoff,
+and `src/test/renderApp.tsx` — the render helper 17 marketing-page test files
+reuse for convenience, e.g. `TemplateUsagePage.test.tsx` — wraps
+`LangProvider`. Scoping it to `workspaceMessages` made every one of those
+tests fail on a marketing-only key with no bundle-size benefit to show for
+it; reverted once that surfaced. `buildLangContextValue()` now takes the
+catalogue as a parameter either way, and degrades (logs, returns the raw
+key) instead of throwing on a miss — direct mitigation for "`t()` on a
+missing key throws rather than degrading," independent of whether any
+provider is actually scoped down.
 
-When the split lands, add the message modules to `check-entry-graph.mjs`'s
-barred list the way `PROSE_MODULES` bars article prose. **It is deliberately not
-added now** — the catalogue is still legitimately eager, so the bar would fail
-the build on the first commit rather than the last.
+**Item 1 (`t()` itself still typed `MessageKey`) is unchanged and still the
+genuinely large half** — not attempted this pass.
+
+**The eager-graph win did not materialize, and the reason is a third,
+previously-unknown blocker.** Splitting `vite.config.ts`'s single `messages`
+chunk-group into `messages-marketing` / `messages-workspace` measured
+**671.5kB, unchanged** (was 671.3kB) — zero bytes moved off the marketing
+critical path. Traced one level further than either blocker above:
+`src/features/app/shell/navLabels.ts` and
+`ProductionEmptyState.tsx` — both in `check-entry-graph.mjs`'s
+`ALLOWED_APP_MODULES`, eager by construction because `appViews.tsx`'s route
+objects reference them directly — import `shell.ts` and `workspaceMode.ts`
+(two of the 29 workspace-only modules) straight from their individual
+files, at module scope, bypassing any provider or `t()` entirely. Excluding
+those two files from the `messages-workspace` group's `test` regex (verified
+correct in isolation with `node -e`) did **not** stop them from appearing in
+the built chunk's own source map — something in rolldown's `codeSplitting`
+grouping still pulled them back in, and that did not resolve inside this
+session. Until it does, splitting the vite chunk group is pure complexity
+with no measured benefit, so `vite.config.ts` still has ONE `messages` group
+— reverted after confirming the two-group version, with a comment recording
+what was tried so the next session starts past this rather than re-deriving
+it. Whoever picks this up next should start from `navLabels.ts` /
+`ProductionEmptyState.tsx`'s direct module imports, not from `t()` or the
+provider seam.
+
+When the eager-graph split is actually achieved, add the workspace-only
+message modules to `check-entry-graph.mjs`'s barred list the way
+`PROSE_MODULES` bars article prose — still not done, for the same reason as
+before: the catalogue is still legitimately (if now unintentionally) eager,
+so the bar would fail the build.
 
 **EF6b — Done.** The router imported `@/seo/routes`, which read every article
 and help article to build `allPublicPages()` — it needs slugs, and it was
@@ -490,6 +515,7 @@ does not resurrect them.
 | AI usage unmetered during an open beta      | #90 / #91 — guardrails live 2026-07-28                                              |
 | Client error reporting inert                | #92 — `0019` applied, `report-error` deployed (but see OA6)                         |
 | L1a — corpus tranche migration unapplied     | Applied `0042` 2026-08-05 via direct DB access; retrieval smoke test passing        |
+| L1b — four federal leaves unauthored         | Added in `0044` 2026-08-05: court/jury duty, reserve force, work-related illness/injury, maternity-related reassignment |
 
 ---
 

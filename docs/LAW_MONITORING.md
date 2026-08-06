@@ -280,8 +280,13 @@ options each carry a trade-off worth a deliberate choice:
    Cheapest and most honest, but Ontario and Quebec are two of the three
    supported jurisdictions, so it materially narrows what the feature claims.
 
-Until one is chosen, **treat Ontario and Quebec law-change detection as not
-working**, regardless of what the panel shows.
+**Superseded 2026-08-04, then built 2026-08-05 — see below.** This section
+(2026-07-30) treated the proxy/licence/headless-browser/narrow-the-promise
+choice as blocking. It no longer is: the sourcing evaluation right below
+found real, free, official machine-readable sources for both, and the fetch
+and change-detection code is now written (`ontarioApi.ts`, `quebecCkan.ts`).
+Left in place as a record of what was ruled out and why a proxy or a licence
+is no longer the live question.
 
 ## Sourcing evaluation for Ontario and Québec — 2026-08-04
 
@@ -292,10 +297,19 @@ it is evidence of an amendment, not merely evidence that a web server answered.
 This section is the evaluation, including what was rejected and why, so the next
 session does not re-probe any of it.
 
-**Nothing here is implemented.** This is the research half of EF2; the fetch,
-change detection, schedule entry and coverage record are not built, and
-`monitoringCoverage.ts` still tells customers the truth about the gap. Do not
-weaken that wording until a source is actually wired and proven.
+**Update 2026-08-05 — implemented.** The fetch and change-detection code
+described below is now built: `MONITORED_PAGES` carries Ontario's three
+statutes on the `ontario-api` source and Quebec's two on `quebec-ckan` (see
+`supabase/functions/monitor-law-changes/ontarioApi.ts` and `quebecCkan.ts`).
+**Still open:** the two health checks (`versions.length > 0`, polling
+`currency-date`) are implemented as part of the per-fetch verdict but not as
+independent liveness alarms; the Quebec side watches the dataset's "Lois"
+resource at the whole-resource level, not yet the per-statute drill into the
+zip's `Statutes_EN_Status.txt`; and — most importantly — **no live sweep has
+run**, so `monitoringCoverage.ts` still correctly tells customers ON/QC are
+not monitored. Don't flip that claim until a real scheduled run proves the
+code against the live APIs, the same discipline OA2 already applies to
+Federal.
 
 Everything below was probed live, and every candidate was **fetched twice and
 diffed** to rule out sources that churn on every request — the failure mode that
