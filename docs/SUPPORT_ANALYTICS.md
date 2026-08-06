@@ -224,10 +224,12 @@ limiter still works, but its IP hashes have stopped being swept.
 (TODO.md OA17, verified 2026-08-06). What's left, and what to re-check on any
 future redeploy:
 
-1. **Apply `0052` and confirm the purge is scheduled.** `select * from
-   public.support_analytics_status();` — `rate_limit_purge_scheduled` must come
-   back `true`. Everything else in `0051` works without it; the limiter's IP
-   hashes just stop being swept once traffic goes quiet.
+1. **~~Apply `0052`.~~ Done 2026-08-06 — applied and verified.**
+   `purge-support-analytics-rate-limit` is active on `17 * * * *` and
+   `support_analytics_status()` returns `rate_limit_purge_scheduled: true`.
+   Re-check that flag after any project restore or migration replay: everything
+   else in `0051` keeps working without the job, so the only symptom is IP
+   hashes quietly ceasing to be swept.
 
 2. **Keep `verify_jwt = false` on redeploy.** Pinned in
    `supabase/config.toml`, and it must stay pinned: the client posts a bare body

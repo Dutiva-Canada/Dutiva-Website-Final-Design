@@ -115,8 +115,16 @@ quiet endpoint keeps the last caller's IP hashes indefinitely. `0052` adds
 `support_analytics_status()` so `rate_limit_purge_scheduled` is checkable —
 the same "merged is not running" trap this entry is about.
 
-**Owner: apply `0052`, then confirm `rate_limit_purge_scheduled` is `true`.**
-`0051`'s limiter works without it; only the sweeping stops.
+**`0052` is applied and verified 2026-08-06 — no owner action left.** The gap
+was real in production: `purge_support_analytics_rate_limit` did not exist and
+`cron.job` held no purge entry, so nothing but incoming traffic had ever swept
+that table. After applying, `purge-support-analytics-rate-limit` is active on
+`17 * * * *` and `support_analytics_status()` returns
+`rate_limit_purge_scheduled: true`. Proven rather than assumed: a seeded row
+aged two hours was deleted by one `purge_support_analytics_rate_limit()` call
+while a fresh row beside it survived, and the probe rows were removed after.
+Grants confirmed `service_role`-only — `anon` and `authenticated` both false on
+the purge and on the widened status function.
 
 _Historical detail below._
 
