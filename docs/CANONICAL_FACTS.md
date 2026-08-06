@@ -44,7 +44,7 @@ people who don't read the repo. Re-export it when this file changes.
 | Annual billing        | 10 of 12 months charged (two months free)                                   | `ANNUAL_MONTHS_BILLED`                                                  |
 | Beta state            | Paid plans **shown but not sold**                                           | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
 | Rings live            | **All four rings complete.**                                                | `docs/FOUR_RING_FRAMEWORK.md`                                           |
-| Law-change monitoring | **Not confirmed working for any supported jurisdiction** (audit 2026-07-30) | `src/features/app/guidance/monitoringCoverage.ts`                       |
+| Law-change monitoring | **Federal confirmed working; ON/QC unavailable** (audit 2026-08-06)         | `src/features/app/guidance/monitoringCoverage.ts`                       |
 | Contact address       | **support@dutiva.ca**                                                       | the published support address; retired ones stay retired (§6, enforced) |
 | Languages             | EN + FR, both surfaces, prerendered per locale                              | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
 | Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                  | `tokens.css` `--gold-gradient`, `--gold-on-dark`                        |
@@ -251,13 +251,14 @@ the old prototype set expectations:
 **By severity this belongs second, right after the privacy claim** — it is kept
 here only so the §2 cross-reference in Open items stays valid.
 
-The monitoring exists and now runs on a schedule, but a 2026-07-30 audit found
-that **no supported jurisdiction has confirmed working change detection**.
-Ontario's source serves a JavaScript shell whose statute text never reaches a
-server-side fetch; Québec's refuses automated requests; Federal is unconfirmed.
-The monitor sweeps 19 pages, but sweeping a page is not detecting an amendment
-on it — and until 2026-07-30 the health data could not tell the difference,
-because a blocked page answering HTTP 200 recorded as healthy.
+The monitoring exists and now runs on a schedule. A 2026-08-06 audit found
+that **Federal change detection is confirmed working** — the first successful
+sweep fetched both Justice Canada XML pages and baselined them. Ontario's
+source serves a JavaScript shell whose statute text never reaches a
+server-side fetch; Québec's refuses automated requests. Both remain
+unavailable. The monitor sweeps 19 pages, but sweeping a page is not detecting
+an amendment on it — and until 2026-07-30 the health data could not tell the
+difference, because a blocked page answering HTTP 200 recorded as healthy.
 
 Say what is true: Dutiva tracks official sources and surfaces changes **where
 detection is confirmed**, and the product names which jurisdictions those are.

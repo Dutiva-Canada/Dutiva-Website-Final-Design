@@ -39,17 +39,17 @@ until someone with credentials acts. A merged migration is not an applied
 migration and a merged function is not a deployed one; see
 [AGENTS.md § Migrations ship in two halves](../AGENTS.md).
 
-**OA1 — Law-monitor service key.** _Owner._ The nightly sweep runs, finds no
-`law_monitor_service_key` in Vault, logs a warning and returns. Until the secret
-exists, law-change monitoring is a deliberate no-op and the Knowledge panel ages
-in place. One SQL statement, in
-[LAW_MONITORING.md § Setup](LAW_MONITORING.md). Blocks OA2 and EF2. (PR #105)
+**OA1 — Done.** The `law_monitor_service_key` Vault secret was created on
+2026-08-06. The nightly sweep at 07:00 UTC now fires `trigger_law_monitor()`,
+which reads the key and POSTs to the edge function. Verified via
+`law_monitor_status()`: `secret_configured: true`, `hours_since_check: 0.0`.
 
-**OA2 — First federal sweep, then flip the coverage claim.** _Owner, then
-Build._ `monitoringCoverage.ts` states Federal as `unverified` because no sweep
-has proven the Justice Canada XML source. After the first successful run, flip
-it to active — the test asserting the all-unconfirmed state will fail and prompt
-exactly that. Depends on OA1. (PR #107)
+**OA2 — Done.** The first successful federal sweep ran on 2026-08-06, fetching
+both Justice Canada XML pages (Canada Labour Code, Canadian Human Rights Act)
+and recording `first_seen` events. `monitoringCoverage.ts` flipped Federal from
+`unverified` to `active`, `COVERAGE_AUDITED_ON` updated to 2026-08-06, and
+`CANONICAL_FACTS.md §5` updated to reflect that Federal detection is confirmed
+working while ON/QC remain unavailable. (PR #162)
 
 **OA3 — Turn support email on.** _Owner._ Verify a Resend sending domain, set
 `RESEND_API_KEY`, `SUPPORT_EMAIL_FROM`, `SUPPORT_NOTIFY_SECRET`, and schedule
