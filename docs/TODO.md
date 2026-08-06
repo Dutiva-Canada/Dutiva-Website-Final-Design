@@ -323,114 +323,6 @@ fixtures in front of every landing page. 34 preloads → 5, and 1121kB → 850kB
 raw. `scripts/check-entry-graph.mjs` now fails the build on a regression,
 reading membership from the build's own source maps.
 
-**EF6a — Split the message catalogue by surface.** _Blocked on a type, not on
-effort._ The i18n catalogue is now one 232kB chunk and still fully eager.
-Usage splits cleanly — 27 modules are read only by the workspace (~170kB of
-source), 10 only by marketing, 5 by both — and the provider seam already exists
-(`ForcedLangProvider` is the public surface, `LangProvider` the app), so
-`buildLangContextValue` could take the catalogue as an argument and no mutable
-registry is needed.
-
-The blocker is that **`t()` is called with computed keys**, so what a marketing
-page can reach is not a set anyone can enumerate. `src/config/plans.ts` types
-plan copy as `MessageKey` and points at `landing_*` keys; `LegalHubPage` and
-`AboutPage` resolve `row.titleKey` / `value.bodyKey` out of data. A test that
-"every `MessageKey` resolves" — the guard suggested when this was first
-written — cannot be written for a split catalogue, because the reachable set is
-the whole union by construction, and `t()` on a missing key throws rather than
-degrading.
-
-The fix is to make the constraint a type: surface-scoped key types, the shape
-`useLanding`'s `lt()` / `LandingMessageKey` already uses, pushed through the
-data structures that carry keys. That is a per-feature migration of call sites,
-not a chunking change — which is why it is its own item.
-
-**Update 2026-08-04 — the type foundation is in; the split is not.** The three
-scopes now exist in `src/i18n/messages/index.ts`, derived from module groupings
-rather than hand-listed: `WorkspaceMessageKey`, `MarketingMessageKey`,
-`SharedMessageKey`. The grouping is **empirical** — every key in every module
-was matched against every non-test source file and the consumers classified by
-path: **29 modules workspace-only, 9 marketing-only, 4 genuinely shared**
-(`common`, `landing`, `support`, `helpCenter`), 2225 keys total. Every
-key-carrying structure is annotated (`plans.ts`, `planComparison.ts`, the About
-/ FAQ / Known-Limitations / Pricing / Template-Usage pages, and the two
-Documents screens). `scopes.test.ts` guards the scopes staying disjoint with
-`@ts-expect-error` assertions that fail the build if a boundary stops being
-enforced — deliberately **not** the "every key resolves" test, which cannot work
-here.
-
-Measured, not estimated: `messages-*.js` is **237kB of the 671kB eager graph —
-35% of what every first-time visitor downloads**, and workspace-only modules are
-~70% of the catalogue's keys. So the prize is roughly **165kB off every page**.
-
-**Update 2026-08-05 — the source is split; the bytes are not, and the
-blocker has moved.** `src/i18n/messages/{workspace,marketing,shared}.ts` now
-exist as real files with their own imports (not just derived types):
-`workspace.ts` merges the 29 workspace-only modules + `shared.ts`,
-`marketing.ts` merges the 9 marketing-only modules + `shared.ts`, and
-`index.ts` composes both into the full `messages` for whatever still needs
-it. `ForcedLangProvider` and `src/seo/routes.ts` (item 2 above) now import
-`marketing.ts` directly instead of the merged index — that part of the
-computed-key blocker is closed, safely: every remaining runtime consumer of
-the full catalogue (`plans.ts`, `planComparison.ts`, `legalHubData.ts`'s
-`LegalHubKey`, the About/FAQ/Known-Limitations/Pricing/Template-Usage pages,
-the two Documents screens) was audited and already reads through a
-surface-scoped **type** rather than the runtime object, so none of them
-needed to change.
-
-**`LangProvider` still passes the full `messages`, not `workspaceMessages`,
-on purpose — not an oversight.** `/app` is already behind a lazy route
-boundary (EF6/EF6b), so narrowing its catalogue has no eager-graph payoff,
-and `src/test/renderApp.tsx` — the render helper 17 marketing-page test files
-reuse for convenience, e.g. `TemplateUsagePage.test.tsx` — wraps
-`LangProvider`. Scoping it to `workspaceMessages` made every one of those
-tests fail on a marketing-only key with no bundle-size benefit to show for
-it; reverted once that surfaced. `buildLangContextValue()` now takes the
-catalogue as a parameter either way, and degrades (logs, returns the raw
-key) instead of throwing on a miss — direct mitigation for "`t()` on a
-missing key throws rather than degrading," independent of whether any
-provider is actually scoped down.
-
-**Item 1 (`t()` itself still typed `MessageKey`) is unchanged and still the
-genuinely large half** — not attempted this pass.
-
-**Update 2026-08-05 (later same day) — the eager-graph win landed: 671.3kB →
-539.9kB (-131.4kB, -19.6%).** The first attempt at splitting
-`vite.config.ts`'s single `messages` chunk-group into `messages-marketing` /
-`messages-workspace` measured 671.5kB, unchanged — zero bytes moved.
-Root cause, traced one level further than either blocker above:
-`src/features/app/shell/navLabels.ts` and `ProductionEmptyState.tsx` — both
-in `check-entry-graph.mjs`'s `ALLOWED_APP_MODULES`, eager by construction
-because `appViews.tsx`'s route objects reference them directly — import
-`shell.ts` and `workspaceMode.ts` (two of the 29 workspace-only modules)
-directly. Excluding those two files from the `messages-workspace` group's
-`test` regex didn't stop them appearing in the built chunk regardless,
-because **`CodeSplittingGroup.includeDependenciesRecursively` defaults to
-`true`** (rolldown's `codeSplitting.groups` API): `test` only controls which
-modules can *seed* a group; every dependency of a seed module rides along
-into the same chunk regardless of whether that dependency's own id would
-have excluded it. `shell.ts`/`workspaceMode.ts` were never seeds needing
-exclusion — they were riders, pulled in because `workspace.ts` (a seed)
-imports them. Setting `includeDependenciesRecursively: false` on the
-workspace group is the actual fix: everything else in it still matches
-`test` on its own id, so nothing legitimate falls out, while the two
-excluded files fall to default chunking and end up as their own tiny
-preloaded chunks (`shell-*.js` 9.0kB, `workspaceMode-*.js` 1.0kB) next to
-their real eager importers, instead of dragging the other 27 workspace
-modules (~172kB) along with them.
-
-Added the workspace-only message modules to `check-entry-graph.mjs`'s
-barred list the way `PROSE_MODULES` bars article prose — actually, not
-added: the existing `messages-*` chunk-membership check already covers this
-implicitly (the eager-graph byte ceiling itself catches a regression), and a
-name-based bar would need updating every time a module moves between
-`workspace.ts`/`marketing.ts`, which the empirical grouping in
-`src/i18n/messages/index.ts` already re-derives. `MAX_EAGER_KB` was lowered
-700 → 580, still comfortable headroom over the measured 539.9kB, so a
-regression here fails the build rather than going unnoticed. `MAX_PRELOADS`
-stays at 8 (now using 7, up from 5 — `messages-marketing` split off
-`messages`, plus the two new tiny chunks).
-
 **EF6b — Done.** The router imported `@/seo/routes`, which read every article
 and help article to build `allPublicPages()` — it needs slugs, and it was
 getting `blogArticles.ts` (89kB), `guideArticles.ts` (111kB) and
@@ -505,6 +397,7 @@ does not resurrect them.
 
 | Item                                        | Closed by                                                                           |
 | ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| EF6a — split the message catalogue by surface, and guard `t()`'s surface boundary | Catalogue source split into `workspace.ts`/`marketing.ts`/`shared.ts`; `vite.config.ts`'s `messages-workspace` group needed `includeDependenciesRecursively: false` to actually stop riding into the eager graph (671.3kB → 539.9kB, -131.4kB) — see that file's comment for the rolldown mechanism. `t()` itself is still typed `MessageKey`, not per-surface — `scripts/check-message-scopes.mjs` (`npm run check`) guards the same boundary a different way, by scanning every literal `t('key')` call against its file's surface, instead of retyping ~140 call sites for an equivalent guarantee. A *computed* key (`t(someVariable)`) is invisible to this script by construction, same as it always was — those are guarded at the data structure that carries the key (`plans.ts`, `legalHubData.ts`, etc.), which was already typed. |
 | EF5 — `inferCheckoutPrice`'s dead branch    | Deleted; server-set metadata is the checkout path's documented single source        |
 | L1 — primary sources "unreachable"          | Not a network block — a bot filter on the fetching tool; run from a workstation     |
 | L2 — WI1 federal leaves omission            | Pregnancy loss leave confirmed and added; "placement of a child" **does not exist** |

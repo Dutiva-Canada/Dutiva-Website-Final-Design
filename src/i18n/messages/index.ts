@@ -56,23 +56,31 @@ export type { SharedMessageKey } from './shared'
  * `includeDependenciesRecursively` (default `true`) pulls a matched
  * module's dependencies in regardless of what their own id would exclude.
  * Setting it to `false` on the workspace group was the actual fix; see
- * `vite.config.ts` for the mechanics and TODO.md **EF6a** for the full
- * account.
+ * `vite.config.ts` for the mechanics and TODO.md's **Recently closed**
+ * table (EF6a) for the full account.
  *
- * `t()` itself is still typed `MessageKey` at `useI18n()` — the scoped
- * types constrain structures that *carry* keys (`plans.ts`,
- * `planComparison.ts`, `legalHubData.ts`, the About/FAQ/Known-Limitations/
- * Pricing/Template-Usage pages, the two Documents screens), not yet a direct
- * `t('some_key')` call from an arbitrary component. Making `t()` itself
- * surface-aware means threading the scope through `useI18n()` at every call
- * site — the genuinely large half of EF6a, not attempted here.
+ * `t()` itself is still typed `MessageKey` at `useI18n()`, not retyped per
+ * surface — that would mean splitting `useI18n()` into two hooks and
+ * updating the ~140 files that call `t()` for a guarantee this repo gets a
+ * cheaper way instead: `scripts/check-message-scopes.mjs` (wired into
+ * `npm run check`) derives each surface's allowed keys the same way this
+ * file does — empirically, from `workspace.ts` / `marketing.ts`'s own
+ * imports — and scans every source file under `src/features/app/**` and
+ * `src/features/marketing/**` for a literal `t('some_key')` call that
+ * reaches outside its surface. `plans.ts`, `planComparison.ts`,
+ * `legalHubData.ts`, the About/FAQ/Known-Limitations/Pricing/Template-Usage
+ * pages and the two Documents screens carry keys through a surface-scoped
+ * *type* already, so a **computed** call (`t(someVariable)`) is guarded
+ * there instead — invisible to the script by construction, the same way it
+ * would be invisible to a retyped `useI18n()`.
  *
- * Because of that gap, `buildLangContextValue()` degrades instead of
- * throwing when a key is missing from the catalogue it was given (`lang.ts`)
- * — a real scope violation logs loudly and shows the raw key rather than
- * crashing the page. Today's empirical audit found zero such violations; this
- * is the safety net for the day one is introduced by mistake, not evidence
- * that one exists.
+ * Because a literal-scope mistake could still ship between two `npm run
+ * check` runs (a local `git commit --no-verify`, say), `buildLangContextValue()`
+ * also degrades instead of throwing when a key is missing from the
+ * catalogue it was given (`lang.ts`) — a real scope violation logs loudly
+ * and shows the raw key rather than crashing the page. Today's audit found
+ * zero such violations; this is the safety net for the day one is
+ * introduced by mistake, not evidence that one exists.
  */
 
 export const messages = {
