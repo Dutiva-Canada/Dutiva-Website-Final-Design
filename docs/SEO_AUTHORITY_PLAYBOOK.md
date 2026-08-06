@@ -197,7 +197,9 @@ movement in months, not weeks.
    requires one.
 3. Decide whether a non-figure linkable tool is worth building, given the
    editorial constraint above.
-4. Revisit the `GPTBot` / `ClaudeBot` training-crawler policy in
-   `scripts/prerender.mjs` as a deliberate decision. It does not affect
-   citation in ChatGPT or Claude search results — those crawlers are already
-   allowed — but it does keep the brand out of future training corpora.
+4. ~~Revisit the `GPTBot` / `ClaudeBot` training-crawler policy in
+   `scripts/prerender.mjs` as a deliberate decision.~~ **Decided 2026-08-06
+   (D4): opted in.** Training crawlers (`GPTBot`, `ClaudeBot`, `CCBot`,
+   `Amazonbot`, `Google-Extended`) are now allowed with the same
+   private-path exclusions as search crawlers. See
+   [SEO_GEO_IMPLEMENTATION.md § Crawler & AI policy](SEO_GEO_IMPLEMENTATION.md).

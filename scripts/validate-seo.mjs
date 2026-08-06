@@ -269,9 +269,12 @@ const robotsTxt = await readFile(path.join(dist, 'robots.txt'), 'utf8')
 if (!robotsTxt.includes(`Sitemap: ${ORIGIN}/sitemap.xml`)) {
   fail('robots.txt: missing production sitemap reference')
 }
-for (const bot of ['GPTBot', 'ClaudeBot']) {
-  if (!new RegExp(`User-agent: ${bot}\\nDisallow: /\\n`).test(robotsTxt)) {
-    fail(`robots.txt: training bot ${bot} not fully disallowed`)
+// Training crawlers (decided 2026-08-06, D4): opted in. All listed training
+// bots must be present with the same private-path exclusions as search bots.
+for (const bot of ['GPTBot', 'ClaudeBot', 'CCBot', 'Amazonbot', 'Google-Extended']) {
+  if (!robotsTxt.includes(`User-agent: ${bot}`)) fail(`robots.txt: missing group for training bot ${bot}`)
+  if (!new RegExp(`User-agent: ${bot}\\nDisallow: /app\\n`).test(robotsTxt)) {
+    fail(`robots.txt: training bot ${bot} group must repeat the /app exclusions`)
   }
 }
 for (const bot of ['OAI-SearchBot', 'Claude-SearchBot', 'PerplexityBot', '*']) {
