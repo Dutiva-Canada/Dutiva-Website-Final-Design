@@ -36,15 +36,53 @@ function json(body: unknown, status = 200) {
   })
 }
 
+/** Limiter window, per source. Matches report-error's shape (migration 0051). */
+const RATE_WINDOW_SECONDS = 60
+/**
+ * Events — not requests — permitted per window per source. A request may carry
+ * 50, so counting requests would permit 50x this. 120/minute is far above real
+ * browsing (a page view is one event) and far below anything worth flooding.
+ */
+const RATE_LIMIT = 120
+
+/** Keyed hash of the IP: HMAC-SHA256(pepper, ip). Requires a real secret. */
+async function hmacHex(key: string, message: string): Promise<string> {
+  const enc = new TextEncoder()
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(key),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  )
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(message))
+  return Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+/** Best-effort client IP from the usual proxy headers. */
+function clientIp(req: Request): string {
+  const fwd = req.headers.get('x-forwarded-for')
+  if (fwd) return fwd.split(',')[0]!.trim()
+  return req.headers.get('cf-connecting-ip') ?? req.headers.get('x-real-ip') ?? 'unknown'
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  if (!supabaseUrl || !serviceRoleKey) {
+  // Required pepper for the IP hash. Fail closed rather than fall back to a
+  // committed default an attacker could reproduce — the raw IP is never stored,
+  // so without a secret there is no honest way to key the limiter.
+  const pepper = Deno.env.get('ERROR_REPORT_SALT') ?? Deno.env.get('SUPPORT_NOTIFY_SECRET')
+  if (!supabaseUrl || !serviceRoleKey || !pepper) {
+    console.error('[support-analytics-event] missing configuration (url/service-role/pepper)')
     return json({ error: 'Server configuration missing' }, 500)
   }
+  const ipHash = await hmacHex(pepper, clientIp(req))
 
   let payload: unknown
   try {
@@ -90,10 +128,27 @@ Deno.serve(async (req: Request) => {
   if (rows.length === 0) return json({ data: { inserted: 0 } })
 
   const admin = createClient(supabaseUrl, serviceRoleKey)
-  const { error } = await admin.from('support_analytics_events').insert(rows)
+
+  // Rate-limit check + insert in one transaction (migration 0051). Counts
+  // EVENTS rather than requests: a request may carry 50, so a request-counted
+  // limit would permit 50x the intended write volume.
+  const { data: outcome, error } = await admin.rpc('ingest_support_analytics_events', {
+    p_ip_hash: ipHash,
+    p_events: rows,
+    p_window_seconds: RATE_WINDOW_SECONDS,
+    p_limit: RATE_LIMIT,
+  })
   if (error) {
-    console.error('[support-analytics-event] insert failed:', error.message)
+    console.error('[support-analytics-event] ingest failed:', error.message)
     return json({ error: 'Insert failed' }, 500)
+  }
+
+  // 'rate_limited' is not an error the caller can act on — the client is
+  // fire-and-forget and swallows everything anyway. Report it as accepted-but-
+  // dropped so the shape stays stable, and log it so a real flood is visible.
+  if (outcome === 'rate_limited') {
+    console.warn('[support-analytics-event] rate limited a batch of', rows.length)
+    return json({ data: { inserted: 0, rate_limited: true } })
   }
 
   return json({ data: { inserted: rows.length } })
