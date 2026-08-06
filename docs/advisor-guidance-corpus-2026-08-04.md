@@ -221,8 +221,11 @@ English pages' own language-toggle hrefs.
   $4.93/kg, but hedges them with "At this time" / « actuellement » and gives **no effective
   date**. Adding them would mean either inventing an effective date or shipping a rate whose
   currency cannot be stated. Left out deliberately.
-- **The four remaining omitted federal leaves** (court/jury duty, reserve force, work-related
-  illness and injury, maternity-related reassignment) are recorded above but not authored
-  into a chunk this pass.
+- **Update 2026-08-05 — the four remaining omitted federal leaves are authored.** Court/jury
+  duty, reserve force (Canada Labour Code s. 247.5), work-related illness and injury, and
+  maternity-related reassignment are added to the `[FED] leaves` chunk in
+  `0044_federal_leaves_omission_tranche_2026_08_05.sql` (applied), sourced from the same
+  canada.ca EN/FR pages, fetched twice, with the same 2026-05-13 `Date modified`. Retrieval
+  smoke-tested in EN and FR — see that migration's header for detail.
 - **No StatCan fetch** to source the 2.1% CPI figure. The percentage was removed instead,
   which needs no source.
