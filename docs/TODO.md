@@ -65,10 +65,26 @@ and followed by a redeploy — the site key is compiled into the bundle, so
 rotating the secret alone breaks the public form. With neither set the check is
 a safe no-op. (PR #115)
 
-**OA5 — Turn attachment scanning on.** _Owner._ Now down to one step:
-`SUPPORT_ATTACHMENT_SCAN_URL` + `SUPPORT_ATTACHMENT_SCAN_KEY` as edge-function
-secrets. Until then every row stays `scan_status: pending` — the honest state,
-since `pending` has never meant clean. (PR #115)
+**OA5 — Turn attachment scanning on.** _Owner._ Deploy
+[`services/attachment-scanner`](../services/attachment-scanner/README.md) to a
+Canadian region, then set `SUPPORT_ATTACHMENT_SCAN_URL` +
+`SUPPORT_ATTACHMENT_SCAN_KEY` as edge-function secrets. Until then every row
+stays `scan_status: pending` — the honest state, since `pending` has never
+meant clean. (PR #115)
+
+The scanner is self-hosted deliberately: it fetches the actual bytes of
+customer HR attachments, which makes "whose servers do these touch" a
+compliance question (OA9, PIPEDA) rather than a vendor-selection one. A hosted
+API would have needed a translation service anyway — none of them return the
+`{status: clean|infected|unsupported}` shape
+[attachmentScan.ts](../src/features/support/attachmentScan.ts) requires, and
+every unrecognised body maps to `unknown`, so nothing would ever go `clean`.
+Two things to know before deploying: it needs a **2 GB** instance (clamd holds
+the signature DB in RAM; below that it is OOM-killed and every file comes back
+`scanner_unreachable`, which looks like a network fault and isn't), and
+**setting the URL arms the download gate as well as the worker** — verify the
+endpoint with curl first. `support_attachments` is currently empty, so there is
+no backlog to lock out; this is the cheapest moment to switch it on.
 
 The Vault half is done. Verified 2026-08-06: the cron job was firing every 10
 minutes and getting **403** on every run, because `support-attachment-scan` is

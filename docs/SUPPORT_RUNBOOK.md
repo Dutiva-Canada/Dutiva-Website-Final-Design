@@ -227,7 +227,12 @@ table shipped, because nothing flipped it. The `support-attachment-scan` worker
 configured it is a **safe no-op**: rows stay `pending`, downloads are unaffected,
 and turning it on later scans the backlog rather than blessing it.
 
-1. **Stand up a scan endpoint** (typically a ClamAV wrapper). It receives:
+1. **Stand up a scan endpoint.** One is in this repo, ready to deploy:
+   [`services/attachment-scanner`](../services/attachment-scanner/README.md) —
+   ClamAV plus a dependency-free Node service, sized for a Canadian region so
+   customer HR files are not shipped to a third-party scanner. Needs a **2 GB**
+   instance; clamd holds the signature database in RAM and is OOM-killed below
+   that. It receives:
 
    ```json
    { "url": "<5-minute signed URL>", "file_name": "…", "mime_type": "…",
