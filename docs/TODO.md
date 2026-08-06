@@ -65,7 +65,25 @@ and followed by a redeploy — the site key is compiled into the bundle, so
 rotating the secret alone breaks the public form. With neither set the check is
 a safe no-op. (PR #115)
 
-**OA5 — Scanner deployed; two secrets left.** _Owner._ The endpoint is live:
+**OA5 — Done.** Attachment scanning is on and proven end to end. Verified
+2026-08-06 with a real EICAR upload to ticket `DUT-2026-000004`: the row went
+`pending → flagged` in one attempt, `scan_detail` recorded
+`Eicar-Test-Signature`, `scanned_at` was stamped, and an `attachment_flagged`
+event landed in the ticket's audit trail beside the `attachment_added` one.
+`attachment_scan_status()` reads `flagged_count: 1, pending_count: 0`. The
+whole path ran: browser upload → Supabase storage → pg_cron →
+`support-attachment-scan` → 5-minute signed URL → ClamAV in Toronto → verdict
+written back.
+
+The flagged object was deliberately **not** deleted — downloads are refused
+but the bytes stay for an incident responder, per
+[SUPPORT_ARCHITECTURE.md](SUPPORT_ARCHITECTURE.md). The EICAR test file is
+still attached to that ticket; it is an inert industry test string, safe to
+leave or remove.
+
+_Historical detail below._
+
+**Scanner deployment.** The endpoint is live:
 `dutiva-attachment-scanner` on DigitalOcean App Platform, region `tor`,
 `apps-s-1vcpu-2gb`, built from
 [`services/attachment-scanner`](../services/attachment-scanner/README.md) on
