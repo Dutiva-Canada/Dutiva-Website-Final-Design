@@ -171,17 +171,6 @@ The corpus rule is that every statutory figure comes from a direct fetch of an
 official government page, fetched twice — once to author, once to verify
 independently. Everything in this section is gated on that rule.
 
-**L1b — Four federal leaves are still unauthored.** _Build._ The 2026-08-04
-tranche added pregnancy loss, family violence and traditional Aboriginal
-practices to the `[FED] leaves` chunk. Court or jury duty, reserve-force leave
-(24 months in 60), leave for work-related illness and injury, and
-maternity-related reassignment are on the official page, absent from the chunk,
-and were left for a later tranche rather than padding one row past useful
-retrieval length. Note what this cost: the page's `Date modified` is 2026-05-13
-and the chunk was authored 2026-07-27, so these are **authoring omissions, not
-later amendments** — a change-detection watcher would never surface them, and
-only a full re-read of the page will.
-
 **L5 — Corpus review gate.** _Blocked (human review)._ Every row in
 `advisor_guidance_chunks` is `review_status: machine_curated`. Only a human
 flips a row to `reviewed`, and that gate has never been exercised. Unverified
@@ -490,6 +479,7 @@ does not resurrect them.
 | AI usage unmetered during an open beta      | #90 / #91 — guardrails live 2026-07-28                                              |
 | Client error reporting inert                | #92 — `0019` applied, `report-error` deployed (but see OA6)                         |
 | L1a — corpus tranche migration unapplied     | Applied `0042` 2026-08-05 via direct DB access; retrieval smoke test passing        |
+| L1b — four federal leaves unauthored         | Added in `0044` 2026-08-05: court/jury duty, reserve force, work-related illness/injury, maternity-related reassignment |
 
 ---
 
