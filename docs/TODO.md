@@ -416,9 +416,15 @@ entry exists so the next tool goes into one of the three established shapes
 rather than inventing a fourth.
 [FOUR_RING_FRAMEWORK.md](FOUR_RING_FRAMEWORK.md). (PRs #121, #123, #125)
 
-**EF10 — The raised "Ask" tab keeps a star where the brief card has a
-sparkle.** Flagged rather than changed, because handoffs are the source of truth
-for pixels and this one specifies a star. A design call, not a bug. (PR #118)
+**EF10 — Done.** The raised "Ask" tab on the mobile nav now uses a `Sparkle`
+icon, aligning it with the 18+ other Advisor/AI surfaces that use Sparkle
+(brief card, advisor home, advisor rail, chat avatar, memory views, doc
+studio, topbar, entry stage, etc.). The in-repo advisor chat handoff uses
+`sparkFill` for all Advisor touchpoints and `star` only for pinned threads;
+the external mobile nav handoff that supposedly specified a star is no
+longer accessible, so the inconsistency could not be verified as
+intentional. `Star` remains in use for pinned threads (matching the handoff)
+and workflow impact indicators. (PR #160)
 
 ---
 
