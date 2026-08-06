@@ -98,13 +98,25 @@ its client sends no key either
 `verify_jwt = false`. Both are now pinned in
 [`supabase/config.toml`](../supabase/config.toml) so neither drifts back.
 
-**Follow-up worth a ticket: `support-analytics-event` has no rate limiting.**
-It is now an unauthenticated write path accepting up to 50 events per
-request, and unlike `report-error` — the function its docblock says it
-mirrors — it has neither a shared secret (`ERROR_REPORT_SALT`) nor a
-`client_error_rate_limit` equivalent. Nothing stops anyone POSTing arbitrary
-rows into `support_analytics_events`. The 90-day retention bounds the damage;
-the accuracy of every funnel metric does not survive it.
+**The rate-limiting follow-up this entry raised is closed.** It was real:
+`verify_jwt = false` made this an unauthenticated write path taking 50 events a
+request with nothing stopping anyone filling `support_analytics_events` with
+fabricated rows, and 90-day retention bounds the storage but not the accuracy of
+any metric built on it. Migration `0051` closed it with the `0019` pattern —
+peppered IP hash, advisory lock, all-sources sweep, `security definer` to
+`service_role` — counting **events rather than requests**, at 120/minute per
+source. Verified against the deployed function: 251 events across five batches
+stored 101 and rejected the rest once the window filled.
+
+`0051` did leave one half of `0019` behind, and `0052` adds it: `0019` ships a
+scheduled purge because the in-RPC sweep only runs when a request arrives, so a
+quiet endpoint keeps the last caller's IP hashes indefinitely. `0052` adds
+`purge_support_analytics_rate_limit()` on an hourly job and widens
+`support_analytics_status()` so `rate_limit_purge_scheduled` is checkable —
+the same "merged is not running" trap this entry is about.
+
+**Owner: apply `0052`, then confirm `rate_limit_purge_scheduled` is `true`.**
+`0051`'s limiter works without it; only the sweeping stops.
 
 _Historical detail below._
 
