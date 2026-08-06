@@ -70,19 +70,28 @@ a safe no-op. (PR #115)
 secret the pg_cron job reads. Until then every row stays `scan_status: pending`
 — which is the honest state, since `pending` has never meant clean. (PR #115)
 
-**OA6 — Confirm the error-reporting pepper.** _Owner / Verify._ `report-error`
-reads `ERROR_REPORT_SALT`, falls back to `SUPPORT_NOTIFY_SECRET`, and **fails
-closed with a 500 if neither is set**. Function secrets were not readable from
-the session that shipped it, so this was never confirmed. Also confirm the
-hourly `purge-client-error-data` job exists — the migration deliberately does
-not schedule it, so retention is unbounded until someone does.
-[ERROR_REPORTING.md § Deployment status](ERROR_REPORTING.md). (PR #92)
+**OA6 — Done.** Verified 2026-08-06 via Supabase MCP: the `report-error`
+function is not failing closed (48 rows in `client_error_reports`, latest
+2026-08-06 12:12 UTC), confirming `ERROR_REPORT_SALT` or its
+`SUPPORT_NOTIFY_SECRET` fallback is set. The `purge-client-error-data` cron
+job is scheduled hourly at :23 and running successfully (5/5 recent runs
+succeeded). Retention is bounded.
 
-**OA7 — Supabase Auth dashboard settings for magic links.** _Owner._ The three
-settings in [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md) §1–§3, in particular
-switching the email template to `token_hash`. The client-side safety net
-recovers root landings without them; it does not eliminate the scanner-burn
-failure. (PR #52)
+**OA7 — Done.** Supabase Auth dashboard settings for magic links. Verified
+2026-08-06 in the dashboard, all three settings in
+[AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md) §1–§3:
+- §2 **Site URL** was already `https://dutiva.ca`.
+- §3 **Magic link template** was already on
+  `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink`, so the
+  scanner-burn failure mode is gone.
+- §1 **Redirect URLs** was the gap and was fixed the same day. The list held
+  three stale entries from the old `/auth` callback path
+  (`http://localhost:5173/auth`, `https://dutiva.ca/auth`,
+  `https://dutiva.vercel.app/auth`) that matched nothing the app requests;
+  local dev and the `dutiva.vercel.app` alias were therefore falling back to
+  the Site URL. Added `http://localhost:5173/**` and
+  `https://dutiva.vercel.app/**`, removed the three stale entries. 19 entries
+  now; production was already covered by `https://dutiva.ca/**`. (PR #52)
 
 **OA8 — Search Console and Bing Webmaster Tools.** _Owner._ Verify both, set
 `GOOGLE_SITE_VERIFICATION` / `BING_SITE_VERIFICATION` as build env vars, submit
@@ -114,19 +123,36 @@ than urgent: `PAID_PLANS_DISABLED_DURING_BETA` is `true` in
 `create-checkout-session` failing closed is invisible. This becomes blocking the
 day paid plans are re-enabled.
 
-**OA12 — Scheduled-call booking: three deployment steps.** _Owner._ D3 was
-decided 2026-08-06 (Google Calendar, full loop) and built the same day —
-propose/confirm/remind/follow-up, migration `0045` applied. Three things
-outside this repo remain, each independently no-op until done: (1) a Google
-Cloud service account with Calendar access, shared to the target calendar,
-and its three secrets (`GOOGLE_CALENDAR_CLIENT_EMAIL` /
-`GOOGLE_CALENDAR_PRIVATE_KEY` / `GOOGLE_CALENDAR_ID`) — without them,
-confirmation still works, just without an automatic calendar invite; (2)
-deploying `support-agent-action` (extended), `support-confirm-call`, and
-`support-call-scheduler`; (3) the `support_scheduler_service_key` Vault
-secret the cron sweep needs to fire. See
-[SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md) for exact steps and
-`select * from public.support_call_scheduler_status();` to verify.
+**OA12 — Partially done.** D3 was decided 2026-08-06 (Google Calendar, full
+loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
+- (2) **Done.** All three edge functions deployed: `support-agent-action`
+  (v11, extended with `propose_call`), `support-confirm-call` (v1),
+  `support-call-scheduler` (v1). Manual trigger of
+  `trigger_support_call_scheduler()` returned 200.
+- (3) **Done.** `support_scheduler_service_key` Vault secret created.
+  `support_call_scheduler_status()` shows `secret_configured: true`,
+  `job_scheduled: true`.
+- (1) **Still owner.** Google Cloud service account + three Calendar secrets
+  (`GOOGLE_CALENDAR_CLIENT_EMAIL` / `GOOGLE_CALENDAR_PRIVATE_KEY` /
+  `GOOGLE_CALENDAR_ID`). Without them, confirmation still works — just no
+  automatic calendar invite. See
+  [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md).
+
+**OA13 — Partially done.** D1 was decided 2026-08-06 (internal-only, weekly,
+human-reviewed) and built the same day. Verified 2026-08-06 via Supabase MCP:
+- (1) **Done.** OA1/OA2 completed — the monitor is running and Federal
+  detection is confirmed working.
+- (2) **Done.** `send-law-updates` edge function deployed (v1). Manual trigger
+  of `trigger_law_update_digest()` returned 200. `RESEND_API_KEY` /
+  `SUPPORT_OPERATOR_EMAIL` still need to be set (OA3) for emails to actually
+  send — until then, reviewed rows are left unrecorded, not dropped.
+- (3) **Done.** `law_update_digest_service_key` Vault secret created.
+  `law_update_digest_status()` shows `secret_configured: true`,
+  `job_scheduled: true`, `unreviewed_count: 18`.
+- Reviewing a row is direct SQL for now (`update law_updates set
+  review_status = 'reviewed' where id = '<uuid>'`) — there is no admin UI, on
+  purpose, for a low-volume internal pilot. See
+  [LAW_CHANGE_NOTIFICATIONS.md § 7](LAW_CHANGE_NOTIFICATIONS.md).
 
 **OA13 — Law-change digest: three deployment steps, plus the monitor itself.**
 _Owner._ D1 was decided 2026-08-06 (internal-only, weekly, human-reviewed) and
