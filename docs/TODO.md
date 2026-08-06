@@ -185,10 +185,15 @@ Live at `/tools/jurisdiction-check` (EN) and `/fr/outils/verification-juridictio
 remains ruled out (publishing notice periods violates the editorial rule in
 `articleModel.ts`). (PR #156)
 
-**D7 — `/guides` vs `/blog` positioning.** The current copy is one session's
-read of what the twelve articles already are. If a real publishing cadence is
-planned, a dated blog becomes viable and the strings should change — they are
-the cheapest thing in that area to change. (PR #120)
+**D7 — `/guides` vs `/blog` positioning.** Decided 2026-08-06: no publishing
+cadence is planned; the current positioning holds. `/guides` = documents an
+employer produces (contracts, probation, accommodation, termination).
+`/blog` = obligations that apply before drafting (employment regime, required
+policies, records, leaves). Neither is dated, neither is "news" — a stale
+timestamp on a compliance page is worse than none. If a cadence is ever
+planned, the blog should become dated and the strings should change; the
+`articleModel.ts` comment already says to change the rule deliberately rather
+than letting one article quietly become the exception. (PR #157)
 
 ---
 
