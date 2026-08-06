@@ -44,6 +44,28 @@ the container then fails its health check, and every attachment comes back
 `scanner_unreachable`. That reads like a network fault and isn't one. Budget a
 2 GB instance (~$12–25/mo).
 
+## Verify the service logic (no Docker needed)
+
+```bash
+node services/attachment-scanner/harness.cjs
+```
+
+Starts a mock `clamd` that speaks the real INSTREAM wire protocol, a local file
+server, and the actual `server.js`, then asserts the whole contract: auth, URL
+and host validation, the 4-byte-big-endian framing and zero-length terminator,
+reply parsing, and the exact JSON bodies the worker consumes. Fourteen checks;
+run it after any change to `server.js`.
+
+The one it exists for: a 27 MiB file must come back `unsupported`, with clamd
+instructed to say "clean". If the size cap ever stops working, that test returns
+`clean` for an oversized file — the worst wrong answer this service can give.
+
+**What it does not cover:** ClamAV itself. The mock answers what a real clamd
+would, but signature loading, actual detection, and the freshclam lifecycle are
+only exercised by the Docker steps below. Verified 2026-08-06: all fourteen
+checks pass; the container has **not** been built or run, because Docker was not
+installed on the authoring machine.
+
 ## Build and test locally
 
 ```bash

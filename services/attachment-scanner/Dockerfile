@@ -45,7 +45,7 @@ RUN printf '%s\n' \
 RUN freshclam --stdout || echo "freshclam failed at build; will fetch at startup"
 
 WORKDIR /app
-COPY server.js ./
+COPY server.js package.json ./
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh \
  && mkdir -p /var/lib/clamav && chown -R clamav:clamav /var/lib/clamav
