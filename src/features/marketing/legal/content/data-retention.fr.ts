@@ -89,7 +89,7 @@ export default {
         },
         {
           "type": "li",
-          "text": "Données d’utilisation, d’analytique et d’appareil : conservées au besoin pour l’exploitation du service, la mesure globale de l’utilisation, le dépannage, la prévention des abus, la limitation du débit, la surveillance de la sécurité et l’amélioration du produit. Les outils d’analytique facultatifs sont traités comme il est décrit dans la Politique de confidentialité et la Politique relative aux témoins."
+          "text": "Données d’utilisation, d’analytique et d’appareil : conservées au besoin pour l’exploitation du service, la mesure globale de l’utilisation, le dépannage, la prévention des abus, la limitation du débit, la surveillance de la sécurité et l’amélioration du produit. Les données d’événements brutes de l’analytique de support interne sont conservées pendant 90 jours, après quoi elles sont automatiquement supprimées ; les agrégats quotidiens (qui ne permettent plus d’identifier une personne de façon raisonnablement prévisible) sont conservés indéfiniment. L’analytique facultative tierce est traitée comme il est décrit dans la Politique de confidentialité et la Politique relative aux témoins."
         },
         {
           "type": "li",

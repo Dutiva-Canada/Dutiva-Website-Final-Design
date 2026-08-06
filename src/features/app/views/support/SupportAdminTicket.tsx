@@ -19,6 +19,7 @@ import {
 } from '@/features/support/supportAdminApi'
 import type { AdminMessage, AdminScheduledCall, AdminTicket } from '@/features/support/supportAdminApi'
 import { SupportAttachments } from '@/features/support/SupportAttachments'
+import { trackEvent } from '@/features/support/analytics/supportAnalytics'
 
 const PRIORITIES: SupportPriority[] = ['critical', 'high', 'standard', 'low']
 const MAX_CALL_SLOTS = 3
@@ -201,6 +202,15 @@ export function SupportAdminTicket() {
     setActionError(false)
     try {
       await runAgentAction(ticketId, payload)
+      if (payload.action === 'status' && payload.status && ticket && ticket !== 'missing') {
+        trackEvent({
+          event_type: 'ticket_status_changed',
+          ticket_reference: ticket.publicReference,
+          ticket_category: ticket.category,
+          ticket_source: payload.status,
+          locale: lang,
+        })
+      }
       clear?.()
       await load()
     } catch (e) {

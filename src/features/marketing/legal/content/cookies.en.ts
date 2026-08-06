@@ -69,11 +69,11 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Dutiva’s codebase includes optional analytics support. Analytics only load when an analytics measurement ID is configured and the relevant tracker is mounted. If analytics are enabled, analytics events are used to understand aggregate product usage, troubleshoot issues, improve reliability, and make product decisions.',
+          text: 'Dutiva uses two kinds of analytics: first-party support analytics and optional third-party website analytics (Google Analytics 4). First-party support analytics (Help Centre searches, article views, helpfulness votes, and support ticket events) are sent to a Dutiva-operated edge function in Canada and do not use third-party cookies. These events carry a daily-rotated anonymous visitor identifier for Help Centre activity or the workspace (organization) identifier for authenticated ticket events, never an individual user identifier. Raw event data is retained for 90 days; daily aggregates are retained indefinitely.',
         },
         {
           type: 'p',
-          text: 'Where analytics or similar optional technologies require consent, notice, or preference controls under applicable law, Dutiva will provide appropriate controls before using those technologies for that purpose.',
+          text: 'Google Analytics 4, if enabled, loads only when a measurement ID is configured and the user has granted consent through the consent banner. Where analytics or similar optional technologies require consent, notice, or preference controls under applicable law, Dutiva will provide appropriate controls before using those technologies for that purpose.',
         },
         {
           type: 'li',
