@@ -156,10 +156,18 @@ loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
 human-reviewed) and built the same day. Verified 2026-08-06 via Supabase MCP:
 - (1) **Done.** OA1/OA2 completed — the monitor is running and Federal
   detection is confirmed working.
-- (2) **Done.** `send-law-updates` edge function deployed (v1). Manual trigger
-  of `trigger_law_update_digest()` returned 200. `RESEND_API_KEY` /
-  `SUPPORT_OPERATOR_EMAIL` still need to be set (OA3) for emails to actually
-  send — until then, reviewed rows are left unrecorded, not dropped.
+- (2) **Done**, after a correction. `send-law-updates` deployed (v1).
+  The earlier note here said a manual trigger "returned 200" — that was wrong,
+  and wrong in the way this whole family of bugs is wrong: `trigger_…()`
+  returns void and pg_net is asynchronous, so what was observed was the SQL
+  succeeding, not the HTTP call. The call was in fact returning **401** every
+  time: 0046 sent `Authorization: Bearer …` while `send-law-updates` gates on
+  `x-notify-secret`. Fixed in `0049`; re-verified 2026-08-06 by reading
+  `net._http_response` rather than the trigger's return value —
+  `200 {"ok":true,"sent":false,"reason":"nothing_to_digest"}`.
+  `RESEND_API_KEY` / `SUPPORT_OPERATOR_EMAIL` still need to be set (OA3) for
+  emails to actually send — until then, reviewed rows are left unrecorded,
+  not dropped.
 - (3) **Done.** `law_update_digest_service_key` Vault secret created.
   `law_update_digest_status()` shows `secret_configured: true`,
   `job_scheduled: true`, `unreviewed_count: 18`.
@@ -167,6 +175,53 @@ human-reviewed) and built the same day. Verified 2026-08-06 via Supabase MCP:
   review_status = 'reviewed' where id = '<uuid>'`) — there is no admin UI, on
   purpose, for a low-volume internal pilot. See
   [LAW_CHANGE_NOTIFICATIONS.md § 7](LAW_CHANGE_NOTIFICATIONS.md).
+
+**OA16 — Redeploy `monitor-law-changes` to close an auth bypass.** _Owner._
+The fix is committed in
+[monitor-law-changes/index.ts](../supabase/functions/monitor-law-changes/index.ts);
+it is **not deployed**, and deploying it is the last open piece of the
+2026-08-06 cron-auth audit.
+
+Until 2026-07-30 (#105) this function and `support-call-scheduler` shared an
+`isAuthorizedTrigger()` whose last branch base64-decoded the JWT payload and
+trusted `claims.role === 'service_role'` **without verifying the signature**.
+Both run `verify_jwt: false`, so that check was the only gate:
+`Bearer x.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.x` — a literal
+`{"role":"service_role"}`, no key involved — authenticated anyone on the
+internet. `support-call-scheduler` was fixed and redeployed (v2) the same day
+and is confirmed closed: legitimate trigger 200, forged token 403.
+`monitor-law-changes` is still exposed; the reachable impact is an
+unauthenticated 19-page government-site sweep and the model spend behind it,
+bounded by the 30-minute cron lock.
+
+**Why it wasn't deployed with the other one.** Deployed v18 (2026-07-31)
+predates #146, which reworks Ontario and Québec sourcing onto new APIs (220
+lines, plus `ontarioApi.ts` and `quebecCkan.ts`). Deploying from the repo ships
+that too — an unrelated, never-run change riding along inside a security fix,
+which is not a trade worth making silently.
+
+**Do it with the CLI, not the MCP tool.** This function is ~700 lines across
+four modules; the MCP deploy path requires passing every file's contents
+through the model, and a transcription slip there breaks law monitoring
+silently. The CLI reads from disk:
+
+```
+npx supabase login
+npx supabase functions deploy monitor-law-changes --project-ref khtwpxnvziiyplaflwru
+```
+
+That also makes shipping #146 an explicit choice — whatever is in the working
+tree is what goes. Afterwards, confirm the gate holds without paying for a
+sweep (a `PUT` is rejected before any work happens):
+
+```sql
+select net.http_post(
+  url := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/monitor-law-changes',
+  headers := jsonb_build_object('Authorization', 'Bearer x.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.x'),
+  body := '{}'::jsonb);
+-- then: select status_code, content from net._http_response order by id desc limit 1;
+-- expect 403
+```
 
 ---
 

@@ -32,28 +32,32 @@ function json(body: unknown, status = 200) {
 const CRON_LOCK_JOB = 'support-call-scheduler-sweep'
 const CRON_LOCK_TTL_SECONDS = 300
 
-/** Same bearer-or-JWT check monitor-law-changes uses for its own cron trigger. */
+/**
+ * Only the pg_cron schedule or an operator may run this. `verify_jwt` is false
+ * at the gateway, so this function *is* the gate — nothing upstream checks a
+ * caller.
+ *
+ * Until 2026-08-06 this also accepted any token whose JWT payload carried
+ * role=service_role. That payload was base64-decoded and trusted; the
+ * signature was never verified. `Bearer x.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.x`
+ * authenticated anyone on the internet, and this job emails customers. The
+ * branch is gone. The schedule now presents the shared secret (migration
+ * 0049) — the credential support-notify-drain has always used.
+ */
 function isAuthorizedTrigger(req: Request): boolean {
+  const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
+  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+
   const auth = req.headers.get('Authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return false
-  const token = auth.slice('Bearer '.length)
+  const token = auth.slice('Bearer '.length).trim()
+  if (token === '') return false
 
+  // Exact match only. Both are real credentials; neither is derived from
+  // anything the caller controls.
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  if ((serviceKey && token === serviceKey) || (secretKey && token === secretKey)) return true
-
-  try {
-    const payload = token.split('.')[1]
-    if (payload) {
-      const b64 = payload.replace(/-/g, '+').replace(/_/g, '/')
-      const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), '=')
-      const claims = JSON.parse(atob(padded))
-      if (claims?.role === 'service_role') return true
-    }
-  } catch {
-    /* not a JWT — fall through */
-  }
-  return false
+  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
 }
 
 Deno.serve(async (req: Request) => {
