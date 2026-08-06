@@ -448,10 +448,13 @@ email is the only route that actually works from there.
   ahead) and flags a call for a written follow-up once its end time has
   passed. See [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md) for
   the owner deployment steps — none of this runs until they're done.
-- **Support analytics** — privacy-conscious support/deflection events. Not built:
-  the data model is a product decision (what to collect, anonymous vs
-  user-scoped, retention), and collecting customer-behaviour data shouldn't be
-  designed speculatively. Needs an explicit privacy model first.
+- **Support analytics** — privacy-conscious support/deflection events. Decided
+  2026-08-06 (full support funnel, workspace-scoped, 90-day raw / forever
+  aggregate, first-party Supabase sink + GA4 plumbing) and built. See
+  [SUPPORT_ANALYTICS.md](SUPPORT_ANALYTICS.md). The `recordHelpfulness` seam
+  is now wired to the sink, along with search, article view, ticket
+  submission, and ticket status change events. GA4 is built but inert until
+  a consent banner ships (needs a design handoff).
 
 ## Diagnostic context policy
 

@@ -137,7 +137,12 @@ export default {
         },
         {
           type: 'li',
-          text: 'Google Analytics, s’il est activé : analytique du produit ou du site Web. L’application actuelle ne charge ce service que lorsqu’un identifiant de mesure est configuré.',
+          text: 'Google Analytics, s’il est activé : analytique du produit ou du site Web. L’application actuelle ne charge ce service que lorsqu’un identifiant de mesure est configuré et que l’utilisateur a accordé son consentement par l’intermédiaire de la bannière de consentement.',
+        },
+        {
+          type: 'li',
+          // [FR self-authored] — matches the English privacy.en.ts update for D2 support analytics
+          text: 'Analytique de support interne : recherches dans le Centre d’aide, consultations d’articles, votes d’utilité, et événements de soumission et de statut des billets de support. Ces événements sont envoyés à une fonction edge exploitée par Dutiva au Canada et n’utilisent pas de témoins tiers. Les événements anonymes du Centre d’aide portent un identifiant de visiteur quotidien rotatif, et non un identifiant d’utilisateur ou d’espace de travail. Les événements authentifiés liés aux billets portent l’identifiant de l’espace de travail (organisation), et non l’identifiant individuel de l’utilisateur. Les données d’événements brutes sont conservées pendant 90 jours ; les agrégats quotidiens sont conservés indéfiniment. Voir la Politique de conservation des données pour plus de détails.',
         },
         {
           type: 'p',

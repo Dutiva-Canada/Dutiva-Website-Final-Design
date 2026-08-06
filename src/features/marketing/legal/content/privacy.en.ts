@@ -137,7 +137,11 @@ export default {
         },
         {
           type: 'li',
-          text: 'Google Analytics, if enabled: product or website analytics. The current application only loads this service when a measurement ID is configured.',
+          text: 'Google Analytics, if enabled: product or website analytics. The current application only loads this service when a measurement ID is configured and the user has granted consent through the consent banner.',
+        },
+        {
+          type: 'li',
+          text: 'First-party support analytics: Help Centre searches, article views, helpfulness votes, and support ticket submission and status events. These events are sent to a Dutiva-operated edge function in Canada and do not use third-party cookies. Anonymous Help Centre events carry a daily-rotated visitor identifier, not a user or workspace identifier. Authenticated ticket events carry the workspace (organization) identifier, not the individual user identifier. Raw event data is retained for 90 days; daily aggregates are retained indefinitely. See the Data Retention Policy for details.',
         },
         {
           type: 'p',

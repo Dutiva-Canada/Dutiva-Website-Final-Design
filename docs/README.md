@@ -85,6 +85,7 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | [SUPPORT_ARCHITECTURE.md](SUPPORT_ARCHITECTURE.md)             | The digital-first support model and how its pieces fit.                             |
 | [SUPPORT_RUNBOOK.md](SUPPORT_RUNBOOK.md)                       | Operating support solo, in structured review blocks.                                |
 | [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md)       | Propose/confirm/remind/follow-up for scheduled calls, and the Google Calendar setup. |
+| [SUPPORT_ANALYTICS.md](SUPPORT_ANALYTICS.md)                   | Support funnel analytics: privacy model, data schema, and how to query the data.    |
 
 ## Design handoffs
 
