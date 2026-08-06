@@ -30,10 +30,10 @@ describe('GuidanceSourcesPanel', () => {
     expect(screen.getByText('Quebec')).toBeInTheDocument()
     expect(screen.getByText('Federal')).toBeInTheDocument()
     expect(screen.getAllByText('Not monitored')).toHaveLength(2)
-    expect(screen.getByText('Unconfirmed')).toBeInTheDocument()
+    expect(screen.getByText('Monitored')).toBeInTheDocument()
     expect(
-      screen.getByText(guidanceMessages.guidance_coverage_none_active.en),
-    ).toBeInTheDocument()
+      screen.queryByText(guidanceMessages.guidance_coverage_none_active.en),
+    ).not.toBeInTheDocument()
   })
 
   it('reports the not-configured error when submitting without Supabase configured', async () => {

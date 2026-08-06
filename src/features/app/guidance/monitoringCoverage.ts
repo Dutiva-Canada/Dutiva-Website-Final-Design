@@ -29,7 +29,7 @@ import type { ChipTone } from '@/components/chips'
  */
 
 /** Date of the audit these statuses describe. Shown to the reader. */
-export const COVERAGE_AUDITED_ON = '2026-07-30'
+export const COVERAGE_AUDITED_ON = '2026-08-06'
 
 export type CoverageStatus =
   /** Verified to be fetching real legislation and able to detect a change. */
@@ -70,10 +70,10 @@ export const MONITORING_COVERAGE: readonly JurisdictionCoverage[] = [
   {
     jurisdiction: 'FED',
     label: { en: 'Federal', fr: 'Fédéral' },
-    status: 'unverified',
+    status: 'active',
     detail: {
-      en: 'Now sourced from the federal government’s own published legislation data, which states when each Act was last amended. Awaiting the first completed check before this is reported as working.',
-      fr: "Provient désormais des données législatives publiées par le gouvernement fédéral, qui indiquent la date de la dernière modification de chaque loi. En attente d'une première vérification complète avant d'être signalée comme fonctionnelle.",
+      en: 'Sourced from the federal government’s own published legislation data, which states when each Act was last amended. The first completed sweep on 2026-08-06 confirmed both federal pages are fetched and baselined.',
+      fr: "Provient des données législatives publiées par le gouvernement fédéral, qui indiquent la date de la dernière modification de chaque loi. La première vérification complète le 2026-08-06 a confirmé que les deux pages fédérales sont récupérées et référencées.",
     },
   },
 ]

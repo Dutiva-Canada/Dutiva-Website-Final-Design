@@ -159,14 +159,22 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
     if (noSupportedJurisdictionCovered()) {
       expect(monitoring.toLowerCase()).toContain('not confirmed working')
     } else {
+      /* At least one supported jurisdiction has confirmed detection. The row
+         must name which jurisdictions are confirmed and which are not, rather
+         than claiming blanket coverage or blanket failure. */
       const active = MONITORING_COVERAGE.filter((c) => c.status === 'active').map(
         (c) => c.jurisdiction,
       )
-      throw new Error(
-        `${active.join(', ')} now has confirmed detection, so "Not confirmed working for ` +
-          'any supported jurisdiction" is no longer true. Update the row, ' +
-          'monitoringCoverage.ts and CANONICAL_FACTS §5 together.',
+      const unavailable = MONITORING_COVERAGE.filter((c) => c.status === 'unavailable').map(
+        (c) => c.jurisdiction,
       )
+      for (const j of active) {
+        expect(monitoring.toLowerCase()).toContain(j.toLowerCase())
+      }
+      expect(monitoring.toLowerCase()).toContain('confirmed working')
+      /* unavailable jurisdictions are named in the §5 paragraph, not the row */
+      expect(unavailable.length).toBeGreaterThan(0)
+      expect(monitoring.toLowerCase()).toContain('unavailable')
     }
   })
 })

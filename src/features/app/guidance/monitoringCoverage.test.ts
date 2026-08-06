@@ -48,11 +48,15 @@ describe('MONITORING_COVERAGE', () => {
     expect(COVERAGE_AUDITED_ON).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 
-  it('reflects the 2026-07-30 audit: nothing confirmed working', () => {
-    /* Ontario and Québec sources are unusable and Federal is unconfirmed. If a
-       source strategy lands and this test starts failing, that is the signal to
+  it('reflects the 2026-08-06 audit: Federal confirmed, ON/QC still unavailable', () => {
+    /* The first successful federal sweep on 2026-08-06 fetched both Justice
+       Canada XML pages and recorded first_seen events, proving the source
+       works. Ontario and Québec remain unavailable. If a source strategy
+       lands for either and this test starts failing, that is the signal to
        update the table and the audit date together — not to delete the test. */
-    expect(noSupportedJurisdictionCovered()).toBe(true)
+    expect(noSupportedJurisdictionCovered()).toBe(false)
+    const active = MONITORING_COVERAGE.filter((c) => c.status === 'active').map((c) => c.jurisdiction)
+    expect(active).toEqual(['FED'])
   })
 })
 
