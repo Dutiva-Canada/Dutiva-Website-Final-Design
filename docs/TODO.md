@@ -65,12 +65,30 @@ and followed by a redeploy — the site key is compiled into the bundle, so
 rotating the secret alone breaks the public form. With neither set the check is
 a safe no-op. (PR #115)
 
-**OA5 — Turn attachment scanning on.** _Owner._ Deploy
-[`services/attachment-scanner`](../services/attachment-scanner/README.md) to a
-Canadian region, then set `SUPPORT_ATTACHMENT_SCAN_URL` +
-`SUPPORT_ATTACHMENT_SCAN_KEY` as edge-function secrets. Until then every row
-stays `scan_status: pending` — the honest state, since `pending` has never
-meant clean. (PR #115)
+**OA5 — Scanner deployed; two secrets left.** _Owner._ The endpoint is live:
+`dutiva-attachment-scanner` on DigitalOcean App Platform, region `tor`,
+`apps-s-1vcpu-2gb`, built from
+[`services/attachment-scanner`](../services/attachment-scanner/README.md) on
+`main` with `deploy_on_push` off. Verified 2026-08-06 against the deployed URL:
+`/health` → `{"ok":true,"clamd":"PONG"}`, `/scan` with a wrong or absent token
+→ `401`, unknown route → `404`, plain http → `301`. The first deployment
+deliberately failed — `SCAN_TOKEN is not set — refusing to start an
+unauthenticated scan endpoint` — which also proved clamd loads its full
+signature database inside the 2 GB slug before the token check runs.
+
+**What is left:** set `SUPPORT_ATTACHMENT_SCAN_URL` (the app's ingress URL +
+`/scan`) and `SUPPORT_ATTACHMENT_SCAN_KEY` (the same value as the app's
+`SCAN_TOKEN`) as Supabase edge-function secrets. Until then every row stays
+`scan_status: pending` — the honest state, since `pending` has never meant
+clean. (PR #115, #165)
+
+**Not yet exercised end to end.** No file has been scanned through the
+deployed service: it only fetches from `ALLOWED_FETCH_HOST`
+(`khtwpxnvziiyplaflwru.supabase.co`), so a real scan needs a Supabase signed
+URL, which needs the secrets above. The first genuine test is uploading an
+EICAR `.txt` to a ticket and watching the row go `pending → flagged`. Local
+verification against real ClamAV did pass (EICAR → `infected`
+`Eicar-Test-Signature`, ordinary file → `clean`).
 
 The scanner is self-hosted deliberately: it fetches the actual bytes of
 customer HR attachments, which makes "whose servers do these touch" a
