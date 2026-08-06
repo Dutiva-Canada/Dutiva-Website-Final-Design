@@ -1,7 +1,9 @@
 -- Advisor grounding corpus — amendment tranche of 2026-08-04.
 --
--- STATUS: NOT APPLIED. Authored from a workstation with primary-source access;
--- no session here can reach the database. Applying this is an owner action.
+-- STATUS: APPLIED 2026-08-05, via direct Supabase MCP access to the live
+-- project. Retrieval smoke test run afterward through match_advisor_guidance
+-- for each amended topic in EN and FR — see
+-- docs/advisor-guidance-corpus-2026-08-04.md § Not done, and why.
 --
 -- Closes the three work items that docs/advisor-corpus-verification-2026-08-02.md
 -- recorded as blocked. That cycle stopped because every official host was refused
@@ -119,8 +121,8 @@ WHERE source_url = 'https://www.cnesst.gouv.qc.ca/en/working-conditions/work-sch
 -- Cite all four WITHOUT a trailing slash; a trailing slash 301s to the bare path.
 
 -- ===========================================================================
--- POST-APPLY (owner): run the retrieval smoke test through
--- match_advisor_guidance for the amended topics in EN and FR, the way the
--- 2026-07-29 snapshot documents. fts and fts_fr recompute automatically, but
--- nothing here proves the amended rows still rank for their topics.
+-- POST-APPLY: done 2026-08-05. Retrieval smoke test run through
+-- match_advisor_guidance for the amended topics in EN and FR — all rank first
+-- for their own topic's query in both languages. See
+-- docs/advisor-guidance-corpus-2026-08-04.md § Not done, and why.
 -- ===========================================================================
