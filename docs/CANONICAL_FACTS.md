@@ -274,7 +274,8 @@ correct, only its written description drifted.
 
 ## Positioning that holds up
 
-From the Beta Launch Brief (2026-07-20), the most current document in Drive:
+From the **Beta Launch Brief (2026-07-20)** — decided 2026-08-06 (D5) as the
+plan of record among the Drive business documents:
 
 - **Differentiator:** Dutiva names the statute, not just the province.
 - **Credibility:** built by a Canadian HR and payroll operator who has processed
@@ -294,7 +295,12 @@ penalties to $10M. Follow the Beta Launch Brief on this.
 
 1. Confirm incorporation date, trademark status and business phone against filings.
 2. Resolve the DigitalOcean residency ticket; update "Claims to stop making" §2.
-3. Decide the plan of record — two business plans are live, neither marked superseded.
+3. ~~Decide the plan of record — two business plans are live, neither marked superseded.~~
+   **Decided 2026-08-06 (D5): the Beta Launch Brief (2026-07-20) is the plan
+   of record.** _Owner action remaining (OA15):_ mark the other business plan
+   superseded in Drive. The Beta Launch Brief itself still needs the privacy
+   claim in §"Claims to stop making" 1 corrected — it predates the
+   architecture change that made the claim false.
 4. Return T01/T02/T04 to the Drive `ON/EN` template folder, or flag them as out for
    legal review.
 5. Deduplicate the Drive HR template tree — every template exists twice from two

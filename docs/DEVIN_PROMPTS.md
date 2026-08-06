@@ -840,8 +840,10 @@ them.
   `_polished` drafts in June 2026 and never came back to `ON/EN`; every HR-tree
   template exists twice from two uploads on 2026-06-16. Deferred deliberately
   because it means deleting files.
-- **D5** — which business plan is the plan of record. Two are live in Drive and
-  neither is marked superseded.
+- **D5** — ~~which business plan is the plan of record.~~ Decided
+  2026-08-06: the Beta Launch Brief (2026-07-20). Owner action: mark the
+  other plan superseded in Drive and correct the privacy claim in the
+  Brief (see CANONICAL_FACTS § Claims to stop making 1).
 - **D6** — whether a non-figure linkable asset is worth building. The
   termination-notice calculator was ruled out because publishing notice periods
   violates the editorial rule in `articleModel.ts` — which exists precisely
