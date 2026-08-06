@@ -159,12 +159,40 @@ succeeded). Retention is bounded.
   `https://dutiva.vercel.app/**`, removed the three stale entries. 19 entries
   now; production was already covered by `https://dutiva.ca/**`. (PR #52)
 
-**OA8 — Search Console and Bing Webmaster Tools.** _Owner._ Verify both, set
-`GOOGLE_SITE_VERIFICATION` / `BING_SITE_VERIFICATION` as build env vars, submit
-`https://dutiva.ca/sitemap.xml`, and request indexing for the expanded articles.
-Nothing downstream in [SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md) is
-measurable until this happens, and no session so far has been able to reach
-`dutiva.ca` from its sandbox to verify production headers. (PRs #112, #113)
+**OA8 — Done.** Both engines were already verified and crawling; this entry was
+stale, not outstanding. It had inferred "unverified" from "no session could
+reach `dutiva.ca` from its sandbox" — but the work had been done in the
+dashboards back in April, where no sandbox could see it. Checked directly in
+both consoles 2026-08-06:
+
+- **Google Search Console** — property `https://dutiva.ca/` verified and
+  reporting (69 indexed pages, 37 not indexed). Sitemap `/sitemap.xml`
+  submitted 2026-04-12, last read 2026-07-29, **Success**, 102 pages
+  discovered.
+- **Bing Webmaster Tools** — site `www.dutiva.ca` live (17 clicks, 68
+  impressions). Two sitemaps known, 0 errors, 0 warnings, 252 URLs
+  discovered: `https://dutiva.ca/sitemap.xml` (submitted 2026-04-23, crawled
+  2026-08-05) and `https://www.dutiva.ca/sitemap.xml` (submitted 2026-04-22,
+  crawled 2026-08-04), both **Success**.
+
+**`GOOGLE_SITE_VERIFICATION` / `BING_SITE_VERIFICATION` are not needed** and
+were never set. Both properties are verified by another method, so the
+build-time meta tags in [`scripts/prerender.mjs`](../scripts/prerender.mjs)
+have nothing to prove. The code stays — it costs nothing and is the right
+mechanism if a property ever needs re-verifying — but no Vercel variable and
+no redeploy is required. (PRs #112, #113)
+
+Two real findings surfaced by Bing's own recommendations, both feeding
+[SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md) rather than this
+section:
+- _"Meta descriptions on many pages are too short."_ That is a code fix in
+  the route metadata, not a dashboard action.
+- _"Your site does not have enough inbound links from high quality domains."_
+  The off-site half of the playbook, unchanged by anything here.
+
+Optional tidy: Bing holds sitemaps for both `dutiva.ca` and `www.dutiva.ca`
+while `vercel.json` 301s www → apex. Harmless — both report Success — but the
+www entry is redundant.
 
 **OA9 — Send the DigitalOcean residency ticket.** _Owner._ The ticket is
 drafted and unsent in
