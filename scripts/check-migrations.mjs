@@ -74,6 +74,24 @@ const ACCEPTED_UNAPPLIED = new Map([
   ],
 ])
 
+/**
+ * Where this repository's migration history starts. Everything applied before
+ * it is pre-repo scaffolding — 56 migrations that legitimately have no file
+ * here, the same lineage as supabase/legacy-migrations/. Without this baseline
+ * the reverse check below would report every one of them and be useless.
+ */
+const REPO_HISTORY_BEGINS_AT = 'doclib_schema'
+
+/**
+ * Applied migrations at or after the baseline that deliberately have no repo
+ * file. The mirror of ACCEPTED_UNAPPLIED, and kept just as short: every entry
+ * is a place the database knows something the repo does not.
+ */
+const ACCEPTED_UNTRACKED = new Map([
+  ['doclib_seed_window_open', 'the applied half of the split pair for 0002_doclib_seed.sql'],
+  ['doclib_seed_window_close', 'the applied half of the split pair for 0002_doclib_seed.sql'],
+])
+
 const problems = []
 const notes = []
 
@@ -172,6 +190,7 @@ if (!token || !projectRef) {
   await announceSkippedDriftCheck(message)
 } else {
   let applied
+  let appliedRows
   try {
     const response = await fetch(
       `https://api.supabase.com/v1/projects/${projectRef}/database/query`,
@@ -179,14 +198,16 @@ if (!token || !projectRef) {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: 'select name from supabase_migrations.schema_migrations',
+          query:
+            'select version, name from supabase_migrations.schema_migrations order by version',
         }),
       },
     )
     if (!response.ok) {
       throw new Error(`${response.status} ${(await response.text()).slice(0, 200)}`)
     }
-    applied = new Set((await response.json()).map((row) => row.name))
+    appliedRows = await response.json()
+    applied = new Set(appliedRows.map((row) => row.name))
   } catch (error) {
     /* A credentials or network failure must not read as "no drift". */
     console.error(`check-migrations: could not read applied migrations — ${error.message}`)
@@ -198,6 +219,33 @@ if (!token || !projectRef) {
     const reason = ACCEPTED_UNAPPLIED.get(slug)
     if (reason) notes.push(`${file}: not applied — ${reason}`)
     else problems.push(`${file}: present in the repo but NOT applied to ${projectRef}`)
+  }
+
+  /* Reverse drift: applied on the project, absent from the repo.
+   *
+   * This direction was missing until 2026-08-06, when a migration
+   * (purge_support_analytics_rate_limit) was applied straight to the project
+   * with no file committed. The check was green throughout, because it only
+   * ever asked whether repo files had been applied — never whether the
+   * database was running something nobody could read. That is the worse
+   * direction: an unapplied migration makes a feature inert and someone
+   * eventually notices, while an uncommitted one is schema that exists only in
+   * production and vanishes on any rebuild from source. */
+  const baselineIndex = appliedRows.findIndex((row) => row.name === REPO_HISTORY_BEGINS_AT)
+  if (baselineIndex === -1) {
+    notes.push(
+      `could not find "${REPO_HISTORY_BEGINS_AT}" on ${projectRef} — reverse drift not checked`,
+    )
+  } else {
+    for (const row of appliedRows.slice(baselineIndex)) {
+      if (localSlugs.has(row.name)) continue
+      const reason = ACCEPTED_UNTRACKED.get(row.name)
+      if (reason) notes.push(`${row.name}: applied, no repo file — ${reason}`)
+      else
+        problems.push(
+          `${row.name} (version ${row.version}): applied to ${projectRef} but NOT in the repo`,
+        )
+    }
   }
 
   console.log(
