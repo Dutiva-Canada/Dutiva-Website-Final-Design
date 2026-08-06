@@ -4,6 +4,7 @@ import { Disclaimer } from '@/components/Disclaimer'
 import { homeMessages as M } from '@/i18n/messages/home'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { PlanGate } from '@/features/app/billing/PlanGate'
 import { HomeBriefHero } from './HomeBriefHero'
 import { HomeCompliancePanel } from './HomeCompliancePanel'
 import { HomeActNowSection, HomeThisWeekSection, HomeWatchingSection } from './HomePriorityQueue'
@@ -37,7 +38,11 @@ export function HomeView() {
   }
 
   if (mode === 'production') {
-    return <HomeProductionView onSend={sendToAdvisor} />
+    return (
+      <PlanGate required="growth">
+        <HomeProductionView onSend={sendToAdvisor} />
+      </PlanGate>
+    )
   }
 
   return (

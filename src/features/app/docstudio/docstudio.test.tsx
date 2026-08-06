@@ -4,6 +4,10 @@ import { LangProvider } from '@/i18n/LangProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import { ToastHost } from '@/features/app/toasts/ToastHost'
 import { appendExportAudit, clearExportAudit, decodeInvisibleTag } from '@/lib/exportProtection'
+import { PlanContext } from '@/features/app/billing/planContext'
+import type { PlanContextValue } from '@/features/app/billing/planContext'
+import { WorkspaceModeContext } from '@/features/app/workspaceMode/workspaceModeContext'
+import type { WorkspaceModeContextValue } from '@/features/app/workspaceMode/workspaceModeContext'
 import { DocStudioProvider } from './DocStudioProvider'
 import { DocStudioOverlay } from './DocStudioOverlay'
 import { useDocStudio } from './docStudioContext'
@@ -33,16 +37,41 @@ function Opener() {
   )
 }
 
+/* PlanGate wraps the export buttons and reads usePlan + useWorkspaceMode.
+   Tests render in demo mode with pro plan so gates pass — the studio's
+   export behavior is tested independently of plan gating (see PlanGate.test). */
+const DEMO_MODE_CTX: WorkspaceModeContextValue = {
+  mode: 'demo',
+  isAdmin: false,
+  identity: {
+    companyName: 'Northgate Logistics Inc.',
+    user: { name: 'Riley Chen', initials: 'RC', role: { en: 'HR Manager', fr: 'Gestionnaire RH' }, email: 'riley@northgate.ca' },
+  },
+  organizationId: null,
+  setMode: vi.fn(),
+}
+const PRO_PLAN_CTX: PlanContextValue = {
+  plan: 'pro',
+  subscriptionStatus: 'active',
+  stripeCustomerId: null,
+  isAdmin: false,
+  loading: false,
+}
+
 function renderStudio({ withToastHost = false } = {}) {
   return render(
     <LangProvider>
-      <ToastsProvider>
-        <DocStudioProvider>
-          <Opener />
-          <DocStudioOverlay />
-          {withToastHost && <ToastHost />}
-        </DocStudioProvider>
-      </ToastsProvider>
+      <WorkspaceModeContext.Provider value={DEMO_MODE_CTX}>
+        <PlanContext.Provider value={PRO_PLAN_CTX}>
+          <ToastsProvider>
+            <DocStudioProvider>
+              <Opener />
+              <DocStudioOverlay />
+              {withToastHost && <ToastHost />}
+            </DocStudioProvider>
+          </ToastsProvider>
+        </PlanContext.Provider>
+      </WorkspaceModeContext.Provider>
     </LangProvider>,
   )
 }
@@ -209,7 +238,9 @@ describe('Document Studio', () => {
     const html = await download.blob.text()
     expect(decodeInvisibleTag(html)).toMatch(/^[0-9a-f-]{36}$/)
     expect(html).toContain('Exported from Dutiva')
-    expect(html).toContain('Demo session')
+    /* The mock workspace identity is Riley Chen — exports carry the real
+       actor label, not the "Demo session" fallback. */
+    expect(html).toContain('Riley Chen')
   })
 
   it('refuses a bulk-export burst, leaves the document unexported, and says when to retry', async () => {

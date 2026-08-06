@@ -6,6 +6,7 @@ import { Disclaimer } from '@/components/Disclaimer'
 import { pickL } from '@/i18n/core'
 import { useEscapeToClose } from '@/lib/escapeStack'
 import { docstudioMessages as M } from '@/i18n/messages/docstudio'
+import { PlanGate } from '@/features/app/billing/PlanGate'
 import { useDocStudio } from './docStudioContext'
 
 const chipBase =
@@ -332,26 +333,28 @@ export function DocStudioOverlay() {
 
           {!gateOpen && (
             <>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => exportDoc('PDF')}
-                  className="flex-1 cursor-pointer rounded-[9px] bg-navy p-[10px] font-sans text-[13.5px] font-bold text-white"
-                >
-                  {x(M.docstudio_export_pdf)}
-                </button>
-                <button
-                  onClick={() => exportDoc('Word')}
-                  className="flex-1 cursor-pointer rounded-[9px] border border-border bg-surface p-[10px] font-sans text-[13.5px] font-semibold text-text"
-                >
-                  {x(M.docstudio_export_word)}
-                </button>
-                <button
-                  onClick={() => exportDoc('link')}
-                  className="cursor-pointer rounded-[9px] border border-border bg-surface px-[14px] py-[10px] font-sans text-[13.5px] font-semibold text-text"
-                >
-                  {x(M.docstudio_copy_link)}
-                </button>
-              </div>
+              <PlanGate required="growth">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => exportDoc('PDF')}
+                    className="flex-1 cursor-pointer rounded-[9px] bg-navy p-[10px] font-sans text-[13.5px] font-bold text-white"
+                  >
+                    {x(M.docstudio_export_pdf)}
+                  </button>
+                  <button
+                    onClick={() => exportDoc('Word')}
+                    className="flex-1 cursor-pointer rounded-[9px] border border-border bg-surface p-[10px] font-sans text-[13.5px] font-semibold text-text"
+                  >
+                    {x(M.docstudio_export_word)}
+                  </button>
+                  <button
+                    onClick={() => exportDoc('link')}
+                    className="cursor-pointer rounded-[9px] border border-border bg-surface px-[14px] py-[10px] font-sans text-[13.5px] font-semibold text-text"
+                  >
+                    {x(M.docstudio_copy_link)}
+                  </button>
+                </div>
+              </PlanGate>
               {studio.signatureSent ? (
                 <output className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-[13px] py-[10px] text-[12.5px] font-semibold text-ok-fg">
                   <Check size={15} strokeWidth={2} className="shrink-0" aria-hidden="true" />

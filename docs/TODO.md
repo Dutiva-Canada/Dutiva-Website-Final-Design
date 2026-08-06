@@ -403,10 +403,28 @@ documents in a compliance product and need review budget — the `review` field
 on each is set to `hr_review_required` or `not_reviewed` as appropriate, and
 none are marked `approved_for_use`. (PR #159)
 
-**EF8 — Paid-area gating by plan does not exist.** `/app` is gated by invite,
-not by plan; the pricing page and Stripe plumbing are real but nothing reads a
-plan to decide access. Dormant while the beta is open to the invite list, and a
-prerequisite for selling anything. (PRs #34, #88)
+**EF8 — Done (engineering half).** Plan gating is now wired into `/app`:
+`PlanProvider` is in `AppProviders` (reads the signed-in account's plan from
+`profiles`), `PlanGate` enforces plan requirements in production mode, and two
+premium features are gated:
+
+1. **Save & export documents** (growth+) — the PDF/Word/Copy-link buttons in
+   Document Studio are wrapped in `<PlanGate required="growth">`.
+2. **Workspace preview & guidance** (growth+) — `HomeProductionView` is
+   wrapped in `<PlanGate required="growth">`.
+
+`PlanGate` respects workspace mode: demo mode bypasses the gate entirely
+(the demo experience is the marketing surface — every visitor sees the full
+product). Production mode enforces the plan check, with an upgrade nudge
+linking to `/pricing?upgrade={required}` when access is denied. Internal
+`@dutiva.ca` accounts always bypass via `isAdmin`.
+
+`PAID_PLANS_DISABLED_DURING_BETA` remains `true` — the gates exist and are
+wired, but every signed-in beta user resolves to `free` (the webhook never
+grants a paid plan), so gates show the upgrade nudge in production mode
+without blocking anything in demo mode. The owner action to start selling
+is: flip the flag to `false`, apply migration 0043, and create the annual
+Stripe price objects (EF8a below). (PR #161)
 
 **EF9 — Ring 2 Pillar B's two design-blocked tools are built; the pattern is
 not.** The duty-to-accommodate workflow and the functional-limitations guide
