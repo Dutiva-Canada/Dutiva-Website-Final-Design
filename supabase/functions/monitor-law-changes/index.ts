@@ -2,6 +2,8 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { assessLegislationText } from './contentSanity.ts'
 import { amendmentFingerprint, assessJusticeStatute } from './justiceXml.ts'
+import { assessOntarioActVersions, ontarioFingerprintPayload } from './ontarioApi.ts'
+import { assessQuebecPackage, quebecFingerprint } from './quebecCkan.ts'
 
 /**
  * monitor-law-changes — the law-change watcher behind the Knowledge view's
@@ -62,23 +64,33 @@ const MONITORED_PAGES: PageConfig[] = [
     source: { kind: 'justice-xml', consolidatedNumber: 'H-6' },
   },
   // ── Ontario ───────────────────────────────────────────────────────────────
+  /* e-Laws' statute pages (www.ontario.ca/laws/statute/{id}) are a JavaScript
+     app shell — after tag-stripping, every Ontario statute reduces to the
+     same ~422 characters of boilerplate, so hashing that page can never
+     detect an amendment (docs/LAW_MONITORING.md § Source health — audit of
+     2026-07-30). The act-versions API those pages are built from is real,
+     byte-stable JSON with no bot filter; see ontarioApi.ts and
+     docs/LAW_MONITORING.md § Sourcing evaluation for Ontario and Québec. */
   {
     jurisdiction: 'Ontario',
     law_name: 'Employment Standards Act, 2000',
-    url: 'https://www.ontario.ca/laws/statute/00e41',
-    fallbacks: ['https://www.ontario.ca/laws/statute/00e041'],
+    url: 'https://www.ontario.ca/laws/api/v2/legislation/en/act-versions/statute/00e41',
+    fallbacks: [],
+    source: { kind: 'ontario-api', expectedActEn: 'Employment Standards Act' },
   },
   {
     jurisdiction: 'Ontario',
     law_name: 'Ontario Human Rights Code',
-    url: 'https://www.ontario.ca/laws/statute/90h19',
+    url: 'https://www.ontario.ca/laws/api/v2/legislation/en/act-versions/statute/90h19',
     fallbacks: [],
+    source: { kind: 'ontario-api', expectedActEn: 'Human Rights Code' },
   },
   {
     jurisdiction: 'Ontario',
     law_name: 'Workplace Safety and Insurance Act, 1997',
-    url: 'https://www.ontario.ca/laws/statute/97w16',
+    url: 'https://www.ontario.ca/laws/api/v2/legislation/en/act-versions/statute/97w16',
     fallbacks: [],
+    source: { kind: 'ontario-api', expectedActEn: 'Workplace Safety and Insurance Act' },
   },
   // ── British Columbia ──────────────────────────────────────────────────────
   {
@@ -101,17 +113,37 @@ const MONITORED_PAGES: PageConfig[] = [
     fallbacks: ['https://kings-printer.alberta.ca/documents/Acts/E09.pdf'],
   },
   // ── Quebec ────────────────────────────────────────────────────────────────
+  /* LégisQuébec itself is reachable, but its CloudFront WAF rule keyed on
+     User-Agent flips between 403 and 200 on identical URLs seconds apart —
+     whole-page hashing there guarantees false alerts, on top of an embedded
+     historique=YYYYMMDD value that changes on every request regardless of
+     any amendment (docs/LAW_MONITORING.md § Sourcing evaluation). Données
+     Québec's CKAN API publishes the same codified corpus as a first-party,
+     byte-stable, no-bot-filter dataset instead; see quebecCkan.ts.
+
+     Both LNT and Charter live in that dataset's single "Lois" resource, so
+     detection here is dataset-level: a change to the resource is reported
+     against both law_names, the same way an `html` source reports "this page
+     changed" without saying which section. Per-statute drill-down into the
+     zip (Statutes_EN_Status.txt names the exact statutes that changed) is a
+     documented follow-up, not built here. The two rows share one API
+     response but need distinct `url` values to key their own
+     law_page_hashes/law_updates rows — the #LNT / #Charter fragment is never
+     sent to the server (fragments are client-side only), so both fetch the
+     identical endpoint. */
   {
     jurisdiction: 'Quebec',
     law_name: 'Act respecting labour standards (LNT)',
-    url: 'https://legisquebec.gouv.qc.ca/en/document/cs/N-1.1',
-    fallbacks: ['https://www.legisquebec.gouv.qc.ca/en/document/cs/N-1.1'],
+    url: 'https://www.donneesquebec.ca/recherche/api/3/action/package_show?id=c8433300-f752-4815-8ea2-69cad416dd80#LNT',
+    fallbacks: [],
+    source: { kind: 'quebec-ckan', resourceName: 'Lois' },
   },
   {
     jurisdiction: 'Quebec',
     law_name: 'Charter of Human Rights and Freedoms (Quebec)',
-    url: 'https://legisquebec.gouv.qc.ca/en/document/cs/C-12',
+    url: 'https://www.donneesquebec.ca/recherche/api/3/action/package_show?id=c8433300-f752-4815-8ea2-69cad416dd80#Charter',
     fallbacks: [],
+    source: { kind: 'quebec-ckan', resourceName: 'Lois' },
   },
   // ── Manitoba ──────────────────────────────────────────────────────────────
   {
@@ -188,10 +220,18 @@ const MONITORED_PAGES: PageConfig[] = [
  * consolidated XML. Strictly better where it applies: no hashing, so a
  * publisher reformatting cannot fake a change and a JavaScript shell cannot
  * hide one. Only federal law is published this way today.
+ *
+ * `ontario-api` and `quebec-ckan` read structured JSON from e-Laws' and
+ * Données Québec's machine-readable APIs respectively — see ontarioApi.ts
+ * and quebecCkan.ts. Same rationale as `justice-xml`: the underlying HTML is
+ * either a JS shell (Ontario) or WAF-flaky and full of request-derived noise
+ * (Québec), so a hash over it is worse than useless.
  */
 type PageSource =
   | { kind: 'html' }
   | { kind: 'justice-xml'; consolidatedNumber: string }
+  | { kind: 'ontario-api'; expectedActEn: string }
+  | { kind: 'quebec-ckan'; resourceName: string }
 
 interface PageConfig {
   jurisdiction: string
@@ -427,6 +467,7 @@ const ALLOWED_LAW_HOST_SUFFIXES = [
   'canlii.org',
   'canada.ca',
   'ontario.ca',
+  'donneesquebec.ca',
   'bclaws.gov.bc.ca',
   'bclaws.ca',
   'qp.alberta.ca',
@@ -746,7 +787,170 @@ Deno.serve(async (req) => {
         continue
       }
 
-      // ── Case 3b: HTML-sourced law — but is it actually legislation? ─────
+      // ── Case 3b: Ontario e-Laws act-versions API ────────────────────────
+      if (page.source?.kind === 'ontario-api') {
+        const verdict = assessOntarioActVersions(fetchResult.text ?? '', page.source.expectedActEn)
+
+        if (!verdict.ok) {
+          const failures = (record?.failures ?? 0) + 1
+
+          await db.from('law_page_hashes').upsert({
+            url: page.url,
+            jurisdiction: page.jurisdiction,
+            law_name: page.law_name,
+            content_hash: record?.hash ?? '',
+            is_broken: true,
+            consecutive_failures: failures,
+            last_broken_at: new Date().toISOString(),
+            last_checked: new Date().toISOString(),
+          })
+
+          if (failures === BROKEN_ALERT_THRESHOLD) {
+            await db.from('law_updates').insert({
+              jurisdiction: page.jurisdiction,
+              law_name: page.law_name,
+              url: page.url,
+              change_summary:
+                `The e-Laws API for "${page.law_name}" (${page.jurisdiction}) could not be read as ` +
+                `the expected Act for ${failures} consecutive checks. ${verdict.detail} ` +
+                'Ontario change detection is not effective until this is resolved.',
+              raw_diff: `Ontario API check: ${verdict.reason} · Failures: ${failures}`,
+              detected_at: new Date().toISOString(),
+              is_new: false,
+              event_type: 'broken',
+            })
+          }
+
+          results.push(
+            `API-BAD   ${page.jurisdiction}/${page.law_name}: ${verdict.reason} (failure #${failures})`,
+          )
+          continue
+        }
+
+        const fingerprint = `ontario-api:${await sha256(ontarioFingerprintPayload(verdict.facts))}`
+        const changed = isNew || record?.hash !== fingerprint
+
+        await db.from('law_page_hashes').upsert({
+          url: page.url,
+          jurisdiction: page.jurisdiction,
+          law_name: page.law_name,
+          content_hash: fingerprint,
+          is_broken: false,
+          consecutive_failures: 0,
+          last_checked: new Date().toISOString(),
+        })
+
+        if (!changed) {
+          results.push(`OK        ${page.jurisdiction}/${page.law_name}: no change`)
+          continue
+        }
+
+        await db.from('law_updates').insert({
+          jurisdiction: page.jurisdiction,
+          law_name: page.law_name,
+          url: page.url,
+          content_hash: fingerprint,
+          change_summary: isNew
+            ? `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring, ` +
+              `sourced from Ontario e-Laws' act-versions API. Current version in force from ` +
+              `${verdict.facts.current?.dateFrom ?? 'an unspecified date'}.`
+            : `"${page.law_name}" (${page.jurisdiction}) has a new or changed version on record. ` +
+              `The current version is now in force from ${verdict.facts.current?.dateFrom ?? 'an unspecified date'}. ` +
+              'Review the Act for what changed and what it means for employers.',
+          raw_diff: `current dateFrom: ${verdict.facts.current?.dateFrom ?? 'unknown'} · versions on record: ${verdict.facts.versionCount}`,
+          detected_at: new Date().toISOString(),
+          is_new: isNew,
+          event_type: isNew ? 'first_seen' : 'change',
+        })
+
+        results.push(
+          `${isNew ? 'FIRST_SEEN' : 'AMENDED  '} ${page.jurisdiction}/${page.law_name}: ${verdict.facts.current?.dateFrom ?? 'unknown'}`,
+        )
+        continue
+      }
+
+      // ── Case 3c: Québec Données Québec CKAN dataset ─────────────────────
+      if (page.source?.kind === 'quebec-ckan') {
+        const verdict = assessQuebecPackage(fetchResult.text ?? '', page.source.resourceName)
+
+        if (!verdict.ok) {
+          const failures = (record?.failures ?? 0) + 1
+
+          await db.from('law_page_hashes').upsert({
+            url: page.url,
+            jurisdiction: page.jurisdiction,
+            law_name: page.law_name,
+            content_hash: record?.hash ?? '',
+            is_broken: true,
+            consecutive_failures: failures,
+            last_broken_at: new Date().toISOString(),
+            last_checked: new Date().toISOString(),
+          })
+
+          if (failures === BROKEN_ALERT_THRESHOLD) {
+            await db.from('law_updates').insert({
+              jurisdiction: page.jurisdiction,
+              law_name: page.law_name,
+              url: page.url,
+              change_summary:
+                `The Données Québec dataset for "${page.law_name}" (${page.jurisdiction}) could not be read ` +
+                `as expected for ${failures} consecutive checks. ${verdict.detail} ` +
+                'Québec change detection is not effective until this is resolved.',
+              raw_diff: `Québec CKAN check: ${verdict.reason} · Failures: ${failures}`,
+              detected_at: new Date().toISOString(),
+              is_new: false,
+              event_type: 'broken',
+            })
+          }
+
+          results.push(
+            `API-BAD   ${page.jurisdiction}/${page.law_name}: ${verdict.reason} (failure #${failures})`,
+          )
+          continue
+        }
+
+        const fingerprint = quebecFingerprint(verdict.facts)
+        const changed = isNew || record?.hash !== fingerprint
+
+        await db.from('law_page_hashes').upsert({
+          url: page.url,
+          jurisdiction: page.jurisdiction,
+          law_name: page.law_name,
+          content_hash: fingerprint,
+          is_broken: false,
+          consecutive_failures: 0,
+          last_checked: new Date().toISOString(),
+        })
+
+        if (!changed) {
+          results.push(`OK        ${page.jurisdiction}/${page.law_name}: no change`)
+          continue
+        }
+
+        await db.from('law_updates').insert({
+          jurisdiction: page.jurisdiction,
+          law_name: page.law_name,
+          url: page.url,
+          content_hash: fingerprint,
+          change_summary: isNew
+            ? `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring, ` +
+              `sourced from Données Québec's codified-legislation dataset (resource last modified ` +
+              `${verdict.facts.lastModified}).`
+            : `"${page.law_name}" (${page.jurisdiction}): Données Québec's codified-legislation dataset ` +
+              `was refreshed (resource last modified ${verdict.facts.lastModified}). This dataset covers ` +
+              'every codified Quebec Act, not just this one — review LégisQuébec for what changed and ' +
+              'what it means for employers.',
+          raw_diff: `resource: ${verdict.facts.resourceName} · last_modified: ${verdict.facts.lastModified} · url: ${verdict.facts.url}`,
+          detected_at: new Date().toISOString(),
+          is_new: isNew,
+          event_type: isNew ? 'first_seen' : 'change',
+        })
+
+        results.push(`${isNew ? 'FIRST_SEEN' : 'CHANGE   '} ${page.jurisdiction}/${page.law_name}`)
+        continue
+      }
+
+      // ── Case 3d: HTML-sourced law — but is it actually legislation? ─────
       const text = extractText(fetchResult.text ?? '')
 
       /* A 200 is not proof of a real check. WAF pages served as 200, bot
