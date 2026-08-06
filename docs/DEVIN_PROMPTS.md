@@ -493,11 +493,10 @@ DECISION BLOCK — fill in before starting.
     statutory figures in it by rule, and the asymmetry favours being in the
     corpus. Whichever you pick, the reason gets written down this time.
 
-(b) /guides vs /blog positioning. The current copy is one session's read of
+(b) /guides vs /blog positioning. ~~The current copy is one session's read of
     what the twelve articles already are. If a real publishing cadence is
-    planned, a dated blog becomes viable and the strings should change.
-    DECISION: [ cadence planned — make /blog dated and periodical /
-                no cadence — keep the current framing ]
+    planned, a dated blog becomes viable and the strings should change.~~
+    DECISION: no cadence — keep the current framing. Decided 2026-08-06.
 
 (c) The raised "Ask" tab in src/features/app/shell/MobileNav.tsx renders a
     filled Star where the brief card elsewhere uses a sparkle. It was flagged
