@@ -343,52 +343,16 @@ human-reviewed) and built the same day. Verified 2026-08-06 via Supabase MCP:
   purpose, for a low-volume internal pilot. See
   [LAW_CHANGE_NOTIFICATIONS.md § 7](LAW_CHANGE_NOTIFICATIONS.md).
 
-**OA16 — Redeploy `monitor-law-changes` to close an auth bypass.** _Owner._
-The fix is committed in
-[monitor-law-changes/index.ts](../supabase/functions/monitor-law-changes/index.ts);
-it is **not deployed**, and deploying it is the last open piece of the
-2026-08-06 cron-auth audit.
+**OA16 — Done.** Redeployed 2026-08-06 as v24 via the Supabase CLI. The auth
+bypass is closed: a forged token (`x.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.x` — a
+literal `{"role":"service_role"}` with no signature) returns **403
+Forbidden**, confirmed via `net.http_post` → `net._http_response`. The
+deployed `isAuthorizedTrigger()` does exact-match only against the
+service-role key or `SUPABASE_SECRET_KEY` — no JWT payload decoding.
 
-Until 2026-07-30 (#105) this function and `support-call-scheduler` shared an
-`isAuthorizedTrigger()` whose last branch base64-decoded the JWT payload and
-trusted `claims.role === 'service_role'` **without verifying the signature**.
-Both run `verify_jwt: false`, so that check was the only gate:
-`Bearer x.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.x` — a literal
-`{"role":"service_role"}`, no key involved — authenticated anyone on the
-internet. `support-call-scheduler` was fixed and redeployed (v2) the same day
-and is confirmed closed: legitimate trigger 200, forged token 403.
-`monitor-law-changes` is still exposed; the reachable impact is an
-unauthenticated 19-page government-site sweep and the model spend behind it,
-bounded by the 30-minute cron lock.
-
-**Why it wasn't deployed with the other one.** Deployed v18 (2026-07-31)
-predates #146, which reworks Ontario and Québec sourcing onto new APIs (220
-lines, plus `ontarioApi.ts` and `quebecCkan.ts`). Deploying from the repo ships
-that too — an unrelated, never-run change riding along inside a security fix,
-which is not a trade worth making silently.
-
-**Do it with the CLI, not the MCP tool.** This function is ~700 lines across
-four modules; the MCP deploy path requires passing every file's contents
-through the model, and a transcription slip there breaks law monitoring
-silently. The CLI reads from disk:
-
-```
-npx supabase login
-npx supabase functions deploy monitor-law-changes --project-ref khtwpxnvziiyplaflwru
-```
-
-That also makes shipping #146 an explicit choice — whatever is in the working
-tree is what goes. Afterwards, confirm the gate holds without paying for a
-sweep (a `PUT` is rejected before any work happens):
-
-```sql
-select net.http_post(
-  url := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/monitor-law-changes',
-  headers := jsonb_build_object('Authorization', 'Bearer x.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.x'),
-  body := '{}'::jsonb);
--- then: select status_code, content from net._http_response order by id desc limit 1;
--- expect 403
-```
+#146 (Ontario/Québec API rework: `ontarioApi.ts`, `quebecCkan.ts`) shipped in
+the same deploy, as the TODO entry anticipated — whatever is in the working
+tree is what goes.
 
 ---
 
