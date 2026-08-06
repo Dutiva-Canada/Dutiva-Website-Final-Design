@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { resendSend } from '../_shared/resendSend.ts'
 
 /**
  * Send worker for the support notification outbox. Drains `pending` rows from
@@ -224,29 +225,6 @@ function renderNotificationEmail(kind: NotificationKind, ctx: EmailContext): Ren
         text: [`${refLine}\n${catLine}`, viewLine].join('\n\n'),
       }
   }
-}
-
-/**
- * Mirror of createResendProvider().send (src/features/support/email/resendProvider.ts).
- * Returns the provider's message id so the row can be correlated to later
- * delivery/bounce webhooks — acceptance here is NOT delivery.
- */
-async function resendSend(
-  apiKey: string,
-  from: string,
-  message: { to: string; subject: string; text: string },
-): Promise<string | null> {
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, to: message.to, subject: message.subject, text: message.text }),
-  })
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '')
-    throw new Error(`Resend send failed (${res.status}): ${detail.slice(0, 300)}`)
-  }
-  const body = (await res.json().catch(() => null)) as { id?: string } | null
-  return body?.id ?? null
 }
 
 interface NotificationRow {
