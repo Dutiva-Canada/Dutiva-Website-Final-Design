@@ -77,11 +77,21 @@ function is not failing closed (48 rows in `client_error_reports`, latest
 job is scheduled hourly at :23 and running successfully (5/5 recent runs
 succeeded). Retention is bounded.
 
-**OA7 — Supabase Auth dashboard settings for magic links.** _Owner._ The three
-settings in [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md) §1–§3, in particular
-switching the email template to `token_hash`. The client-side safety net
-recovers root landings without them; it does not eliminate the scanner-burn
-failure. (PR #52)
+**OA7 — Done.** Supabase Auth dashboard settings for magic links. Verified
+2026-08-06 in the dashboard, all three settings in
+[AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md) §1–§3:
+- §2 **Site URL** was already `https://dutiva.ca`.
+- §3 **Magic link template** was already on
+  `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink`, so the
+  scanner-burn failure mode is gone.
+- §1 **Redirect URLs** was the gap and was fixed the same day. The list held
+  three stale entries from the old `/auth` callback path
+  (`http://localhost:5173/auth`, `https://dutiva.ca/auth`,
+  `https://dutiva.vercel.app/auth`) that matched nothing the app requests;
+  local dev and the `dutiva.vercel.app` alias were therefore falling back to
+  the Site URL. Added `http://localhost:5173/**` and
+  `https://dutiva.vercel.app/**`, removed the three stale entries. 19 entries
+  now; production was already covered by `https://dutiva.ca/**`. (PR #52)
 
 **OA8 — Search Console and Bing Webmaster Tools.** _Owner._ Verify both, set
 `GOOGLE_SITE_VERIFICATION` / `BING_SITE_VERIFICATION` as build env vars, submit

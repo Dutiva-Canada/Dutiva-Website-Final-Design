@@ -34,14 +34,27 @@ silently misbehaves (see Symptoms below).
 
 `emailRedirectTo` is only honored if the URL is on the allow-list. **If it is
 not, Supabase silently falls back to the Site URL** — which is why a click can
-dump the user on the marketing home page, still signed out. Add every origin
-the app is served from, with the confirm path:
+dump the user on the marketing home page, still signed out. Every origin the
+app is served from needs an entry that covers the confirm path:
 
 ```
-https://dutiva.ca/app/auth/confirm
-http://localhost:5173/app/auth/confirm        # local dev (vite)
-https://*.vercel.app/app/auth/confirm         # preview deployments
+https://dutiva.ca/**
+http://localhost:5173/**                      # local dev (vite)
+https://dutiva.vercel.app/**                  # production alias
+https://dutiva-*-…-dutiva-canada.vercel.app/**  # preview deployments
 ```
+
+**Wildcards match paths only if you ask them to.** `*` stops at `/`; `**`
+spans separators; an entry with no path segment matches only the bare origin.
+So `http://localhost:5173/auth` does *not* allow
+`http://localhost:5173/app/auth/confirm`, and neither does a bare
+`https://dutiva-*-dutiva-canada.vercel.app`. This is exactly how the project
+drifted: the allow-list still held exact-path entries from an older `/auth`
+callback route, so local dev and the `dutiva.vercel.app` alias silently fell
+back to the Site URL. Prefer the `origin/**` form.
+
+Verified in the dashboard 2026-08-06: 19 entries, all three origins above
+covered.
 
 ### 2. URL Configuration → Site URL
 
@@ -50,7 +63,8 @@ https://dutiva.ca
 ```
 
 This is the fallback target and should be the canonical apex origin (the app
-already 301s `www.dutiva.ca` → `dutiva.ca` in `vercel.json`).
+already 301s `www.dutiva.ca` → `dutiva.ca` in `vercel.json`). Verified
+2026-08-06.
 
 ### 3. Email Templates → Magic Link
 
@@ -66,6 +80,8 @@ Change the template body so the link points at the confirm route with a
 `{{ .RedirectTo }}` resolves to the `emailRedirectTo` we pass
 (`…/app/auth/confirm`). Using `{{ .ConfirmationURL }}` instead keeps the
 scanner-prefetch failure mode described above.
+
+Verified 2026-08-06: the live template is on `.RedirectTo` / `.TokenHash`.
 
 ## Client-side safety net
 
