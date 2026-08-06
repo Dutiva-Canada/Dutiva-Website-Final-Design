@@ -169,6 +169,30 @@ export default defineConfig(({ command }) => {
              or preload it. */
           codeSplitting: {
             groups: [
+              /* The i18n catalogue splits along the same boundary
+                 src/i18n/messages/{marketing,workspace,shared}.ts enforce at
+                 the type level (TODO.md EF6a): ForcedLangProvider (every
+                 marketing page) reads marketing.ts + shared.ts through
+                 `t()`; LangProvider (/app, always behind a lazy() boundary —
+                 see src/app/appSurface.tsx) reads the full catalogue,
+                 including workspace.ts's ~29 modules.
+
+                 Without these two groups, default chunking still put all ~40
+                 feature modules in one chunk: workspace.ts and marketing.ts
+                 both flow through index.ts, so anything that imports index.ts
+                 (LangProvider does, for the app surface) shares a chunk with
+                 everything index.ts imports, dragging workspace.ts back onto
+                 the marketing critical path despite being lazy-reachable
+                 only. Naming the marketing-only group explicitly, before the
+                 workspace catch-all, keeps them apart; ForcedLangProvider and
+                 src/seo/routes.ts import `marketing.ts` directly rather than
+                 `index.ts` for the same reason.
+
+                 The prior single 'messages' grouping predates that split and
+                 existed for the opposite reason: left to default chunking,
+                 the (then-unsplit) catalogue became 25+ separate files, each
+                 modulepreloaded from every prerendered page. Two groups avoid
+                 both failure modes at once. */
               /* The i18n catalogue is one chunk on purpose. messages/index.ts
                  merges 42 feature modules into a single object and every
                  surface reads it synchronously through `t()`, so all 42 are in
@@ -177,7 +201,25 @@ export default defineConfig(({ command }) => {
                  prerendered page — the same bytes bought with 25 extra
                  round-trips on the critical path of a landing page. Grouping
                  changes no code: it only stops splitting what is always
-                 fetched together. */
+                 fetched together.
+
+                 2026-08-05: src/i18n/messages/{workspace,marketing,shared}.ts
+                 now split the *source* by surface, and ForcedLangProvider /
+                 src/seo/routes.ts import marketing.ts directly rather than
+                 the merged index — real progress on TODO.md EF6a's typing
+                 problem. It did NOT translate into fewer eager bytes: tried
+                 splitting this group into messages-marketing /
+                 messages-workspace and the eager graph stayed 671.5kB,
+                 unchanged. Root cause traced one level further than the TODO
+                 left it: src/features/app/shell/navLabels.ts and
+                 ProductionEmptyState.tsx — both in ALLOWED_APP_MODULES below,
+                 eager by construction — import shell.ts and workspaceMode.ts
+                 directly, and excluding just those two files from the
+                 workspace group's `test` did not stop them appearing in the
+                 workspace chunk's output (confirmed via the chunk's own
+                 source map). Whatever pulls them back in survives a
+                 same-session investigation; left as one chunk rather than
+                 shipping two that don't achieve the split they're named for. */
               {
                 name: 'messages',
                 test: /[\\/]src[\\/]i18n[\\/]messages[\\/]/,

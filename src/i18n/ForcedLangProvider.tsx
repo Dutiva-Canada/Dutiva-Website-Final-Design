@@ -6,6 +6,7 @@ import { LangContext } from './context'
 import type { LangContextValue } from './context'
 import type { Lang } from './core'
 import { HTML_LANG, buildLangContextValue, writeLang } from './lang'
+import { marketingMessages } from './messages/marketing'
 
 /**
  * URL-scoped language provider for the public marketing surface. The route
@@ -48,7 +49,7 @@ export function ForcedLangProvider({
   )
 
   const value = useMemo<LangContextValue>(
-    () => buildLangContextValue(lang, updateLang, alternateHref),
+    () => buildLangContextValue(lang, updateLang, marketingMessages, alternateHref),
     [lang, updateLang, alternateHref],
   )
 
