@@ -87,7 +87,7 @@ describe('searchCorpus', () => {
     expect(caseEntries.every((e) => e.kind === 'case')).toBe(true)
 
     const docEntries = filterSearchEntries('documents', 'termination', 'en')
-    expect(docEntries.map((e) => e.id)).toContain('doc-Termination Letter')
+    expect(docEntries.map((e) => e.id)).toContain('doc-T03')
     expect(docEntries.every((e) => e.kind === 'document')).toBe(true)
   })
 

@@ -245,7 +245,7 @@ export const chats: ChatThread[] = [
             citations: [],
           },
         ],
-        docs: ['T10', 'Expense Reimbursement Policy'],
+        docs: ['T10', 'T48'],
         followups: ['Compare to current in-office policy', 'Add security & equipment clause'],
       },
     ],
@@ -401,7 +401,7 @@ export const chats: ChatThread[] = [
             ],
           },
         ],
-        docs: ['Onboarding Package'],
+        docs: ['T49'],
         followups: ['Generate French version', "Add Quebec's statutory holiday calendar"],
       },
     ],
@@ -472,7 +472,7 @@ export const lightFlows: Record<string, LightFlow> = {
         ],
       },
     ],
-    docs: ['Onboarding Package'],
+    docs: ['T49'],
     followups: ['Generate French version', "Add Quebec's statutory holiday calendar"],
   },
   performance: {
@@ -559,7 +559,7 @@ export const lightFlows: Record<string, LightFlow> = {
         citations: [],
       },
     ],
-    docs: ['T10', 'Expense Reimbursement Policy'],
+    docs: ['T10', 'T48'],
     followups: ['Compare to current in-office policy', 'Add security & equipment clause'],
   },
 }
@@ -633,7 +633,7 @@ export const followupReplies: Record<string, FollowupReply> = {
       'Here’s a short, respectful rejection template you can send to the other candidates.',
       'Voici un modèle de refus court et respectueux à envoyer aux autres candidats.',
     ),
-    docs: ['Candidate Rejection Letter'],
+    docs: ['T47'],
   },
   'Show attendance policy template': {
     label: bi('Show attendance policy template', 'Afficher le modèle de politique d’assiduité'),
@@ -641,7 +641,7 @@ export const followupReplies: Record<string, FollowupReply> = {
       'Here’s your current attendance policy for reference before you proceed.',
       'Voici votre politique d’assiduité actuelle, à titre de référence avant de poursuivre.',
     ),
-    docs: ['Policy Template'],
+    docs: ['T50'],
   },
   'Draft accommodation inquiry first': {
     label: bi('Draft accommodation inquiry first', 'Rédiger d’abord une demande d’accommodement'),
@@ -686,7 +686,7 @@ export const followupReplies: Record<string, FollowupReply> = {
       'Here’s the French version of the onboarding package, matching the English draft clause for clause.',
       'Voici la version française de la trousse d’intégration, fidèle à l’ébauche anglaise clause par clause.',
     ),
-    docs: ['Onboarding Package (Français)'],
+    docs: ['T49'],
   },
   "Add Quebec's statutory holiday calendar": {
     label: bi(
@@ -776,7 +776,7 @@ export const followupReplies: Record<string, FollowupReply> = {
       'Here are documents I can generate, pre-filled with this person’s file details. Pick one and I’ll open it in Document Studio.',
       'Voici des documents que je peux générer, préremplis avec les détails du dossier de cette personne. Choisissez-en un et je l’ouvrirai dans le Studio de documents.',
     ),
-    docs: ['Policy Template', 'T06'],
+    docs: ['T50', 'T06'],
   },
   'Draft a document': {
     label: bi('Draft a document', 'Rédiger un document'),
@@ -784,7 +784,7 @@ export const followupReplies: Record<string, FollowupReply> = {
       'Here’s a starting point — I can tailor any of these to the specifics once you choose one.',
       'Voici un point de départ — je peux adapter chacun de ces documents aux détails dès que vous en choisissez un.',
     ),
-    docs: ['Policy Template'],
+    docs: ['T50'],
   },
   'Recommend my next step': {
     label: bi('Recommend my next step', 'Recommander ma prochaine étape'),

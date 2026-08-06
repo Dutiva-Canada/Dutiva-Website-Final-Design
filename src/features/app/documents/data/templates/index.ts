@@ -59,6 +59,13 @@ import { tplT44 } from './t44-wellness-action-plan'
    `changes`. See the category header in ../meta.ts. */
 import { tplT45 } from './t45-total-compensation-summary'
 import { tplT46 } from './t46-salary-review-letter'
+/* EF7 — ported from the legacy fixture src/data/documents.ts. These close
+   the dual-source drift by giving the five unmatched legacy templates a
+   doclib home. All FR is [FR self-authored]. */
+import { tplT47 } from './t47-candidate-rejection-letter'
+import { tplT48 } from './t48-expense-reimbursement-policy'
+import { tplT49 } from './t49-onboarding-package'
+import { tplT50 } from './t50-policy-template'
 import type { DocTemplate } from '../types'
 
 export const docTemplates: DocTemplate[] = [
@@ -104,6 +111,10 @@ export const docTemplates: DocTemplate[] = [
   tplT44,
   tplT45,
   tplT46,
+  tplT47,
+  tplT48,
+  tplT49,
+  tplT50,
 ]
 
 export const templateByTid = new Map(docTemplates.map((t) => [t.tid, t]))

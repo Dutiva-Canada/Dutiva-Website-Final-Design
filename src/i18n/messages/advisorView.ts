@@ -93,4 +93,6 @@ export const advisorViewMessages = defineMessages({
     fr: 'Je suis vraiment désolé que vous traversiez cela — merci de l’avoir dit ici. Ce que vous ressentez compte, et vous n’avez pas à porter tout cela sans soutien. Il peut être utile de prendre un moment de recul et de parler à une personne de confiance — un ami, un proche, votre médecin, ou un programme d’aide aux employés si vous y avez accès. Si vous sentez que vous pourriez être en crise, veuillez contacter le 9-8-8 — la Ligne d’aide en cas de crise de suicide, offerte 24 h sur 24, 7 jours sur 7, par appel ou texto. Je suis là quand vous voudrez continuer, à votre rythme.', // [FR self-authored]
   },
   advisorview_crisis_thread_title: { en: 'Support', fr: 'Soutien' }, // [FR self-authored]
+  /* EF3: title for the export audit row when a user copies an Advisor message. */
+  advisorview_chat_copy_title: { en: 'Advisor chat copy', fr: 'Copie de conversation Conseiller' }, // [FR self-authored]
 })

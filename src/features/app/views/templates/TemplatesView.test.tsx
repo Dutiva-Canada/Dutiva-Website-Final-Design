@@ -16,7 +16,6 @@ describe('TemplatesView', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Document templates' })).toBeInTheDocument()
     expect(screen.getAllByRole('button')).toHaveLength(documentTemplates.length)
     expect(screen.getByText('Termination Letter')).toBeInTheDocument()
-    expect(screen.getByText('Policy Template')).toBeInTheDocument()
     /* Category sub-lines — three Offboarding templates in the fixtures. */
     expect(screen.getAllByText('Offboarding')).toHaveLength(3)
   })

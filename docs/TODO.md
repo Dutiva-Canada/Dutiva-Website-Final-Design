@@ -310,19 +310,30 @@ captured real responses only. **Do not flip `monitoringCoverage.ts`'s
 ON/QC-unmonitored claim until a real scheduled sweep proves it**, the same
 discipline OA2 already applies to Federal. (PRs #105, #106)
 
-**EF3 — Export-trail follow-ups.** An in-app admin viewer over `export_events`
-(the trail is read through service-role tooling today); the Advisor chat "Copy"
-button and on-screen text are unwatermarked, since watermarking starts at
-export; and downloads should move to short-lived signed URLs if Supabase Storage
-ever holds real files. [EXPORT_PROTECTION.md](EXPORT_PROTECTION.md). (PR #102)
+**EF3 — Done.** Three follow-ups from the export protection system, all
+closed 2026-08-06:
 
-The viewer is not just a screen: `0033` enables RLS on `export_events` with
-**no policies at all**, deliberately — service-role only, so today nothing
-signed-in can read a row. Building the viewer means either an admin `select`
-policy (the shape `0011` already uses for guidance/law_updates) or an
-admin-gated edge function. That is a decision about the audit table's security
-posture and should be taken on purpose, not inherited from whichever is easier
-to write.
+1. **Admin viewer.** Live at `/app/support/admin/exports` — reads
+   `export_events` through the `export-audit-trail` edge function
+   (service-role, `is_admin`-gated server-side). The table stays
+   service-role-only with zero client policies — the edge function is the
+   only read path. Supports filtering by surface/kind, pagination, and
+   forensic lookup of a single export id (the "resolve a leaked artifact"
+   use case). Linked from the support admin dashboard.
+2. **Copy button watermarking.** The Advisor chat Copy button now runs
+   through `authorizeExport` (`surface='advisor'`, `kind='text'`), so every
+   copied message carries an invisible zero-width tag that resolves to an
+   `export_events` row. A velocity denial shows the same retry toast as a
+   refused document export. On-screen text remains unwatermarked (the analog
+   hole); the Copy button is the boundary where content leaves the product.
+3. **Signed URLs.** Not applicable — exports are generated client-side as
+   Blob downloads, not stored in Supabase Storage. The conditional ("if
+   Supabase Storage ever holds real files") is not met.
+
+The audit table's security posture was decided: admin-gated edge function,
+not an admin RLS policy. The table never becomes client-readable, even if
+`is_admin()` is compromised — the edge function is the only read path.
+[EXPORT_PROTECTION.md](EXPORT_PROTECTION.md). (PR #158)
 
 **EF4a — Annual billing needs its Stripe objects and migration 0043.** _Owner._
 The code half is done: `create-checkout-session` resolves
@@ -371,20 +382,26 @@ strings, identical. `check-entry-graph.mjs` now bars the three content modules
 by name, and parity tests assert the metadata and content key sets match in
 both directions per collection.
 
-**EF7 — The legacy document fixture was never migrated.** `src/data/documents.ts`
-still exists alongside the doclib catalogue, with five templates that have no
-doclib match; `PoliciesView.tsx` and `searchCorpus.ts` were explicitly left out
-of the unification. Additive by design — but two sources for one concept is the
-shape of the drift this repo keeps correcting elsewhere. (PR #33)
+**EF7 — Done.** The five unmatched legacy templates have been authored into
+the doclib catalogue as T47–T50 (the legacy "Onboarding Package (Français)"
+was a separate entry only because the prototype shipped the French body for
+both languages; the doclib's bilingual `Bi` model handles both in one
+template, so T49 covers it). The five are:
 
-It is a live fallback, not dead weight: `DocStudioProvider` and
-`resolveDocTitle` both try the doclib set by tid and fall back to
-`documentTemplatesByKey` when there is no match, which is what keeps those five
-templates reachable. So deleting the file removes five templates from Document
-Studio. Closing this means authoring them into the doclib catalogue — legal
-content in a compliance product, which per
-[FOUR_RING_FRAMEWORK.md](FOUR_RING_FRAMEWORK.md) needs review budget, not just
-engineering time — or deciding they should go, which is a product call.
+- **T47** — Candidate rejection letter (hiring, low risk)
+- **T48** — Expense reimbursement policy (policies, low risk)
+- **T49** — Onboarding package (hiring, low risk, QC Charter note)
+- **T50** — Policy template (policies, low risk, Advisor-tailored shell)
+
+The legacy fixture (`src/data/documents.ts`) still holds the 10 templates that
+have doclib matches by tid — they remain as string-key fallbacks for callers
+that pass title strings (e.g. `PoliciesView` passes `p.title.en`). The search
+corpus now uses the doclib catalogue directly (`allTemplates`), passing tids.
+The canonical template count is now **50** (T01…T50). Per
+[FOUR_RING_FRAMEWORK.md](FOUR_RING_FRAMEWORK.md), these are legal-adjacent
+documents in a compliance product and need review budget — the `review` field
+on each is set to `hr_review_required` or `not_reviewed` as appropriate, and
+none are marked `approved_for_use`. (PR #159)
 
 **EF8 — Paid-area gating by plan does not exist.** `/app` is gated by invite,
 not by plan; the pricing page and Stripe plumbing are real but nothing reads a

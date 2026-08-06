@@ -7,12 +7,12 @@ import {
   chats,
   communications,
   complianceItems,
-  documentTemplates,
   employees,
   knowledgeItems,
   policies,
   tasks,
 } from '@/data'
+import { allTemplates } from '@/features/app/documents/catalogue'
 
 /**
  * Global-search corpus — typed transcription of the prototype's
@@ -131,15 +131,15 @@ const chatEntries: SearchEntry[] = chats.map((c) => ({
   nav: { kind: 'chat', chatId: c.id },
 }))
 
-const documentEntries: SearchEntry[] = documentTemplates.map((d) => ({
-  id: `doc-${d.key}`,
+const documentEntries: SearchEntry[] = allTemplates.map((d) => ({
+  id: `doc-${d.tid}`,
   kind: 'document',
   kindLabel: M.search_kind_document,
-  title: d.title,
-  sub: d.highRisk ? concatBi(d.category, M.search_doc_high_risk_suffix) : d.category,
-  restricted: d.highRisk,
-  match: d.title,
-  nav: { kind: 'document', docKey: d.key },
+  title: d.name,
+  sub: d.risk === 'high' ? concatBi(d.name, M.search_doc_high_risk_suffix) : d.name,
+  restricted: d.risk === 'high',
+  match: d.name,
+  nav: { kind: 'document', docKey: d.tid },
 }))
 
 const commsEntries: SearchEntry[] = communications.map((c) => ({
