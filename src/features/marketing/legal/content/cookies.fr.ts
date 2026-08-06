@@ -69,11 +69,12 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Le code de Dutiva comprend une prise en charge facultative des outils d’analyse. Les outils d’analyse ne sont chargés que lorsqu’un identifiant de mesure est configuré et que le traceur pertinent est activé. Si les outils d’analyse sont activés, les événements d’analyse servent à comprendre l’utilisation agrégée du produit, à résoudre les problèmes, à améliorer la fiabilité et à orienter les décisions relatives au produit.',
+          // [FR self-authored] — matches the English cookies.en.ts update for D2 support analytics
+          text: 'Dutiva utilise deux types d’analyse : l’analytique de support interne et l’analytique facultative de site Web tierce (Google Analytics 4). L’analytique de support interne (recherches dans le Centre d’aide, consultations d’articles, votes d’utilité et événements liés aux billets de support) est envoyée à une fonction edge exploitée par Dutiva au Canada et n’utilise pas de témoins tiers. Ces événements portent un identifiant de visiteur anonyme quotidien rotatif pour l’activité du Centre d’aide ou l’identifiant de l’espace de travail (organisation) pour les événements authentifiés liés aux billets, jamais un identifiant individuel d’utilisateur. Les données d’événements brutes sont conservées pendant 90 jours ; les agrégats quotidiens sont conservés indéfiniment.',
         },
         {
           type: 'p',
-          text: 'Lorsque des outils d’analyse ou des technologies facultatives similaires exigent un consentement, un avis ou des contrôles de préférence en vertu des lois applicables, Dutiva fournira les contrôles appropriés avant d’utiliser ces technologies à cette fin.',
+          text: 'Google Analytics 4, s’il est activé, ne se charge que lorsqu’un identifiant de mesure est configuré et que l’utilisateur a accordé son consentement par l’intermédiaire de la bannière de consentement. Lorsque des outils d’analyse ou des technologies facultatives similaires exigent un consentement, un avis ou des contrôles de préférence en vertu des lois applicables, Dutiva fournira les contrôles appropriés avant d’utiliser ces technologies à cette fin.',
         },
         {
           type: 'li',

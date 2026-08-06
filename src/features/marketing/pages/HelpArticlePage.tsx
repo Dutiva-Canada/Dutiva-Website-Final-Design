@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Info } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -20,6 +21,7 @@ import {
 import { helpArticleSections } from '@/features/support/help/helpContent'
 import { HelpfulnessWidget } from '@/features/support/help/HelpfulnessWidget'
 import { HelpContactCta } from '@/features/support/help/HelpContactCta'
+import { trackEvent } from '@/features/support/analytics/supportAnalytics'
 import { MarketingPageShell } from './MarketingPage'
 
 /**
@@ -37,6 +39,11 @@ export function HelpArticlePage() {
     lang === 'fr'
       ? (helpArticleByFrSlug(slug ?? '') ?? helpArticleBySlug(slug ?? ''))
       : (helpArticleBySlug(slug ?? '') ?? helpArticleByFrSlug(slug ?? ''))
+
+  const articleSlug = article?.slug ?? null
+  useEffect(() => {
+    if (articleSlug) trackEvent({ event_type: 'help_article_view', article_slug: articleSlug, locale: lang })
+  }, [articleSlug, lang])
 
   if (!article) return <Navigate to={seoRoute('help').path[lang]} replace />
 

@@ -3,6 +3,7 @@ import { ThumbsDown, ThumbsUp } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { readHelpfulness, recordHelpfulness } from './helpFeedback'
 import type { Helpfulness } from './helpFeedback'
+import { trackEvent } from '@/features/support/analytics/supportAnalytics'
 
 /**
  * "Was this article helpful?" — a small, self-contained widget. A vote is
@@ -15,11 +16,12 @@ import type { Helpfulness } from './helpFeedback'
  * navigating between articles re-reads that article's own stored vote.
  */
 export function HelpfulnessWidget({ slug }: { readonly slug: string }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [vote, setVote] = useState<Helpfulness | null>(() => readHelpfulness(slug))
 
   function choose(value: Helpfulness) {
     setVote(recordHelpfulness(slug, value))
+    trackEvent({ event_type: 'helpfulness_vote', article_slug: slug, vote_value: value, locale: lang })
   }
 
   const buttonClass =

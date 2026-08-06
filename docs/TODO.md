@@ -149,10 +149,15 @@ purpose, for a low-volume internal pilot. See
 These are not backlog items. Each one was deliberately left to the owner because
 building it speculatively would have meant deciding it speculatively.
 
-**D2 — Support analytics: the privacy model comes first.** What is collected,
-anonymous vs user-scoped, retention. `recordHelpfulness` is the single seam a
-sink would hook; nothing is transmitted today.
-[SUPPORT_ARCHITECTURE.md § Staged](SUPPORT_ARCHITECTURE.md). (PR #49)
+**D2 — Support analytics: the privacy model comes first.** Decided
+2026-08-06 (full support funnel, workspace-scoped, 90-day raw / forever
+aggregate, first-party Supabase sink + GA4 plumbing) and built the same day —
+migration `0047`, `support-analytics-event` edge function, client module
+wired into all six event points, privacy/cookie/retention docs concretized.
+See [SUPPORT_ANALYTICS.md](SUPPORT_ANALYTICS.md). What's left: (1) deploy the
+edge function; (2) the GA4 consent banner (needs a design handoff — the
+loader and consent gate are built, but the banner UI that sets consent is
+not). (PR #153)
 
 **D4 — Training-crawler policy.** `scripts/prerender.mjs` still emits
 `Disallow: /` for `GPTBot` and `ClaudeBot` (verified 2026-08-02). It does not

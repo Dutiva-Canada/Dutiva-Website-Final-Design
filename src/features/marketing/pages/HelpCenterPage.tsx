@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, CreditCard, FileText, LifeBuoy, Rocket, Search, ShieldCheck, Sparkles, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -12,6 +12,7 @@ import {
 import type { HelpArticle, HelpIcon } from '@/features/support/help/helpCenterData'
 import { HelpContactCta } from '@/features/support/help/HelpContactCta'
 import { searchHelpArticles } from '@/features/support/help/helpSearch'
+import { trackEvent } from '@/features/support/analytics/supportAnalytics'
 import { MarketingPageShell, PageHero } from './MarketingPage'
 
 const CATEGORY_ICONS: Record<HelpIcon, LucideIcon> = {
@@ -29,6 +30,21 @@ export function HelpCenterPage() {
   const [query, setQuery] = useState('')
   const trimmed = query.trim()
   const results = trimmed ? searchHelpArticles(query, lang) : []
+
+  // Debounced search analytics — fire one event after the user stops typing
+  // for 1 second, not one per keystroke. Empty queries are not tracked.
+  useEffect(() => {
+    if (!trimmed) return
+    const timer = setTimeout(() => {
+      trackEvent({
+        event_type: 'help_search',
+        search_query: trimmed,
+        search_result_count: results.length,
+        locale: lang,
+      })
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [trimmed, results.length, lang])
 
   return (
     <MarketingPageShell>

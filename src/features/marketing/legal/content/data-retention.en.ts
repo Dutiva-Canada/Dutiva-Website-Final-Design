@@ -88,7 +88,7 @@ export default {
         },
         {
           "type": "li",
-          "text": "Usage, analytics, and device information: retained as needed for service operations, aggregate usage measurement, troubleshooting, abuse prevention, rate limiting, security monitoring, and product improvement. Optional analytics are handled as described in the Privacy Policy and Cookie Policy."
+          "text": "Usage, analytics, and device information: retained as needed for service operations, aggregate usage measurement, troubleshooting, abuse prevention, rate limiting, security monitoring, and product improvement. First-party support analytics raw event data is retained for 90 days, after which it is automatically deleted; daily aggregates (which no longer identify an individual in a reasonably foreseeable way) are retained indefinitely. Optional third-party analytics are handled as described in the Privacy Policy and Cookie Policy."
         },
         {
           "type": "li",

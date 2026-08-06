@@ -15,6 +15,7 @@ import { createPublicSupportTicket, PublicSupportError } from './publicSupportAp
 import { FirstLineSuggestions } from './FirstLineSuggestions'
 import { CaptchaField } from './CaptchaField'
 import { isCaptchaConfigured } from './captcha'
+import { trackEvent } from './analytics/supportAnalytics'
 
 /**
  * PUBLIC (unauthenticated) support form for the marketing-surface Contact page.
@@ -148,6 +149,15 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
         captchaToken,
       })
       setDone({ reference })
+      if (reference) {
+        trackEvent({
+          event_type: 'ticket_submitted',
+          ticket_reference: reference,
+          ticket_category: category,
+          ticket_source: 'public_form',
+          locale: language,
+        })
+      }
     } catch (error) {
       const code = error instanceof PublicSupportError ? error.code : 'error'
       setSubmitError(

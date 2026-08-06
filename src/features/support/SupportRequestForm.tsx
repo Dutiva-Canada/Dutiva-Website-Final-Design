@@ -18,6 +18,8 @@ import type {
 import { createSupportTicket } from './supportApi'
 import { gatherDiagnostics, diagnosticRows } from './diagnostics'
 import { FirstLineSuggestions } from './FirstLineSuggestions'
+import { trackEvent } from './analytics/supportAnalytics'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 
 /**
  * Authenticated support request form. Server-side validation, priority, and
@@ -68,6 +70,7 @@ const textareaClass = `${selectClass} min-h-[120px] resize-y`
 
 export function SupportRequestForm() {
   const { x, lang } = useI18n()
+  const { organizationId } = useWorkspaceMode()
   const baseId = useId()
   const fid = (name: string) => `${baseId}-${name}`
 
@@ -147,6 +150,14 @@ export function SupportRequestForm() {
         diagnostics: includeDiagnostics ? diagnostics : {},
       })
       setReference(result.publicReference)
+      trackEvent({
+        event_type: 'ticket_submitted',
+        workspace_id: organizationId,
+        ticket_reference: result.publicReference,
+        ticket_category: category,
+        ticket_source: 'app_form',
+        locale: language,
+      })
       requestAnimationFrame(() => successRef.current?.focus())
     } catch (error) {
       console.error('support: request failed', error)
