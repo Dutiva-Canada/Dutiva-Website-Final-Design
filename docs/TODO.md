@@ -65,10 +65,24 @@ and followed by a redeploy — the site key is compiled into the bundle, so
 rotating the secret alone breaks the public form. With neither set the check is
 a safe no-op. (PR #115)
 
-**OA5 — Turn attachment scanning on.** _Owner._ `SUPPORT_ATTACHMENT_SCAN_URL` +
-`SUPPORT_ATTACHMENT_SCAN_KEY`, plus the `attachment_scan_service_key` Vault
-secret the pg_cron job reads. Until then every row stays `scan_status: pending`
-— which is the honest state, since `pending` has never meant clean. (PR #115)
+**OA5 — Turn attachment scanning on.** _Owner._ Now down to one step:
+`SUPPORT_ATTACHMENT_SCAN_URL` + `SUPPORT_ATTACHMENT_SCAN_KEY` as edge-function
+secrets. Until then every row stays `scan_status: pending` — the honest state,
+since `pending` has never meant clean. (PR #115)
+
+The Vault half is done. Verified 2026-08-06: the cron job was firing every 10
+minutes and getting **403** on every run, because `support-attachment-scan` is
+the one function that compares the bearer to its own
+`SUPABASE_SERVICE_ROLE_KEY`, and the legacy service_role JWT that 0038 told the
+operator to store is a valid credential but not that same string. Migration
+`0048` switches the job to the `x-scan-secret` / `support_notify_secret` path
+that `support-notify-drain` already proves works; the trigger now returns
+`200 {"processed":0,"pending":0,"note":"no_scanner"}`, i.e. correctly inert
+pending the two secrets above. `attachment_scan_status()` was reporting
+`secret_configured: true` throughout and never saw this — it now checks the
+credential the job actually presents, and
+[SUPPORT_RUNBOOK.md](SUPPORT_RUNBOOK.md) gained the `net._http_response` check
+that would have caught it.
 
 **OA6 — Done.** Verified 2026-08-06 via Supabase MCP: the `report-error`
 function is not failing closed (48 rows in `client_error_reports`, latest
