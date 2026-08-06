@@ -159,12 +159,13 @@ edge function; (2) the GA4 consent banner (needs a design handoff — the
 loader and consent gate are built, but the banner UI that sets consent is
 not). (PR #153)
 
-**D4 — Training-crawler policy.** `scripts/prerender.mjs` still emits
-`Disallow: /` for `GPTBot` and `ClaudeBot` (verified 2026-08-02). It does not
-affect citation in ChatGPT or Claude search results — those crawlers are
-separate and already allowed — but it does keep the brand out of future training
-corpora. Worth deciding on purpose rather than inheriting.
-[SEO_AUTHORITY_PLAYBOOK.md § Open items](SEO_AUTHORITY_PLAYBOOK.md). (PR #117)
+**D4 — Training-crawler policy.** Decided 2026-08-06: opted in.
+`GPTBot` (OpenAI), `ClaudeBot` (Anthropic), `CCBot` (Common Crawl),
+`Amazonbot` (Amazon), and `Google-Extended` (Google Gemini/Vertex) are now
+allowed with the same private-path exclusions as search crawlers.
+`scripts/prerender.mjs` updated; `docs/SEO_GEO_IMPLEMENTATION.md` § Crawler
+& AI policy updated. Reversible — move a bot back to `Disallow: /` to opt
+out of a specific provider's training. (PR #154)
 
 **D5 — Which business plan is the plan of record.** Two are live in Drive and
 neither is marked superseded. CANONICAL_FACTS § Open items 3. (PR #103)
