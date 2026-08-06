@@ -305,6 +305,34 @@ Rows stuck `pending` with `scan_attempts` climbing mean the endpoint is
 unreachable or answering in a shape the worker doesn't recognise; `scan_detail`
 records which (`timeout`, `scanner_unreachable`, `http_502`).
 
+## After changing an RLS policy or a helper function
+
+```sql
+select * from public.rls_grant_gaps();
+```
+
+**Zero rows is healthy.** Any row names a table whose policy calls a function
+`authenticated` cannot execute — which makes that table raise
+
+```
+ERROR: 42501: permission denied for function <name>
+```
+
+for every signed-in read, instead of filtering rows. Not an empty result: a
+hard error the client surfaces as "couldn't load".
+
+Worth running because this is not hypothetical. On 2026-08-06 `is_admin`,
+`is_org_member` and `is_org_admin` — used by policies on 71, 46 and 13 tables —
+had no `EXECUTE` grant to `authenticated`, and most of the workspace was
+failing this way. `npm run check` was fully green throughout: the suite is
+offline by design, so nothing in 1,600 tests can perform a signed-in read of a
+policy-protected table. Fixed in migration `0050`; this check exists so the
+next one is found in a second rather than by a user hitting a red box.
+
+Postgres evaluates a policy as the **querying** role, so any function named in
+a `USING` clause needs `grant execute … to authenticated`. Adding a policy that
+calls a new helper is the moment to re-run this.
+
 ## Never do
 
 - Never publish or imply 24/7 staffed support.
