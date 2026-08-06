@@ -78,9 +78,38 @@ is behaving as the safe no-op it was written to be.
 redeploy — the site key is compiled into the bundle, so rotating the secret
 alone breaks the public form. (PR #115)
 
-**OA17 — Two merged edge functions were never deployed.** _Owner._ The
-"merged is not deployed" gap in [AGENTS.md](../AGENTS.md), caught in
-production:
+**OA17 — Done.** Both functions deployed and verified 2026-08-06.
+`support-analytics-event` recorded its **first event in production**:
+`help_article_view / signing-in / en`, `workspace_id` null, opaque visitor id
+present — the privacy model in
+[SUPPORT_ANALYTICS.md](SUPPORT_ANALYTICS.md) §2 behaving as written.
+`export-audit-trail` deployed with `verify_jwt = true`, which is right: it
+takes a user JWT and gates on `is_admin` server-side, and a publishable key
+alone correctly gets `401 Invalid user token`.
+
+**The deploy took two attempts, and the reason is worth keeping.** The first
+went out with `verify_jwt` at the CLI default of `true`. Every flush then
+died at the gateway with `UNAUTHORIZED_NO_AUTH_HEADER`, because
+`supportAnalytics.ts`'s `flush()` posts a bare body — no `apikey`, no
+`Authorization` — and swallows all errors by design. Deployed, reachable,
+returning 401 to a client that cannot report it. `report-error` settled it:
+its client sends no key either
+([reporter.ts](../src/lib/errorReporting/reporter.ts)) and it runs
+`verify_jwt = false`. Both are now pinned in
+[`supabase/config.toml`](../supabase/config.toml) so neither drifts back.
+
+**Follow-up worth a ticket: `support-analytics-event` has no rate limiting.**
+It is now an unauthenticated write path accepting up to 50 events per
+request, and unlike `report-error` — the function its docblock says it
+mirrors — it has neither a shared secret (`ERROR_REPORT_SALT`) nor a
+`client_error_rate_limit` equivalent. Nothing stops anyone POSTing arbitrary
+rows into `support_analytics_events`. The 90-day retention bounds the damage;
+the accuracy of every funnel metric does not survive it.
+
+_Historical detail below._
+
+**What was wrong.** The "merged is not deployed" gap in
+[AGENTS.md](../AGENTS.md), caught in production:
 
 - **`support-analytics-event`** — absent from the project. Edge logs show
   `OPTIONS | 404 | …/support-analytics-event` at 21:39 UTC on 2026-08-06, the

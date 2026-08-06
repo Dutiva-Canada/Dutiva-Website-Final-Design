@@ -38,6 +38,17 @@ verify_jwt = false
 [functions.report-error]
 verify_jwt = false
 
+# Fire-and-forget sinks. Their clients send NO apikey and NO Authorization
+# header — see src/lib/errorReporting/reporter.ts and
+# src/features/support/analytics/supportAnalytics.ts, both of which post a bare
+# body with keepalive so the request survives page unload. With verify_jwt on,
+# the gateway rejects every flush with UNAUTHORIZED_NO_AUTH_HEADER and the
+# client never notices, because both swallow errors by design. Deployed as
+# `true` on 2026-08-06 for exactly that reason, and it silently ate every
+# event until the 401 was traced.
+[functions.support-analytics-event]
+verify_jwt = false
+
 # ── Cron-triggered workers: they authenticate the caller themselves ─────────
 # Each checks a shared secret (and/or an exact service-key match) in its own
 # handler. That in-handler check is the only gate, which is exactly why the
