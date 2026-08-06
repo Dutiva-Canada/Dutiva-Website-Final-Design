@@ -157,11 +157,17 @@ export async function adminGetTicket(id: string): Promise<AdminTicket | null> {
   }
 }
 
+export interface ScheduledCallSlot {
+  start: string
+  end: string
+}
+
 export type AgentAction =
   | { action: 'reply'; body: string }
   | { action: 'note'; body: string }
   | { action: 'status'; status: SupportStatus }
   | { action: 'priority'; priority: SupportPriority }
+  | { action: 'propose_call'; slots: ScheduledCallSlot[]; duration_minutes: number }
 
 export async function runAgentAction(ticketId: string, payload: AgentAction): Promise<void> {
   if (!supabase) throw new Error('Support actions are not available in this environment.')
@@ -169,4 +175,52 @@ export async function runAgentAction(ticketId: string, payload: AgentAction): Pr
     body: { ticket_id: ticketId, ...payload },
   })
   if (error) throw error
+}
+
+/* ── Scheduled call (TODO.md D3) ────────────────────────────────────────────
+   Read-only here — RLS (0014 + 0045) already grants an admin read across
+   every ticket's scheduled call the same way it grants ticket/message reads;
+   the only write is propose_call above, through the edge function. */
+
+export type ScheduledCallStatus = 'proposed' | 'confirmed' | 'completed' | 'cancelled'
+
+export interface AdminScheduledCall {
+  id: string
+  proposedSlots: ScheduledCallSlot[]
+  durationMinutes: number
+  status: ScheduledCallStatus
+  confirmedStart: string | null
+  confirmedEnd: string | null
+  meetLink: string | null
+}
+
+const scheduledCallSchema = z.object({
+  id: z.string(),
+  proposed_slots: z.array(z.object({ start: z.string(), end: z.string() })),
+  duration_minutes: z.number(),
+  status: z.enum(['proposed', 'confirmed', 'completed', 'cancelled']),
+  confirmed_start: z.string().nullable(),
+  confirmed_end: z.string().nullable(),
+  meet_link: z.string().nullable(),
+})
+
+export async function adminGetScheduledCall(ticketId: string): Promise<AdminScheduledCall | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from('support_scheduled_calls')
+    .select('id, proposed_slots, duration_minutes, status, confirmed_start, confirmed_end, meet_link')
+    .eq('ticket_id', ticketId)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  const row = scheduledCallSchema.parse(data)
+  return {
+    id: row.id,
+    proposedSlots: row.proposed_slots,
+    durationMinutes: row.duration_minutes,
+    status: row.status,
+    confirmedStart: row.confirmed_start,
+    confirmedEnd: row.confirmed_end,
+    meetLink: row.meet_link,
+  }
 }

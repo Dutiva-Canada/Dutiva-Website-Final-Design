@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Plus, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import type { LangContextValue } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
 import {
   PRIORITY_LABELS,
@@ -10,11 +11,17 @@ import {
   supportCategory,
 } from '@/config/support'
 import type { SupportPriority, SupportStatus } from '@/config/support'
-import { adminGetTicket, isCurrentUserAdmin, runAgentAction } from '@/features/support/supportAdminApi'
-import type { AdminMessage, AdminTicket } from '@/features/support/supportAdminApi'
+import {
+  adminGetScheduledCall,
+  adminGetTicket,
+  isCurrentUserAdmin,
+  runAgentAction,
+} from '@/features/support/supportAdminApi'
+import type { AdminMessage, AdminScheduledCall, AdminTicket } from '@/features/support/supportAdminApi'
 import { SupportAttachments } from '@/features/support/SupportAttachments'
 
 const PRIORITIES: SupportPriority[] = ['critical', 'high', 'standard', 'low']
+const MAX_CALL_SLOTS = 3
 
 function formatDateTime(iso: string, lang: 'en' | 'fr'): string {
   return new Date(iso).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -24,6 +31,145 @@ function formatDateTime(iso: string, lang: 'en' | 'fr'): string {
 }
 
 const selectClass = 'rounded-[8px] border border-border bg-surface px-[10px] py-[7px] text-[13px] text-text'
+const inputClass = 'rounded-[8px] border border-border bg-surface px-[10px] py-[7px] text-[13px] text-text'
+
+/** Admin panel to propose up to 3 call times, or view what was proposed/confirmed. */
+function ProposeCallPanel({
+  ticketId,
+  onProposed,
+}: {
+  readonly ticketId: string
+  readonly onProposed: () => void
+}) {
+  const { x, lang }: LangContextValue = useI18n()
+  const [call, setCall] = useState<AdminScheduledCall | null | 'loading'>('loading')
+  const [slots, setSlots] = useState<string[]>([''])
+  const [duration, setDuration] = useState(30)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(false)
+
+  const load = useCallback(async () => {
+    setCall(await adminGetScheduledCall(ticketId))
+  }, [ticketId])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  async function submit() {
+    setBusy(true)
+    setError(false)
+    try {
+      const filled = slots.filter((s) => s.trim())
+      const parsedSlots = filled.map((start) => {
+        const startDate = new Date(start)
+        const endDate = new Date(startDate.getTime() + duration * 60000)
+        return { start: startDate.toISOString(), end: endDate.toISOString() }
+      })
+      if (parsedSlots.length === 0) {
+        setError(true)
+        return
+      }
+      await runAgentAction(ticketId, {
+        action: 'propose_call',
+        slots: parsedSlots,
+        duration_minutes: duration,
+      })
+      await load()
+      onProposed()
+    } catch (e) {
+      console.error('support admin: propose_call failed', e)
+      setError(true)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (call === 'loading') return null
+
+  return (
+    <div className="mb-[20px] rounded-[12px] border border-border bg-inset px-[16px] py-[14px]">
+      <h2 className="m-0 mb-[4px] text-[14px] font-semibold text-text">{x(M.support_admin_call_heading)}</h2>
+      <p className="m-0 mb-[10px] text-[12.5px] text-text-muted">{x(M.support_admin_call_intro)}</p>
+
+      {call && (
+        <>
+          <p className="m-0 mb-[4px] text-[12.5px] font-semibold text-text-2">
+            {call.status === 'confirmed'
+              ? `${x(M.support_admin_call_status_confirmed)}: ${call.confirmedStart ? formatDateTime(call.confirmedStart, lang) : ''}`
+              : x(M.support_admin_call_status_proposed)}
+          </p>
+          {call.status === 'confirmed' && !call.meetLink && (
+            <p className="m-0 mb-[10px] text-[12px] text-gold-fg">{x(M.support_admin_call_calendar_skipped)}</p>
+          )}
+        </>
+      )}
+
+      <div className="flex flex-col gap-[8px]">
+        {slots.map((value, i) => (
+          <div key={i} className="flex items-center gap-[8px]">
+            <input
+              type="datetime-local"
+              aria-label={`${x(M.support_admin_call_slot)} ${i + 1}`}
+              value={value}
+              onChange={(e) => setSlots((s) => s.map((v, j) => (j === i ? e.target.value : v)))}
+              className={inputClass}
+            />
+            {slots.length > 1 && (
+              <button
+                type="button"
+                aria-label={x(M.support_admin_call_remove_slot)}
+                onClick={() => setSlots((s) => s.filter((_, j) => j !== i))}
+                className="cursor-pointer rounded-[6px] border border-border bg-surface p-[5px] text-text-muted"
+              >
+                <X size={13} strokeWidth={2} aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        ))}
+        {slots.length < MAX_CALL_SLOTS && (
+          <button
+            type="button"
+            onClick={() => setSlots((s) => [...s, ''])}
+            className="inline-flex w-fit cursor-pointer items-center gap-[5px] rounded-[6px] border border-border bg-surface px-[9px] py-[5px] text-[12px] font-semibold text-text-2"
+          >
+            <Plus size={13} strokeWidth={2} aria-hidden="true" />
+            {x(M.support_admin_call_add_slot)}
+          </button>
+        )}
+
+        <label className="mt-[4px] flex items-center gap-[8px] text-[12.5px] font-semibold text-text-2">
+          {x(M.support_admin_call_duration_label)}
+          <input
+            type="number"
+            min={10}
+            max={120}
+            value={duration}
+            onChange={(e) => setDuration(Number(e.target.value) || 30)}
+            className={`${inputClass} w-[70px]`}
+          />
+        </label>
+
+        {error && (
+          <p role="alert" className="m-0 text-[12.5px] text-risk-fg">
+            {x(M.support_admin_call_error)}
+          </p>
+        )}
+
+        <div>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void submit()}
+            className="cursor-pointer rounded-[9px] border-none bg-navy px-[16px] py-[8px] text-[13px] font-semibold text-white disabled:opacity-60"
+          >
+            {x(M.support_admin_call_submit)}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function SupportAdminTicket() {
   const { x, L, lang } = useI18n()
@@ -152,6 +298,8 @@ export function SupportAdminTicket() {
               {x(M.support_admin_action_error)}
             </p>
           )}
+
+          <ProposeCallPanel ticketId={ticket.id} onProposed={() => void load()} />
 
           <ol className="m-0 mb-[22px] flex list-none flex-col gap-[10px] p-0">
             {ticket.messages.map((m) => (

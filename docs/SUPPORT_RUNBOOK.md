@@ -49,6 +49,13 @@ Requirements before a call: an existing ticket, initial written triage, identity
 verification if account details will be discussed, and a scheduled appointment.
 There is **no "call us now"** flow, and no general inbound number.
 
+Propose up to 3 candidate times from the admin ticket view; the customer
+confirms one from their own ticket, and — once
+[SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md)'s owner setup is
+done — a calendar event with a Meet link is created automatically. Until
+then, propose/confirm still work; there's just no calendar invite, and
+you'll see a note on the ticket saying so.
+
 ## Document a call
 
 After every call, add a **written summary** to the ticket (a `customer`-visible

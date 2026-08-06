@@ -1,9 +1,12 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { MAX_DURATION_MINUTES, MIN_DURATION_MINUTES, parseProposedSlots } from '../_shared/scheduledCalls.ts'
 
 /**
  * Admin/operator actions on a support ticket: reply (customer-visible), add an
- * internal note, change status, or set priority. Gated by is_admin server-side
+ * internal note, change status, set priority, or propose scheduled-call times
+ * (TODO.md D3 — up to 3 candidate slots; the customer confirms one from their
+ * own ticket view via support-confirm-call). Gated by is_admin server-side
  * and executed with the service role, so these mutations never depend on the
  * browser. Priority here MAY be 'critical' (unlike the customer intake, which is
  * capped at 'high'). Every action writes an audit event.
@@ -26,7 +29,7 @@ const STATUSES = [
   'scheduled_call', 'resolved', 'closed',
 ] as const
 const PRIORITIES = ['critical', 'high', 'standard', 'low'] as const
-const ACTIONS = ['reply', 'note', 'status', 'priority'] as const
+const ACTIONS = ['reply', 'note', 'status', 'priority', 'propose_call'] as const
 
 function has<T extends string>(list: readonly T[], v: unknown): v is T {
   return typeof v === 'string' && (list as readonly string[]).includes(v)
@@ -142,6 +145,61 @@ Deno.serve(async (req: Request) => {
       data: { from: ticket.status, to: status },
     })
     return json({ data: { status } })
+  }
+
+  if (action === 'propose_call') {
+    const slots = parseProposedSlots(body.slots, new Date(nowIso))
+    if (!slots) return json({ error: 'slots must be 1-3 future {start, end} ranges' }, 422)
+    const durationMinutes = body.duration_minutes
+    if (
+      typeof durationMinutes !== 'number' ||
+      durationMinutes < MIN_DURATION_MINUTES ||
+      durationMinutes > MAX_DURATION_MINUTES
+    ) {
+      return json({ error: `duration_minutes must be between ${MIN_DURATION_MINUTES} and ${MAX_DURATION_MINUTES}` }, 422)
+    }
+
+    const { error: scheduleError } = await admin.from('support_scheduled_calls').upsert(
+      {
+        ticket_id: ticketId,
+        proposed_by: user.id,
+        proposed_slots: slots,
+        duration_minutes: durationMinutes,
+        status: 'proposed',
+        // A re-propose (reschedule before confirmation) clears any stale confirmation state.
+        confirmed_start: null,
+        confirmed_end: null,
+        confirmed_by: null,
+        confirmed_at: null,
+        calendar_event_id: null,
+        meet_link: null,
+        reminder_sent_at: null,
+        followup_flagged_at: null,
+      },
+      { onConflict: 'ticket_id' },
+    )
+    if (scheduleError) return json({ error: scheduleError.message }, 500)
+
+    if (ticket.status !== 'scheduled_call') {
+      await admin.from('support_tickets').update({ status: 'scheduled_call' }).eq('id', ticketId)
+    }
+    await admin.from('support_ticket_events').insert({
+      ticket_id: ticketId,
+      actor_user_id: user.id,
+      event_type: 'call_proposed',
+      data: { slots, duration_minutes: durationMinutes },
+    })
+    if (ticket.requester_email) {
+      await admin.from('support_notifications').insert({
+        ticket_id: ticketId,
+        kind: 'call_proposed',
+        audience: 'customer',
+        recipient: ticket.requester_email,
+        language: ticket.language ?? 'en',
+        payload: { reference: ticket.public_reference },
+      })
+    }
+    return json({ data: { slots, duration_minutes: durationMinutes } })
   }
 
   // action === 'priority'

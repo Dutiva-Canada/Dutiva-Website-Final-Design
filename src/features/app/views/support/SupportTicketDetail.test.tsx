@@ -6,7 +6,14 @@ import { LangProvider } from '@/i18n/LangProvider'
 
 const getSupportTicket = vi.hoisted(() => vi.fn())
 const replyToSupportTicket = vi.hoisted(() => vi.fn())
-vi.mock('@/features/support/supportApi', () => ({ getSupportTicket, replyToSupportTicket }))
+const getScheduledCall = vi.hoisted(() => vi.fn().mockResolvedValue(null))
+const confirmScheduledCall = vi.hoisted(() => vi.fn())
+vi.mock('@/features/support/supportApi', () => ({
+  getSupportTicket,
+  replyToSupportTicket,
+  getScheduledCall,
+  confirmScheduledCall,
+}))
 
 import { SupportTicketDetail } from './SupportTicketDetail'
 
@@ -35,6 +42,9 @@ const baseTicket = {
 beforeEach(() => {
   getSupportTicket.mockReset()
   replyToSupportTicket.mockReset()
+  getScheduledCall.mockReset()
+  confirmScheduledCall.mockReset()
+  getScheduledCall.mockResolvedValue(null)
 })
 
 describe('SupportTicketDetail', () => {
@@ -68,5 +78,54 @@ describe('SupportTicketDetail', () => {
     getSupportTicket.mockResolvedValue(null)
     renderDetail()
     expect(await screen.findByText(/could not be found/i)).toBeInTheDocument()
+  })
+
+  it('confirms a proposed call time', async () => {
+    getSupportTicket.mockResolvedValue({ ...baseTicket, status: 'scheduled_call', messages: [] })
+    // Queued rather than a blanket mockResolvedValue: the panel's post-confirm
+    // reload races the test's own assertions, so the second value must already
+    // be queued before the click, not assigned afterward.
+    getScheduledCall
+      .mockResolvedValueOnce({
+        id: 'call1',
+        proposedSlots: [
+          { start: '2027-01-15T14:30:00.000Z', end: '2027-01-15T15:00:00.000Z' },
+          { start: '2027-01-16T14:30:00.000Z', end: '2027-01-16T15:00:00.000Z' },
+        ],
+        durationMinutes: 30,
+        status: 'proposed',
+        confirmedStart: null,
+        confirmedEnd: null,
+        meetLink: null,
+      })
+      .mockResolvedValueOnce({
+        id: 'call1',
+        proposedSlots: [],
+        durationMinutes: 30,
+        status: 'confirmed',
+        confirmedStart: '2027-01-16T14:30:00.000Z',
+        confirmedEnd: '2027-01-16T15:00:00.000Z',
+        meetLink: 'https://meet.google.com/abc-defg-hij',
+      })
+    confirmScheduledCall.mockResolvedValue({
+      start: '2027-01-16T14:30:00.000Z',
+      end: '2027-01-16T15:00:00.000Z',
+      meetLink: 'https://meet.google.com/abc-defg-hij',
+    })
+    const user = userEvent.setup()
+    renderDetail()
+
+    expect(await screen.findByText(/scheduled call/i)).toBeInTheDocument()
+    const confirmButtons = await screen.findAllByRole('button', { name: /confirm this time/i })
+    expect(confirmButtons).toHaveLength(2)
+
+    await user.click(confirmButtons[1] as HTMLElement)
+    expect(confirmScheduledCall).toHaveBeenCalledWith('t1', 1)
+
+    expect(await screen.findByText(/your call is confirmed/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /join the call/i })).toHaveAttribute(
+      'href',
+      'https://meet.google.com/abc-defg-hij',
+    )
   })
 })

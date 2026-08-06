@@ -298,4 +298,38 @@ export const supportMessages = defineMessages({
   support_admin_set_status: { en: 'Set status', fr: 'Définir le statut' },
   support_admin_set_priority: { en: 'Set priority', fr: 'Définir la priorité' },
   support_admin_working: { en: 'Working…', fr: 'En cours…' },
+
+  // ── Scheduled call — admin propose (TODO.md D3) ──────────────────────
+  support_admin_call_heading: { en: 'Propose call times', fr: 'Proposer des heures d’appel' },
+  support_admin_call_intro: {
+    en: 'Offer the customer up to 3 candidate times. They will pick one from their ticket.',
+    fr: 'Proposez au client jusqu’à 3 plages horaires. Il en choisira une depuis son billet.',
+  },
+  support_admin_call_slot: { en: 'Time option', fr: 'Option horaire' },
+  support_admin_call_duration_label: { en: 'Duration (minutes)', fr: 'Durée (minutes)' },
+  support_admin_call_add_slot: { en: 'Add another time', fr: 'Ajouter une autre heure' },
+  support_admin_call_remove_slot: { en: 'Remove this time', fr: 'Retirer cette heure' },
+  support_admin_call_submit: { en: 'Send proposed times', fr: 'Envoyer les heures proposées' },
+  support_admin_call_error: {
+    en: 'Could not save the proposed times. Each time must be in the future and end after it starts.',
+    fr: 'Impossible d’enregistrer les heures proposées. Chaque heure doit être dans le futur et se terminer après son début.',
+  },
+  support_admin_call_status_proposed: { en: 'Awaiting the customer’s choice', fr: 'En attente du choix du client' },
+  support_admin_call_status_confirmed: { en: 'Confirmed', fr: 'Confirmé' },
+  support_admin_call_calendar_skipped: {
+    en: 'Calendar sync is not configured — add this to your calendar by hand.',
+    fr: 'La synchronisation du calendrier n’est pas configurée — ajoutez ce rendez-vous manuellement.',
+  },
+
+  // ── Scheduled call — customer confirm (TODO.md D3) ───────────────────
+  support_call_heading: { en: 'Scheduled call', fr: 'Appel planifié' },
+  support_call_choose_intro: {
+    en: 'Dutiva has proposed the following times for a call about this request. Pick the one that works.',
+    fr: 'Dutiva a proposé les heures suivantes pour un appel au sujet de cette demande. Choisissez celle qui vous convient.',
+  },
+  support_call_confirm_button: { en: 'Confirm this time', fr: 'Confirmer cette heure' },
+  support_call_confirming: { en: 'Confirming…', fr: 'Confirmation en cours…' },
+  support_call_confirmed_heading: { en: 'Your call is confirmed', fr: 'Votre appel est confirmé' },
+  support_call_join_link: { en: 'Join the call', fr: 'Rejoindre l’appel' },
+  support_call_error: { en: 'Could not confirm that time. Please try again.', fr: 'Impossible de confirmer cette heure. Veuillez réessayer.' },
 })

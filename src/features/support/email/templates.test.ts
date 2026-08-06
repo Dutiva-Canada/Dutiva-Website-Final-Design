@@ -14,7 +14,8 @@ const ctx = (overrides: Partial<EmailContext> = {}): EmailContext => ({
 
 const ALL_KINDS: NotificationKind[] = [
   'ticket_received', 'agent_reply', 'info_requested', 'resolved', 'closed',
-  'call_proposed', 'call_confirmed', 'privacy_ack', 'accessibility_ack',
+  'call_proposed', 'call_confirmed', 'call_reminder', 'call_followup_needed',
+  'privacy_ack', 'accessibility_ack',
   'security_ack', 'complaint_ack', 'operator_alert',
 ]
 
@@ -37,7 +38,8 @@ describe('renderSupportEmail', () => {
   it('customer templates link back to the authenticated ticket', () => {
     const linked: NotificationKind[] = [
       'ticket_received', 'agent_reply', 'info_requested', 'resolved',
-      'call_proposed', 'call_confirmed', 'privacy_ack', 'accessibility_ack',
+      'call_proposed', 'call_confirmed', 'call_reminder', 'call_followup_needed',
+      'privacy_ack', 'accessibility_ack',
       'security_ack', 'complaint_ack',
     ]
     for (const kind of linked) {
