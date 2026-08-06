@@ -62,9 +62,32 @@ instructed to say "clean". If the size cap ever stops working, that test returns
 
 **What it does not cover:** ClamAV itself. The mock answers what a real clamd
 would, but signature loading, actual detection, and the freshclam lifecycle are
-only exercised by the Docker steps below. Verified 2026-08-06: all fourteen
-checks pass; the container has **not** been built or run, because Docker was not
-installed on the authoring machine.
+only exercised by building the image — see below. Verified 2026-08-06: all
+fourteen checks pass.
+
+## Verified against real ClamAV, 2026-08-06
+
+Built and run under Podman 6.0.2. `freshclam` baked main.cvd (3,287,027
+signatures), daily.cvd (355,598) and bytecode.cvd (80) at build time; clamd
+loaded them and the entrypoint held the endpoint back until PING answered.
+Driven from inside the container against the live daemon:
+
+| Case | Result |
+| --- | --- |
+| `GET /health` | `{"ok":true,"clamd":"PONG"}` |
+| EICAR test file | `200 {"status":"infected","signature":"Eicar-Test-Signature"}` |
+| ordinary text file | `200 {"status":"clean"}` |
+| origin returns 404 | `502` — retryable, not a verdict |
+| wrong bearer token | `401` |
+
+Two notes from that run. **`podman build` reports success even when `freshclam`
+fails** — the first cut of this Dockerfile set `LogFile` in `freshclam.conf`
+(a clamd-only option; freshclam refuses to parse it), so no signatures were
+baked and the failure was swallowed by a `|| true`. That `|| true` is gone; if
+signatures cannot be fetched, the build now fails. **And Podman ignores
+`HEALTHCHECK`** in OCI image format — harmless here, since DO App Platform and
+Fly are configured with the `/health` path directly, but it means the
+in-container health check only exists under Docker.
 
 ## Build and test locally
 
