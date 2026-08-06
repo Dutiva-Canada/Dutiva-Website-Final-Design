@@ -161,6 +161,14 @@ the disclaimer beside it. Any linkable tool has to work without publishing
 figures — a decision checklist or a jurisdiction-scoping questionnaire would
 qualify; a calculator would not.
 
+**A jurisdiction-scoping questionnaire — built (D6, 2026-08-06).** Three
+questions determine whether Ontario (ESA), Quebec (LNT), or federal (Canada
+Labour Code) employment standards likely apply to an employee. No statutory
+figures — it names the statute and links to the official text. Live at
+`/tools/jurisdiction-check` (EN) and `/fr/outils/verification-juridiction`
+(FR), prerendered and in the sitemap. This is the non-figure linkable asset
+the playbook called for.
+
 **Paid links and link exchanges.** Against Google's guidelines, and the risk
 sits on the domain you are trying to build.
 
@@ -195,8 +203,11 @@ movement in months, not weeks.
    measurable first.
 2. Resolve the business phone in CANONICAL_FACTS before any listing that
    requires one.
-3. Decide whether a non-figure linkable tool is worth building, given the
-   editorial constraint above.
+3. ~~Decide whether a non-figure linkable tool is worth building, given the
+   editorial constraint above.~~ **Decided 2026-08-06 (D6): built.** A
+   jurisdiction-scoping questionnaire is live at
+   `/tools/jurisdiction-check` — see the "What is deliberately not on this
+   list" section above.
 4. ~~Revisit the `GPTBot` / `ClaudeBot` training-crawler policy in
    `scripts/prerender.mjs` as a deliberate decision.~~ **Decided 2026-08-06
    (D4): opted in.** Training crawlers (`GPTBot`, `ClaudeBot`, `CCBot`,

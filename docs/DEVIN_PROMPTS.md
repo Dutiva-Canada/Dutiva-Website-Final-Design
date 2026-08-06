@@ -844,9 +844,7 @@ them.
   2026-08-06: the Beta Launch Brief (2026-07-20). Owner action: mark the
   other plan superseded in Drive and correct the privacy claim in the
   Brief (see CANONICAL_FACTS § Claims to stop making 1).
-- **D6** — whether a non-figure linkable asset is worth building. The
-  termination-notice calculator was ruled out because publishing notice periods
-  violates the editorial rule in `articleModel.ts` — which exists precisely
-  because a wrong figure on an answer-engine-indexed page gets quoted onward
-  without the disclaimer beside it. The link-earning gap it was meant to fill is
-  still open, and needs a different idea rather than a re-litigation of that one.
+- **D6** — ~~whether a non-figure linkable asset is worth building.~~ Decided
+  2026-08-06: built a jurisdiction-scoping questionnaire at
+  `/tools/jurisdiction-check`. The termination-notice calculator remains
+  ruled out (publishing notice periods violates the editorial rule).
