@@ -46,7 +46,15 @@ All events also carry `locale` ('en' or 'fr') and `occurred_at`.
 - **No document contents, chat transcripts, employee records, or HR case
   details.** The Cookie Policy already commits to this; the schema enforces
   it by not having fields for it.
-- **No IP addresses.** The edge function doesn't log or store them.
+- **No IP addresses.** No event row holds an IP or anything derived from one,
+  and the edge function never logs one. Since `0051` the rate limiter does keep
+  a keyed hash — HMAC-SHA256 of the IP under a required secret pepper, never a
+  raw address and never a committed default — in `support_analytics_rate_limit`,
+  a table decoupled from the events and holding no event content. It is swept
+  for all sources on every ingest and purged hourly by `0052`, so a hash
+  normally lives about a minute. Same treatment, and the same careful claim, as
+  `client_error_rate_limit` in `0019`: a minimized, short-lived pseudonymous
+  value used solely for rate limiting — not claimed to be fully anonymous.
 - **No third-party cookies** (for the Supabase sink). GA4 is separate and
   gated on consent.
 
@@ -74,7 +82,11 @@ Client (browser)
   │                     │
   │                     ↓ pagehide / threshold
   │                  fetch(keepalive) → support-analytics-event edge function
-  │                                          │ (ca-central-1, service-key insert)
+  │                                          │ (ca-central-1, peppered IP hash)
+  │                                          ↓
+  │                       ingest_support_analytics_events() — limit + insert,
+  │                             one transaction, 120 events/min per source
+  │                                          │
   │                                          ↓
   │                                  support_analytics_events (raw, 90-day)
   │                                          │
@@ -90,13 +102,32 @@ Client (browser)
 - **Migration `0047`**: `support_analytics_events` (raw), `support_analytics_daily`
   (aggregate), `support_analytics_rollup()` (daily rollup + retention),
   `support_analytics_status()` (operational visibility), pg_cron schedule.
+- **Migration `0051`**: `support_analytics_rate_limit` + the
+  `ingest_support_analytics_events()` RPC. The endpoint runs `verify_jwt = false`
+  and has to (§3, client bullet), so the limiter is the only thing standing
+  between an anonymous caller and fabricated funnel data. Same shape as `0019`:
+  keyed IP hash, transaction-scoped advisory lock, all-sources sweep,
+  `security definer` granted to `service_role` alone. One difference — it counts
+  **events, not requests**, because a request may carry 50.
+- **Migration `0052`**: `purge_support_analytics_rate_limit()`, scheduled hourly.
+  `0051`'s in-RPC sweep only runs when a request arrives, so on a quiet endpoint
+  the last caller's hashes stay until somebody posts again; the hourly job is
+  what actually bounds them. `0052` also widens `support_analytics_status()` with
+  three limiter columns so "it is scheduled" is a query rather than a belief.
 - **`_shared/supportAnalytics.ts`**: Pure event validation — `parseEvent()`
   validates and normalizes an incoming event payload. Same discipline as
   `scheduledCalls.ts` and `lawUpdateDigest.ts` (no I/O, callers pass `now`).
-- **`support-analytics-event` edge function**: Receives a batch of events,
-  validates each with `parseEvent()`, inserts valid ones into
-  `support_analytics_events`. Pinned to ca-central-1 via
-  `forceFunctionRegion`. Inert without `SUPABASE_SERVICE_ROLE_KEY`.
+- **`support-analytics-event` edge function**: Receives a batch of events (max
+  50), validates each with `parseEvent()`, and hands the valid ones to
+  `ingest_support_analytics_events()` — the limit check and the insert are one
+  transaction, never two round-trips. Pinned to ca-central-1 via
+  `forceFunctionRegion`. Requires `SUPABASE_SERVICE_ROLE_KEY` **and** a pepper
+  (`ERROR_REPORT_SALT`, falling back to `SUPPORT_NOTIFY_SECRET`) for the IP hash;
+  it **fails closed with a 500 on every request** if the pepper is missing,
+  because the alternative is a committed default an attacker could reproduce.
+  A rate-limited batch is not an error: it returns `200 {inserted: 0,
+  rate_limited: true}` and logs, since the client swallows errors by design and
+  an error status would only invite retry storms.
 - **`src/features/support/analytics/supportAnalytics.ts`**: Client module —
   `trackEvent()` queues events, `flush()` sends them as a batch via
   `fetch(keepalive)`, `installAnalyticsFlush()` registers a `pagehide`
@@ -182,27 +213,48 @@ limit 30;
 select * from public.support_analytics_status();
 ```
 
+Both `rollup_scheduled` and `rate_limit_purge_scheduled` must be `true`. The
+failure this is here to catch is `rate_limit_purge_scheduled = false` alongside
+a non-zero `rate_limit_rows` whose `oldest_rate_limit_row` keeps ageing: the
+limiter still works, but its IP hashes have stopped being swept.
+
 ## 5. Owner deployment steps
 
-The migration is applied and the edge function is committed. What's left:
+`0047` and `0051` are applied and the edge function is deployed and recording
+(TODO.md OA17, verified 2026-08-06). What's left, and what to re-check on any
+future redeploy:
 
-1. **Deploy the `support-analytics-event` edge function.** Merging the PR
-   does not deploy it (AGENTS.md's two-halves rule). Deploy via the Supabase
-   dashboard or CLI.
+1. **~~Apply `0052`.~~ Done 2026-08-06 — applied and verified.**
+   `purge-support-analytics-rate-limit` is active on `17 * * * *` and
+   `support_analytics_status()` returns `rate_limit_purge_scheduled: true`.
+   Re-check that flag after any project restore or migration replay: everything
+   else in `0051` keeps working without the job, so the only symptom is IP
+   hashes quietly ceasing to be swept.
 
-2. **No Vault secret needed.** Unlike the law-update digest and call
+2. **Keep `verify_jwt = false` on redeploy.** Pinned in
+   `supabase/config.toml`, and it must stay pinned: the client posts a bare body
+   with no `apikey` and no `Authorization` so the flush survives page unload, so
+   a CLI-default redeploy silently 401s every event at the gateway. That is the
+   two-attempt story in OA17 and the reason the pin exists.
+
+3. **A pepper must be set.** `ERROR_REPORT_SALT`, or `SUPPORT_NOTIFY_SECRET` as
+   the fallback. Since `0051` the function fails closed — 500 on every request —
+   without one, rather than hashing under a guessable default. Set it in the same
+   change as any project or key rotation.
+
+4. **No Vault secret needed.** Unlike the law-update digest and call
    scheduler, this edge function is invoked directly by the client (not via
    pg_cron), so it uses the standard Supabase service role key that's
    already configured as `SUPABASE_SERVICE_ROLE_KEY` in the edge function
    environment.
 
-3. **Verify after deploy.** Open a Help Centre article in production, vote,
+5. **Verify after deploy.** Open a Help Centre article in production, vote,
    and check:
    ```sql
    select * from public.support_analytics_events order by occurred_at desc limit 5;
    ```
 
-4. **GA4 (optional, separate step).** Set `VITE_GA_MEASUREMENT_ID` at build
+6. **GA4 (optional, separate step).** Set `VITE_GA_MEASUREMENT_ID` at build
    time AND ship the consent banner (needs a design handoff). Without the
    banner, GA4 stays inert even with a measurement ID configured — the
    consent gate is structural, not optional.
