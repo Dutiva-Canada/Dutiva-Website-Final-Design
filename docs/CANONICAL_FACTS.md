@@ -38,7 +38,7 @@ people who don't read the repo. Re-export it when this file changes.
 
 | Fact                  | Value                                                                       | Source of truth                                                         |
 | --------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Templates shipped     | **46** — T01…T46                                                            | `src/features/app/documents/catalogue.ts`                               |
+| Templates shipped     | **50** — T01…T50                                                            | `src/features/app/documents/catalogue.ts`                               |
 | Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)          | jurisdiction codes `ON`, `QC`, `FED`                                    |
 | Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                | `src/config/plans.ts` → `PLANS`                                         |
 | Annual billing        | 10 of 12 months charged (two months free)                                   | `ANNUAL_MONTHS_BILLED`                                                  |
@@ -148,7 +148,7 @@ not the outcome, until that resolves.
 
 ### 3. Counts
 
-**46** templates — not 47, and no longer 16 either: the count has moved, so state
+**50** templates — not 47, and no longer 16 either: the count has moved, so state
 it from `catalogue.ts` rather than from memory or from any Drive document. **3**
 jurisdictions — not 4 or 14. Federally regulated remote work is a supported
 _scenario_ under `FED`, not a fourth jurisdiction. Alberta and BC stay labelled

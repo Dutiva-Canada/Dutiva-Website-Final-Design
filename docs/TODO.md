@@ -382,20 +382,26 @@ strings, identical. `check-entry-graph.mjs` now bars the three content modules
 by name, and parity tests assert the metadata and content key sets match in
 both directions per collection.
 
-**EF7 — The legacy document fixture was never migrated.** `src/data/documents.ts`
-still exists alongside the doclib catalogue, with five templates that have no
-doclib match; `PoliciesView.tsx` and `searchCorpus.ts` were explicitly left out
-of the unification. Additive by design — but two sources for one concept is the
-shape of the drift this repo keeps correcting elsewhere. (PR #33)
+**EF7 — Done.** The five unmatched legacy templates have been authored into
+the doclib catalogue as T47–T50 (the legacy "Onboarding Package (Français)"
+was a separate entry only because the prototype shipped the French body for
+both languages; the doclib's bilingual `Bi` model handles both in one
+template, so T49 covers it). The five are:
 
-It is a live fallback, not dead weight: `DocStudioProvider` and
-`resolveDocTitle` both try the doclib set by tid and fall back to
-`documentTemplatesByKey` when there is no match, which is what keeps those five
-templates reachable. So deleting the file removes five templates from Document
-Studio. Closing this means authoring them into the doclib catalogue — legal
-content in a compliance product, which per
-[FOUR_RING_FRAMEWORK.md](FOUR_RING_FRAMEWORK.md) needs review budget, not just
-engineering time — or deciding they should go, which is a product call.
+- **T47** — Candidate rejection letter (hiring, low risk)
+- **T48** — Expense reimbursement policy (policies, low risk)
+- **T49** — Onboarding package (hiring, low risk, QC Charter note)
+- **T50** — Policy template (policies, low risk, Advisor-tailored shell)
+
+The legacy fixture (`src/data/documents.ts`) still holds the 10 templates that
+have doclib matches by tid — they remain as string-key fallbacks for callers
+that pass title strings (e.g. `PoliciesView` passes `p.title.en`). The search
+corpus now uses the doclib catalogue directly (`allTemplates`), passing tids.
+The canonical template count is now **50** (T01…T50). Per
+[FOUR_RING_FRAMEWORK.md](FOUR_RING_FRAMEWORK.md), these are legal-adjacent
+documents in a compliance product and need review budget — the `review` field
+on each is set to `hr_review_required` or `not_reviewed` as appropriate, and
+none are marked `approved_for_use`. (PR #159)
 
 **EF8 — Paid-area gating by plan does not exist.** `/app` is gated by invite,
 not by plan; the pricing page and Stripe plumbing are real but nothing reads a

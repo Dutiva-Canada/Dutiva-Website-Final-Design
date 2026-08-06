@@ -214,23 +214,6 @@ export const documentTemplates: DocumentTemplate[] = [
     },
   },
   {
-    key: 'Candidate Rejection Letter',
-    title: bi('Candidate Rejection Letter', 'Lettre de refus de candidature'),
-    category: catHiring,
-    highRisk: false,
-    sections: [
-      bi('Thank you for your interest', 'Merci de votre intérêt'),
-      bi(
-        'We appreciate the time you invested in interviewing for the Senior Analyst role. After careful consideration, we’ve decided to move forward with another candidate.',
-        "Nous vous remercions du temps consacré à l'entrevue pour le poste d'analyste principal. Après mûre réflexion, nous avons décidé de poursuivre avec un autre candidat.",
-      ),
-      bi(
-        'We were impressed with your background and will keep your resume on file for future opportunities that may be a better fit.',
-        'Votre parcours nous a impressionnés et nous conserverons votre CV pour de futures occasions qui pourraient mieux vous convenir.',
-      ),
-    ],
-  },
-  {
     key: 'Remote Work Policy',
     title: bi('Remote Work Policy', 'Politique de télétravail'),
     category: catPolicy,
@@ -252,23 +235,6 @@ export const documentTemplates: DocumentTemplate[] = [
       bi(
         'Data security: company data must stay within approved, encrypted devices and storage.',
         "Sécurité des données : les données de l'entreprise doivent demeurer sur des appareils et supports de stockage approuvés et chiffrés.",
-      ),
-    ],
-  },
-  {
-    key: 'Expense Reimbursement Policy',
-    title: bi('Expense Reimbursement Policy', 'Politique de remboursement des dépenses'),
-    category: catPolicy,
-    highRisk: false,
-    sections: [
-      bi('Expense Reimbursement Policy', 'Politique de remboursement des dépenses'),
-      bi(
-        'Eligible expenses include client travel, approved software, and remote work equipment. Submit claims within 30 days with itemized receipts.',
-        "Les dépenses admissibles comprennent les déplacements chez les clients, les logiciels approuvés et l'équipement de télétravail. Soumettez les demandes dans les 30 jours avec des reçus détaillés.",
-      ),
-      bi(
-        'Provincial note: reimbursement obligations for work-related expenses vary by province — this policy sets a company floor that meets or exceeds every province you operate in.',
-        "Note provinciale : les obligations de remboursement des dépenses liées au travail varient selon la province — cette politique établit un seuil d'entreprise qui atteint ou dépasse celui de chaque province où vous exercez.",
       ),
     ],
   },
@@ -387,52 +353,6 @@ export const documentTemplates: DocumentTemplate[] = [
     },
   },
   {
-    key: 'Onboarding Package',
-    title: bi('Onboarding Package', 'Trousse d’intégration'),
-    category: catHiring,
-    highRisk: false,
-    sections: [
-      bi('Onboarding Package — Quebec Office', "Trousse d'intégration — Bureau du Québec"),
-      bi(
-        'Documents provided in French by default per the Charter of the French Language, with an English version available on request.',
-        'Documents fournis en français par défaut conformément à la Charte de la langue française, une version anglaise étant disponible sur demande.',
-      ),
-      bi(
-        'Includes: welcome letter, benefits enrollment, IT equipment checklist, statutory holiday calendar, and first-week schedule.',
-        "Comprend : lettre de bienvenue, inscription aux avantages sociaux, liste de vérification de l'équipement informatique, calendrier des jours fériés et horaire de la première semaine.",
-      ),
-    ],
-    meta: {
-      jur: bi('Quebec · Charter of the French Language', 'Québec · Charte de la langue française'),
-      missing: bi(
-        'Confirm whether French versions are required and whether any employee-requested language exception applies.',
-        'Confirmez si des versions françaises sont requises et si une exception linguistique demandée par l’employé s’applique.',
-      ),
-    },
-  },
-  {
-    // The prototype ships this template's body in French for both languages
-    // (its `tr()` leaves the sections untouched) — transcribed as-is.
-    key: 'Onboarding Package (Français)',
-    title: bi('Onboarding Package (Français)', 'Trousse d’intégration (français)'),
-    category: catHiring,
-    highRisk: false,
-    sections: [
-      bi('Trousse d’accueil — Bureau du Québec', 'Trousse d’accueil — Bureau du Québec'),
-      bi(
-        'Documents fournis en français par défaut, conformément à la Charte de la langue française. Une version anglaise est disponible sur demande.',
-        'Documents fournis en français par défaut, conformément à la Charte de la langue française. Une version anglaise est disponible sur demande.',
-      ),
-      bi(
-        'Comprend : lettre de bienvenue, inscription aux avantages sociaux, liste de vérification informatique, calendrier des jours fériés et horaire de la première semaine.',
-        'Comprend : lettre de bienvenue, inscription aux avantages sociaux, liste de vérification informatique, calendrier des jours fériés et horaire de la première semaine.',
-      ),
-    ],
-    meta: {
-      jur: bi('Quebec · Charter of the French Language', 'Québec · Charte de la langue française'),
-    },
-  },
-  {
     key: 'Written Warning',
     title: bi('Written Warning', 'Avertissement écrit'),
     category: catPerformance,
@@ -462,23 +382,6 @@ export const documentTemplates: DocumentTemplate[] = [
         'Dates des incidents; disposition de la politique en cause; avertissements antérieurs au dossier.',
       ),
     },
-  },
-  {
-    key: 'Policy Template',
-    title: bi('Policy Template', 'Modèle de politique'),
-    category: catPolicy,
-    highRisk: false,
-    sections: [
-      bi('Company Policy — [Title]', "Politique de l'entreprise — [Titre]"),
-      bi(
-        'Purpose, scope, and who this policy applies to.',
-        'Objet, portée et personnes visées par cette politique.',
-      ),
-      bi(
-        'Policy detail — Advisor will tailor this section once you describe what the policy should cover.',
-        "Détail de la politique — le Conseiller adaptera cette section une fois que vous aurez décrit ce qu'elle doit couvrir.",
-      ),
-    ],
   },
 ]
 
