@@ -112,13 +112,25 @@ cannot reset.
 
 ## Known limits and follow-ups
 
-- The Advisor chat "Copy" button and on-screen text are not watermarked —
+- ~~The Advisor chat "Copy" button and on-screen text are not watermarked —
   screen content is the analog hole; watermarking starts at _export_.
-  A future pass could run copies through the same pipeline.
+  A future pass could run copies through the same pipeline.~~ **Done (EF3,
+  2026-08-06).** The Copy button now runs through the same `authorizeExport`
+  pipeline as Document Studio (`surface='advisor'`, `kind='text'`), so every
+  copied message carries an invisible zero-width tag that resolves to an
+  `export_events` row. On-screen text remains unwatermarked (the analog hole);
+  the Copy button is the boundary where content leaves the product.
 - Zero-width tags do not survive re-typing or aggressive sanitizers; that is
   why three channels exist, and why the visible line names the exporter.
-- The server trail is read through service-role tooling today; an in-app
+- ~~The server trail is read through service-role tooling today; an in-app
   admin viewer over `export_events` is a natural follow-up once the
-  admin-reporting surface exists.
+  admin-reporting surface exists.~~ **Done (EF3, 2026-08-06).** An admin
+  viewer is live at `/app/support/admin/exports`, reading through the
+  `export-audit-trail` edge function (service-role, `is_admin`-gated
+  server-side). The table itself stays service-role-only with zero client
+  policies — the edge function is the only read path. Supports filtering by
+  surface/kind, pagination, and forensic lookup of a single export id.
 - If real file storage (Supabase Storage) arrives, downloads should move to
-  short-lived signed URLs so links themselves expire.
+  short-lived signed URLs so links themselves expire. Not applicable today —
+  exports are generated client-side as Blob downloads, not stored in
+  Supabase Storage.

@@ -45,6 +45,7 @@ function gated(view: ReactNode) {
 /* prettier-ignore */ const SupportTicketDetail = lazy(() => import('@/features/app/views/support/SupportTicketDetail').then((m) => ({ default: m.SupportTicketDetail })))
 /* prettier-ignore */ const SupportAdminView = lazy(() => import('@/features/app/views/support/SupportAdminView').then((m) => ({ default: m.SupportAdminView })))
 /* prettier-ignore */ const SupportAdminTicket = lazy(() => import('@/features/app/views/support/SupportAdminTicket').then((m) => ({ default: m.SupportAdminTicket })))
+/* prettier-ignore */ const ExportAuditView = lazy(() => import('@/features/app/views/support/ExportAuditView').then((m) => ({ default: m.ExportAuditView })))
 /* Planning section (Tasks + Calendar as sub-tabs) */
 /* prettier-ignore */ const PlanningLayout = lazy(() => import('@/features/app/views/planning/PlanningLayout').then((m) => ({ default: m.PlanningLayout })))
 /* prettier-ignore */ const TasksView = lazy(() => import('@/features/app/views/tasks/TasksView').then((m) => ({ default: m.TasksView })))
@@ -99,6 +100,10 @@ export const appViewRoutes: RouteObject[] = [
   { path: 'support/requests/:ticketId', element: <SupportTicketDetail /> },
   /* Founder/operator dashboard — admin-gated in the views + the edge function. */
   { path: 'support/admin', element: <SupportAdminView /> },
+  /* Export audit trail — admin-gated in the view + the edge function.
+     Ranked above support/admin/:ticketId by React Router's static-segment
+     precedence, so the static path keeps its dedicated view. */
+  { path: 'support/admin/exports', element: <ExportAuditView /> },
   { path: 'support/admin/:ticketId', element: <SupportAdminTicket /> },
   /* Communications, Compensation and Wellbeing each handle both modes
      themselves (real persistence in production — migrations 0040, 0039,

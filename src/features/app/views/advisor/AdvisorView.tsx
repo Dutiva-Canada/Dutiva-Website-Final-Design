@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { bi } from '@/i18n/core'
+import { bi, pick } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
+import { useI18n } from '@/i18n/context'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
+import { exportProtectionMessages as XP } from '@/i18n/messages/exportProtection'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
 import { useAuth } from '@/features/app/auth/authContext'
@@ -14,6 +16,11 @@ import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import {
+  authorizeExport,
+  encodeInvisibleTag,
+  exportDenialMessage,
+} from '@/lib/exportProtection'
 import {
   chats,
   followupFallbackText,
@@ -221,8 +228,11 @@ export function AdvisorView() {
   const location = useLocation()
   const { showToast } = useToasts()
   const { openDocStudio } = useDocStudio()
-  const { status: authStatus } = useAuth()
-  const { mode: workspaceMode } = useWorkspaceMode()
+  const { lang } = useI18n()
+  const auth = useAuth()
+  const { status: authStatus } = auth
+  const workspaceModeCtx = useWorkspaceMode()
+  const { mode: workspaceMode } = workspaceModeCtx
   /* Real-backend conversation id for the active thread's free-form messages
      (see sendInThread) — reset alongside the engine whenever the thread
      changes. Scripted flows/quick-forms/follow-ups never touch this. */
@@ -868,12 +878,40 @@ export function AdvisorView() {
   const onSuggestChip = (chip: SuggestChipSpec) => startFlow(chip.flowKey, chip.label)
 
   const handleCopyMessage = useCallback(
-    (text: string) => {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast({ en: 'Copied to clipboard', fr: 'Copié dans le presse-papiers' }, 'ok')
+    async (text: string) => {
+      /* EF3: run the Copy button through the same export pipeline as Document
+         Studio, so every copied message carries an invisible zero-width tag
+         that resolves back to an export_events row. Surface='advisor',
+         kind='text'. A velocity denial shows the same retry toast as a
+         refused document export. */
+      const identity = workspaceModeCtx?.identity
+      const actorLabel = identity
+        ? `${identity.user.name} (${identity.user.email})`
+        : pick(XP.exportprot_demo_actor, lang)
+      const workspaceLabel = identity?.companyName ?? pick(XP.exportprot_demo_workspace, lang)
+
+      const decision = await authorizeExport({
+        surface: 'advisor',
+        kind: 'text',
+        title: pick(M.advisorview_chat_copy_title, lang),
+        content: text,
+        lang,
+        actorLabel,
+        workspaceLabel,
+        session: auth?.session ?? null,
       })
+      if (!decision.allowed) {
+        showToast(exportDenialMessage(decision), 'info')
+        return
+      }
+
+      const tagged = text + encodeInvisibleTag(decision.stamp.exportId)
+      navigator.clipboard.writeText(tagged).then(
+        () => showToast({ en: 'Copied to clipboard', fr: 'Copié dans le presse-papiers' }, 'ok'),
+        () => showToast({ en: 'Could not copy', fr: 'Impossible de copier' }, 'info'),
+      )
     },
-    [showToast],
+    [showToast, workspaceModeCtx, auth, lang],
   )
 
   const handleExportMessage = useCallback(

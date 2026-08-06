@@ -310,19 +310,30 @@ captured real responses only. **Do not flip `monitoringCoverage.ts`'s
 ON/QC-unmonitored claim until a real scheduled sweep proves it**, the same
 discipline OA2 already applies to Federal. (PRs #105, #106)
 
-**EF3 — Export-trail follow-ups.** An in-app admin viewer over `export_events`
-(the trail is read through service-role tooling today); the Advisor chat "Copy"
-button and on-screen text are unwatermarked, since watermarking starts at
-export; and downloads should move to short-lived signed URLs if Supabase Storage
-ever holds real files. [EXPORT_PROTECTION.md](EXPORT_PROTECTION.md). (PR #102)
+**EF3 — Done.** Three follow-ups from the export protection system, all
+closed 2026-08-06:
 
-The viewer is not just a screen: `0033` enables RLS on `export_events` with
-**no policies at all**, deliberately — service-role only, so today nothing
-signed-in can read a row. Building the viewer means either an admin `select`
-policy (the shape `0011` already uses for guidance/law_updates) or an
-admin-gated edge function. That is a decision about the audit table's security
-posture and should be taken on purpose, not inherited from whichever is easier
-to write.
+1. **Admin viewer.** Live at `/app/support/admin/exports` — reads
+   `export_events` through the `export-audit-trail` edge function
+   (service-role, `is_admin`-gated server-side). The table stays
+   service-role-only with zero client policies — the edge function is the
+   only read path. Supports filtering by surface/kind, pagination, and
+   forensic lookup of a single export id (the "resolve a leaked artifact"
+   use case). Linked from the support admin dashboard.
+2. **Copy button watermarking.** The Advisor chat Copy button now runs
+   through `authorizeExport` (`surface='advisor'`, `kind='text'`), so every
+   copied message carries an invisible zero-width tag that resolves to an
+   `export_events` row. A velocity denial shows the same retry toast as a
+   refused document export. On-screen text remains unwatermarked (the analog
+   hole); the Copy button is the boundary where content leaves the product.
+3. **Signed URLs.** Not applicable — exports are generated client-side as
+   Blob downloads, not stored in Supabase Storage. The conditional ("if
+   Supabase Storage ever holds real files") is not met.
+
+The audit table's security posture was decided: admin-gated edge function,
+not an admin RLS policy. The table never becomes client-readable, even if
+`is_admin()` is compromised — the edge function is the only read path.
+[EXPORT_PROTECTION.md](EXPORT_PROTECTION.md). (PR #158)
 
 **EF4a — Annual billing needs its Stripe objects and migration 0043.** _Owner._
 The code half is done: `create-checkout-session` resolves

@@ -22,8 +22,8 @@
  * casual case, the server guard is the one a determined user has to beat.
  */
 
-export type ExportSurface = 'docstudio' | 'memory'
-export type ExportKind = 'pdf' | 'word' | 'link' | 'json'
+export type ExportSurface = 'docstudio' | 'doclib' | 'memory' | 'advisor'
+export type ExportKind = 'pdf' | 'word' | 'link' | 'json' | 'text'
 
 export interface ExportAuditEntry {
   exportId: string

@@ -332,4 +332,48 @@ export const supportMessages = defineMessages({
   support_call_confirmed_heading: { en: 'Your call is confirmed', fr: 'Votre appel est confirmé' },
   support_call_join_link: { en: 'Join the call', fr: 'Rejoindre l’appel' },
   support_call_error: { en: 'Could not confirm that time. Please try again.', fr: 'Impossible de confirmer cette heure. Veuillez réessayer.' },
+
+  // ── Export audit trail — admin viewer (TODO.md EF3) ──────────────────
+  export_audit_title: { en: 'Export audit trail', fr: 'Journal des exports' },
+  export_audit_denied: {
+    en: 'This area is limited to support operators.',
+    fr: 'Cette zone est réservée aux opérateurs de soutien.',
+  },
+  export_audit_intro: {
+    en: 'One row per authorized export of company-generated content. The export id embedded in an artifact (visible watermark, invisible zero-width tag, or file metadata) resolves back to the person who exported it.',
+    fr: 'Une ligne par export autorisé de contenu généré par l’entreprise. L’identifiant d’export intégré dans un artefact (filigrane visible, balise invisible à largeur nulle ou métadonnées du fichier) permet de retrouver la personne qui l’a exporté.',
+  },
+  export_audit_lookup_label: { en: 'Resolve an export id', fr: 'Résoudre un identifiant d’export' },
+  export_audit_lookup_placeholder: { en: 'Paste export id (UUID)', fr: 'Coller l’identifiant d’export (UUID)' },
+  export_audit_lookup_button: { en: 'Resolve', fr: 'Résoudre' },
+  export_audit_lookup_not_found: {
+    en: 'No export event found for that id.',
+    fr: 'Aucun événement d’export trouvé pour cet identifiant.',
+  },
+  export_audit_filter_surface: { en: 'Surface', fr: 'Surface' },
+  export_audit_filter_kind: { en: 'Kind', fr: 'Type' },
+  export_audit_filter_all: { en: 'All', fr: 'Tous' },
+  export_audit_col_id: { en: 'Export ID', fr: 'Identifiant' },
+  export_audit_col_surface: { en: 'Surface', fr: 'Surface' },
+  export_audit_col_kind: { en: 'Kind', fr: 'Type' },
+  export_audit_col_title: { en: 'Title', fr: 'Titre' },
+  export_audit_col_user: { en: 'User', fr: 'Utilisateur' },
+  export_audit_col_chars: { en: 'Chars', fr: 'Caractères' },
+  export_audit_col_lang: { en: 'Lang', fr: 'Langue' },
+  export_audit_col_created: { en: 'Exported at', fr: 'Exporté le' },
+  export_audit_col_hash: { en: 'Content hash', fr: 'Empreinte' },
+  export_audit_empty: {
+    en: 'No export events match these filters.',
+    fr: 'Aucun événement d’export ne correspond à ces filtres.',
+  },
+  export_audit_error: {
+    en: 'Could not load the export trail. Please try again.',
+    fr: 'Impossible de charger le journal des exports. Veuillez réessayer.',
+  },
+  export_audit_total: { en: 'Total', fr: 'Total' },
+  export_audit_page: { en: 'Page', fr: 'Page' },
+  export_audit_prev: { en: 'Previous', fr: 'Précédent' },
+  export_audit_next: { en: 'Next', fr: 'Suivant' },
+  export_audit_loading: { en: 'Loading…', fr: 'Chargement…' },
+  export_audit_back: { en: 'Back to list', fr: 'Retour à la liste' },
 })
