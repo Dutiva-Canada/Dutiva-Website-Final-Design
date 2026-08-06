@@ -242,6 +242,17 @@ describe('AdvisorView', () => {
       vi.resetModules()
     })
 
+    /* PlanProvider (now in AppProviders) queries profiles.from().select().eq().maybeSingle() —
+       mock it to resolve with a free plan so PlanGate doesn't block in production mode. */
+    const mockFrom = () => {
+      const chain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { plan: 'pro' }, error: null }),
+      }
+      return vi.fn().mockReturnValue(chain)
+    }
+
     it('routes home-composer text containing a flow keyword to real AI, not the scripted flow', async () => {
       const fakeSession = { user: { id: 'u1' } }
       const invoke = vi.fn().mockResolvedValue({
@@ -255,6 +266,7 @@ describe('AdvisorView', () => {
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
           },
           rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
+          from: mockFrom(),
           functions: { invoke },
         },
       }))
@@ -300,6 +312,7 @@ describe('AdvisorView', () => {
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
           },
           rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
+          from: mockFrom(),
           functions: { invoke },
         },
       }))
@@ -355,6 +368,7 @@ describe('AdvisorView', () => {
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
           },
           rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
+          from: mockFrom(),
           functions: { invoke },
         },
       }))

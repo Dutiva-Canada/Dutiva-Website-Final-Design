@@ -4,12 +4,23 @@ import { useI18n } from '@/i18n/context'
 import { getPlanById, hasPlanAccess } from '@/config/plans'
 import type { PlanId } from '@/config/plans'
 import { usePlan } from './planContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 
 /**
- * Reusable plan gate for future paid views (not wired into /app yet — see
- * CONVENTIONS.md "prep work only" scope). Renders `children` once the
- * signed-in account meets `required`; an internal Dutiva account
- * (adminAccess.ts) always passes, matching PlanProvider's bypass.
+ * Reusable plan gate for paid views. Renders `children` once the signed-in
+ * account meets `required`; an internal Dutiva account (adminAccess.ts)
+ * always passes, matching PlanProvider's bypass.
+ *
+ * Demo mode bypasses the gate entirely — the demo experience (Northgate
+ * Logistics fixtures) is the marketing surface, and every visitor should
+ * see the full product. Plan gates only enforce in production mode, where
+ * the signed-in admin's real plan from `profiles` determines access.
+ *
+ * While `PAID_PLANS_DISABLED_DURING_BETA` is true, every signed-in beta
+ * user resolves to `free` (the webhook never grants a paid plan), so gates
+ * will show the upgrade nudge in production mode — the gates exist and are
+ * wired, but don't block until the owner flips the flag and Stripe
+ * checkout goes live. See EF8 in docs/TODO.md.
  */
 export function PlanGate({
   required,
@@ -19,8 +30,10 @@ export function PlanGate({
   readonly children: React.ReactNode
 }) {
   const { plan, isAdmin, loading } = usePlan()
+  const { mode } = useWorkspaceMode()
 
   if (loading) return null
+  if (mode === 'demo') return <>{children}</>
   if (isAdmin || hasPlanAccess(plan, required)) return <>{children}</>
   return <UpgradeNudge required={required} />
 }
