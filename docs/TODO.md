@@ -128,21 +128,26 @@ secret the cron sweep needs to fire. See
 [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md) for exact steps and
 `select * from public.support_call_scheduler_status();` to verify.
 
+**OA13 — Law-change digest: three deployment steps, plus the monitor itself.**
+_Owner._ D1 was decided 2026-08-06 (internal-only, weekly, human-reviewed) and
+built the same day — `send-law-updates`, `law_updates.review_status`,
+migration `0046` applied. What's left: (1) OA1/OA2 — without the monitor
+actually running for a jurisdiction, there is nothing to review or digest;
+(2) deploying `send-law-updates` and confirming `RESEND_API_KEY` /
+`SUPPORT_OPERATOR_EMAIL` are set (OA3); (3) the
+`law_update_digest_service_key` Vault secret the Monday cron needs to fire.
+Also: reviewing a row is direct SQL for now (`update law_updates set
+review_status = 'reviewed' where id = '<uuid>'`) — there is no admin UI, on
+purpose, for a low-volume internal pilot. See
+[LAW_CHANGE_NOTIFICATIONS.md § 7](LAW_CHANGE_NOTIFICATIONS.md) and
+`select * from public.law_update_digest_status();` to verify.
+
 ---
 
 ## 2. Decisions needed before anyone writes code
 
 These are not backlog items. Each one was deliberately left to the owner because
 building it speculatively would have meant deciding it speculatively.
-
-**D1 — Law-change notifications: five open questions.** Recipients (everyone /
-paid / opt-in / internal-only pilot), immediate vs weekly digest, which
-jurisdiction field wins when `profiles.province` and
-`organizations.default_jurisdiction` disagree, whether model-written summaries
-get human review before being _pushed_ rather than shown in a panel, and where
-the standing disclaimer sits on an outbound email. The groundwork is merged and
-nothing sends. [LAW_CHANGE_NOTIFICATIONS.md § 4](LAW_CHANGE_NOTIFICATIONS.md).
-(PR #108)
 
 **D2 — Support analytics: the privacy model comes first.** What is collected,
 anonymous vs user-scoped, retention. `recordHelpfulness` is the single seam a
@@ -407,6 +412,7 @@ does not resurrect them.
 | ------------------------------------------- | ----------------------------------------------------------------------------------- |
 | EF6a — split the message catalogue by surface, and guard `t()`'s surface boundary | Catalogue source split into `workspace.ts`/`marketing.ts`/`shared.ts`; `vite.config.ts`'s `messages-workspace` group needed `includeDependenciesRecursively: false` to actually stop riding into the eager graph (671.3kB → 539.9kB, -131.4kB) — see that file's comment for the rolldown mechanism. `t()` itself is still typed `MessageKey`, not per-surface — `scripts/check-message-scopes.mjs` (`npm run check`) guards the same boundary a different way, by scanning every literal `t('key')` call against its file's surface, instead of retyping ~140 call sites for an equivalent guarantee. A *computed* key (`t(someVariable)`) is invisible to this script by construction, same as it always was — those are guarded at the data structure that carries the key (`plans.ts`, `legalHubData.ts`, etc.), which was already typed. |
 | D3 — scheduled-call booking calendar decision                                     | Decided 2026-08-06 (Google Calendar, full loop) and built the same day — see OA12 for what's left to deploy it. [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md). |
+| D1 — law-change notifications' five open questions                                | Decided 2026-08-06 (internal-only, weekly, org jurisdiction wins, human review required) and built the same day — see OA13 for what's left to deploy it. [LAW_CHANGE_NOTIFICATIONS.md](LAW_CHANGE_NOTIFICATIONS.md). |
 | EF5 — `inferCheckoutPrice`'s dead branch    | Deleted; server-set metadata is the checkout path's documented single source        |
 | L1 — primary sources "unreachable"          | Not a network block — a bot filter on the fetching tool; run from a workstation     |
 | L2 — WI1 federal leaves omission            | Pregnancy loss leave confirmed and added; "placement of a child" **does not exist** |

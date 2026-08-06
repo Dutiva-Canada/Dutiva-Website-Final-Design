@@ -1,6 +1,8 @@
-# Law-change notifications — groundwork
+# Law-change notifications
 
-**Status: design + decision brief. Nothing sends yet, deliberately.**
+**Status: §4's decisions are made (2026-08-06) and built the same day. Nothing
+sends until the owner steps in §7 are done — see there for exactly what's
+missing.**
 
 Today a detected law change lands in `law_updates` and waits to be read. Nobody
 is told. A customer learns their jurisdiction's employment standards moved only
@@ -19,13 +21,14 @@ the decisions that have to be made by a person before anything can be sent.
 
 | Piece | State |
 | --- | --- |
-| Detection | Working — `law_updates` gets a `change` row per amendment (`docs/LAW_MONITORING.md`) |
+| Detection | Working (Federal) / not yet live (ON, QC) — `law_updates` gets a `change` row per amendment (`docs/LAW_MONITORING.md`) |
 | Relevance filter | **Built** — `supabase/functions/_shared/lawUpdateRelevance.ts` |
-| Recipient jurisdiction | Available — `profiles.province`, `organizations.default_jurisdiction` |
-| Recipient language | Available — `profiles.language_default`, `organizations.default_language` |
-| Email delivery | Proven — Resend, via the `support_notifications` outbox + `resend-webhook` |
-| Consent record | **Missing — see §3** |
-| Recipient model | **Undecided — see §4** |
+| Review gate | **Built** — `law_updates.review_status` (migration `0046`); only a human flips a row to `reviewed` |
+| Recipient jurisdiction | Resolver **built** — `resolveRecipientJurisdictions()`; not wired to a real recipient yet (internal pilot only) |
+| Recipient language | Available — `profiles.language_default`, `organizations.default_language`; unused in the internal-only digest (English) |
+| Digest send | **Built** — `send-law-updates`, weekly, via the same `resendSend()` helper `support-notify` uses |
+| Consent record | **Missing — see §3** (not blocking while recipients are internal) |
+| Recipient model | **Decided — see §4a.** Internal-only pilot. |
 
 ### The relevance filter
 
@@ -105,63 +108,111 @@ thing missing is writing it down.
 wording matters: proving consent means proving what someone agreed to, and that
 sentence will be edited eventually.
 
-## 4. Decisions needed
+## 4. Decisions — settled 2026-08-06
 
-**a. Who receives them?** Every signed-in customer; only paid plans; only
-people who opt in; or internal-only to start (a digest to `support@dutiva.ca`,
-so the pipeline is proven before it touches a customer). Internal-only is the
-cheapest way to find out whether the summaries are actually good enough to send.
+**a. Who receives them? Internal-only.** A digest to `SUPPORT_OPERATOR_EMAIL`
+(default `support@dutiva.ca`), so the pipeline and the summary quality are
+proven before this ever reaches a customer. Because the recipient is an
+operational alias, not a customer, **the CASL Path A/B fork in §2 does not
+apply to this phase** — revisit it before the recipient model expands past
+internal-only, not before.
 
-**b. Immediate or digest?** Amendments are rare and rarely same-day urgent. A
-weekly digest is calmer, batches naturally, and fails softly if a run is missed.
-Immediate sending makes each message an interruption and each false positive
-expensive.
+**b. Immediate or digest? Weekly.** Amendments are rare and rarely
+same-day urgent; a weekly digest is calmer and fails softly if a run is
+missed. Scheduled Mondays 08:00 UTC.
 
-**c. Which jurisdiction decides relevance?** `profiles.province` and
-`organizations.default_jurisdiction` can disagree, and neither is guaranteed
-present. A recipient with neither gets nothing under the current filter — is
-that right, or should they be prompted to set one?
+**c. Which jurisdiction decides relevance?
+`organizations.default_jurisdiction` wins over `profiles.province` when both
+are set**, falling back to `profiles.province`, and to nothing (not "send
+everything") when neither resolves to a supported jurisdiction — see
+`resolveRecipientJurisdictions()` in
+`supabase/functions/_shared/lawUpdateDigest.ts`. **Not wired to a real
+recipient yet**: the internal pilot digest sends every supported
+jurisdiction to the one internal address, because there is no per-customer
+targeting to resolve against yet. The rule is decided and tested ahead of
+that expansion rather than invented then.
 
-**d. What does the message contain?** Under Path A: the Act, the jurisdiction,
-the date, the model-written summary, and a link to the official source. Note
-that summaries are **model-generated and unreviewed** — sending them
-unsupervised to customers is a meaningfully different risk posture from showing
-them in a panel the reader chose to open, and may warrant human review before
-send.
+**d. What does the message contain, and is it reviewed first? Yes, human
+review required.** An unsupervised model summary reaching an inbox is a
+materially different risk than one shown in the Knowledge panel a reader
+chose to open. `law_updates.review_status` (0046) gates this the same way
+`advisor_guidance_chunks.review_status` gates the Advisor corpus (TODO.md
+L5) — every row is `machine_curated` by construction (the monitor's own
+model writes `change_summary` at detection time), and only a human flipping
+a row to `reviewed` makes it digestable. **No review UI exists yet** —
+deliberately, for a low-volume internal pilot; see 0046's comment for the
+direct-SQL review step and the query that finds what's waiting.
 
-**e. Where does the boundary sit?** The standing disclaimer must ship with any
-generated summary. An email is a generated document leaving the product.
+**e. Where does the boundary sit? Shipped.** The standing disclaimer is
+appended to every digest email (`send-law-updates/index.ts`) — an email
+carrying model-written summaries is a generated document leaving the
+product, same as any other.
 
-## 5. Proposed architecture (once §4 is settled)
+## 5. Architecture — built 2026-08-06
 
-Reuse the proven pattern rather than inventing one. `support_notifications`
-already solves this shape — outbox rows with `status`, `attempts`, `last_error`,
-`provider_message_id`, and a separate `delivery_status` fed by
-`resend-webhook`, because *we sent it* and *it arrived* are different facts
-(learned the hard way on 2026-07-16; see `0018_notification_delivery.sql`).
+Reused the proven pattern rather than inventing one, per the plan this
+section used to propose:
 
-1. A `law_update_notifications` outbox in the same shape, with a uniqueness
-   constraint on `(recipient, law_update_id)` so a retry or an overlapping run
-   can never double-send. Idempotency belongs in the schema, not in the sender's
-   good intentions.
-2. A `send-law-updates` edge function: select unsent `change` rows, filter
-   through `lawUpdateRelevance.ts`, group per recipient, enqueue, hand to
-   Resend.
-3. Scheduled by `pg_cron` — for the reason in `docs/LAW_MONITORING.md`: a
-   schedule that lives with the data cannot be lost to a hosting move.
-4. A preference control in Settings, and an unsubscribe link, from day one.
+1. **`law_update_notifications`** (migration `0046`) — an outbox in the same
+   shape `support_notifications` established, with a uniqueness constraint
+   on `(law_update_id, recipient)` so a retry or an overlapping cron run can
+   never double-send the same amendment to the same recipient. One row per
+   *(update, recipient)* that has been digested — not one row per digest
+   email.
+2. **`send-law-updates`** (new edge function): selects `change` rows,
+   narrows through `lawUpdateRelevance.ts` (unchanged — this module already
+   answered "is this customer-relevant at all" before any of §4 was
+   decided), then through `selectDigestableUpdates()` (reviewed, past the
+   go-live cutoff, not already sent), composes one plain-text digest, and
+   sends via the same `resendSend()` helper `support-notify` uses (pulled
+   into `_shared/resendSend.ts` so both share one request shape).
+3. **Scheduled by `pg_cron`** (`law-update-digest-weekly`, Mondays 08:00
+   UTC) — same reasoning as `docs/LAW_MONITORING.md`: a schedule that lives
+   with the data cannot be lost to a hosting move.
+4. **Preference control / unsubscribe: not built.** Only matters once
+   recipients are real customers (Path B), which this phase deliberately
+   isn't yet — see (a).
 
-**Do not send during the beta backfill.** The first real sweep after the Vault
-secret lands will produce a burst of `first_seen` and `broken` events. The
-filter already excludes both, but the sender should also ignore anything
-detected before its own go-live timestamp — otherwise the first email a
-customer receives is a history dump.
+**No backfill dump, two ways.** `send-law-updates` only digests reviewed
+rows (nothing old is pre-reviewed by construction) *and* enforces a fixed
+`GO_LIVE_AT` floor on `detected_at` as a second, independent guard — belt
+and suspenders for the exact failure this section used to warn about.
 
-## 6. Prerequisite
+## 6. Finding, still open: consent is collected but never recorded
 
-None of this is worth building until the monitor actually runs: detection needs
-`law_monitor_service_key` in Vault, and **Ontario and Québec currently have no
-working source at all** (`docs/LAW_MONITORING.md`). A notification channel for
-two jurisdictions that cannot be monitored would notify nobody about nothing.
-Federal is the one supported jurisdiction with a reliable source today, so a
-federal-only pilot is the realistic first version.
+Unchanged from before this pass — §3 above. Not blocking for the current
+internal-only phase (no customer consent is needed to email
+`support@dutiva.ca`), but still real, and still blocking for Path B whenever
+that's decided.
+
+## 7. Prerequisite, and what's left to turn this on
+
+The monitor prerequisite this section used to state is **partly resolved**:
+Federal has a reliable source (`docs/LAW_MONITORING.md`), and Ontario/Québec
+now have real sources implemented (TODO.md EF2) — but none of the three has
+completed a live sweep yet (`OA1`/`OA2` are still open), so `law_updates` has
+no rows to review today regardless of what's built here.
+
+Three owner steps, each independently a no-op until done:
+
+1. `law_monitor_service_key` (OA1) and the ON/QC/FED sources actually
+   running — without any `law_updates` rows, there is nothing to review or
+   digest.
+2. Deploy `send-law-updates`, and set `RESEND_API_KEY` /
+   `SUPPORT_EMAIL_FROM` / `SUPPORT_OPERATOR_EMAIL` (OA3 — likely already set
+   if support email is on).
+3. `law_update_digest_service_key` in Vault, so the Monday cron can actually
+   invoke the function:
+
+   ```sql
+   select vault.create_secret(
+     '<service-role or secret key>',
+     'law_update_digest_service_key',
+     'Service key used by the send-law-updates cron job'
+   );
+   ```
+
+Verify with `select * from public.law_update_digest_status();`. Federal is
+the one supported jurisdiction with a reliable source proven live today, so
+in practice the first real digest content will be federal-only regardless of
+step 1's ON/QC progress.
