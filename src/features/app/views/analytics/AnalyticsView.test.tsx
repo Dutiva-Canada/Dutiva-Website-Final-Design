@@ -387,8 +387,8 @@ describe('AnalyticsView in production mode', () => {
         },
       ],
       compliance_score_snapshots: [
-        { month: '2026-05-01', score: 40, headcount: null },
-        { month: '2026-06-01', score: 45, headcount: null },
+        { month: '2026-05-01', score: 40, headcount: null, formula_version: 1 },
+        { month: '2026-06-01', score: 45, headcount: null, formula_version: 1 },
       ],
     })
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
@@ -407,9 +407,13 @@ describe('AnalyticsView in production mode', () => {
     expect(card.getByText('Policies current')).toBeInTheDocument()
     expect(card.getByText('1 of 2')).toBeInTheDocument()
     expect(card.getByText('Tasks complete')).toBeInTheDocument()
-    expect(card.getByText('Findings resolved')).toBeInTheDocument()
+    expect(card.getByText('Findings resolved (weighted by severity)')).toBeInTheDocument()
     /* Findings (0%) is the lowest component. */
     expect(card.getAllByText('Lowest')).toHaveLength(1)
+    /* Two v1 months sit in the charted window → the formula-change note. */
+    expect(
+      card.getByText('Earlier months were computed under a previous score formula.'),
+    ).toBeInTheDocument()
 
     /* History = two stored months + this month's live point. */
     const table = card.getByRole('table')
@@ -421,9 +425,60 @@ describe('AnalyticsView in production mode', () => {
     const { waitFor } = await import('@testing-library/react')
     await waitFor(() => expect(snapshotUpsert).toHaveBeenCalled())
     expect(snapshotUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({ organization_id: 'org-1', score: 50, headcount: 0 }),
+      expect.objectContaining({
+        organization_id: 'org-1',
+        score: 50,
+        headcount: 0,
+        formula_version: 2,
+      }),
       expect.objectContaining({ onConflict: 'organization_id,month' }),
     )
+  })
+
+  it('caps the score while a critical finding is open and says so', async () => {
+    mockProductionClient({
+      hr_policies: [{ id: 'p1', name: 'Policy A', status: 'up_to_date', last_reviewed: null }],
+      compliance_tasks: [
+        { id: 't1', title: 'Task', priority: 'high', status: 'completed', due_at: null },
+      ],
+      compliance_findings: [
+        {
+          id: 'f1',
+          title: 'Critical exposure',
+          description: null,
+          recommendation: null,
+          severity: 'critical',
+          status: 'open',
+        },
+        {
+          id: 'f2',
+          title: 'Note',
+          description: null,
+          recommendation: null,
+          severity: 'info',
+          status: 'resolved',
+        },
+      ],
+    })
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { AnalyticsView: AnalyticsViewFresh } = await import('./AnalyticsView')
+
+    renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
+
+    expect(
+      await screen.findByText('Computed live from your workspace records.'),
+    ).toBeInTheDocument()
+
+    /* Policies 100 + tasks 100 + findings 1/9 weight (11) blend to 70 —
+       above the ceiling, so the open critical caps it at 69, with the
+       explanation printed rather than colour alone. */
+    const card = within(await screen.findByRole('region', { name: 'Compliance score' }))
+    expect(await card.findByText('69', { selector: 'span' })).toBeInTheDocument()
+    expect(
+      card.getByText(
+        'Capped at 69 while a critical finding is open — resolve or dismiss it to lift the ceiling.',
+      ),
+    ).toBeInTheDocument()
   })
 
   it('aggregates attention, headcount, case aging and leave from live rows', async () => {

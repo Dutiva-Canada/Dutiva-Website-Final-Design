@@ -38,8 +38,19 @@ export const analyticsMessages = defineMessages({
   },
   analytics_comp_policies: { en: 'Policies current', fr: 'Politiques à jour' },
   analytics_comp_tasks: { en: 'Tasks complete', fr: 'Tâches terminées' },
-  analytics_comp_findings: { en: 'Findings resolved', fr: 'Constats résolus' },
+  analytics_comp_findings: {
+    en: 'Findings resolved (weighted by severity)',
+    fr: 'Constats résolus (pondérés selon la gravité)',
+  },
   analytics_comp_value: { en: '{done} of {total}', fr: '{done} sur {total}' },
+  analytics_score_capped_note: {
+    en: 'Capped at {ceiling} while a critical finding is open — resolve or dismiss it to lift the ceiling.',
+    fr: 'Plafonné à {ceiling} tant qu’un constat critique est ouvert — résolvez-le ou rejetez-le pour lever le plafond.',
+  },
+  analytics_score_formula_note: {
+    en: 'Earlier months were computed under a previous score formula.',
+    fr: 'Les mois antérieurs ont été calculés selon une formule de score précédente.',
+  },
 
   /* ── Score by jurisdiction (inside the score card) ─────────────────────── */
   analytics_jur_score_title: { en: 'Score by jurisdiction', fr: 'Score par juridiction' },

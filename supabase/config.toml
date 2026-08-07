@@ -67,3 +67,6 @@ verify_jwt = false
 
 [functions.send-law-updates]
 verify_jwt = false
+
+[functions.record-score-snapshots]
+verify_jwt = false

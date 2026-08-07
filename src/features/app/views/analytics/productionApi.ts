@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import { SCORE_FORMULA_VERSION } from './aggregation'
 
 /**
  * Real persistence for what Analytics can't recompute later: monthly
@@ -18,32 +19,58 @@ export interface ScoreSnapshot {
   score: number
   /** Active headcount when the snapshot was written; null for pre-0063 rows. */
   headcount: number | null
+  /** Score formula the row was computed under (0068); pre-0068 rows read 1. */
+  formulaVersion: number
 }
 
 export interface SnapshotComponent {
   key: string
   done: number
   total: number
+  /** Severity-weighted numerator/denominator (findings, formula v2+). */
+  weightedDone?: number
+  weightedTotal?: number
 }
 
 const rowSchema = z.object({
   month: z.string(),
   score: z.number(),
   headcount: z.number().nullable(),
+  /* Absent only on the pre-0068 fallback path below. */
+  formula_version: z.number().optional(),
 })
 
 export async function listScoreSnapshots(organizationId: string): Promise<ScoreSnapshot[]> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
+  const primary = await supabase
     .from('compliance_score_snapshots')
-    .select('month, score, headcount')
+    .select('month, score, headcount, formula_version')
     .eq('organization_id', organizationId)
     .order('month', { ascending: true })
+  let rows: unknown = primary.data
+  let error = primary.error
+  if (error?.code === '42703') {
+    /* The app can deploy ahead of migration 0068 (migrations are a manual
+       owner step). Until the column exists, read the legacy shape rather
+       than degrade the score card — every pre-0068 row is v1 by definition. */
+    const legacy = await supabase
+      .from('compliance_score_snapshots')
+      .select('month, score, headcount')
+      .eq('organization_id', organizationId)
+      .order('month', { ascending: true })
+    rows = legacy.data
+    error = legacy.error
+  }
   if (error) throw error
   return z
     .array(rowSchema)
-    .parse(data)
-    .map((row) => ({ monthISO: row.month, score: row.score, headcount: row.headcount }))
+    .parse(rows)
+    .map((row) => ({
+      monthISO: row.month,
+      score: row.score,
+      headcount: row.headcount,
+      formulaVersion: row.formula_version ?? 1,
+    }))
 }
 
 /**
@@ -61,7 +88,16 @@ export async function recordScoreSnapshot(
 ): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured')
   const componentsJson = Object.fromEntries(
-    components.map((c) => [c.key, { done: c.done, total: c.total }]),
+    components.map((c) => [
+      c.key,
+      {
+        done: c.done,
+        total: c.total,
+        ...(c.weightedDone !== undefined && c.weightedTotal !== undefined
+          ? { weighted_done: c.weightedDone, weighted_total: c.weightedTotal }
+          : {}),
+      },
+    ]),
   )
   const { error } = await supabase.from('compliance_score_snapshots').upsert(
     {
@@ -70,6 +106,7 @@ export async function recordScoreSnapshot(
       score,
       components: componentsJson,
       headcount,
+      formula_version: SCORE_FORMULA_VERSION,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'organization_id,month' },
