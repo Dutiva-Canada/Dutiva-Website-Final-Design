@@ -168,6 +168,8 @@ export interface CaseFile {
   status: Bi
   tone: Tone
   opened: string
+  /** Machine-readable open date (YYYY-MM-DD) backing the `opened` display string. */
+  openedISO: string
   owner: string
   due: string
   retention: Bi
@@ -241,6 +243,10 @@ export interface ComplianceItem {
   title: Bi
   detail: Bi
   province: Bi
+  /** Scheduled date (YYYY-MM-DD) when the item is a dated follow-up, not a standing risk. */
+  dueISO?: string
+  /** Employees affected, when the item traces to specific people. */
+  affected?: number
   /** Advisor chat thread this flag traces back to. */
   chatId: string
   citations: FixtureCitation[]
@@ -267,10 +273,14 @@ export interface Obligation {
   jur: string
   jurLabel: Bi
   due: Bi
+  /** Machine-readable due date (YYYY-MM-DD) backing the `due` display string. */
+  dueISO: string
   recurrence: Bi
   owner: string
   status: ObligationStatus
   dueSoon?: boolean
+  /** Employees affected, when the obligation traces to specific people. */
+  affected?: number
   evidence: Bi
 }
 
@@ -279,6 +289,29 @@ export interface WatchlistItem {
   status: Bi
   tone: Tone
   note: Bi
+}
+
+/* -------------------------------------------------------------- analytics */
+
+export interface JurisdictionHeadcount {
+  /** Stable key ('ON', 'BC', …, 'Federal'). */
+  key: string
+  label: Bi
+  value: number
+}
+
+export interface ScoreHistoryPoint {
+  /** First day of the month (YYYY-MM-01); views format the label per locale. */
+  monthISO: string
+  score: number
+}
+
+export interface PolicyAcknowledgmentCampaign {
+  /** Policy register row the campaign belongs to. */
+  policyId: string
+  title: Bi
+  signed: number
+  total: number
 }
 
 /* ---------------------------------------------------------- communications */

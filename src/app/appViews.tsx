@@ -34,7 +34,7 @@ function gated(view: ReactNode) {
 /* prettier-ignore */ const ComplianceView = lazy(() => import('@/features/app/views/compliance/ComplianceView').then((m) => ({ default: m.ComplianceView })))
 /* prettier-ignore */ const PoliciesView = lazy(() => import('@/features/app/views/policies/PoliciesView').then((m) => ({ default: m.PoliciesView })))
 /* prettier-ignore */ const TemplatesView = lazy(() => import('@/features/app/views/templates/TemplatesView').then((m) => ({ default: m.TemplatesView })))
-/* prettier-ignore */ const ReportsView = lazy(() => import('@/features/app/views/reports/ReportsView').then((m) => ({ default: m.ReportsView })))
+/* prettier-ignore */ const AnalyticsView = lazy(() => import('@/features/app/views/analytics/AnalyticsView').then((m) => ({ default: m.AnalyticsView })))
 /* prettier-ignore */ const KnowledgeView = lazy(() => import('@/features/app/views/knowledge/KnowledgeView').then((m) => ({ default: m.KnowledgeView })))
 /* prettier-ignore */ const GuideView = lazy(() => import('@/features/app/reference/GuideView').then((m) => ({ default: m.GuideView })))
 /* prettier-ignore */ const CommunicationsView = lazy(() => import('@/features/app/views/communications/CommunicationsView').then((m) => ({ default: m.CommunicationsView })))
@@ -89,8 +89,10 @@ export const appViewRoutes: RouteObject[] = [
   { path: 'policies', element: <PoliciesView /> },
   /* /app/templates is now the Templates tab inside HR Studio (DocumentsLayout) */
   { path: 'templates', element: <Navigate to="/app/documents/hr-library" replace /> },
-  /* Reports handles both modes itself (live aggregation in production). */
-  { path: 'reports', element: <ReportsView /> },
+  /* Analytics handles both modes itself (live aggregation in production).
+     The destination has one name everywhere now; /app/reports redirects. */
+  { path: 'analytics', element: <AnalyticsView /> },
+  { path: 'reports', element: <Navigate to="/app/analytics" replace /> },
   { path: 'knowledge', element: <KnowledgeView /> },
   /* Reference guides are real content — ungated, like the Knowledge index. */
   { path: 'knowledge/:slug', element: <GuideView /> },

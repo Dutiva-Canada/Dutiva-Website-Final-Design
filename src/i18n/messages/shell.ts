@@ -128,10 +128,12 @@ export const shellMessages = defineMessages({
   shell_nav_policies: { en: 'Policies', fr: 'Politiques' },
   shell_nav_settings: { en: 'Settings', fr: 'Paramètres' },
 
-  /* Nav section headings (buildI18n sec_*) */
+  /* Nav section headings (buildI18n sec_*). The prototype's third section
+     ('Insights') is gone: Analytics was its only child and sat default-
+     collapsed, so the item was promoted to top level and the heading
+     removed. */
   shell_sec_records: { en: 'Records', fr: 'Registres' },
   shell_sec_programs: { en: 'Programs', fr: 'Programmes' },
-  shell_sec_insights: { en: 'Insights', fr: 'Analyses' },
 
   /* ── Route/view titles (buildI18n v_*) — topbar + mobile topbar ─────────── */
   shell_v_home: { en: 'Home', fr: 'Accueil' },
@@ -143,7 +145,9 @@ export const shellMessages = defineMessages({
   shell_v_policies: { en: 'Policies', fr: 'Politiques' },
   shell_v_tasks: { en: 'Tasks', fr: 'Tâches' },
   shell_v_calendar: { en: 'Calendar', fr: 'Calendrier' },
-  shell_v_reports: { en: 'Reports', fr: 'Rapports' },
+  /* One name for the destination everywhere (nav, header, route): Analytics.
+     The old 'Reports' header/route title is retired with the rename. */
+  shell_v_analytics: { en: 'Analytics', fr: 'Analytique' },
   shell_v_templates: { en: 'Document Studio', fr: 'Studio de documents' },
   shell_v_knowledge: { en: 'Knowledge', fr: 'Connaissances' },
   shell_v_settings: { en: 'Settings', fr: 'Paramètres' },
@@ -156,10 +160,7 @@ export const shellMessages = defineMessages({
     en: 'Review status across your policy library.',
     fr: 'État de révision de votre bibliothèque de politiques.',
   },
-  shell_sub_reports: {
-    en: 'Workforce and compliance overview.',
-    fr: 'Aperçu de l’effectif et de la conformité.',
-  },
+  /* (The Analytics subtitle lives in the analytics message module.) */
 
   /* ── Topbar ─────────────────────────────────────────────────────────────── */
   shell_notifications: { en: 'Notifications', fr: 'Notifications' },

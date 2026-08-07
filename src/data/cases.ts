@@ -28,6 +28,7 @@ export const cases: CaseFile[] = [
     status: bi('Legal review recommended', 'Révision juridique recommandée'),
     tone: 'risk',
     opened: 'Jul 5, 2026',
+    openedISO: '2026-07-05',
     owner: 'Riley Summers',
     due: 'Jul 10, 2026',
     retention: bi(
@@ -63,6 +64,7 @@ export const cases: CaseFile[] = [
     status: bi('In progress', 'En cours'),
     tone: 'warning',
     opened: 'Jun 20, 2026',
+    openedISO: '2026-06-20',
     owner: 'Riley Summers',
     due: 'Jul 22, 2026',
     retention: bi('3 years after the case closes', '3 ans après la fermeture du dossier'),
@@ -90,6 +92,9 @@ export const cases: CaseFile[] = [
     status: bi('In progress', 'En cours'),
     tone: 'warning',
     opened: 'Feb 2026',
+    /* The prototype dates this one to the month only; the review cycle implies
+       early February (90-day reviews landing Apr 14 / Jul 14). */
+    openedISO: '2026-02-10',
     owner: 'Fatima Haddad',
     due: 'Jul 14, 2026',
     retention: bi(
@@ -122,6 +127,7 @@ export const cases: CaseFile[] = [
     status: bi('Resolved', 'Résolu'),
     tone: 'success',
     opened: 'Jul 1, 2026',
+    openedISO: '2026-07-01',
     owner: 'Fatima Haddad',
     due: '—',
     retention: bi('3 years after onboarding completes', '3 ans après la fin de l’intégration'),

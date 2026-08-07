@@ -33,6 +33,8 @@ export interface ProductionCase {
   province: string
   status: ProductionCaseStatus
   dueDate: string | null
+  /** ISO timestamp the row was created — Analytics derives case aging from it. */
+  createdAt: string
 }
 
 export interface NewCase {
@@ -51,9 +53,10 @@ const rowSchema = z.object({
   province: z.string(),
   status: z.enum(['open', 'in_review', 'resolved']),
   due_date: z.string().nullable(),
+  created_at: z.string(),
 })
 
-const SELECT_COLUMNS = 'id, title, case_type, employee_id, province, status, due_date'
+const SELECT_COLUMNS = 'id, title, case_type, employee_id, province, status, due_date, created_at'
 
 function toCase(row: z.infer<typeof rowSchema>): ProductionCase {
   return {
@@ -64,6 +67,7 @@ function toCase(row: z.infer<typeof rowSchema>): ProductionCase {
     province: row.province,
     status: row.status,
     dueDate: row.due_date,
+    createdAt: row.created_at,
   }
 }
 

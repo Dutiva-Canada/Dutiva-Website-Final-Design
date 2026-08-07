@@ -5,6 +5,7 @@
  */
 
 export * from './types'
+export * from './analytics'
 export * from './employees'
 export * from './cases'
 export * from './tasks'

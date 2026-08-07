@@ -118,6 +118,7 @@ describe('CasesView in production mode', () => {
             province: row.province,
             status: 'open',
             due_date: row.due_date ?? null,
+            created_at: '2026-07-01T12:00:00Z',
           }
           caseRows.unshift(created)
           return Promise.resolve({ data: created, error: null })
@@ -221,6 +222,7 @@ describe('CasesView in production mode', () => {
         province: 'Ontario',
         status: 'open',
         due_date: '2026-08-01',
+        created_at: '2026-07-01T12:00:00Z',
       },
     ])
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
@@ -275,6 +277,7 @@ describe('CasesView in production mode', () => {
         province: 'Ontario',
         status: 'open',
         due_date: null,
+        created_at: '2026-07-01T12:00:00Z',
       },
     ])
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
@@ -307,6 +310,7 @@ describe('CaseDetailView in production mode', () => {
       province: 'Ontario',
       status: 'open',
       due_date: '2026-08-01',
+      created_at: '2026-07-01T12:00:00Z',
     }
     const noteRows: Record<string, unknown>[] = [
       { id: 'n1', body: 'Assessment scheduled with provider.', created_at: '2026-07-10T10:00:00Z' },

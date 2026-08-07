@@ -66,10 +66,12 @@ describe('Sidebar', () => {
       '/app/planning/tasks',
     )
 
-    expect(within(nav).getByRole('button', { name: /Insights/i })).toBeInTheDocument()
+    /* Analytics is a top-level item — no 'Insights' section wraps (and
+       hides) it anymore. */
+    expect(within(nav).queryByRole('button', { name: /Insights/i })).not.toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Analytics' })).toHaveAttribute(
       'href',
-      '/app/reports',
+      '/app/analytics',
     )
 
     expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/app/settings')
@@ -92,7 +94,7 @@ describe('Sidebar', () => {
     expect(within(nav).getByRole('link', { name: 'Conseiller IA' })).toBeInTheDocument()
     expect(within(nav).getByRole('button', { name: /Registres/i })).toBeInTheDocument()
     expect(within(nav).getByRole('button', { name: /Programmes/i })).toBeInTheDocument()
-    expect(within(nav).getByRole('button', { name: /Analyses/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'Analytique' })).toBeInTheDocument()
   })
 
   it('marks the active route with aria-current="page"', () => {
@@ -121,17 +123,18 @@ describe('Sidebar', () => {
     expect(recordsToggle).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('defaults Insights to collapsed and persists toggle state', async () => {
+  it('keeps Analytics reachable regardless of section collapse state', async () => {
+    /* The old 'Insights' section shipped default-collapsed with Analytics as
+       its only child — the destination was hidden until discovered. Promoted
+       to top level, it must stay visible even with every section collapsed. */
     const user = userEvent.setup()
     renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
 
-    const insightsToggle = screen.getByRole('button', { name: /Insights/i })
-    expect(insightsToggle).toHaveAttribute('aria-expanded', 'false')
+    await user.click(screen.getByRole('button', { name: /Records/i }))
+    await user.click(screen.getByRole('button', { name: /Programs/i }))
 
-    await user.click(insightsToggle)
-    expect(insightsToggle).toHaveAttribute('aria-expanded', 'true')
-
-    expect(localStorage.getItem(SECTION_PREFS_KEY)).toContain('"insights":true')
+    expect(screen.getByRole('link', { name: 'Analytics' })).toBeVisible()
+    expect(localStorage.getItem(SECTION_PREFS_KEY)).toContain('"records":false')
   })
 
   it('auto-expands the Records group when a nested route is active', () => {

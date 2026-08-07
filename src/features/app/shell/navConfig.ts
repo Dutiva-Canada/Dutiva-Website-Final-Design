@@ -134,10 +134,18 @@ export const NAV_GROUPS: NavGroup[] = [
       },
     ],
   },
+  /* Analytics is a top-level item, not a section: it was the only child of
+     the prototype's 'Insights' heading, which shipped default-collapsed and
+     hid the destination — so the heading is gone and the item promoted. */
   {
-    heading: M.shell_sec_insights,
+    heading: null,
     items: [
-      { key: 'reports', to: '/app/reports', icon: ChartNoAxesColumn, label: M.shell_nav_analytics },
+      {
+        key: 'analytics',
+        to: '/app/analytics',
+        icon: ChartNoAxesColumn,
+        label: M.shell_nav_analytics,
+      },
     ],
   },
 ]

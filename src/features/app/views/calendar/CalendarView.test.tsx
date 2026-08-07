@@ -133,6 +133,7 @@ describe('CalendarView in production mode', () => {
                           province: 'Ontario',
                           status: 'open',
                           due_date: todayIso,
+                          created_at: `${todayIso}T12:00:00Z`,
                         },
                       ],
                       error: null,
