@@ -264,6 +264,7 @@ describe('EmployeeProfileView in production mode', () => {
       province: 'Ontario',
       status: 'open',
       due_date: null,
+      created_at: '2026-07-01T12:00:00Z',
     }
     const noteRows: Record<string, unknown>[] = []
     const noteInsert = vi.fn((row: Record<string, unknown>) => ({

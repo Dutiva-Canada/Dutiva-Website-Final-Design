@@ -26,7 +26,7 @@ export const VIEW_LABELS: Record<string, Bi> = {
   employees: M.shell_v_employees,
   compliance: M.shell_v_compliance,
   policies: M.shell_v_policies,
-  reports: M.shell_v_reports,
+  analytics: M.shell_v_analytics,
   templates: M.shell_v_templates,
   knowledge: M.shell_v_knowledge,
   settings: M.shell_v_settings,

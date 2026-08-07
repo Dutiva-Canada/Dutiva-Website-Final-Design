@@ -18,14 +18,18 @@ import { SidebarSection } from './SidebarSection'
 
 export type SidebarMode = 'expanded' | 'compact' | 'drawer'
 
-const SECTION_KEYS = ['records', 'programs', 'insights'] as const
+/* Collapsible section keys, positionally aligned with NAV_GROUPS: group i
+   with a heading maps to SECTION_KEYS[i - 1]. Heading-less groups (the
+   workspace trio, Analytics) render as always-visible top-level items.
+   'insights' is gone with the section — a stale key in the stored prefs is
+   simply ignored. */
+const SECTION_KEYS = ['records', 'programs'] as const
 type SectionKey = (typeof SECTION_KEYS)[number]
 
 const SECTION_PREFS_KEY = 'dutiva.sidebar.sections.v1'
 const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
   records: true,
   programs: true,
-  insights: false,
 }
 
 const EXPANDED_WIDTH = 'w-[292px]'
@@ -181,10 +185,9 @@ export function Sidebar({
         className="flex min-h-0 flex-1 flex-col overflow-y-auto px-[10px] pb-[8px]"
       >
         {NAV_GROUPS.map((group, i) => {
-          const isWorkspace = group.heading === null
-          if (isWorkspace) {
+          if (group.heading === null) {
             return (
-              <div key="workspace" className="flex flex-col">
+              <div key={group.items[0]?.key ?? i} className="flex flex-col">
                 {renderGroupItems(group)}
               </div>
             )

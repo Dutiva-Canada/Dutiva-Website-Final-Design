@@ -165,6 +165,11 @@
   --text-muted: #565f78;
   --text-faint: #666e80;
   --navy: #1f3a5f;
+  /* Chart data marks (Analytics). Brand data-mark navy; the dark value is a
+     lighter step of the same hue so marks hold ≥3:1 against --surface — both
+     validated (lightness band, chroma floor, contrast) with the dataviz
+     palette checks. Data only: status colours stay with risk/warn/ok. */
+  --chart-mark: #2f4f8f;
   --accent: #7d600f;
   --accent-soft: rgba(var(--dutiva-gold-rgb), 0.1);
   --accent-soft-border: rgba(var(--dutiva-gold-rgb), 0.28);
@@ -210,6 +215,7 @@
   --text-muted: #8b93a5;
   --text-faint: #7c8598;
   --navy: #2f5488;
+  --chart-mark: #5c82c4;
   --accent: #e9c877;
   --accent-soft: rgba(var(--dutiva-gold-rgb), 0.14);
   --accent-soft-border: rgba(var(--dutiva-gold-rgb), 0.3);

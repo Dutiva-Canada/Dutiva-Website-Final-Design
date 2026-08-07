@@ -15,6 +15,7 @@ describe('cases productionApi', () => {
     province: 'Ontario',
     status: 'open',
     due_date: '2026-08-01',
+    created_at: '2026-07-01T12:00:00Z',
   }
 
   it('listCases returns parsed rows scoped to the org, newest first', async () => {
@@ -39,6 +40,7 @@ describe('cases productionApi', () => {
         province: 'Ontario',
         status: 'open',
         dueDate: '2026-08-01',
+        createdAt: '2026-07-01T12:00:00Z',
       },
     ])
   })

@@ -13,7 +13,7 @@ import { complianceMessages } from './compliance'
 import { policiesMessages } from './policies'
 import { tasksMessages } from './tasks'
 import { calendarMessages } from './calendar'
-import { reportsMessages } from './reports'
+import { analyticsMessages } from './analytics'
 import { templatesMessages } from './templates'
 import { knowledgeMessages } from './knowledge'
 import { referenceMessages } from './reference'
@@ -52,7 +52,7 @@ export const workspaceMessages = {
   ...policiesMessages,
   ...tasksMessages,
   ...calendarMessages,
-  ...reportsMessages,
+  ...analyticsMessages,
   ...templatesMessages,
   ...knowledgeMessages,
   ...referenceMessages,

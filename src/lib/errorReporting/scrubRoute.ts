@@ -71,6 +71,7 @@ const ROUTE_PATTERNS: readonly string[] = [
   '/app/compliance',
   '/app/policies',
   '/app/templates',
+  '/app/analytics',
   '/app/reports',
   '/app/knowledge',
   '/app/support',

@@ -189,6 +189,7 @@ describe('HomeView production command centre', () => {
           province: 'Ontario',
           status: 'open',
           due_date: '2020-01-01',
+          created_at: '2020-01-01T12:00:00Z',
         },
       ],
       compliance_tasks: [
