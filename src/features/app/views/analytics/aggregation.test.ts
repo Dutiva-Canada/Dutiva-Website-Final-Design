@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  CRITICAL_SCORE_CEILING,
+  FINDING_SEVERITY_WEIGHTS,
   ackProgress,
   addDaysISO,
+  applyCriticalCeiling,
   blendScore,
   caseAging,
   daysBetweenISO,
@@ -14,6 +17,7 @@ import {
   scoreComponent,
   scoreDelta,
   turnoverRatePct,
+  weightedComponent,
   windowAxis,
   windowScoreAxis,
 } from './aggregation'
@@ -355,5 +359,56 @@ describe('score components + blend', () => {
   it('is null until any component has rows', () => {
     expect(blendScore([scoreComponent('policies', 0, 0)])).toBeNull()
     expect(blendScore([])).toBeNull()
+  })
+})
+
+describe('weightedComponent (formula v2)', () => {
+  it('scores by weight while keeping raw counts for display', () => {
+    /* Critical open (8) + info resolved (1): 1 of 2 findings closed, but
+       only 1 of 9 weight — the meter text stays "1 of 2", the pct says 11. */
+    const c = weightedComponent('findings', [
+      { done: false, weight: FINDING_SEVERITY_WEIGHTS.critical },
+      { done: true, weight: FINDING_SEVERITY_WEIGHTS.info },
+    ])
+    expect(c).toEqual({
+      key: 'findings',
+      done: 1,
+      total: 2,
+      weightedDone: 1,
+      weightedTotal: 9,
+      pct: 11,
+    })
+  })
+
+  it('marks an empty component null, same as scoreComponent', () => {
+    expect(weightedComponent('findings', []).pct).toBeNull()
+  })
+
+  it('matches scoreComponent when every weight is equal', () => {
+    const items = [
+      { done: true, weight: 3 },
+      { done: false, weight: 3 },
+      { done: true, weight: 3 },
+    ]
+    expect(weightedComponent('findings', items).pct).toBe(scoreComponent('findings', 2, 3).pct)
+  })
+})
+
+describe('applyCriticalCeiling (formula v2)', () => {
+  it('caps a healthy blend while a critical finding is open', () => {
+    expect(applyCriticalCeiling(92, 1)).toEqual({ score: CRITICAL_SCORE_CEILING, capped: true })
+  })
+
+  it('leaves the blend alone with no open critical', () => {
+    expect(applyCriticalCeiling(92, 0)).toEqual({ score: 92, capped: false })
+  })
+
+  it('never raises a blend already at or under the ceiling', () => {
+    expect(applyCriticalCeiling(69, 2)).toEqual({ score: 69, capped: false })
+    expect(applyCriticalCeiling(40, 2)).toEqual({ score: 40, capped: false })
+  })
+
+  it('passes null through — no data stays no data', () => {
+    expect(applyCriticalCeiling(null, 3)).toEqual({ score: null, capped: false })
   })
 })

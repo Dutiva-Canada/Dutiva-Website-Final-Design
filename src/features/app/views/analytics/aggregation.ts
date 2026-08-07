@@ -268,12 +268,48 @@ export function meanInWindow(
 
 /* ------------------------------------------- production score components */
 
+/**
+ * Score formula version, recorded on every snapshot row so a trend that
+ * crosses a formula change can be labeled instead of silently mixed.
+ * v1: raw done/total ratios for all three components, no ceiling.
+ * v2: findings weighted by severity, cancelled tasks excluded, and an open
+ *     critical finding caps the blend (docs/SCORING_LOGIC.md §8).
+ *
+ * MIRROR: supabase/functions/record-score-snapshots/scoring.ts computes the
+ * same formula for the scheduled job; scoring.test.ts there is the drift
+ * test. Change the two together.
+ */
+export const SCORE_FORMULA_VERSION = 2
+
+/**
+ * Severity weights for the findings component: a critical exposure moves
+ * the score more than a note. Frozen for v2 — changing them is a formula
+ * change and bumps SCORE_FORMULA_VERSION.
+ */
+export const FINDING_SEVERITY_WEIGHTS = {
+  info: 1,
+  low: 2,
+  medium: 3,
+  high: 5,
+  critical: 8,
+} as const
+
+/**
+ * An org with an open critical finding must not read as healthy no matter
+ * what the other components average: the blend is capped below any healthy
+ * reading while one is open. Dismissing or resolving the finding lifts it.
+ */
+export const CRITICAL_SCORE_CEILING = 69
+
 export interface ScoreComponent {
   key: string
   done: number
   total: number
   /** 0–100, rounded — null when the component has no rows yet. */
   pct: number | null
+  /** Severity-weighted numerator/denominator, set only by weightedComponent. */
+  weightedDone?: number
+  weightedTotal?: number
 }
 
 export function scoreComponent(key: string, done: number, total: number): ScoreComponent {
@@ -286,6 +322,27 @@ export function scoreComponent(key: string, done: number, total: number): ScoreC
 }
 
 /**
+ * Severity-weighted component: pct is resolved-weight over total-weight,
+ * while done/total stay raw counts so the meter's "1 of 2" text remains
+ * literal. Null pct when there are no rows, same as scoreComponent.
+ */
+export function weightedComponent(
+  key: string,
+  items: readonly { done: boolean; weight: number }[],
+): ScoreComponent {
+  const weightedTotal = items.reduce((sum, i) => sum + i.weight, 0)
+  const weightedDone = items.reduce((sum, i) => sum + (i.done ? i.weight : 0), 0)
+  return {
+    key,
+    done: items.filter((i) => i.done).length,
+    total: items.length,
+    weightedDone,
+    weightedTotal,
+    pct: weightedTotal > 0 ? Math.round((weightedDone / weightedTotal) * 100) : null,
+  }
+}
+
+/**
  * Blend component percentages into one score: the unweighted mean of the
  * components that have data. Null until at least one component has rows.
  */
@@ -293,4 +350,21 @@ export function blendScore(components: readonly ScoreComponent[]): number | null
   const present = components.filter((c): c is ScoreComponent & { pct: number } => c.pct !== null)
   if (present.length === 0) return null
   return Math.round(present.reduce((sum, c) => sum + c.pct, 0) / present.length)
+}
+
+export interface CeilingResult {
+  score: number | null
+  /** True only when the ceiling actually lowered the blend. */
+  capped: boolean
+}
+
+/** Apply the open-critical ceiling to a blended score. */
+export function applyCriticalCeiling(
+  score: number | null,
+  openCriticalCount: number,
+): CeilingResult {
+  if (score === null || openCriticalCount === 0 || score <= CRITICAL_SCORE_CEILING) {
+    return { score, capped: false }
+  }
+  return { score: CRITICAL_SCORE_CEILING, capped: true }
 }

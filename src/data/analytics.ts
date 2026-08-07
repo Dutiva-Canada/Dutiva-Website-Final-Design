@@ -28,8 +28,9 @@ export const demoTodayISO = `${calendarMonth.year}-${String(calendarMonth.monthI
 
 /**
  * Six-month compliance-score history ending at the current score
- * (`complianceScore`, the same number the Compliance view leads with). The
- * first five points are the prototype's `scoreTrend` constants.
+ * (`complianceScore`, the same 82 the Home compliance panel and the Advisor
+ * home tile show). The first five points are the prototype's `scoreTrend`
+ * constants.
  */
 export const scoreHistory: ScoreHistoryPoint[] = [
   { monthISO: '2026-02-01', score: 74 },

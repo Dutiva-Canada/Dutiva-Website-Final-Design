@@ -364,6 +364,23 @@ service-role key or `SUPABASE_SECRET_KEY` — no JWT payload decoding.
 the same deploy, as the TODO entry anticipated — whatever is in the working
 tree is what goes.
 
+**OA18 — Score formula v2: apply the migration, deploy the function, set the
+secret.** _Owner._ Three steps, in order, none done by the merge itself:
+(1) apply migration `0068_score_formula_v2.sql` (adds
+`compliance_score_snapshots.formula_version`, schedules the daily job — until
+applied, the app reads snapshots through its legacy-shape fallback and new
+snapshot writes fail silently, so score history pauses); (2) deploy the
+`record-score-snapshots` edge function (`verify_jwt = false` is already in
+`supabase/config.toml` — deploy from this repo root, remembering the
+2026-08-06 stale-CLI-project lesson); (3) create the Vault secret:
+`select vault.create_secret('<service key>', 'score_snapshot_service_key',
+'Service key used by the record-score-snapshots cron job');`. Verify with
+`select * from public.score_snapshot_status();` — expect
+`secret_configured: true`, `job_scheduled: true`, and
+`orgs_with_current_month` ≥ 1 after the next 05:30 UTC run (or fire
+`select public.trigger_score_snapshots();` once to check immediately). See
+[SCORING_LOGIC.md](SCORING_LOGIC.md) §2.3/§8.
+
 ---
 
 ## 2. Decisions needed before anyone writes code
@@ -406,6 +423,19 @@ Live at `/tools/jurisdiction-check` (EN) and `/fr/outils/verification-juridictio
 (FR), prerendered and in the sitemap. The termination-notice calculator
 remains ruled out (publishing notice periods violates the editorial rule in
 `articleModel.ts`). (PR #156)
+
+**D8 — Score formula v3: task provenance and the obligations component.**
+Two deliberate leftovers from formula v2 (2026-08-07,
+[SCORING_LOGIC.md](SCORING_LOGIC.md) §8). (a) *Which `compliance_tasks` rows
+count toward the score* — today every non-cancelled row does, which treats a
+hand-added to-do as compliance posture; scoping to pipeline/module-created
+tasks (the table already carries `category` and `metadata.kind`) is a product
+call on what the score means, not an engineering blocker. (b) *The obligation
+register as a fourth component* — blocked on building production obligations
+at all; when it lands, its statuses (evidence on file / in progress / needs
+evidence / overdue) map naturally to done/total. Either change is a formula
+change: bump `SCORE_FORMULA_VERSION` in both copies (the drift test enforces
+the pair) and add the §8 history entry.
 
 **D7 — `/guides` vs `/blog` positioning.** Decided 2026-08-06: no publishing
 cadence is planned; the current positioning holds. `/guides` = documents an

@@ -43,7 +43,11 @@ import { ScoreHero } from './ScoreHero'
 import { StatTile } from './StatTile'
 import { TrendLineChart } from './TrendLineChart'
 import {
+  CRITICAL_SCORE_CEILING,
+  FINDING_SEVERITY_WEIGHTS,
+  SCORE_FORMULA_VERSION,
   addDaysISO,
+  applyCriticalCeiling,
   blendScore,
   caseAging,
   daysBetweenISO,
@@ -56,6 +60,7 @@ import {
   scoreComponent,
   scoreDelta,
   turnoverRatePct,
+  weightedComponent,
 } from './aggregation'
 import { attentionChipLabel, attentionSecondary } from './attentionLabels'
 import { fill, formatDayISO, formatPct, formatSignedDecimal, intlLocale } from './format'
@@ -169,7 +174,9 @@ export function AnalyticsProductionView() {
 
   const components = useMemo(() => {
     const policyRows = rowsOf(policies.state)
-    const taskRows = rowsOf(tasks.state)
+    /* Cancelled tasks are neither done nor pending work — the same exclusion
+       the backend's own overdue count applies (schema.sql). */
+    const taskRows = rowsOf(tasks.state).filter((t) => t.status !== 'cancelled')
     const findingRows = rowsOf(findings.state)
     return [
       scoreComponent(
@@ -178,11 +185,19 @@ export function AnalyticsProductionView() {
         policyRows.length,
       ),
       scoreComponent('tasks', taskRows.filter((t) => t.done).length, taskRows.length),
-      scoreComponent('findings', findingRows.filter((f) => f.resolved).length, findingRows.length),
+      weightedComponent(
+        'findings',
+        findingRows.map((f) => ({ done: f.resolved, weight: FINDING_SEVERITY_WEIGHTS[f.severity] })),
+      ),
     ]
   }, [policies.state, tasks.state, findings.state])
 
-  const liveScore = scoreReady ? blendScore(components) : null
+  const openCriticalCount = useMemo(
+    () => rowsOf(findings.state).filter((f) => !f.resolved && f.severity === 'critical').length,
+    [findings.state],
+  )
+  const ceiling = applyCriticalCeiling(scoreReady ? blendScore(components) : null, openCriticalCount)
+  const liveScore = ceiling.score
 
   const activeEmployees = useMemo(
     () => rowsOf(employees.state).filter((e) => e.status !== 'terminated'),
@@ -204,7 +219,13 @@ export function AnalyticsProductionView() {
       organizationId,
       currentMonthISO,
       liveScore,
-      components.map((c) => ({ key: c.key, done: c.done, total: c.total })),
+      components.map((c) => ({
+        key: c.key,
+        done: c.done,
+        total: c.total,
+        weightedDone: c.weightedDone,
+        weightedTotal: c.weightedTotal,
+      })),
       liveHeadcount,
     ).catch(() => {})
   }, [organizationId, liveScore, components, currentMonthISO, employees.state, liveHeadcount])
@@ -214,6 +235,19 @@ export function AnalyticsProductionView() {
     const past = rowsOf(snapshots.state).filter((s) => s.monthISO < currentMonthISO)
     return [...past, { monthISO: currentMonthISO, score: liveScore }].slice(-HISTORY_WINDOW_MONTHS)
   }, [snapshots.state, liveScore, currentMonthISO])
+
+  /* A trend crossing formula versions is labeled, not silently mixed: true
+     when any charted past month was frozen under an older formula. */
+  const hasOlderFormulaPoints = useMemo(() => {
+    const windowStart = history[0]?.monthISO
+    if (windowStart === undefined) return false
+    return rowsOf(snapshots.state).some(
+      (s) =>
+        s.monthISO >= windowStart &&
+        s.monthISO < currentMonthISO &&
+        s.formulaVersion < SCORE_FORMULA_VERSION,
+    )
+  }, [snapshots.state, history, currentMonthISO])
 
   const headcountTrend = useMemo(() => {
     if (liveHeadcount === null) return []
@@ -460,6 +494,13 @@ export function AnalyticsProductionView() {
                 ) : (
                   <>
                     <ScoreHero score={liveScore} delta={scoreDeltaValue} />
+                    {ceiling.capped && (
+                      <p className="mt-[8px] mb-0 text-[12.5px] font-medium text-risk-fg">
+                        {fill(x(M.analytics_score_capped_note), {
+                          ceiling: CRITICAL_SCORE_CEILING,
+                        })}
+                      </p>
+                    )}
                     {history.length >= 2 ? (
                       <div className="mt-[10px]">
                         <TrendLineChart
@@ -479,6 +520,11 @@ export function AnalyticsProductionView() {
                     ) : (
                       <p className="mt-[10px] mb-0 text-[12.5px] text-text-muted">
                         {x(M.analytics_score_first_point)}
+                      </p>
+                    )}
+                    {hasOlderFormulaPoints && (
+                      <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
+                        {x(M.analytics_score_formula_note)}
                       </p>
                     )}
                     {breakdownRows.length > 0 && (

@@ -1,128 +1,175 @@
-# Scoring logic — where every number in the product comes from
+# Scoring logic — how Dutiva's scores and derived numbers are computed
 
-This is the reference for how Dutiva's scores and derived numbers are
-computed: the compliance score in both of its modes, the flow-assessment
-scoring, the Advisor's risk and confidence figures, and the aggregation
-rules behind the Analytics cards. It exists so the reasoning is written
-down in one place rather than reconstructed from the code each time.
+This is the reference for the product's scoring systems: the compliance
+score in both of its modes, the flow-assessment scoring, the Advisor's
+risk and confidence figures, and the aggregation rules behind the
+Analytics cards, with pointer-level coverage of the adjacent numeric
+logic (§9). It exists so the reasoning is written down in one place
+rather than reconstructed from the code each time.
 
 Standing rule, same as everywhere in this repo: **where this document
 disagrees with the code, the code wins** and this file gets corrected in
 the same PR. Load-bearing public facts stay governed by
 [CANONICAL_FACTS.md](CANONICAL_FACTS.md); this document explains
-mechanisms, not marketing claims. Verified against the code on
-2026-08-07.
+mechanisms, not marketing claims. Adversarially verified against the
+code on 2026-08-07 (every §2–§7 claim checked by independent review
+agents); formula v2 landed the same day.
 
 ## 1. The two data worlds
 
 Every number below has to be read against which world it lives in:
 
 - **Demo workspace** (the diorama every visitor and trial user sees):
-  numbers are hand-authored fixtures in `src/data/`, transcribed from the
-  design prototype. They are internally consistent storytelling — not
-  computed, and not pretending to be.
+  numbers are hand-authored fixtures in `src/data/`, transcribed from
+  the design prototype. Where a demo view shows a derived figure (the
+  Analytics cards), it is computed from those fixtures by the same pure
+  aggregation functions production uses, against the fixed demo date —
+  nothing is computed from live data, and nothing pretends to be.
 - **Production workspace** (a signed-in organization on Supabase):
-  numbers are computed live from the org's real rows through each module's
-  `productionApi` boundary, with row-level security scoping everything to
-  the organization.
+  numbers are computed live from the org's real rows through each
+  module's `productionApi` boundary, with row-level security scoping
+  everything to the organization.
 
-The same views render both worlds; `workspaceMode` decides which. A
-number that is a constant in the demo can therefore be genuine arithmetic
-in production — the compliance score is exactly that case.
+The same views render both worlds; `workspaceMode` decides which
+(production requires a signed-in, confirmed admin who stored that
+preference — everyone else sees the demo). A number that is a constant
+in the demo can therefore be genuine arithmetic in production — the
+compliance score is exactly that case.
 
 ## 2. The compliance score
 
 ### 2.1 Demo mode — authored fixtures
 
-The demo's headline `82/100` is a constant:
-`complianceScore` in `src/data/compliance.ts`. Around it:
+The demo's headline `82/100` is a constant: `complianceScore` in
+`src/data/compliance.ts`. Around it:
 
 - The five **category scores** (Termination & notice 61 · Leave &
   accommodation 84 · Policies & documentation 72 · Language &
   jurisdiction 96 · Data & privacy 90) are fixtures with authored tones
   and open-item counts. They do not average to 82 and are not meant to —
-  they exist so the diorama shows a healthy company with one visibly weak
-  area.
+  they exist so the diorama shows a healthy company with one visibly
+  weak area.
 - The six-month **score trend** in `src/data/analytics.ts` is
-  74 → 76 → 79 → 78 → 81 → `complianceScore`, ending on the same 82 so
-  the Compliance view and Analytics can never disagree.
+  74 → 76 → 79 → 78 → 81 → `complianceScore`: the trend's last point
+  imports the constant, so Analytics and every other surface that shows
+  the overall score (the Home compliance panel's 82/100 and the Advisor
+  home tile) can never disagree. The Compliance view itself shows the
+  category posture bars, not the overall number.
 - The **per-jurisdiction scores** are authored so their
   headcount-weighted blend returns approximately the overall score, with
   Quebec deliberately sitting well below it — the weak jurisdiction a
   strong overall number would otherwise hide.
-- The demo's "today" is fixed (`demoTodayISO`, derived from the July 2026
-  calendar fixture) so every date-relative number in the diorama is
+- The demo's "today" is fixed (`demoTodayISO`, derived from the July
+  2026 calendar fixture) so every date-relative number in the diorama is
   stable and testable.
 
-### 2.2 Production mode — the real computation
+### 2.2 Production mode — formula v2
 
 Production Analytics computes the score in
 `src/features/app/views/analytics/AnalyticsProductionView.tsx` from pure
-functions in `aggregation.ts` (unit-tested in `aggregation.test.ts`):
+functions in `aggregation.ts` (unit-tested in `aggregation.test.ts`).
+The formula is versioned — `SCORE_FORMULA_VERSION`, currently **2** —
+and every snapshot row records the version that produced it (§8 has the
+history).
 
-1. Three **components**, each a done/total pair:
+1. Three **components**:
    - **Policies** — policies with status `up_to_date`, over all policies
-     (`needs_review` and `missing` count against).
-   - **Tasks** — tasks marked done, over all tasks.
-   - **Findings** — compliance findings resolved, over all findings.
-2. `scoreComponent` turns each pair into a rounded 0–100 percentage —
-   `null` when the component has no rows yet, so absence of data is
-   never scored.
+     (`needs_review` and `missing` count against). Raw ratio.
+   - **Tasks** — tasks completed, over all non-cancelled tasks. A
+     cancelled task is neither done nor pending work, so it leaves the
+     denominator — the same exclusion the backend's own overdue count
+     applies. (The table is `compliance_tasks`; anything added through
+     the Tasks view lands here.)
+   - **Findings** — compliance findings closed (status `resolved` or
+     `dismissed`), over all findings, **weighted by severity**:
+     info 1 · low 2 · medium 3 · high 5 · critical 8
+     (`FINDING_SEVERITY_WEIGHTS`). The percentage is closed-weight over
+     total-weight, so a critical exposure moves the score more than a
+     note; the meter's "1 of 2" text stays a raw count.
+2. Each component yields a rounded 0–100 percentage — `null` when it has
+   no rows yet, so absence of data is never scored.
 3. `blendScore` takes the **unweighted mean of the components that have
    data**, rounded. No component has rows → no score; the card shows an
    empty state instead of a number.
+4. **The open-critical ceiling**: while the org has an open `critical`
+   finding, the blend is capped at `CRITICAL_SCORE_CEILING` (**69**,
+   below any healthy reading) — a strong average must not hide a
+   critical exposure. The card prints why ("Capped at 69 while a
+   critical finding is open…"); resolving or dismissing the finding
+   lifts it. The cap never *raises* a lower score.
 
-Worked example: 3/4 policies current (75), 8/10 tasks done (80), 1/2
-findings resolved (50) → (75 + 80 + 50) / 3 = **68**.
+Worked example: 3/4 policies current (75), 8 completed of 10
+non-cancelled tasks (80), findings medium-resolved + high-dismissed +
+info-open = 8 of 9 weight closed (89) → blend (75 + 80 + 89) / 3 =
+**81**. Add an open critical finding and the same blend computes through
+its weight and then hits the ceiling: **69**.
 
 The breakdown meters under the hero figure flag the **lowest** component
 (only once two or more components have data) — the same "a strong
 average hides a weak factor" honesty rule the flow assessments and the
 demo's jurisdiction breakdown apply.
 
-### 2.3 History — write-on-read snapshots
+### 2.3 History — snapshots
 
 The score is a function of *current* rows, so last quarter's score is
-gone unless it was written down at the time. That is the entire reason
-`public.compliance_score_snapshots` exists (migrations 0062/0063): one
-row per organization per month carrying the blended score, the
-per-component done/total breakdown (jsonb, for future drill-down), and
-the active headcount at that point.
+gone unless it was written down at the time. That is the reason
+`public.compliance_score_snapshots` exists (migrations 0062/0063/0068):
+one row per organization per month with the blended score, the
+per-component breakdown (jsonb — done/total, plus weighted numbers for
+findings), the active headcount, and `formula_version`.
 
-- Whenever production Analytics computes a live score, it **upserts the
-  current month's row** (once per page view, fire-and-forget — a failed
-  write never degrades the dashboard). Past months freeze.
-- The trend chart shows the last **6 months**: frozen snapshots plus the
-  live current month.
-- The **delta chip** ("+8 vs February") is current score minus the
-  oldest point in that window — it needs at least two points.
-- The month column is constrained to month-start dates and the score to
-  0–100 in the schema itself; RLS gives org members read and org
-  owners/admins write.
+History is written two ways:
 
-The same snapshots carry headcount history, which is what the turnover
-denominator (§4) reads.
+- **Write-on-read** (0062): whenever production Analytics computes a
+  live score, it attempts to upsert the current month's row — once per
+  page view, fire-and-forget, a failed write never degrades the
+  dashboard. Under RLS the write only succeeds when the viewer is an
+  org owner/admin; non-admin visits leave history untouched.
+- **The daily snapshot job** (0068): `record-score-snapshots`, a
+  pg_cron-scheduled edge function (05:30 UTC), upserts every org's
+  current-month row with the service role using the same v2 formula
+  (`supabase/functions/record-score-snapshots/scoring.ts`, drift-tested
+  against the app's copy). This removes the visit dependency: each
+  month's row always exists, and its last write is the month-close
+  state. The job only ever touches the current month — deliberately, so
+  a manual or late fire can never rewrite a frozen month — and skips
+  orgs with no scoreable rows, same as the view. Scheduling lives in
+  the database for the same reason the law monitor's does: a hosting or
+  repo move can't silently kill it. Check it in one query:
+  `select * from public.score_snapshot_status();`
 
-### 2.4 Known properties — deliberate v1 simplifications
+Past months freeze by construction. The trend chart shows the most
+recent **6 monthly points** — frozen snapshots plus the live current
+month (pre-0068 gap months mean these can span more than 6 calendar
+months). The **delta chip** ("+8 vs February") is the current score
+minus the oldest charted point; it needs at least two. When any charted
+past month was frozen under an older formula, the card says so
+("Earlier months were computed under a previous score formula") instead
+of silently mixing formulas.
 
-These are design facts to keep in mind, not bugs; they are also the
-levers §8 proposes to evolve.
+### 2.4 What v2 fixed, and what deliberately remains
 
-- **Equal weighting.** A workspace with 1 finding and 40 policies weighs
-  that single finding as a full third of the score.
-- **Severity-blind.** A critical finding counts the same as an info
-  finding — resolution ratio is all that is measured.
-- **The tasks component counts all tasks**, not only compliance-related
-  ones, which dilutes what "compliance score" means as general task
-  usage grows.
-- **Snapshots depend on visits.** History is only written when someone
-  opens Analytics that month; a month nobody visits leaves a gap.
-- **No judgment bands.** Production renders the score neutrally — there
-  is no "good above X" threshold coloring. The demo's tones are authored
-  fixtures.
-- The demo's **obligation register and category scores have no
-  production counterpart yet**; production Compliance is a findings
-  register (`ComplianceProductionView.tsx` states this in code).
+Formula v2 (2026-08-07) closed four of v1's known gaps: findings are no
+longer severity-blind, an open critical finding can no longer hide
+inside a good average, cancelled tasks no longer count against the
+score, and score history no longer depends on an admin remembering to
+open Analytics. Still true, on purpose:
+
+- **Equal component weighting.** Policies, tasks and findings still
+  blend as an unweighted mean — a workspace with 1 finding and 40
+  policies weighs that finding's component as a full third of the
+  score. Defensible for three components; revisit if a fourth lands.
+- **All non-cancelled tasks count.** Everything in `compliance_tasks`
+  is treated as compliance-relevant. Provenance-based scoping (count
+  only pipeline- or module-created tasks) is a product decision not yet
+  made — TODO.md tracks it (§8).
+- **No production obligation register yet.** The demo's obligation
+  register and category posture bars have no production counterpart;
+  production Compliance is a findings register. The register returns as
+  a fourth component when the feature lands (§8).
+- **No judgment bands.** Production renders the score neutrally — no
+  "good above X" coloring; the ceiling note and the lowest-component
+  flag are the only judgments. The demo's tones are authored fixtures.
 
 ## 3. Flow assessments
 
@@ -139,39 +186,48 @@ assessment). Scoring is `scoreRun` in
 - Zero is a real score (a completed run scoring nothing reports 0%, not
   an absence).
 - Results land in **bands** authored per flow (psychological safety:
-  ≥70% "largely established", ≥40% "real in places, informal in others",
-  else "early — start with the legal obligations"), each with its own
-  guidance and recommended templates.
-- A **per-domain breakdown** aggregates questions sharing a domain and is
-  rendered weakest-first — the single number says how you are doing, the
-  breakdown says what to do.
+  ≥70% "largely established", ≥40% "real in places, informal in
+  others", else "early — start with the obligations", whose body — not
+  title — directs readers to the legally required pieces first), each
+  with its own guidance and recommended templates.
+- A **per-domain breakdown** aggregates questions sharing a domain and
+  is rendered weakest-first — the single number says how you are doing,
+  the breakdown says what to do.
 
 ## 4. Analytics aggregation rules
 
-All of these live in
-`src/features/app/views/analytics/aggregation.ts`, which is deliberately
-pure: no `Date.now()` anywhere — callers inject "today" (the demo passes
-the fixed diorama date, production passes the real one), so the demo is
-stable and every path is unit-testable.
+The pure computations live in
+`src/features/app/views/analytics/aggregation.ts` — deliberately no
+`Date.now()` anywhere; callers inject "today" (the demo passes the fixed
+diorama date, production passes the real one), so the demo is stable and
+every path is unit-testable. The card-level wiring — what feeds the
+attention pool, the top-5 cap, the oldest-case alert threshold, the
+turnover denominator — lives in `AnalyticsView.tsx` /
+`AnalyticsProductionView.tsx`.
 
-- **Needs attention** (`rankAttention`): open tasks and unresolved cases
-  with due dates, plus expiry escalations (expired certifications;
-  documents expired or due within 30 days — an expiring work permit is a
-  compliance event). Sorted ascending by due date, which puts most
-  overdue first, then soonest-due; ties break on id. Status: overdue
-  (past due), due soon (≤14 days), upcoming. The card shows the top 5.
+- **Needs attention** (`rankAttention`): sorted ascending by due date,
+  which puts most overdue first, then soonest-due; ties break on id.
+  Status: overdue (past due), due soon (≤14 days), upcoming. The card
+  shows the top 5. In production the pool is open tasks and unresolved
+  cases with due dates, plus expiry escalations (expired
+  certifications; documents expired or due within 30 days — an expiring
+  work permit is a compliance event). The demo card feeds the same
+  ranking from its own pool: dated compliance obligations and
+  unresolved compliance items, plus the same expiry escalations.
 - **Expiry buckets** (`expiryBuckets`): expired · ≤30 · 31–60 · 61–90
   days, soonest first; records more than 90 days out are excluded — the
   cards look one quarter ahead.
-- **Case aging** (`caseAging`): open cases with days-open (clamped at 0),
-  oldest first; average rounded. The "oldest" tile alerts when the
+- **Case aging** (`caseAging`): open cases with days-open (clamped at
+  0), oldest first; average rounded. The "oldest" tile alerts when the
   oldest case exceeds 14 days.
-- **Turnover** (`turnoverRatePct`): rolling 12 months — terminations
-  dated inside the window over the **average snapshot headcount** in
-  that window, as a percentage to one decimal. Returns `null` when the
-  denominator is missing or zero: *no rate is better than a fictional
-  one*. The delta compares against the window ending at the previous
-  month-end.
+- **Turnover** (`turnoverRatePct`): rolling 12 months — terminations in
+  the window over the average headcount in it, as a percentage to one
+  decimal. The current window's denominator is the mean of the charted
+  headcount series (snapshots plus the live current month), falling
+  back to the live headcount when no history exists; the prior window
+  averages all snapshot headcounts inside its 12 months. Returns `null`
+  when the denominator is missing or zero: *no rate is better than a
+  fictional one*.
 - **Acknowledgment progress** (`ackProgress`): signed/total with
   clamping, rounded percent, 0 when the denominator is 0. In production
   the acknowledgments card is an honest empty state — no tracking data
@@ -180,60 +236,75 @@ stable and every path is unit-testable.
   instead of zero — pad the range, snap to clean ticks (5s for narrow
   ranges, 10s for wide), clamp to the scale (data 74–82 → axis 70–85).
   A score axis clamps at 100.
+- A few thresholds live in the view only: probation endings within 0–30
+  days (flagged with whether a review task exists), leave returns
+  "imminent" within 0–14 days plus a bare fallback row for roster
+  `on_leave` statuses with no leave record, headcount ranked by count
+  then name.
 
-Each production card fetches only the modules it needs and carries its
-own skeleton/empty/error states, so a failing module degrades one card,
-never the page.
+All modules load once at page level through per-module loaders with
+independent retry; each card declares its dependencies and renders its
+own skeleton/empty/error states, so a failing module degrades only the
+cards that depend on it, never the page. (One deliberate looseness: the
+needs-attention card gates only on tasks and cases — expiry escalations
+drop out silently while the expiry-records module is loading or
+failed.)
 
-## 5. Advisor risk, routing and confidence
+## 5. Advisor risk and confidence
 
 The structured panel around every Advisor reply — risk, jurisdiction,
 legal basis, confidence — is built by
 `supabase/functions/advisor-chat/responsePayload.ts`, and it is
-**entirely deterministic**. The model writes prose; rules decide
-consequences ([AI_USAGE_STRATEGY.md](AI_USAGE_STRATEGY.md) §4/§6). No
-statutory claim, risk level, or confidence figure originates in the
-model.
+**entirely deterministic**: the builder never even reads the model's
+prose. The model writes prose; rules decide consequences
+([AI_USAGE_STRATEGY.md](AI_USAGE_STRATEGY.md) §4/§6 — which also owns
+the crisis-intercept and gating mechanics; only the scoring-shaped
+pieces are restated here).
 
-- **Crisis intercept** (fail-safe-on): first-person crisis phrases are
-  matched against a maintained list mirrored on client and server —
-  both run, the union wins. A crisis turn switches to supportive mode,
-  shuts every gate (workspace, retrieval, legal basis, documents), and
-  reports safety risk `critical`.
 - **Compliance risk** is keyword-classified from the user's message:
   high-exposure topics (termination, discipline, accommodation, and all
-  escalation terms) → `high`; everyday entitlements (overtime, vacation,
-  leave, pay…) → `medium`; otherwise `low`. English and French terms
-  both match.
-- **Escalation** (third-party safety/rights: harassment, violence,
-  discrimination, reprisal…) forces escalation mode — never supportive —
-  and sets safety risk to `watch`. Escalation or high compliance risk
-  recommends employment counsel; a crisis suggests the EAP instead.
+  escalation terms) → `high`; everyday entitlements (overtime,
+  vacation, leave, pay…) → `medium`; otherwise `low`. English and
+  French terms both match.
+- **Escalation terms** (third-party safety/rights: harassment,
+  violence, discrimination, retaliation/représailles, threat, weapon,
+  assault, human-rights complaint, whistleblow, unsafe) force
+  escalation mode and set safety risk to `watch`; a crisis signal sets
+  it to `critical` and shuts every surface (both the server detector
+  and the client's mirrored phrase list can raise it — the union wins).
+  Escalation or high compliance risk recommends employment counsel; a
+  crisis suggests the EAP instead.
 - **Jurisdiction** is detected from explicit mentions (ON/QC/Federal
   patterns; bare two-letter codes are deliberately excluded — "on" is a
   common word, and a false jurisdiction read is worse than an unknown
   one). It defaults to `unknown` and is never assumed.
 - **The legal-basis gate is fail-safe-closed**: citations render only
   when jurisdiction is confirmed AND curated corpus chunks actually
-  grounded the turn. A citation is marked *valid* only once its chunk is
-  human-reviewed; machine-curated rows honestly read as "needs review".
+  grounded the turn. A citation is marked *valid* only once its chunk
+  is human-reviewed; machine-curated rows honestly read as "needs
+  review".
 - **Confidence is a formula, not a feeling**:
   `min(88, 20 + 30·(jurisdiction confirmed) + 10·min(chunks, 4))` —
   labeled High at ≥70, Moderate at ≥45, else Low. It tracks what
   grounded the answer (jurisdiction certainty, corpus coverage) and is
-  capped at 88 so the product can never claim near-certainty.
+  capped at 88 so the product can never claim near-certainty. The
+  chunks it counts are the top-k of the corpus retrieval (§9), which
+  asks for 4 — retrieval depth and the confidence saturation point are
+  one decision, not two.
 
 ## 6. Smaller scoring surfaces
 
 - **Help-centre search** (`src/features/support/help/helpSearch.ts`):
-  per-term field weights — title 3, summary 2, body 1 — summed across
-  terms; a term missing everywhere disqualifies the article in `all`
-  mode (the search box), while `any` mode (first-line assist over
-  whole-sentence questions) requires one match and ignores terms shorter
-  than 3 characters. Ties keep the authored category order.
-- **Wellbeing deliberately has no score.** Inferred "team signals" with
-  confidence scores are not persisted, because inferred health data
-  about identifiable people is a liability, not a feature
+  per-term field weights — title 3, summary 2, everything else
+  (keywords, category label, body) 1 — with each term counting only its
+  strongest field, summed across terms. `all` mode (the search box)
+  disqualifies an article missing any term; `any` mode (first-line
+  assist over whole-sentence questions) requires one match and ignores
+  terms shorter than 3 characters. Ties keep the authored category
+  order.
+- **Wellbeing deliberately has no score.** Inferred per-person "support
+  signals" with confidence levels are not persisted, because inferred
+  health data about identifiable people is a liability, not a feature
   (`views/wellbeing/productionApi.ts`).
 
 ## 7. The through-line
@@ -243,60 +314,95 @@ should hold to them.
 
 1. **Deterministic and injectable.** Every screenshot-able number is
    computed by a pure function from injected inputs — no clock reads or
-   randomness inside the math, no model-originated figures. This is what
-   makes the demo stable and the logic unit-testable.
+   randomness inside the math, no model-originated figures. This is
+   what makes the demo stable and the logic unit-testable.
 2. **Honest nulls.** Missing data yields `null` and an empty state that
-   says so — never a fabricated number, never a hidden card. "No rate is
-   better than a fictional one."
+   says so — never a fabricated number, never a hidden card. "No rate
+   is better than a fictional one."
 3. **The weak component is surfaced,** not averaged away: lowest score
    component flagged, weakest flow domain first, the weak jurisdiction
-   made visible.
+   made visible, the open-critical ceiling printed with its reason.
 4. **The two worlds never blur.** Demo numbers are honest fixtures;
    production numbers are honest arithmetic; a fixture never leaks into
    a signed-in workspace.
 
-## 8. Proposed evolution of the production score — NOT BUILT
+## 8. Formula history
 
-Design proposal, 2026-08-07 — recorded here for decision, none of it
-implemented. Each item targets a limitation in §2.4.
+Recorded per row as `compliance_score_snapshots.formula_version`; the
+app and the snapshot job both stamp `SCORE_FORMULA_VERSION`. A charted
+window mixing versions is labeled in the UI. Changing the formula —
+including the severity weights or the ceiling — means bumping the
+version in **both** copies (`aggregation.ts` and the edge function's
+`scoring.ts`; the drift test fails if they diverge).
 
-1. **Severity-weighted findings.** Weight the findings component by
-   severity (illustrative: info 1 · low 2 · medium 3 · high 5 ·
-   critical 8), scoring resolved-weight over total-weight, so a critical
-   exposure moves the score more than a note. Weights are a product
-   decision to make once, then freeze and version.
-2. **A severity floor.** An org with an unresolved *critical* finding
-   should not read as healthy regardless of averages — cap the blended
-   score (e.g. at 69, below any "healthy" reading) while one is open.
-   This is the "weak factor is surfaced" principle applied with teeth.
-3. **Scope or split the tasks component.** Count only compliance-linked
-   tasks (a tag or source-module linkage), or drop tasks from the blend
-   once a better third signal exists — general to-do completion is not
-   compliance posture.
-4. **Obligation register as a fourth component** when obligations land
-   in production: the demo's register statuses (evidence on file · in
-   progress · needs evidence · overdue) map naturally to done/total,
-   with overdue items also feeding the attention queue.
-5. **Scheduled snapshots.** Move history off write-on-read: a monthly
-   `pg_cron` → edge-function job (the same in-database scheduling
-   pattern as `monitor-law-changes`, for the same reason — a hosting
-   move can't silently kill it) writes every org's snapshot on the 1st.
-   Write-on-read stays as a freshness top-up.
-6. **Version the formula.** The snapshot rows already store per-component
-   done/total; add a formula-version marker (a column or a components
-   key) when the blend changes, so a trend crossing formula versions is
-   labeled rather than silently mixed.
+- **v1** (0062, 2026-08): unweighted done/total for policies, all
+  tasks, and findings; no ceiling; write-on-read history only.
+- **v2** (0068, 2026-08-07): findings weighted by severity
+  (1/2/3/5/8), closed = resolved or dismissed; cancelled tasks excluded
+  from the denominator; open-critical ceiling of 69; daily scheduled
+  snapshots; formula versioning itself.
 
-Sequencing: (6) first — it is the safety net for every other change —
-then (1)+(2) together since both are findings-semantics, then (3), with
-(4) and (5) landing whenever their prerequisites (production
-obligations; ops appetite for another scheduled job) arrive.
+Deferred, tracked in [TODO.md](TODO.md): the obligation register as a
+fourth component (needs the production obligations feature first), and
+provenance-based task scoping (a product decision on which
+`compliance_tasks` rows count). Both are formula changes → v3 when they
+land.
 
-## 9. Keeping this document true
+## 9. Adjacent numeric logic — pointers
+
+Derived numbers that live outside the scoring systems above, listed so
+this document's scope line is honest. Each pointer names the owning
+code; go there for the mechanism.
+
+- **Advisor corpus retrieval** — which chunks ground a turn (and feed
+  §5's confidence count): the `match_advisor_guidance` RPC, lexeme-quoted
+  FTS over EN and FR columns, ranked by the greater of the two
+  `ts_rank`s, top-k with k=4 requested (migrations 0023/0029/0058).
+- **Statutory notice figures** — the one place the product states a
+  statutory quantity: `statutoryNotice.ts` walks ascending Ontario ESA
+  tenure bands (0 weeks under 3 months → 8-week maximum); Québec and
+  Federal are deliberately `null` pending legal review, and `null`
+  means "hedge and cite the source", never zero. Two detectors with
+  opposite tuning gate model prose around it (`statutoryFigures.ts`,
+  `safetyBackstop.ts`).
+- **Support triage** — suggested priority by rank arithmetic (impact
+  rank vs category floor, max wins, urgency +1 only when impact is
+  non-zero, clamped at `high` — `critical` is a human decision), and
+  response due dates counted in Ontario business days against a
+  computed statutory-holiday calendar (`triage.ts`,
+  `src/config/support.ts`).
+- **Document studio** — applicability precedence (collective agreement
+  > template size trigger > clause-level headcount gates > default)
+  with legal-facing thresholds at 25 and 50 headcount, flagged in code
+  as pending counsel verification; and the generate wizard's
+  fill-progress meter (`documents/engine.ts`, `documents/data/meta.ts`).
+- **Billing** — annual price = 10 of 12 months billed; the yearly total
+  is derived from the already-rounded per-month figure so the two
+  displayed numbers always reconcile; plan gating is ordinal with
+  unknown plans collapsing to `free` (`src/config/plans.ts`).
+- **Beta cohort** — workspace membership is itself a ranking: first 15
+  eligible signups by `created_at asc nulls first, id asc`; a declined
+  row frees its seat; the signup endpoint never reveals list membership
+  (migration 0067, `src/config/beta.ts`).
+- **Operational ceilings** — AI usage budgets (per-user burst and
+  rolling-24h request/token caps, platform-wide cap, fail-safe
+  over-counting) and export velocity limits (server caps deliberately
+  tighter than the client's) — `_shared/aiUsage.ts`,
+  `_shared/exportGuard.ts`, migrations 0027/0049.
+- **Law-monitor judgments** — updates stale after 7 days of silence, a
+  source broken on its 3rd consecutive failed sweep, and a fetch counts
+  only past content-sanity thresholds (`GuidanceSourcesPanel.tsx`,
+  `monitor-law-changes/`; see [LAW_MONITORING.md](LAW_MONITORING.md)).
+
+## 10. Keeping this document true
 
 When scoring logic changes, the same PR updates this file — the
 enforcement pattern is the same as CANONICAL_FACTS.md, minus the
-automated check: the tests that pin the behaviors described here live in
-`aggregation.test.ts`, `flowEngine.test.ts`, `FlowRunner.test.tsx`,
-`responsePayload.test.ts` and `AnalyticsView.test.tsx`. If a change
-passes those tests but contradicts this file, this file is what's wrong.
+automated check. The tests that pin the behaviors described here:
+`aggregation.test.ts`, `AnalyticsView.test.tsx`,
+`record-score-snapshots/scoring.test.ts` (the v2 drift test — the two
+formula copies may not diverge), `flowEngine.test.ts`,
+`FlowRunner.test.tsx`, `responsePayload.test.ts`, and for §6
+`helpSearch.test.ts` and the wellbeing view/productionApi tests. If a
+change passes those tests but contradicts this file, this file is
+what's wrong.
