@@ -23,6 +23,13 @@ export function monthStartISO(todayISO: string): string {
   return `${todayISO.slice(0, 7)}-01`
 }
 
+/** ISO date shifted by whole days (negative shifts backwards). */
+export function addDaysISO(iso: string, days: number): string {
+  const date = parseISODate(iso)
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+
 /** Localized month name off a YYYY-MM-DD string ('Feb' / 'févr.' / 'February'…). */
 export function formatMonthISO(
   monthISO: string,
@@ -221,6 +228,42 @@ export function ackProgress(signed: number, total: number): AckProgress {
     outstanding: safeTotal - safeSigned,
     pct: safeTotal > 0 ? Math.round((safeSigned / safeTotal) * 100) : 0,
   }
+}
+
+/* --------------------------------------------------------- turnover rate */
+
+/**
+ * Rolling 12-month turnover: terminations dated inside
+ * (windowEnd − 365 days, windowEnd] over the average headcount, as a
+ * percentage rounded to one decimal. Null when the denominator is missing
+ * or zero — no rate is better than a fictional one.
+ */
+export function turnoverRatePct(
+  terminationISOs: readonly string[],
+  windowEndISO: string,
+  avgHeadcount: number | null,
+): number | null {
+  if (avgHeadcount === null || avgHeadcount <= 0) return null
+  const windowStartISO = addDaysISO(windowEndISO, -365)
+  const separations = terminationISOs.filter((d) => d > windowStartISO && d <= windowEndISO).length
+  return Math.round((separations / avgHeadcount) * 1000) / 10
+}
+
+/**
+ * Mean of the month-series values whose month falls inside
+ * (startExclusive, endInclusive] — the turnover denominator over snapshot
+ * headcounts. Null when the window holds no points.
+ */
+export function meanInWindow(
+  points: readonly { monthISO: string; value: number }[],
+  startExclusiveISO: string,
+  endInclusiveISO: string,
+): number | null {
+  const inWindow = points.filter(
+    (p) => p.monthISO > startExclusiveISO && p.monthISO <= endInclusiveISO,
+  )
+  if (inWindow.length === 0) return null
+  return inWindow.reduce((sum, p) => sum + p.value, 0) / inWindow.length
 }
 
 /* ------------------------------------------- production score components */

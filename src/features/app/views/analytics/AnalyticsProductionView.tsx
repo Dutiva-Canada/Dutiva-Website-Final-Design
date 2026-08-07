@@ -6,11 +6,19 @@ import { analyticsMessages as M } from '@/i18n/messages/analytics'
 import { casesMessages } from '@/i18n/messages/cases'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
-import { listEmployees } from '@/features/app/views/employees/productionApi'
-import type { ProductionEmployee } from '@/features/app/views/employees/productionApi'
+import {
+  listEmployees,
+  listExpiryRecords,
+  listLeaves,
+} from '@/features/app/views/employees/productionApi'
+import type {
+  ProductionEmployee,
+  ProductionExpiryRecord,
+  ProductionLeave,
+} from '@/features/app/views/employees/productionApi'
 import { listCases } from '@/features/app/views/cases/productionApi'
 import type { ProductionCase, ProductionCaseType } from '@/features/app/views/cases/productionApi'
-import { listTasks } from '@/features/app/views/tasks/productionApi'
+import { hasProbationReviewTask, listTasks } from '@/features/app/views/tasks/productionApi'
 import type { ProductionTask } from '@/features/app/views/tasks/productionApi'
 import { listFindings } from '@/features/app/views/compliance/productionApi'
 import type { ProductionFinding } from '@/features/app/views/compliance/productionApi'
@@ -21,24 +29,35 @@ import type { ScoreSnapshot } from './productionApi'
 import { AnalyticsCard, CardEmpty, CardError, CardSkeleton } from './AnalyticsCard'
 import { AttentionList } from './AttentionList'
 import type { AttentionRow } from './AttentionList'
+import { DeltaChip } from './DeltaChip'
+import { ExpiryBucketsSection } from './ExpiryBucketsSection'
+import type { ExpiryDisplayRow } from './ExpiryBucketsSection'
 import { JurisdictionBars } from './JurisdictionBars'
 import { LeaveList } from './LeaveList'
+import type { LeaveDisplayRow } from './LeaveList'
 import { OpenCaseRows } from './OpenCaseRows'
+import { ProbationList } from './ProbationList'
 import { ScoreBreakdownMeters } from './ScoreBreakdownMeters'
 import { ScoreHero } from './ScoreHero'
 import { StatTile } from './StatTile'
 import { TrendLineChart } from './TrendLineChart'
 import {
+  addDaysISO,
   blendScore,
   caseAging,
+  daysBetweenISO,
+  expiryBuckets,
+  flattenBuckets,
   formatMonthISO,
+  meanInWindow,
   monthStartISO,
   rankAttention,
   scoreComponent,
   scoreDelta,
+  turnoverRatePct,
 } from './aggregation'
 import { attentionChipLabel, attentionSecondary } from './attentionLabels'
-import { fill, formatDayISO, intlLocale } from './format'
+import { fill, formatDayISO, formatPct, formatSignedDecimal, intlLocale } from './format'
 
 /**
  * Analytics in production mode. The monthly snapshot table
@@ -138,6 +157,8 @@ export function AnalyticsProductionView() {
   const findings = useModuleRows<ProductionFinding>(organizationId, listFindings)
   const policies = useModuleRows<ProductionPolicy>(organizationId, listPolicies)
   const snapshots = useModuleRows<ScoreSnapshot>(organizationId, listScoreSnapshots)
+  const expiryRecords = useModuleRows<ProductionExpiryRecord>(organizationId, listExpiryRecords)
+  const leaves = useModuleRows<ProductionLeave>(organizationId, listLeaves)
 
   /* ── Score: live components + snapshot history ─────────────────────────── */
   const scoreReady =
@@ -259,6 +280,24 @@ export function AnalyticsProductionView() {
       flagged: lowestPct !== null && c.pct === lowestPct,
     }))
 
+  /* ── Expiry records: certification / document buckets ──────────────────── */
+  const allRecords = rowsOf(expiryRecords.state).map((r) => ({ ...r, expiryISO: r.expiryDate }))
+  const certRecords = allRecords.filter((r) => r.kind === 'certification')
+  const docRecords = allRecords.filter((r) => r.kind === 'document')
+  const certBuckets = expiryBuckets(certRecords, todayISO)
+  const docBuckets = expiryBuckets(docRecords, todayISO)
+
+  const toExpiryRow = (
+    record: ProductionExpiryRecord & { expiryISO: string },
+  ): ExpiryDisplayRow => ({
+    key: record.id,
+    title: record.name,
+    secondary: [record.employeeName, record.employeeProvince].filter(Boolean).join(' · '),
+    dateLabel: formatDayISO(record.expiryISO, locale),
+    expired: daysBetweenISO(todayISO, record.expiryISO) < 0,
+    href: `/app/employees/${record.employeeId}`,
+  })
+
   const attentionPool = [
     ...rowsOf(tasks.state)
       .filter((t) => !t.done && t.dueDate !== null)
@@ -278,6 +317,15 @@ export function AnalyticsProductionView() {
         secondary: attentionSecondary(c.province, undefined, x),
         href: `/app/cases/${c.id}`,
       })),
+    /* Escalations: expired certifications; documents expired or ≤30 days —
+       an expiring work permit is a compliance event (zero silent expiries). */
+    ...[...certBuckets.expired, ...docBuckets.expired, ...docBuckets.within30].map((record) => ({
+      id: record.id,
+      dueISO: record.expiryISO,
+      title: record.employeeName ? `${record.name} — ${record.employeeName}` : record.name,
+      secondary: attentionSecondary(record.employeeProvince ?? '', undefined, x),
+      href: `/app/employees/${record.employeeId}`,
+    })),
   ]
   const ranked = rankAttention(attentionPool, todayISO)
   const attentionRows: AttentionRow[] = ranked.slice(0, ATTENTION_CAP).map((r) => ({
@@ -303,9 +351,91 @@ export function AnalyticsProductionView() {
     todayISO,
   )
 
-  /* Leave overview — the roster's on_leave status is real today; leave
-     types and return dates aren't tracked yet, and the card says so. */
-  const onLeave = activeEmployees.filter((e) => e.status === 'on_leave')
+  /* ── Probation periods ending within 30 days ───────────────────────────── */
+  const taskRows = rowsOf(tasks.state)
+  const anyProbationDates = rowsOf(employees.state).some((e) => e.probationEndDate !== null)
+  const probationRows = rowsOf(employees.state)
+    .filter((e) => e.status !== 'terminated' && e.probationEndDate !== null)
+    .map((e) => ({ employee: e, daysLeft: daysBetweenISO(todayISO, e.probationEndDate!) }))
+    .filter(({ daysLeft }) => daysLeft >= 0 && daysLeft <= 30)
+    .sort((a, b) => a.daysLeft - b.daysLeft)
+    .map(({ employee, daysLeft }) => ({
+      key: employee.id,
+      name: employee.name,
+      secondary: [employee.title, employee.province].filter(Boolean).join(' · '),
+      endLabel: formatDayISO(employee.probationEndDate!, locale),
+      daysLeft,
+      reviewTaskCreated: hasProbationReviewTask(taskRows, employee.id),
+      href: `/app/employees/${employee.id}`,
+    }))
+
+  /* ── Leave overview — real leave records first, with a bare fallback row
+     for anyone whose roster status says on_leave but has no record yet. ── */
+  const currentLeaves = rowsOf(leaves.state).filter((l) => l.endedOn === null)
+  const coveredEmployeeIds = new Set(currentLeaves.map((l) => l.employeeId))
+  const bareOnLeave = activeEmployees.filter(
+    (e) => e.status === 'on_leave' && !coveredEmployeeIds.has(e.id),
+  )
+  const leaveRows: LeaveDisplayRow[] = [
+    ...currentLeaves.map((leave) => {
+      const daysToReturn =
+        leave.expectedReturnDate === null
+          ? null
+          : daysBetweenISO(todayISO, leave.expectedReturnDate)
+      return {
+        key: leave.id,
+        name: leave.employeeName ?? leave.employeeId,
+        type: leave.leaveType,
+        protected: leave.isProtected,
+        returnLabel:
+          leave.expectedReturnDate !== null
+            ? fill(x(M.analytics_leave_returns), {
+                date: formatDayISO(leave.expectedReturnDate, locale),
+              })
+            : x(M.analytics_leave_on_now),
+        imminent: daysToReturn !== null && daysToReturn >= 0 && daysToReturn <= 14,
+        href: `/app/employees/${leave.employeeId}`,
+        sortKey: leave.expectedReturnDate ?? '9999-12-31',
+      }
+    }),
+    ...bareOnLeave.map((e) => ({
+      key: `bare-${e.id}`,
+      name: e.name,
+      type: e.title ?? e.province,
+      protected: false,
+      returnLabel: x(M.analytics_leave_on_now),
+      imminent: false,
+      href: `/app/employees/${e.id}`,
+      sortKey: '9999-12-31',
+    })),
+  ].sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+
+  /* ── Turnover — real once termination dates exist ───────────────────────── */
+  const terminationDates = rowsOf(employees.state)
+    .map((e) => e.terminationDate)
+    .filter((d): d is string => d !== null)
+  const priorWindowEndISO = addDaysISO(currentMonthISO, -1)
+  const currentAvgHeadcount =
+    meanInWindow(headcountTrend, addDaysISO(todayISO, -365), todayISO) ?? liveHeadcount
+  const priorAvgHeadcount = meanInWindow(
+    rowsOf(snapshots.state)
+      .filter((s) => s.headcount !== null)
+      .map((s) => ({ monthISO: s.monthISO, value: s.headcount! })),
+    addDaysISO(priorWindowEndISO, -365),
+    priorWindowEndISO,
+  )
+  const turnoverNow =
+    terminationDates.length > 0
+      ? turnoverRatePct(terminationDates, todayISO, currentAvgHeadcount)
+      : null
+  const turnoverPrior =
+    turnoverNow !== null
+      ? turnoverRatePct(terminationDates, priorWindowEndISO, priorAvgHeadcount)
+      : null
+  const turnoverDelta =
+    turnoverNow !== null && turnoverPrior !== null
+      ? Math.round((turnoverNow - turnoverPrior) * 10) / 10
+      : null
 
   return (
     <div className="flex-1 overflow-y-auto px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]">
@@ -453,46 +583,86 @@ export function AnalyticsProductionView() {
             <CardEmpty text={x(M.analytics_ack_empty)} />
           </AnalyticsCard>
 
-          {/* A · Certifications & training — no records tracked yet. */}
+          {/* A · Certifications & training — from hr_expiry_records. */}
           <AnalyticsCard title={x(M.analytics_certs_title)} subtitle={x(M.analytics_certs_sub)}>
-            <CardEmpty text={x(M.analytics_certs_prod_empty)} />
+            <CardData deps={[expiryRecords]} skeletonLines={4}>
+              {() =>
+                certRecords.length === 0 ? (
+                  <CardEmpty text={x(M.analytics_certs_prod_empty)} />
+                ) : flattenBuckets(certBuckets).length === 0 ? (
+                  <CardEmpty text={x(M.analytics_certs_empty)} />
+                ) : (
+                  <ExpiryBucketsSection
+                    counts={{
+                      expired: certBuckets.expired.length,
+                      within30: certBuckets.within30.length,
+                      within60: certBuckets.within60.length,
+                      within90: certBuckets.within90.length,
+                    }}
+                    rows={flattenBuckets(certBuckets).map(toExpiryRow)}
+                  />
+                )
+              }
+            </CardData>
           </AnalyticsCard>
 
-          {/* C · Probation periods ending — no probation dates tracked yet. */}
+          {/* C · Probation periods ending — employees.probation_end_date,
+              with the review-task linkage checked exactly (task metadata). */}
           <AnalyticsCard
             title={x(M.analytics_probation_title)}
             subtitle={x(M.analytics_probation_sub)}
           >
-            <CardEmpty text={x(M.analytics_probation_prod_empty)} />
-          </AnalyticsCard>
-
-          {/* D · Document expiries — no dated documents tracked yet. */}
-          <AnalyticsCard title={x(M.analytics_docs_title)} subtitle={x(M.analytics_docs_sub)}>
-            <CardEmpty text={x(M.analytics_docs_prod_empty)} />
-          </AnalyticsCard>
-
-          {/* E · Leave overview — the roster's on-leave status is live. */}
-          <AnalyticsCard title={x(M.analytics_leave_title)} subtitle={x(M.analytics_leave_sub)}>
-            <CardData deps={[employees]} skeletonLines={3}>
+            <CardData deps={[employees, tasks]} skeletonLines={3}>
               {() =>
-                onLeave.length === 0 ? (
+                !anyProbationDates ? (
+                  <CardEmpty text={x(M.analytics_probation_prod_empty)} />
+                ) : probationRows.length === 0 ? (
+                  <CardEmpty text={x(M.analytics_probation_empty)} />
+                ) : (
+                  <ProbationList rows={probationRows} />
+                )
+              }
+            </CardData>
+          </AnalyticsCard>
+
+          {/* D · Document expiries — from hr_expiry_records. */}
+          <AnalyticsCard title={x(M.analytics_docs_title)} subtitle={x(M.analytics_docs_sub)}>
+            <CardData deps={[expiryRecords]} skeletonLines={4}>
+              {() =>
+                docRecords.length === 0 ? (
+                  <CardEmpty text={x(M.analytics_docs_prod_empty)} />
+                ) : flattenBuckets(docBuckets).length === 0 ? (
+                  <CardEmpty text={x(M.analytics_docs_empty)} />
+                ) : (
+                  <ExpiryBucketsSection
+                    counts={{
+                      expired: docBuckets.expired.length,
+                      within30: docBuckets.within30.length,
+                      within60: docBuckets.within60.length,
+                      within90: docBuckets.within90.length,
+                    }}
+                    rows={flattenBuckets(docBuckets).map(toExpiryRow)}
+                  />
+                )
+              }
+            </CardData>
+          </AnalyticsCard>
+
+          {/* E · Leave overview — hr_leaves records, with a bare row for
+              anyone marked on_leave who has no record yet. */}
+          <AnalyticsCard title={x(M.analytics_leave_title)} subtitle={x(M.analytics_leave_sub)}>
+            <CardData deps={[employees, leaves]} skeletonLines={3}>
+              {() =>
+                leaveRows.length === 0 ? (
                   <CardEmpty text={x(M.analytics_leave_empty)} />
                 ) : (
                   <>
-                    <LeaveList
-                      rows={onLeave.map((e) => ({
-                        key: e.id,
-                        name: e.name,
-                        type: e.title ?? e.province,
-                        protected: false,
-                        returnLabel: x(M.analytics_leave_on_now),
-                        imminent: false,
-                        href: `/app/employees/${e.id}`,
-                      }))}
-                    />
-                    <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
-                      {x(M.analytics_leave_prod_note)}
-                    </p>
+                    <LeaveList rows={leaveRows} />
+                    {bareOnLeave.length > 0 && (
+                      <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
+                        {x(M.analytics_leave_prod_note)}
+                      </p>
+                    )}
                   </>
                 )
               }
@@ -512,6 +682,30 @@ export function AnalyticsProductionView() {
                   <CardEmpty text={x(M.analytics_trend_empty)} />
                 ) : (
                   <>
+                    {turnoverNow !== null && (
+                      <div className="mb-[12px] flex gap-[10px]">
+                        <div className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-surface-2 px-[12px] py-[10px]">
+                          <div className="flex flex-wrap items-center gap-x-[10px] gap-y-[4px]">
+                            <span className="font-display text-[22px] font-bold text-text">
+                              {formatPct(turnoverNow, locale)}
+                            </span>
+                            {turnoverDelta !== null && (
+                              <DeltaChip
+                                delta={turnoverDelta}
+                                goodWhenUp={false}
+                                label={fill(x(M.analytics_turnover_delta), {
+                                  delta: formatSignedDecimal(turnoverDelta, locale),
+                                  month: formatMonthISO(priorWindowEndISO, locale, 'long'),
+                                })}
+                              />
+                            )}
+                          </div>
+                          <div className="mt-[2px] text-[11.5px] text-text-muted">
+                            {x(M.analytics_turnover_label)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {headcountTrend.length >= 2 ? (
                       <TrendLineChart
                         points={headcountTrend}
@@ -528,9 +722,11 @@ export function AnalyticsProductionView() {
                         {x(M.analytics_trend_first_point)}
                       </p>
                     )}
-                    <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
-                      {x(M.analytics_turnover_prod_note)}
-                    </p>
+                    {turnoverNow === null && (
+                      <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
+                        {x(M.analytics_turnover_prod_note)}
+                      </p>
+                    )}
                   </>
                 )
               }

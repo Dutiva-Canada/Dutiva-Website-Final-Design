@@ -38,6 +38,8 @@ describe('employees productionApi', () => {
         province: 'Ontario',
         startDate: '2026-07-02',
         status: 'active',
+        probationEndDate: null,
+        terminationDate: null,
       },
     ])
   })

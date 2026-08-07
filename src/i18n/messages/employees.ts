@@ -303,4 +303,109 @@ export const employeesMessages = defineMessages({
     en: 'Couldn’t add the note. Try again.',
     fr: 'Impossible d’ajouter la note. Réessayez.',
   },
+
+  /* ── Lifecycle dates (probation end / termination — 0066) ──────────────── */
+  employees_prod_dates_title: { en: 'Key dates', fr: 'Dates clés' },
+  employees_prod_probation_end: { en: 'Probation ends', fr: 'Fin de la probation' },
+  employees_prod_probation_hint: {
+    en: 'Entered per employee — probation length varies by province and contract.',
+    fr: 'Saisie par employé — la durée de probation varie selon la province et le contrat.',
+  },
+  employees_prod_termination_date: { en: 'Termination date', fr: 'Date de fin d’emploi' },
+  employees_prod_termination_hint: {
+    en: 'Feeds the turnover rate in Analytics.',
+    fr: 'Alimente le taux de roulement dans Analytique.',
+  },
+  employees_prod_dates_saved: { en: 'Dates updated', fr: 'Dates mises à jour' },
+  employees_prod_dates_failed: {
+    en: 'Couldn’t save the dates. Try again.',
+    fr: 'Impossible d’enregistrer les dates. Réessayez.',
+  },
+  employees_prod_review_task_missing: {
+    en: 'No probation review task yet',
+    fr: 'Aucune tâche d’évaluation de probation créée',
+  },
+  employees_prod_review_task_create: {
+    en: 'Create review task',
+    fr: 'Créer la tâche d’évaluation',
+  },
+  employees_prod_review_task_title: {
+    en: 'Probation review — {name}',
+    fr: 'Évaluation de probation — {name}',
+  },
+  employees_prod_review_task_created: {
+    en: 'Review task created',
+    fr: 'Tâche d’évaluation créée',
+  },
+  employees_prod_review_task_failed: {
+    en: 'Couldn’t create the review task. Try again.',
+    fr: 'Impossible de créer la tâche d’évaluation. Réessayez.',
+  },
+  employees_prod_review_task_exists: {
+    en: 'Review task in place',
+    fr: 'Tâche d’évaluation en place',
+  },
+
+  /* ── Certifications & documents (hr_expiry_records — 0064) ─────────────── */
+  employees_prod_records_title: {
+    en: 'Certifications & documents',
+    fr: 'Attestations et documents',
+  },
+  employees_prod_records_empty: {
+    en: 'No certifications or dated documents on file.',
+    fr: 'Aucune attestation ni document daté au dossier.',
+  },
+  employees_prod_record_kind: { en: 'Type', fr: 'Type' },
+  employees_prod_record_kind_certification: { en: 'Certification', fr: 'Attestation' },
+  employees_prod_record_kind_document: { en: 'Document', fr: 'Document' },
+  employees_prod_record_name: { en: 'Name', fr: 'Nom' },
+  employees_prod_record_name_placeholder: {
+    en: 'e.g. Forklift operator certificate, work permit…',
+    fr: 'p. ex. attestation de cariste, permis de travail…',
+  },
+  employees_prod_record_expiry: { en: 'Expiry date', fr: 'Date d’expiration' },
+  employees_prod_record_add: { en: 'Add record', fr: 'Ajouter l’enregistrement' },
+  employees_prod_record_added: { en: 'Record added', fr: 'Enregistrement ajouté' },
+  employees_prod_record_add_failed: {
+    en: 'Couldn’t add the record. Try again.',
+    fr: 'Impossible d’ajouter l’enregistrement. Réessayez.',
+  },
+  employees_prod_record_remove: { en: 'Remove', fr: 'Retirer' },
+  employees_prod_record_removed: { en: 'Record removed', fr: 'Enregistrement retiré' },
+  employees_prod_record_remove_failed: {
+    en: 'Couldn’t remove the record. Try again.',
+    fr: 'Impossible de retirer l’enregistrement. Réessayez.',
+  },
+  employees_prod_record_expires: { en: 'Expires {date}', fr: 'Expire le {date}' },
+  employees_prod_record_expired: { en: 'Expired', fr: 'Échéance dépassée' },
+
+  /* ── Leave records (hr_leaves — 0065) — status only ────────────────────── */
+  employees_prod_leave_title: { en: 'Leave', fr: 'Congés' },
+  employees_prod_leave_empty: {
+    en: 'No leave records. Leave is status-only — type and dates, never medical detail.',
+    fr: 'Aucun congé enregistré. Statut seulement — type et dates, jamais de détails médicaux.',
+  },
+  employees_prod_leave_type: { en: 'Leave type', fr: 'Type de congé' },
+  employees_prod_leave_type_placeholder: {
+    en: 'e.g. Parental leave, medical leave, vacation…',
+    fr: 'p. ex. congé parental, congé médical, vacances…',
+  },
+  employees_prod_leave_protected: { en: 'Protected leave', fr: 'Congé protégé' },
+  employees_prod_leave_start: { en: 'Start', fr: 'Début' },
+  employees_prod_leave_return: { en: 'Expected return', fr: 'Retour prévu' },
+  employees_prod_leave_add: { en: 'Add leave', fr: 'Ajouter le congé' },
+  employees_prod_leave_added: { en: 'Leave added', fr: 'Congé ajouté' },
+  employees_prod_leave_add_failed: {
+    en: 'Couldn’t add the leave. Try again.',
+    fr: 'Impossible d’ajouter le congé. Réessayez.',
+  },
+  employees_prod_leave_end: { en: 'End leave', fr: 'Terminer le congé' },
+  employees_prod_leave_ended: { en: 'Leave ended', fr: 'Congé terminé' },
+  employees_prod_leave_end_failed: {
+    en: 'Couldn’t end the leave. Try again.',
+    fr: 'Impossible de terminer le congé. Réessayez.',
+  },
+  employees_prod_leave_current: { en: 'Current', fr: 'En cours' },
+  employees_prod_leave_ended_on: { en: 'Ended {date}', fr: 'Terminé le {date}' },
+  employees_prod_leave_returns: { en: 'Returns {date}', fr: 'Retour le {date}' },
 })

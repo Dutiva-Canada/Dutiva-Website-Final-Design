@@ -37,6 +37,8 @@ describe('tasks productionApi', () => {
       status: 'open',
       done: false,
       dueDate: '2026-07-20',
+      linkedEmployeeId: null,
+      linkedKind: null,
     })
     expect(rows[1]).toMatchObject({ done: true, dueDate: null })
   })
