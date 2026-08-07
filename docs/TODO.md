@@ -300,11 +300,41 @@ loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
 - (3) **Done.** `support_scheduler_service_key` Vault secret created.
   `support_call_scheduler_status()` shows `secret_configured: true`,
   `job_scheduled: true`.
-- (1) **Still owner.** Google Cloud service account + three Calendar secrets
+- (1) **Closed as "not doing", 2026-08-07.** The three Calendar secrets
   (`GOOGLE_CALENDAR_CLIENT_EMAIL` / `GOOGLE_CALENDAR_PRIVATE_KEY` /
-  `GOOGLE_CALENDAR_ID`). Without them, confirmation still works — just no
-  automatic calendar invite. See
-  [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md).
+  `GOOGLE_CALENDAR_ID`) are **not set and are not planned.** Calendar sync
+  stays off; `support-confirm-call` skips it via `if (key && calendarId)` and
+  records a `calendar_sync_skipped` ticket event, so proposing and confirming
+  a call still works end to end — the customer just gets no automatic invite.
+  See [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md).
+
+  **Why it was abandoned rather than finished.** Google enforces
+  `iam.disableServiceAccountKeyCreation` on the `dutiva.ca` organization by
+  default (Secure by Default), so the service account was created but no JSON
+  key could be generated. Getting one required granting
+  `roles/orgpolicy.policyAdmin` to an account that currently lacks even
+  `orgpolicy.policy.get`, then switching off a Google security default — a
+  privilege escalation plus a weakened org-wide control, to enable a
+  convenience feature whose absence costs one calendar invite.
+
+  That trade was not worth making. Service-account keys are long-lived
+  credentials in a file, which is exactly what the policy exists to prevent,
+  and this repo would have been holding one for a calendar.
+
+  **If this is revisited**, the options in preference order are: (a) create
+  the project outside the `dutiva.ca` org, where the policy does not apply and
+  nothing is weakened; (b) rewrite
+  [`googleCalendar.ts`](../supabase/functions/_shared/googleCalendar.ts) onto
+  Workload Identity Federation, which needs no key at all — the option Google
+  itself points to; (c) grant `policyAdmin` and add an exception scoped to the
+  single project, never org-wide.
+
+  **Leftovers to clean up:** the unused Google Cloud project
+  `dutiva-support-calendar` (`sunny-mender-504801-m9`) and its
+  `dutiva-calendar@…iam.gserviceaccount.com` service account, both created
+  2026-08-07 and now doing nothing. Neither has a key and neither holds any
+  role, so they are inert — but an idle service account is still an identity,
+  and deleting the project removes both.
 
 **OA13 — Done.** D1 was decided 2026-08-06 (internal-only, weekly,
 human-reviewed) and built the same day. All three deployment steps verified
@@ -663,7 +693,7 @@ does not resurrect them.
 | Item                                        | Closed by                                                                           |
 | ------------------------------------------- | ----------------------------------------------------------------------------------- |
 | EF6a — split the message catalogue by surface, and guard `t()`'s surface boundary | Catalogue source split into `workspace.ts`/`marketing.ts`/`shared.ts`; `vite.config.ts`'s `messages-workspace` group needed `includeDependenciesRecursively: false` to actually stop riding into the eager graph (671.3kB → 539.9kB, -131.4kB) — see that file's comment for the rolldown mechanism. `t()` itself is still typed `MessageKey`, not per-surface — `scripts/check-message-scopes.mjs` (`npm run check`) guards the same boundary a different way, by scanning every literal `t('key')` call against its file's surface, instead of retyping ~140 call sites for an equivalent guarantee. A *computed* key (`t(someVariable)`) is invisible to this script by construction, same as it always was — those are guarded at the data structure that carries the key (`plans.ts`, `legalHubData.ts`, etc.), which was already typed. |
-| D3 — scheduled-call booking calendar decision                                     | Decided 2026-08-06 (Google Calendar, full loop) and built the same day — see OA12 for what's left to deploy it. [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md). |
+| D3 — scheduled-call booking calendar decision                                     | Decided 2026-08-06 (Google Calendar, full loop) and built the same day. **Revised 2026-08-07: calendar sync is off and staying off** — the org's `iam.disableServiceAccountKeyCreation` policy blocks the key, and weakening it was not worth one calendar invite. Propose/confirm works without it; see OA12. [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md). |
 | D1 — law-change notifications' five open questions                                | Decided 2026-08-06 (internal-only, weekly, org jurisdiction wins, human review required) and built the same day — see OA13 for what's left to deploy it. [LAW_CHANGE_NOTIFICATIONS.md](LAW_CHANGE_NOTIFICATIONS.md). |
 | EF5 — `inferCheckoutPrice`'s dead branch    | Deleted; server-set metadata is the checkout path's documented single source        |
 | L1 — primary sources "unreachable"          | Not a network block — a bot filter on the fetching tool; run from a workstation     |
