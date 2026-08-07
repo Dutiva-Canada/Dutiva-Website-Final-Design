@@ -48,6 +48,8 @@ const DEMO_MODE_CTX: WorkspaceModeContextValue = {
     user: { name: 'Riley Chen', initials: 'RC', role: { en: 'HR Manager', fr: 'Gestionnaire RH' }, email: 'riley@northgate.ca' },
   },
   organizationId: null,
+  memberRole: null,
+  isOrgAdmin: false,
   setMode: vi.fn(),
 }
 const PRO_PLAN_CTX: PlanContextValue = {

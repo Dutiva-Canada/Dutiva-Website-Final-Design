@@ -419,3 +419,119 @@ describe('EmployeeProfileView in production mode', () => {
     })
   })
 })
+
+describe('EmployeeProfileProductionView for a non-admin member', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  it('renders the record read-only: no forms, no remove/end buttons, no date inputs', async () => {
+    const EMPLOYEE_ROW = {
+      id: 'emp-1',
+      name: 'Ana Souza',
+      title: 'Coordinator',
+      email: 'ana@dutiva.ca',
+      province: 'Ontario',
+      start_date: '2026-07-02',
+      status: 'on_leave',
+      probation_end_date: '2026-09-30',
+      termination_date: null,
+    }
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () => Promise.resolve({ data: { session: null } }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn(() => Promise.resolve({ data: null, error: null })),
+        from: vi.fn((table: string) => {
+          if (table === 'employees') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () => Promise.resolve({ data: EMPLOYEE_ROW, error: null }),
+                }),
+              }),
+            }
+          }
+          if (table === 'hr_leaves') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  order: () =>
+                    Promise.resolve({
+                      data: [
+                        {
+                          id: 'l1',
+                          employee_id: 'emp-1',
+                          leave_type: 'Parental leave',
+                          is_protected: true,
+                          start_date: '2026-06-01',
+                          expected_return_date: '2026-10-01',
+                          ended_on: null,
+                          employees: { name: 'Ana Souza' },
+                        },
+                      ],
+                      error: null,
+                    }),
+                }),
+              }),
+            }
+          }
+          /* hr_cases, hr_employee_notes, hr_expiry_records, compliance_tasks */
+          return {
+            select: () => ({
+              eq: () => ({
+                order: () => Promise.resolve({ data: [], error: null }),
+              }),
+            }),
+          }
+        }),
+      },
+    }))
+    vi.resetModules()
+
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { WorkspaceModeContext } =
+      await import('@/features/app/workspaceMode/workspaceModeContext')
+    const { EmployeeProfileProductionView: ProfileFresh } =
+      await import('./EmployeeProfileProductionView')
+
+    renderAppFresh(
+      <WorkspaceModeContext.Provider
+        value={{
+          mode: 'production',
+          isAdmin: false,
+          identity: {
+            companyName: 'Acme Co.',
+            user: { name: 'Vic Member', initials: 'VM', role: { en: 'HR', fr: 'RH' }, email: '' },
+          },
+          organizationId: 'org-1',
+          memberRole: 'member',
+          isOrgAdmin: false,
+          setMode: vi.fn(),
+        }}
+      >
+        <ProfileFresh />
+      </WorkspaceModeContext.Provider>,
+      { route: '/app/employees/emp-1', path: '/app/employees/:employeeId' },
+    )
+
+    /* The record itself is fully readable… */
+    expect(await screen.findByText('Ana Souza')).toBeInTheDocument()
+    expect(screen.getByText('Parental leave')).toBeInTheDocument()
+    /* …probation end shows as a plain fact, not an input… */
+    expect(screen.getByText('2026-09-30')).toBeInTheDocument()
+    expect(document.querySelector('input[type="date"]')).toBeNull()
+    /* …and every write affordance is gone: status select, add forms,
+       remove/end buttons, note box. RLS would refuse them anyway — the UI
+       no longer offers writes the database denies. */
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Add record' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Add leave' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'End leave' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Add a note to this profile…')).not.toBeInTheDocument()
+  })
+})

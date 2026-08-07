@@ -92,7 +92,7 @@ export function EmployeeProfileProductionView() {
   const { x } = useI18n()
   const { employeeId } = useParams()
   const { showToast } = useToasts()
-  const { organizationId } = useWorkspaceMode()
+  const { organizationId, isOrgAdmin } = useWorkspaceMode()
 
   const [employee, setEmployee] = useState<ProductionEmployee | null>(null)
   const [openCases, setOpenCases] = useState<ProductionCase[]>([])
@@ -336,18 +336,22 @@ export function EmployeeProfileProductionView() {
                 <span className={statusChipClass(STATUS_TONE[employee.status])}>
                   {x(STATUS_LABEL[employee.status])}
                 </span>
-                <select
-                  value={employee.status}
-                  onChange={(e) => void onStatusChange(e.target.value as ProductionEmployeeStatus)}
-                  aria-label={`${x(M.employees_prod_status_aria)} — ${employee.name}`}
-                  className="cursor-pointer rounded-[8px] border border-border bg-surface px-[8px] py-[5px] font-sans text-[12px] text-text"
-                >
-                  {EMPLOYEE_STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {x(STATUS_LABEL[s])}
-                    </option>
-                  ))}
-                </select>
+                {isOrgAdmin && (
+                  <select
+                    value={employee.status}
+                    onChange={(e) =>
+                      void onStatusChange(e.target.value as ProductionEmployeeStatus)
+                    }
+                    aria-label={`${x(M.employees_prod_status_aria)} — ${employee.name}`}
+                    className="cursor-pointer rounded-[8px] border border-border bg-surface px-[8px] py-[5px] font-sans text-[12px] text-text"
+                  >
+                    {EMPLOYEE_STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {x(STATUS_LABEL[s])}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-[12px] sm:grid-cols-4">
                 {facts
@@ -370,24 +374,36 @@ export function EmployeeProfileProductionView() {
                     <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
                       {x(M.employees_prod_probation_end)}
                     </span>
-                    <input
-                      type="date"
-                      value={employee.probationEndDate ?? ''}
-                      onChange={(e) => void onDateChange('probationEndDate', e.target.value)}
-                      className={inputClass}
-                    />
+                    {isOrgAdmin ? (
+                      <input
+                        type="date"
+                        value={employee.probationEndDate ?? ''}
+                        onChange={(e) => void onDateChange('probationEndDate', e.target.value)}
+                        className={inputClass}
+                      />
+                    ) : (
+                      <span className="text-[13px] font-semibold text-text">
+                        {employee.probationEndDate ?? '—'}
+                      </span>
+                    )}
                   </label>
                   {(employee.status === 'terminated' || employee.terminationDate !== null) && (
                     <label className="flex flex-col gap-[4px]">
                       <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
                         {x(M.employees_prod_termination_date)}
                       </span>
-                      <input
-                        type="date"
-                        value={employee.terminationDate ?? ''}
-                        onChange={(e) => void onDateChange('terminationDate', e.target.value)}
-                        className={inputClass}
-                      />
+                      {isOrgAdmin ? (
+                        <input
+                          type="date"
+                          value={employee.terminationDate ?? ''}
+                          onChange={(e) => void onDateChange('terminationDate', e.target.value)}
+                          className={inputClass}
+                        />
+                      ) : (
+                        <span className="text-[13px] font-semibold text-text">
+                          {employee.terminationDate ?? '—'}
+                        </span>
+                      )}
                     </label>
                   )}
                   {employee.probationEndDate !== null &&
@@ -402,13 +418,15 @@ export function EmployeeProfileProductionView() {
                           <ClipboardX size={13} strokeWidth={1.9} aria-hidden="true" />
                           {x(M.employees_prod_review_task_missing)}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => void onCreateReviewTask()}
-                          className={smallButtonClass}
-                        >
-                          {x(M.employees_prod_review_task_create)}
-                        </button>
+                        {isOrgAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => void onCreateReviewTask()}
+                            className={smallButtonClass}
+                          >
+                            {x(M.employees_prod_review_task_create)}
+                          </button>
+                        )}
                       </span>
                     ))}
                 </div>
@@ -454,66 +472,70 @@ export function EmployeeProfileProductionView() {
                         ? x(M.employees_prod_record_expired)
                         : x(M.employees_prod_record_expires).replace('{date}', record.expiryDate)}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => void onRemoveRecord(record.id)}
-                      className={smallButtonClass}
-                    >
-                      {x(M.employees_prod_record_remove)}
-                    </button>
+                    {isOrgAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => void onRemoveRecord(record.id)}
+                        className={smallButtonClass}
+                      >
+                        {x(M.employees_prod_record_remove)}
+                      </button>
+                    )}
                   </div>
                 )
               })}
             </div>
-            <form
-              onSubmit={(e) => void onAddRecord(e)}
-              className="mb-[18px] flex flex-wrap items-end gap-[8px]"
-            >
-              <label className="flex flex-col gap-[4px]">
-                <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
-                  {x(M.employees_prod_record_kind)}
-                </span>
-                <select
-                  value={recordKind}
-                  onChange={(e) => setRecordKind(e.target.value as ExpiryRecordKind)}
-                  className={`${inputClass} cursor-pointer`}
-                >
-                  <option value="certification">
-                    {x(M.employees_prod_record_kind_certification)}
-                  </option>
-                  <option value="document">{x(M.employees_prod_record_kind_document)}</option>
-                </select>
-              </label>
-              <label className="flex min-w-[180px] flex-1 flex-col gap-[4px]">
-                <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
-                  {x(M.employees_prod_record_name)}
-                </span>
-                <input
-                  value={recordName}
-                  onChange={(e) => setRecordName(e.target.value)}
-                  placeholder={x(M.employees_prod_record_name_placeholder)}
-                  className={inputClass}
-                />
-              </label>
-              <label className="flex flex-col gap-[4px]">
-                <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
-                  {x(M.employees_prod_record_expiry)}
-                </span>
-                <input
-                  type="date"
-                  value={recordExpiry}
-                  onChange={(e) => setRecordExpiry(e.target.value)}
-                  className={inputClass}
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={recordSaving || !recordName.trim() || !recordExpiry}
-                className={primaryButtonClass}
+            {isOrgAdmin && (
+              <form
+                onSubmit={(e) => void onAddRecord(e)}
+                className="mb-[18px] flex flex-wrap items-end gap-[8px]"
               >
-                {x(M.employees_prod_record_add)}
-              </button>
-            </form>
+                <label className="flex flex-col gap-[4px]">
+                  <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
+                    {x(M.employees_prod_record_kind)}
+                  </span>
+                  <select
+                    value={recordKind}
+                    onChange={(e) => setRecordKind(e.target.value as ExpiryRecordKind)}
+                    className={`${inputClass} cursor-pointer`}
+                  >
+                    <option value="certification">
+                      {x(M.employees_prod_record_kind_certification)}
+                    </option>
+                    <option value="document">{x(M.employees_prod_record_kind_document)}</option>
+                  </select>
+                </label>
+                <label className="flex min-w-[180px] flex-1 flex-col gap-[4px]">
+                  <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
+                    {x(M.employees_prod_record_name)}
+                  </span>
+                  <input
+                    value={recordName}
+                    onChange={(e) => setRecordName(e.target.value)}
+                    placeholder={x(M.employees_prod_record_name_placeholder)}
+                    className={inputClass}
+                  />
+                </label>
+                <label className="flex flex-col gap-[4px]">
+                  <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
+                    {x(M.employees_prod_record_expiry)}
+                  </span>
+                  <input
+                    type="date"
+                    value={recordExpiry}
+                    onChange={(e) => setRecordExpiry(e.target.value)}
+                    className={inputClass}
+                  />
+                </label>
+                <button
+                  type="submit"
+                  disabled={recordSaving || !recordName.trim() || !recordExpiry}
+                  className={primaryButtonClass}
+                >
+                  {x(M.employees_prod_record_add)}
+                </button>
+              </form>
+            )}
 
             {/* Leave — status only */}
             <SectionHeading text={x(M.employees_prod_leave_title)} />
@@ -552,7 +574,7 @@ export function EmployeeProfileProductionView() {
                           )
                         : x(M.employees_prod_leave_current)}
                   </span>
-                  {leave.endedOn === null && (
+                  {isOrgAdmin && leave.endedOn === null && (
                     <button
                       type="button"
                       onClick={() => void onEndLeave(leave.id)}
@@ -564,59 +586,61 @@ export function EmployeeProfileProductionView() {
                 </div>
               ))}
             </div>
-            <form
-              onSubmit={(e) => void onAddLeave(e)}
-              className="mb-[18px] flex flex-wrap items-end gap-[8px]"
-            >
-              <label className="flex min-w-[180px] flex-1 flex-col gap-[4px]">
-                <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
-                  {x(M.employees_prod_leave_type)}
-                </span>
-                <input
-                  value={leaveType}
-                  onChange={(e) => setLeaveType(e.target.value)}
-                  placeholder={x(M.employees_prod_leave_type_placeholder)}
-                  className={inputClass}
-                />
-              </label>
-              <label className="flex flex-col gap-[4px]">
-                <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
-                  {x(M.employees_prod_leave_start)}
-                </span>
-                <input
-                  type="date"
-                  value={leaveStart}
-                  onChange={(e) => setLeaveStart(e.target.value)}
-                  className={inputClass}
-                />
-              </label>
-              <label className="flex flex-col gap-[4px]">
-                <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
-                  {x(M.employees_prod_leave_return)}
-                </span>
-                <input
-                  type="date"
-                  value={leaveReturn}
-                  onChange={(e) => setLeaveReturn(e.target.value)}
-                  className={inputClass}
-                />
-              </label>
-              <label className="flex cursor-pointer items-center gap-[6px] pb-[9px] text-[12.5px] text-text-2">
-                <input
-                  type="checkbox"
-                  checked={leaveProtected}
-                  onChange={(e) => setLeaveProtected(e.target.checked)}
-                />
-                {x(M.employees_prod_leave_protected)}
-              </label>
-              <button
-                type="submit"
-                disabled={leaveSaving || !leaveType.trim()}
-                className={primaryButtonClass}
+            {isOrgAdmin && (
+              <form
+                onSubmit={(e) => void onAddLeave(e)}
+                className="mb-[18px] flex flex-wrap items-end gap-[8px]"
               >
-                {x(M.employees_prod_leave_add)}
-              </button>
-            </form>
+                <label className="flex min-w-[180px] flex-1 flex-col gap-[4px]">
+                  <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
+                    {x(M.employees_prod_leave_type)}
+                  </span>
+                  <input
+                    value={leaveType}
+                    onChange={(e) => setLeaveType(e.target.value)}
+                    placeholder={x(M.employees_prod_leave_type_placeholder)}
+                    className={inputClass}
+                  />
+                </label>
+                <label className="flex flex-col gap-[4px]">
+                  <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
+                    {x(M.employees_prod_leave_start)}
+                  </span>
+                  <input
+                    type="date"
+                    value={leaveStart}
+                    onChange={(e) => setLeaveStart(e.target.value)}
+                    className={inputClass}
+                  />
+                </label>
+                <label className="flex flex-col gap-[4px]">
+                  <span className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
+                    {x(M.employees_prod_leave_return)}
+                  </span>
+                  <input
+                    type="date"
+                    value={leaveReturn}
+                    onChange={(e) => setLeaveReturn(e.target.value)}
+                    className={inputClass}
+                  />
+                </label>
+                <label className="flex cursor-pointer items-center gap-[6px] pb-[9px] text-[12.5px] text-text-2">
+                  <input
+                    type="checkbox"
+                    checked={leaveProtected}
+                    onChange={(e) => setLeaveProtected(e.target.checked)}
+                  />
+                  {x(M.employees_prod_leave_protected)}
+                </label>
+                <button
+                  type="submit"
+                  disabled={leaveSaving || !leaveType.trim()}
+                  className={primaryButtonClass}
+                >
+                  {x(M.employees_prod_leave_add)}
+                </button>
+              </form>
+            )}
 
             {/* Open cases for this employee */}
             <SectionHeading text={x(M.employees_prod_cases_title)} />
@@ -672,22 +696,24 @@ export function EmployeeProfileProductionView() {
             </div>
 
             {/* Add note */}
-            <form onSubmit={(e) => void onAddNote(e)} className="flex gap-[8px]">
-              <input
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder={x(M.employees_prod_note_placeholder)}
-                aria-label={x(M.employees_prod_note_placeholder)}
-                className="min-w-0 flex-1 rounded-[10px] border border-border bg-surface px-[14px] py-[10px] font-sans text-[13.5px] text-text"
-              />
-              <button
-                type="submit"
-                disabled={saving || !draft.trim()}
-                className="cursor-pointer rounded-[10px] border-none bg-navy px-[16px] py-[10px] font-sans text-[13px] font-semibold text-white disabled:opacity-60"
-              >
-                {x(M.employees_prod_note_add)}
-              </button>
-            </form>
+            {isOrgAdmin && (
+              <form onSubmit={(e) => void onAddNote(e)} className="flex gap-[8px]">
+                <input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder={x(M.employees_prod_note_placeholder)}
+                  aria-label={x(M.employees_prod_note_placeholder)}
+                  className="min-w-0 flex-1 rounded-[10px] border border-border bg-surface px-[14px] py-[10px] font-sans text-[13.5px] text-text"
+                />
+                <button
+                  type="submit"
+                  disabled={saving || !draft.trim()}
+                  className="cursor-pointer rounded-[10px] border-none bg-navy px-[16px] py-[10px] font-sans text-[13px] font-semibold text-white disabled:opacity-60"
+                >
+                  {x(M.employees_prod_note_add)}
+                </button>
+              </form>
+            )}
           </>
         )}
       </div>

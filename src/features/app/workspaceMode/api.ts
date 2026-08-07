@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
 import type { WorkspaceMode } from './workspaceModeContext'
+import type { OrgMemberRole } from './roles'
+import { isOrgMemberRole } from './roles'
 
 export interface AdminProfile {
   companyName: string
@@ -65,19 +67,33 @@ export async function saveStoredMode(userId: string, mode: WorkspaceMode): Promi
   }
 }
 
-/** The admin's active organization, if one has been provisioned. */
-export async function fetchOrganizationId(userId: string): Promise<string | null> {
+export interface OrganizationMembership {
+  organizationId: string
+  /** Null when the row predates role reads or carries an unknown value. */
+  role: OrgMemberRole | null
+}
+
+/** The user's active organization membership, if one has been provisioned. */
+export async function fetchOrganizationMembership(
+  userId: string,
+): Promise<OrganizationMembership | null> {
   if (!supabase) return null
   try {
     const { data, error } = await supabase
       .from('organization_members')
-      .select('organization_id')
+      .select('organization_id, role')
       .eq('user_id', userId)
       .eq('status', 'active')
       .limit(1)
       .maybeSingle()
     if (error || !data) return null
-    return z.object({ organization_id: z.string() }).parse(data).organization_id
+    const row = z
+      .object({ organization_id: z.string(), role: z.string().nullable().optional() })
+      .parse(data)
+    return {
+      organizationId: row.organization_id,
+      role: isOrgMemberRole(row.role) ? row.role : null,
+    }
   } catch {
     return null
   }

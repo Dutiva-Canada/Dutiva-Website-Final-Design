@@ -22,6 +22,8 @@ const DEMO_MODE: WorkspaceModeContextValue = {
     user: { name: 'Riley Chen', initials: 'RC', role: { en: 'HR Manager', fr: 'Gestionnaire RH' }, email: 'riley@northgate.ca' },
   },
   organizationId: null,
+  memberRole: null,
+  isOrgAdmin: false,
   setMode: vi.fn(),
 }
 

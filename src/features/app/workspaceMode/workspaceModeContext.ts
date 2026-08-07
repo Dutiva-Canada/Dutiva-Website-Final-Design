@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { Bi } from '@/i18n/core'
+import type { OrgMemberRole } from './roles'
 
 export type WorkspaceMode = 'demo' | 'production'
 
@@ -28,6 +29,20 @@ export interface WorkspaceModeContextValue {
    * — production modules scope every real read/write to this id.
    */
   organizationId: string | null
+  /**
+   * The signed-in user's organization_members.role — null in demo mode or
+   * before the membership resolves. Today's only real membership is the
+   * provisioning owner; the field exists so views can gate per role when
+   * the workspace opens to more members.
+   */
+  memberRole: OrgMemberRole | null
+  /**
+   * Client mirror of RLS's is_org_admin (platform admin, or owner/admin
+   * membership): whether write surfaces should render at all. RLS stays
+   * the enforcement — this only keeps the UI from offering writes the
+   * database would refuse.
+   */
+  isOrgAdmin: boolean
   /** No-op for non-admins — the toggle is only ever rendered for isAdmin. */
   setMode: (mode: WorkspaceMode) => Promise<void>
 }

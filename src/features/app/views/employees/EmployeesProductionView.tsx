@@ -48,7 +48,7 @@ const EMPTY_FORM = { name: '', title: '', email: '', province: 'Ontario', startD
 export function EmployeesProductionView() {
   const { x, lang } = useI18n()
   const { showToast } = useToasts()
-  const { organizationId } = useWorkspaceMode()
+  const { organizationId, isOrgAdmin } = useWorkspaceMode()
 
   const [rows, setRows] = useState<ProductionEmployee[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
@@ -114,7 +114,7 @@ export function EmployeesProductionView() {
           <div className="text-[13px] text-text-muted">
             {rows === null ? x(M.employees_prod_loading) : countLabel}
           </div>
-          {!formOpen && (
+          {!formOpen && isOrgAdmin && (
             <button
               type="button"
               onClick={() => setFormOpen(true)}
@@ -263,14 +263,16 @@ export function EmployeesProductionView() {
                 <span className={statusChipClass(STATUS_TONE[emp.status])}>
                   {x(STATUS_LABEL[emp.status])}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => void onRemove(emp)}
-                  aria-label={`${x(M.employees_prod_remove)} — ${emp.name}`}
-                  className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
-                >
-                  <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
-                </button>
+                {isOrgAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => void onRemove(emp)}
+                    aria-label={`${x(M.employees_prod_remove)} — ${emp.name}`}
+                    className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
+                  >
+                    <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
+                  </button>
+                )}
               </div>
             ))}
           </div>

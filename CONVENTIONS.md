@@ -195,7 +195,15 @@ employee's open `hr_cases`, linking through to the case detail.
 **Phase 13 made the sidebar badges live in production**
 (`useProductionNavBadges` + `countOpen*` head-count queries in each
 productionApi): real open counts for Cases/Tasks/Compliance, refreshed on
-every route change, shown only when a module has open work.
+every route change, shown only when a module has open work. **Phase 14
+exposed the org membership role** (`memberRole` + `isOrgAdmin` on
+`useWorkspaceMode()`, mirroring RLS's `is_org_admin`): production write
+surfaces render only for org admins — the UI no longer offers writes the
+database would refuse — and Analytics carries a declarative per-card
+visibility policy (`analytics/cardVisibility.ts`, every card
+member-visible today) so hiding a card per role is a one-word change.
+Production mode itself is still platform-admin-gated; opening the
+workspace to invited members is the follow-up this scaffolding awaits.
 
 ## Billing (Stripe paywall — prep work)
 
