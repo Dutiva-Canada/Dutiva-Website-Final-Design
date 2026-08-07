@@ -306,25 +306,18 @@ loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
   automatic calendar invite. See
   [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md).
 
-**OA13 — Partially done.** D1 was decided 2026-08-06 (internal-only, weekly,
-human-reviewed) and built the same day. Verified 2026-08-06 via Supabase MCP:
+**OA13 — Done.** D1 was decided 2026-08-06 (internal-only, weekly,
+human-reviewed) and built the same day. All three deployment steps verified
+2026-08-07 via Supabase MCP:
 - (1) **Done.** OA1/OA2 completed — the monitor is running and Federal
   detection is confirmed working.
-- (2) **Done**, after a correction. `send-law-updates` deployed (v1).
-  The earlier note here said a manual trigger "returned 200" — that was wrong,
-  and wrong in the way this whole family of bugs is wrong: `trigger_…()`
-  returns void and pg_net is asynchronous, so what was observed was the SQL
-  succeeding, not the HTTP call. The call was in fact returning **401** every
-  time: 0046 sent `Authorization: Bearer …` while `send-law-updates` gates on
-  `x-notify-secret`. Fixed in `0049`; re-verified 2026-08-06 by reading
-  `net._http_response` rather than the trigger's return value —
-  `200 {"ok":true,"sent":false,"reason":"nothing_to_digest"}`.
-  `RESEND_API_KEY` / `SUPPORT_OPERATOR_EMAIL` still need to be set (OA3) for
-  emails to actually send — until then, reviewed rows are left unrecorded,
-  not dropped.
+- (2) **Done.** `send-law-updates` deployed and returning
+  `200 {"ok":true,"sent":false,"reason":"nothing_to_digest"}`. With OA3 now
+  complete, `RESEND_API_KEY` and `SUPPORT_OPERATOR_EMAIL` are set — the
+  function will send the digest email as soon as a human reviews a row.
 - (3) **Done.** `law_update_digest_service_key` Vault secret created.
   `law_update_digest_status()` shows `secret_configured: true`,
-  `job_scheduled: true`, `unreviewed_count: 18`.
+  `job_scheduled: true`, `unreviewed_count: 22`.
 - Reviewing a row is direct SQL for now (`update law_updates set
   review_status = 'reviewed' where id = '<uuid>'`) — there is no admin UI, on
   purpose, for a low-volume internal pilot. See
