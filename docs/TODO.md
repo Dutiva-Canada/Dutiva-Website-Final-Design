@@ -51,32 +51,19 @@ and recording `first_seen` events. `monitoringCoverage.ts` flipped Federal from
 `CANONICAL_FACTS.md §5` updated to reflect that Federal detection is confirmed
 working while ON/QC remain unavailable. (PR #162)
 
-**OA3 — Sending works; delivery receipts do not.** _Owner._ Verified
-2026-08-06: the two notifications raised by ticket `DUT-2026-000004`
-(`security_ack` to the customer, `operator_alert` to the operator) both went
-`sent` on the **first attempt** with no error, so `RESEND_API_KEY`,
-`SUPPORT_EMAIL_FROM` and `SUPPORT_NOTIFY_SECRET` are all set and the
-`support-notify-drain` cron is running clean every minute.
+**OA3 — Done.** Verified 2026-08-07 via Supabase MCP: `RESEND_API_KEY`,
+`SUPPORT_EMAIL_FROM`, and `SUPPORT_NOTIFY_SECRET` are all set (notifications
+go `sent` on first attempt). The Resend webhook is registered and
+`RESEND_WEBHOOK_SECRET` is set — `delivery_status` is now populated:
+`DUT-2026-000005` shows `delivered` (operator alert) and `bounced` (customer
+ticket), proving the full round-trip works. A bounce is now visible instead
+of silent. (PRs #43, #50, #51)
 
-**What is left is the webhook half**, and it is the exact gap this entry
-always warned about: `delivery_status` is null on both rows, `webhook_events`
-is empty, and `resend-webhook` has **zero invocations in 24h of edge logs**.
-Resend is not calling it. So `sent` means "Resend accepted it" and nothing
-more — a bounce would be invisible. Register the webhook endpoint in Resend
-(pointing at `resend-webhook`) and set `RESEND_WEBHOOK_SECRET`; without the
-secret the function 503s every receipt.
-[SUPPORT_RUNBOOK.md](SUPPORT_RUNBOOK.md). (PRs #43, #50, #51)
-
-**OA4 — Turn CAPTCHA on.** _Owner._ Confirmed still outstanding 2026-08-06,
-unlike OA8: `https://dutiva.ca/contact` serves no CAPTCHA markup and no
-provider code appears in the entry bundle, and a public ticket
-(`DUT-2026-000004`) was created through that form with no challenge. The check
-is behaving as the safe no-op it was written to be.
-
-`CAPTCHA_SECRET_KEY` (edge-function secret) and `VITE_CAPTCHA_SITE_KEY`
-(client, baked in at build) must be set **together** and followed by a
-redeploy — the site key is compiled into the bundle, so rotating the secret
-alone breaks the public form. (PR #115)
+**OA4 — Done.** Verified 2026-08-07: the prerendered `https://dutiva.ca/contact`
+HTML includes the `data-testid="captcha-widget"` container, and
+`create-public-support-ticket` (v18) is deployed with `CAPTCHA_SECRET_KEY`
+set — the edge function now rejects submissions with a missing or invalid
+CAPTCHA token. `VITE_CAPTCHA_SITE_KEY` is compiled into the bundle. (PR #115)
 
 **OA17 — Done.** Both functions deployed and verified 2026-08-06.
 `support-analytics-event` recorded its **first event in production**:
