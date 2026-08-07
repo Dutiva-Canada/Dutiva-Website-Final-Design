@@ -7,8 +7,9 @@
  * function): "does this account skip billing" vs. "may this account sign
  * into the workspace at all". These have genuinely different criteria —
  * bypassing billing is @dutiva.ca staff only; signing in is the admin
- * account or anyone on the beta list — so they're independent enforcement
- * points and shouldn't be conflated.
+ * account, the first BETA_COHORT_LIMIT beta signups, or an admin-managed
+ * invite — so they're independent enforcement points and shouldn't be
+ * conflated.
  */
 const ADMIN_EMAILS = ['martin.constantineau@dutiva.ca']
 

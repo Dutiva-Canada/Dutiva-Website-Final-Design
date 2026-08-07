@@ -1,3 +1,4 @@
+import { BETA_COHORT_LIMIT } from '@/config/beta'
 import { defineMessages } from '../core'
 
 /**
@@ -761,6 +762,13 @@ export const landing = defineMessages({
     en: 'Join the beta free — no credit card. Open the Advisor, generate a document, and start building a cleaner HR foundation for your business.',
     fr: 'Rejoignez la version bêta gratuitement — sans carte de crédit. Ouvrez le Conseiller, générez un document et bâtissez une base RH plus solide pour votre entreprise.',
   },
+  /* Postdates the design handoff: beta capacity decision, 2026-08-07. The
+     number is interpolated from BETA_COHORT_LIMIT so this copy cannot drift
+     from the gate that enforces it. [FR self-authored] */
+  landing_cta_capacity: {
+    en: `The beta is limited to ${BETA_COHORT_LIMIT} individuals and organizations to begin — once those spots are taken, new signups join the waiting list.`,
+    fr: `La bêta est limitée à ${BETA_COHORT_LIMIT} personnes et organisations pour commencer — une fois ces places prises, les nouvelles inscriptions rejoignent la liste d’attente.`,
+  },
   landing_cta_email_ph: {
     en: 'you@company.ca',
     fr: 'vous@entreprise.ca',
@@ -784,6 +792,17 @@ export const landing = defineMessages({
   landing_cta_done_p: {
     en: "We'll email your beta access to get started.",
     fr: 'Nous vous enverrons votre accès bêta par courriel.',
+  },
+  /* Postdates the design handoff: shown instead of landing_cta_done_* when
+     the server reports the first cohort is already full, so a visitor who
+     will wait is never promised access. [FR self-authored] */
+  landing_cta_wait_t: {
+    en: "You're on the waiting list.",
+    fr: 'Vous êtes sur la liste d’attente.',
+  },
+  landing_cta_wait_p: {
+    en: `The first ${BETA_COHORT_LIMIT} beta spots are taken. We'll email you as soon as a spot opens up.`,
+    fr: `Les ${BETA_COHORT_LIMIT} premières places de la bêta sont prises. Nous vous écrirons dès qu’une place se libère.`,
   },
   landing_foot_desc: {
     en: 'Foundational HR infrastructure for Canadian employers, built for compliance-oriented guidance, workplace documentation, onboarding, employee support, and the full employee lifecycle.',

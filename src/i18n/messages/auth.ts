@@ -1,3 +1,4 @@
+import { BETA_COHORT_LIMIT } from '@/config/beta'
 import { defineMessages } from '../core'
 
 /**
@@ -60,9 +61,13 @@ export const authMessages = defineMessages({
     en: 'This workspace is invite-only. Enter your email and we’ll send a sign-in link.',
     fr: 'Cet espace de travail est sur invitation seulement. Entrez votre courriel et nous vous enverrons un lien de connexion.',
   },
+  /* Shown to any signed-in account the workspace gate refuses — which now
+     includes beta signups past the first BETA_COHORT_LIMIT (waiting list),
+     so the message says what waiting means without asserting anything about
+     this particular address's signup state. */
   auth_not_authorized: {
-    en: 'This workspace isn’t available on that account.',
-    fr: 'Cet espace de travail n’est pas accessible avec ce compte.',
+    en: `This workspace isn’t available on that account. Beta access is limited to the first ${BETA_COHORT_LIMIT} signups — if you’re on the waiting list, we’ll email you when a spot opens.`,
+    fr: `Cet espace de travail n’est pas accessible avec ce compte. L’accès à la bêta est limité aux ${BETA_COHORT_LIMIT} premières inscriptions — si vous êtes sur la liste d’attente, nous vous écrirons dès qu’une place se libère.`,
   },
   auth_confirm_verifying: {
     en: 'Signing you in…',
