@@ -74,20 +74,32 @@ export interface AxisWindow {
 }
 
 /**
- * Window a score axis to the data instead of zero: pad the data range, snap
- * to clean ticks (5s for narrow ranges, 10s for wide ones) and clamp to the
- * 0–100 score scale. Data 74–82 → axis 70–85 with ticks every 5.
+ * Window an axis to the data instead of zero: pad the data range, snap to
+ * clean ticks (5s for narrow ranges, 10s for wide ones) and clamp to the
+ * scale's bounds. Data 74–82 → axis 70–85 with ticks every 5.
  */
-export function windowScoreAxis(values: readonly number[], pad = 2): AxisWindow {
-  if (values.length === 0) return { min: 0, max: 100, ticks: [0, 25, 50, 75, 100] }
+export function windowAxis(
+  values: readonly number[],
+  { pad = 2, clampMin = 0, clampMax = Number.POSITIVE_INFINITY } = {},
+): AxisWindow {
+  if (values.length === 0) {
+    const max = Number.isFinite(clampMax) ? clampMax : 100
+    const step = (max - clampMin) / 4
+    return { min: clampMin, max, ticks: [0, 1, 2, 3, 4].map((i) => clampMin + i * step) }
+  }
   const lo = Math.min(...values) - pad
   const hi = Math.max(...values) + pad
   const step = hi - lo <= 30 ? 5 : 10
-  const min = Math.max(0, Math.floor(lo / step) * step)
-  const max = Math.min(100, Math.ceil(hi / step) * step)
+  const min = Math.max(clampMin, Math.floor(lo / step) * step)
+  const max = Math.min(clampMax, Math.ceil(hi / step) * step)
   const ticks: number[] = []
   for (let t = min; t <= max; t += step) ticks.push(t)
   return { min, max, ticks }
+}
+
+/** The windowed axis for a 0–100 score. */
+export function windowScoreAxis(values: readonly number[], pad = 2): AxisWindow {
+  return windowAxis(values, { pad, clampMax: 100 })
 }
 
 /* ----------------------------------------------------------- score delta */
@@ -148,6 +160,46 @@ export function caseAging<T extends { openedISO: string }>(
     oldestDays: rows[0]!.daysOpen,
     rows,
   }
+}
+
+/* --------------------------------------------------------- expiry buckets */
+
+export interface ExpiryBuckets<T> {
+  expired: T[]
+  /** Due within 30 days (inclusive), starting today. */
+  within30: T[]
+  /** 31–60 days out. */
+  within60: T[]
+  /** 61–90 days out. */
+  within90: T[]
+}
+
+/**
+ * Bucket dated records for the certification / document-expiry cards:
+ * expired · ≤30 · 31–60 · 61–90 days, each sorted soonest-first. Records
+ * more than 90 days out are excluded — the cards look one quarter ahead.
+ */
+export function expiryBuckets<T extends { id: string; expiryISO: string }>(
+  records: readonly T[],
+  todayISO: string,
+): ExpiryBuckets<T> {
+  const buckets: ExpiryBuckets<T> = { expired: [], within30: [], within60: [], within90: [] }
+  const sorted = [...records].sort(
+    (a, b) => a.expiryISO.localeCompare(b.expiryISO) || a.id.localeCompare(b.id),
+  )
+  for (const record of sorted) {
+    const days = daysBetweenISO(todayISO, record.expiryISO)
+    if (days < 0) buckets.expired.push(record)
+    else if (days <= 30) buckets.within30.push(record)
+    else if (days <= 60) buckets.within60.push(record)
+    else if (days <= 90) buckets.within90.push(record)
+  }
+  return buckets
+}
+
+/** Flat soonest-first list across all four buckets. */
+export function flattenBuckets<T>(buckets: ExpiryBuckets<T>): T[] {
+  return [...buckets.expired, ...buckets.within30, ...buckets.within60, ...buckets.within90]
 }
 
 /* ------------------------------------------------- acknowledgment meter */

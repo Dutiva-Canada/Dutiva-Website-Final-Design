@@ -1,8 +1,11 @@
 import { bi } from '@/i18n/core'
 import type {
   JurisdictionHeadcount,
+  JurisdictionScore,
   PolicyAcknowledgmentCampaign,
   ScoreHistoryPoint,
+  TrendPoint,
+  TurnoverStat,
 } from './types'
 import { calendarMonth } from './calendar'
 import { complianceScore } from './compliance'
@@ -63,4 +66,39 @@ export const policyAcknowledgment: PolicyAcknowledgmentCampaign = {
   title: bi('Code of Conduct — annual attestation', 'Code de conduite — attestation annuelle'),
   signed: 74,
   total: headcountTotal,
+}
+
+/**
+ * Compliance score by jurisdiction. Headcount-weighted, these blend back to
+ * the overall score (Σ score×headcount / 82 ≈ 82): Quebec sits 11 points
+ * below the blended score — the weak jurisdiction a strong overall number
+ * would otherwise hide (its Law 25 PIA and francization review are the
+ * open obligations behind it).
+ */
+export const jurisdictionScores: JurisdictionScore[] = [
+  { key: 'ON', label: bi('ON', 'ON'), score: 83 },
+  { key: 'BC', label: bi('BC', 'BC'), score: 86 },
+  { key: 'QC', label: bi('QC', 'QC'), score: 71 },
+  { key: 'AB', label: bi('AB', 'AB'), score: 88 },
+  { key: 'Federal', label: bi('Federal', 'Fédéral'), score: 75 },
+]
+
+/**
+ * Six-month headcount history ending at the current total — the company
+ * added six people over the window.
+ */
+export const headcountHistory: TrendPoint[] = [
+  { monthISO: '2026-02-01', value: 76 },
+  { monthISO: '2026-03-01', value: 77 },
+  { monthISO: '2026-04-01', value: 79 },
+  { monthISO: '2026-05-01', value: 80 },
+  { monthISO: '2026-06-01', value: 81 },
+  { monthISO: '2026-07-01', value: headcountTotal },
+]
+
+/** Rolling 12-month turnover, improving month over month. */
+export const turnover: TurnoverStat = {
+  ratePct: 9.8,
+  priorRatePct: 11.2,
+  priorMonthISO: '2026-06-01',
 }
