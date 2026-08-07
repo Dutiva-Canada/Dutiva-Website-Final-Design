@@ -7,12 +7,14 @@ import {
   bootstrapOrganization,
   checkIsAdmin,
   fetchAdminProfile,
-  fetchOrganizationId,
+  fetchOrganizationMembership,
   fetchStoredMode,
   saveStoredMode,
 } from './api'
 import { WorkspaceModeContext } from './workspaceModeContext'
 import type { WorkspaceIdentity, WorkspaceMode } from './workspaceModeContext'
+import type { OrgMemberRole } from './roles'
+import { isAdminRole } from './roles'
 
 const DEMO_IDENTITY: WorkspaceIdentity = { companyName: WORKSPACE_NAME, user: WORKSPACE_USER }
 
@@ -29,6 +31,7 @@ interface AdminState {
   storedMode: WorkspaceMode
   identity: WorkspaceIdentity | null
   organizationId: string | null
+  memberRole: OrgMemberRole | null
 }
 
 const SIGNED_OUT_STATE: AdminState = {
@@ -36,6 +39,7 @@ const SIGNED_OUT_STATE: AdminState = {
   storedMode: 'demo',
   identity: null,
   organizationId: null,
+  memberRole: null,
 }
 
 /**
@@ -66,20 +70,23 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         return
       }
 
-      const [storedMode, profile, existingOrgId] = await Promise.all([
+      const [storedMode, profile, membership] = await Promise.all([
         fetchStoredMode(userId),
         fetchAdminProfile(userId),
-        fetchOrganizationId(userId),
+        fetchOrganizationMembership(userId),
       ])
       if (cancelled) return
 
       const companyName = profile?.companyName ?? 'Dutiva Canada Inc.'
       /* An admin already in production without an org (e.g. the preference
          predates the org feature) gets provisioned on load; otherwise the
-         org is created the first time they switch (see setMode). */
-      let organizationId = existingOrgId
+         org is created the first time they switch (see setMode). The RPC
+         inserts the caller as the org's active owner. */
+      let organizationId = membership?.organizationId ?? null
+      let memberRole = membership?.role ?? null
       if (storedMode === 'production' && organizationId === null) {
         organizationId = await bootstrapOrganization(companyName, companyName)
+        if (organizationId !== null) memberRole = 'owner'
         if (cancelled) return
       }
 
@@ -88,6 +95,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         isAdmin: true,
         storedMode,
         organizationId,
+        memberRole,
         identity: {
           companyName,
           province: profile?.province ?? 'Ontario',
@@ -116,23 +124,29 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       /* First switch to production provisions the real organization (the
          RPC also inserts the caller as its active owner). */
       let organizationId = admin.organizationId
+      let memberRole = admin.memberRole
       if (next === 'production' && organizationId === null) {
         const companyName = admin.identity?.companyName ?? 'Dutiva Canada Inc.'
         organizationId = await bootstrapOrganization(companyName, companyName)
+        if (organizationId !== null) memberRole = 'owner'
       }
-      setAdmin((prev) => ({ ...prev, storedMode: next, organizationId }))
+      setAdmin((prev) => ({ ...prev, storedMode: next, organizationId, memberRole }))
     },
-    [admin.isAdmin, admin.organizationId, admin.identity, session],
+    [admin.isAdmin, admin.organizationId, admin.memberRole, admin.identity, session],
   )
 
   const value = useMemo(() => {
     const mode: WorkspaceMode =
       admin.isAdmin && admin.storedMode === 'production' ? 'production' : 'demo'
+    const memberRole = mode === 'production' ? admin.memberRole : null
     return {
       mode,
       isAdmin: admin.isAdmin,
       identity: mode === 'production' && admin.identity ? admin.identity : DEMO_IDENTITY,
       organizationId: mode === 'production' ? admin.organizationId : null,
+      memberRole,
+      /* Mirrors RLS's is_org_admin: platform admin, or owner/admin role. */
+      isOrgAdmin: mode === 'production' && (admin.isAdmin || isAdminRole(memberRole)),
       setMode,
     }
   }, [admin, setMode])

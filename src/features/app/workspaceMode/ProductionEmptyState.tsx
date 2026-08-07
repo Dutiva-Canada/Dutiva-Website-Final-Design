@@ -28,7 +28,9 @@ export function ProductionEmptyState({ title }: { readonly title: string }) {
         </p>
         <div className="mb-[24px] rounded-[12px] border border-border-soft bg-inset p-[16px] text-left">
           <p className="m-0 text-[13px] leading-[1.6] text-text-muted">
-            <span className="font-bold text-text">{x({ en: 'Why is this empty?', fr: 'Pourquoi est-ce vide ?' })}</span>
+            <span className="font-bold text-text">
+              {x({ en: 'Why is this empty?', fr: 'Pourquoi est-ce vide ?' })}
+            </span>
             <br />
             {x(M.wsmode_empty_hint)}
           </p>

@@ -13,12 +13,16 @@ export function AnalyticsCard({
   subtitle,
   children,
   className = '',
+  hidden = false,
 }: {
   readonly title: string
   readonly subtitle?: string
   readonly children: ReactNode
   readonly className?: string
+  /** Role-gated out for this viewer (see cardVisibility.ts). */
+  readonly hidden?: boolean
 }) {
+  if (hidden) return null
   return (
     <section
       aria-label={title}

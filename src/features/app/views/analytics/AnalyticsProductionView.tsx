@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
 import { casesMessages } from '@/i18n/messages/cases'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { analyticsCardVisible } from './cardVisibility'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import {
   listEmployees,
@@ -146,7 +147,7 @@ function rowsOf<T>(state: ModuleState<T>): T[] {
 export function AnalyticsProductionView() {
   const { x, lang } = useI18n()
   const locale = intlLocale(lang)
-  const { organizationId } = useWorkspaceMode()
+  const { organizationId, memberRole, isOrgAdmin } = useWorkspaceMode()
 
   const todayISO = new Date().toISOString().slice(0, 10)
   const currentMonthISO = monthStartISO(todayISO)
@@ -437,6 +438,9 @@ export function AnalyticsProductionView() {
       ? Math.round((turnoverNow - turnoverPrior) * 10) / 10
       : null
 
+  const show = (card: Parameters<typeof analyticsCardVisible>[0]) =>
+    analyticsCardVisible(card, memberRole, isOrgAdmin)
+
   return (
     <div className="flex-1 overflow-y-auto px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]">
       <div className="mx-auto max-w-[900px]">
@@ -444,7 +448,11 @@ export function AnalyticsProductionView() {
 
         <div className="grid grid-cols-1 gap-[14px] min-[900px]:grid-cols-2 min-[900px]:gap-[16px]">
           {/* Compliance score */}
-          <AnalyticsCard title={x(M.analytics_score_title)} className="min-[900px]:col-span-2">
+          <AnalyticsCard
+            title={x(M.analytics_score_title)}
+            className="min-[900px]:col-span-2"
+            hidden={!show('score')}
+          >
             <CardData deps={[policies, tasks, findings, snapshots]} skeletonLines={4}>
               {() =>
                 liveScore === null ? (
@@ -491,6 +499,7 @@ export function AnalyticsProductionView() {
           <AnalyticsCard
             title={x(M.analytics_attention_title)}
             subtitle={x(M.analytics_attention_sub)}
+            hidden={!show('attention')}
           >
             <CardData deps={[tasks, hrCases]} skeletonLines={4}>
               {() =>
@@ -515,6 +524,7 @@ export function AnalyticsProductionView() {
                 ? fill(x(M.analytics_headcount_total), { n: activeEmployees.length })
                 : undefined
             }
+            hidden={!show('headcount')}
           >
             <CardData deps={[employees]} skeletonLines={4}>
               {() =>
@@ -533,7 +543,7 @@ export function AnalyticsProductionView() {
           </AnalyticsCard>
 
           {/* Open cases */}
-          <AnalyticsCard title={x(M.analytics_cases_title)}>
+          <AnalyticsCard title={x(M.analytics_cases_title)} hidden={!show('cases')}>
             <CardData deps={[hrCases]} skeletonLines={4}>
               {() =>
                 aging === null ? (
@@ -579,12 +589,16 @@ export function AnalyticsProductionView() {
 
           {/* Policy acknowledgments — no tracking data source in production
               yet; the card states that plainly instead of hiding. */}
-          <AnalyticsCard title={x(M.analytics_ack_title)}>
+          <AnalyticsCard title={x(M.analytics_ack_title)} hidden={!show('acks')}>
             <CardEmpty text={x(M.analytics_ack_empty)} />
           </AnalyticsCard>
 
           {/* A · Certifications & training — from hr_expiry_records. */}
-          <AnalyticsCard title={x(M.analytics_certs_title)} subtitle={x(M.analytics_certs_sub)}>
+          <AnalyticsCard
+            title={x(M.analytics_certs_title)}
+            subtitle={x(M.analytics_certs_sub)}
+            hidden={!show('certifications')}
+          >
             <CardData deps={[expiryRecords]} skeletonLines={4}>
               {() =>
                 certRecords.length === 0 ? (
@@ -611,6 +625,7 @@ export function AnalyticsProductionView() {
           <AnalyticsCard
             title={x(M.analytics_probation_title)}
             subtitle={x(M.analytics_probation_sub)}
+            hidden={!show('probation')}
           >
             <CardData deps={[employees, tasks]} skeletonLines={3}>
               {() =>
@@ -626,7 +641,11 @@ export function AnalyticsProductionView() {
           </AnalyticsCard>
 
           {/* D · Document expiries — from hr_expiry_records. */}
-          <AnalyticsCard title={x(M.analytics_docs_title)} subtitle={x(M.analytics_docs_sub)}>
+          <AnalyticsCard
+            title={x(M.analytics_docs_title)}
+            subtitle={x(M.analytics_docs_sub)}
+            hidden={!show('documents')}
+          >
             <CardData deps={[expiryRecords]} skeletonLines={4}>
               {() =>
                 docRecords.length === 0 ? (
@@ -650,7 +669,11 @@ export function AnalyticsProductionView() {
 
           {/* E · Leave overview — hr_leaves records, with a bare row for
               anyone marked on_leave who has no record yet. */}
-          <AnalyticsCard title={x(M.analytics_leave_title)} subtitle={x(M.analytics_leave_sub)}>
+          <AnalyticsCard
+            title={x(M.analytics_leave_title)}
+            subtitle={x(M.analytics_leave_sub)}
+            hidden={!show('leave')}
+          >
             <CardData deps={[employees, leaves]} skeletonLines={3}>
               {() =>
                 leaveRows.length === 0 ? (
@@ -675,6 +698,7 @@ export function AnalyticsProductionView() {
             title={x(M.analytics_trend_title)}
             subtitle={x(M.analytics_trend_sub)}
             className="min-[900px]:col-span-2"
+            hidden={!show('trend')}
           >
             <CardData deps={[employees, snapshots]} skeletonLines={4}>
               {() =>
