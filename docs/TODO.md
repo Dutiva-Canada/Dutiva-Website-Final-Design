@@ -276,11 +276,11 @@ that claim rests on a July 2026 confirmation covering the _previous_ model, and
 the production route moved to `deepseek-3.2` on 2026-07-26. Resolving it unblocks
 the PIPEDA wording in CANONICAL_FACTS §2. (PR #103)
 
-**OA10 — Commit the database schema snapshot.** _Owner._ `supabase/schema.sql`
-does not exist in the repo (verified 2026-08-02). `supabase/migrations/` is a
-curated subset of a history that predates this repo, so today a reviewer cannot
-see the real RLS policies or function bodies in a diff. `npm run db:snapshot`
-needs the database password, which is why no session has run it.
+**OA10 — Done.** `supabase/schema.sql` committed 2026-08-07 via
+`npx supabase db dump`. 6,469 lines covering 124 tables, 218 RLS policies,
+136 functions, 209 indexes, and 26 triggers — the full application schema
+that `supabase/migrations/` alone can't reproduce. A reviewer can now see
+the real RLS policies and function bodies in a diff.
 [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md). (PR #74)
 
 **OA11 — Stripe secrets and webhook endpoint.** _Owner, deferred._ The six
