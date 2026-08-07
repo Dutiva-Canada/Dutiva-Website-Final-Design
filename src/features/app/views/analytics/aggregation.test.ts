@@ -4,11 +4,14 @@ import {
   blendScore,
   caseAging,
   daysBetweenISO,
+  expiryBuckets,
+  flattenBuckets,
   formatMonthISO,
   monthStartISO,
   rankAttention,
   scoreComponent,
   scoreDelta,
+  windowAxis,
   windowScoreAxis,
 } from './aggregation'
 
@@ -119,6 +122,76 @@ describe('windowScoreAxis', () => {
 
   it('falls back to the full scale with no data', () => {
     expect(windowScoreAxis([])).toEqual({ min: 0, max: 100, ticks: [0, 25, 50, 75, 100] })
+  })
+})
+
+describe('windowAxis (generic)', () => {
+  it('is not clamped to 100 — headcount over 100 windows normally', () => {
+    const axis = windowAxis([118, 124])
+    expect(axis).toEqual({ min: 115, max: 130, ticks: [115, 120, 125, 130] })
+  })
+
+  it('windows the demo headcount history like a score', () => {
+    expect(windowAxis([76, 77, 79, 80, 81, 82])).toEqual({
+      min: 70,
+      max: 85,
+      ticks: [70, 75, 80, 85],
+    })
+  })
+})
+
+describe('expiryBuckets', () => {
+  const rec = (id: string, expiryISO: string) => ({ id, expiryISO })
+  const TODAY = '2026-07-05'
+
+  it('buckets on the exact 0/30/60/90-day boundaries', () => {
+    const buckets = expiryBuckets(
+      [
+        rec('yesterday', '2026-07-04'), // -1 → expired
+        rec('today', '2026-07-05'), // 0 → ≤30
+        rec('day30', '2026-08-04'), // 30 → ≤30
+        rec('day31', '2026-08-05'), // 31 → 31–60
+        rec('day60', '2026-09-03'), // 60 → 31–60
+        rec('day61', '2026-09-04'), // 61 → 61–90
+        rec('day90', '2026-10-03'), // 90 → 61–90
+        rec('day91', '2026-10-04'), // 91 → out of window
+      ],
+      TODAY,
+    )
+    expect(buckets.expired.map((r) => r.id)).toEqual(['yesterday'])
+    expect(buckets.within30.map((r) => r.id)).toEqual(['today', 'day30'])
+    expect(buckets.within60.map((r) => r.id)).toEqual(['day31', 'day60'])
+    expect(buckets.within90.map((r) => r.id)).toEqual(['day61', 'day90'])
+    expect(flattenBuckets(buckets).map((r) => r.id)).not.toContain('day91')
+  })
+
+  it('sorts each bucket (and the flat list) soonest-first', () => {
+    const buckets = expiryBuckets(
+      [rec('b', '2026-07-20'), rec('a', '2026-07-10'), rec('old', '2026-06-01')],
+      TODAY,
+    )
+    expect(flattenBuckets(buckets).map((r) => r.id)).toEqual(['old', 'a', 'b'])
+  })
+
+  it('buckets the demo certification fixtures 1 / 2 / 2 / 2', () => {
+    const buckets = expiryBuckets(
+      [
+        rec('devon', '2026-06-28'),
+        rec('noah', '2026-07-18'),
+        rec('marc', '2026-07-30'),
+        rec('theo', '2026-08-22'),
+        rec('fatou', '2026-08-30'),
+        rec('sarah', '2026-09-08'),
+        rec('aiden', '2026-09-26'),
+      ],
+      TODAY,
+    )
+    expect([
+      buckets.expired.length,
+      buckets.within30.length,
+      buckets.within60.length,
+      buckets.within90.length,
+    ]).toEqual([1, 2, 2, 2])
   })
 })
 

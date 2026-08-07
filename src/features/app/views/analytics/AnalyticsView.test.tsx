@@ -46,31 +46,123 @@ describe('AnalyticsView (demo)', () => {
     expect(card.getAllByText('Lowest')).toHaveLength(1)
   })
 
-  it('lists needs-attention items sorted overdue → soonest, capped at 5 with View all', () => {
+  it('lists needs-attention items sorted overdue → soonest, with cert/document escalations', () => {
     renderApp(<AnalyticsView />, { route: '/app/analytics' })
     const card = within(screen.getByRole('region', { name: 'Needs attention' }))
 
     const rows = card.getAllByRole('listitem')
     expect(rows).toHaveLength(5)
 
-    /* Overdue first: the CASL consent audit (was due Jun 30). */
-    expect(within(rows[0]!).getByText(/Marketing consent records/)).toBeInTheDocument()
+    /* Most overdue first: Devon's lapsed forklift ticket (Jun 28) leads,
+       escalated from the certifications card and linking to his profile. */
+    expect(
+      within(rows[0]!).getByText(/Forklift operator certificate — Devon Clarke/),
+    ).toBeInTheDocument()
     expect(within(rows[0]!).getByText('Overdue')).toBeInTheDocument()
+    expect(within(rows[0]!).getByRole('link')).toHaveAttribute('href', '/app/employees/e5')
 
-    /* Then soonest due: the Remote Work Policy review (Jul 17 — 12 days
-       from the diorama's July 5). */
-    expect(within(rows[1]!).getByText(/Remote Work Policy/)).toBeInTheDocument()
-    expect(within(rows[1]!).getByText('Due in 12 days')).toBeInTheDocument()
+    /* Then the CASL consent audit (was due Jun 30). */
+    expect(within(rows[1]!).getByText(/Marketing consent records/)).toBeInTheDocument()
+    expect(within(rows[1]!).getByText('Overdue')).toBeInTheDocument()
+
+    /* Soonest due: the Remote Work Policy review (Jul 17 — 12 days out). */
+    expect(within(rows[2]!).getByText(/Remote Work Policy/)).toBeInTheDocument()
+    expect(within(rows[2]!).getByText('Due in 12 days')).toBeInTheDocument()
 
     /* Affected count + jurisdiction as the secondary line (AODA hires). */
     expect(card.getByText('3 employees · Ontario')).toBeInTheDocument()
 
-    /* Six qualifying items; the sixth (francization review) is cut by the cap. */
-    expect(card.getByRole('link', { name: 'View all (6)' })).toHaveAttribute(
+    /* Chen's work permit (Jul 28, inside 30 days) is always escalated —
+       an expiring work permit is a compliance event. */
+    expect(within(rows[4]!).getByText(/Work permit — Chen Wei/)).toBeInTheDocument()
+    expect(within(rows[4]!).getByRole('link')).toHaveAttribute('href', '/app/employees/e8')
+
+    /* Eight qualifying items; the cap cuts the rest (francization review
+       among them). */
+    expect(card.getByRole('link', { name: 'View all (8)' })).toHaveAttribute(
       'href',
       '/app/compliance',
     )
     expect(card.queryByText(/French-language workplace/)).not.toBeInTheDocument()
+  })
+
+  it('flags jurisdictions sitting 10+ points under the blended score', () => {
+    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    const card = scoreCard()
+
+    expect(card.getByText('Score by jurisdiction')).toBeInTheDocument()
+    /* QC is 71 vs the blended 82 — flagged; Federal at 75 (−7) is not. */
+    expect(card.getByText('71')).toBeInTheDocument()
+    expect(card.getByText('−11 below overall')).toBeInTheDocument()
+    expect(card.queryByText('−7 below overall')).not.toBeInTheDocument()
+  })
+
+  it('buckets certifications 1/2/2/2 and reveals the list in one tap', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    const card = within(screen.getByRole('region', { name: 'Certifications & training' }))
+
+    /* Tile row: Expired 1 · ≤30 2 · 31–60 2 · 61–90 2. */
+    expect(card.getByText('Expired')).toBeInTheDocument()
+    expect(card.getByText('≤ 30 days')).toBeInTheDocument()
+
+    await user.click(card.getByRole('button', { name: 'Show list (7)' }))
+    const rows = card.getAllByRole('listitem')
+    expect(rows).toHaveLength(7)
+    /* Soonest first: the expired forklift ticket leads with its chip. */
+    expect(within(rows[0]!).getByText('Forklift operator certificate')).toBeInTheDocument()
+    expect(within(rows[0]!).getByText('Devon Clarke · Ontario')).toBeInTheDocument()
+    expect(within(rows[1]!).getByText('First Aid / CPR-C')).toBeInTheDocument()
+    expect(within(rows[1]!).getByText('Noah Bergeron · Manitoba')).toBeInTheDocument()
+  })
+
+  it('lists probation ends within 30 days and flags the missing review task', () => {
+    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    const card = within(screen.getByRole('region', { name: 'Probation periods ending' }))
+
+    const rows = card.getAllByRole('listitem')
+    expect(rows).toHaveLength(3)
+
+    /* Soonest first: Priya (Jul 8 — 3 days out), review task in place. */
+    expect(within(rows[0]!).getByText('Priya Nair')).toBeInTheDocument()
+    expect(within(rows[0]!).getByText('3 days left')).toBeInTheDocument()
+    expect(within(rows[0]!).queryByText('No review task yet')).not.toBeInTheDocument()
+
+    /* Jasleen has no review task — the row says so. */
+    expect(within(rows[1]!).getByText('Jasleen Kaur')).toBeInTheDocument()
+    expect(card.getAllByText('No review task yet')).toHaveLength(1)
+  })
+
+  it('shows the leave overview grouped by imminent returns, protected leave marked', () => {
+    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    const card = within(screen.getByRole('region', { name: 'Leave overview' }))
+
+    expect(card.getByText('Returning within 14 days')).toBeInTheDocument()
+    expect(card.getByText('Karan Dhillon')).toBeInTheDocument()
+    expect(card.getByText('Rosa Almeida')).toBeInTheDocument()
+
+    expect(card.getByText('On leave now')).toBeInTheDocument()
+    expect(card.getByText('Ingrid Halvorsen')).toBeInTheDocument()
+    /* Amara's ongoing accommodation shows its review note, not a return. */
+    expect(card.getByText('90-day review Jul 14')).toBeInTheDocument()
+
+    /* Parental, medical and accommodation are protected; vacation is not. */
+    expect(card.getAllByText('Protected')).toHaveLength(3)
+  })
+
+  it('renders the headcount trend with the improving turnover tile', () => {
+    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    const card = within(screen.getByRole('region', { name: 'Headcount & turnover' }))
+
+    expect(card.getByText('9.8%')).toBeInTheDocument()
+    expect(card.getByText('Turnover (rolling 12 months)')).toBeInTheDocument()
+    /* Falling turnover is good — the delta reads −1.4 pts vs June. */
+    expect(card.getByText('−1.4 pts vs June')).toBeInTheDocument()
+
+    const table = card.getByRole('table')
+    expect(within(table).getByText('February')).toBeInTheDocument()
+    expect(within(table).getByText('76')).toBeInTheDocument()
   })
 
   it('renders headcount by jurisdiction with the total and the Federal footnote', () => {
@@ -122,9 +214,12 @@ describe('AnalyticsView (demo)', () => {
     expect(card.getByText('Code of Conduct — annual attestation')).toBeInTheDocument()
     expect(card.getByText('74 / 82 signed')).toBeInTheDocument()
     expect(card.getByText('90%')).toBeInTheDocument()
+    /* The suggested action links into the Communications program. */
     expect(
-      card.getByText('Send a reminder to the 8 employees with outstanding signatures.'),
-    ).toBeInTheDocument()
+      card.getByRole('link', {
+        name: 'Send a reminder to the 8 employees with outstanding signatures.',
+      }),
+    ).toHaveAttribute('href', '/app/communications')
   })
 
   it('renders the French strings when the language preference is fr', () => {
@@ -135,7 +230,8 @@ describe('AnalyticsView (demo)', () => {
     expect(screen.getByRole('region', { name: 'Score de conformité' })).toBeInTheDocument()
     expect(screen.getByText('+8 c. février')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Attention requise' })).toBeInTheDocument()
-    expect(screen.getByText('En retard')).toBeInTheDocument()
+    /* Two overdue rows now (lapsed certification + CASL audit). */
+    expect(screen.getAllByText('En retard')).toHaveLength(2)
     expect(screen.getByRole('region', { name: 'Effectif par juridiction' })).toBeInTheDocument()
     expect(screen.getByText('82 employés au total')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Dossiers ouverts' })).toBeInTheDocument()
@@ -143,6 +239,15 @@ describe('AnalyticsView (demo)', () => {
       screen.getByRole('region', { name: 'Accusés de réception des politiques' }),
     ).toBeInTheDocument()
     expect(screen.getByText('74 / 82 signés')).toBeInTheDocument()
+
+    /* Phase 2 cards, localized. */
+    expect(screen.getByRole('region', { name: 'Attestations et formations' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Fins de probation' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Expirations de documents' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Aperçu des congés' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Effectif et roulement' })).toBeInTheDocument()
+    expect(screen.getByText('9,8 %')).toBeInTheDocument()
+    expect(screen.getByText('Score par juridiction')).toBeInTheDocument()
   })
 })
 
@@ -270,8 +375,8 @@ describe('AnalyticsView in production mode', () => {
         },
       ],
       compliance_score_snapshots: [
-        { month: '2026-05-01', score: 40 },
-        { month: '2026-06-01', score: 45 },
+        { month: '2026-05-01', score: 40, headcount: null },
+        { month: '2026-06-01', score: 45, headcount: null },
       ],
     })
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
@@ -299,20 +404,22 @@ describe('AnalyticsView in production mode', () => {
     expect(within(table).getByText('May')).toBeInTheDocument()
     expect(within(table).getByText('40')).toBeInTheDocument()
 
-    /* The live score was written down for next month's history. */
+    /* The live score (and headcount — zero roster here) was written down
+       for next month's history. */
     expect(snapshotUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({ organization_id: 'org-1', score: 50 }),
+      expect.objectContaining({ organization_id: 'org-1', score: 50, headcount: 0 }),
       expect.objectContaining({ onConflict: 'organization_id,month' }),
     )
   })
 
-  it('aggregates attention, headcount and case aging from live rows', async () => {
+  it('aggregates attention, headcount, case aging and leave from live rows', async () => {
     mockProductionClient({
       employees: [
         EMPLOYEE('e1', 'Ontario'),
         EMPLOYEE('e2', 'Ontario'),
         EMPLOYEE('e3', 'Quebec'),
         EMPLOYEE('e4', 'Alberta', 'terminated'),
+        EMPLOYEE('e5', 'Nova Scotia', 'on_leave'),
       ],
       hr_cases: [
         {
@@ -368,12 +475,14 @@ describe('AnalyticsView in production mode', () => {
       '/app/planning/tasks',
     )
 
-    /* Headcount counts active rows only — the terminated Alberta row is out. */
+    /* Headcount counts non-terminated rows (on-leave included) — the
+       terminated Alberta row is out. */
     const headcount = within(screen.getByRole('region', { name: 'Headcount by jurisdiction' }))
-    expect(headcount.getByText('3 employees total')).toBeInTheDocument()
+    expect(headcount.getByText('4 employees total')).toBeInTheDocument()
     const headTable = headcount.getByRole('table')
     expect(within(headTable).getByText('Ontario')).toBeInTheDocument()
     expect(within(headTable).getByText('2')).toBeInTheDocument()
+    expect(within(headTable).getByText('Nova Scotia')).toBeInTheDocument()
     expect(within(headTable).queryByText('Alberta')).not.toBeInTheDocument()
 
     /* Open cases: one open row, 20 days old (created_at drives aging). */
@@ -385,6 +494,35 @@ describe('AnalyticsView in production mode', () => {
 
     /* Acknowledgments have no production data source yet — said plainly. */
     expect(screen.getByText('No acknowledgment campaigns yet.')).toBeInTheDocument()
+
+    /* Phase 2 cards without a data source say so instead of hiding. */
+    expect(
+      screen.getByText('Certification records aren’t tracked in this workspace yet.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Probation dates aren’t tracked in this workspace yet.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Employee document expiries aren’t tracked in this workspace yet.'),
+    ).toBeInTheDocument()
+
+    /* Leave overview lists the roster's real on-leave status. */
+    const leave = within(screen.getByRole('region', { name: 'Leave overview' }))
+    expect(leave.getByText('Employee e5')).toBeInTheDocument()
+    expect(leave.getByRole('link')).toHaveAttribute('href', '/app/employees/e5')
+    expect(
+      leave.getByText('Leave types and return dates aren’t tracked in this workspace yet.'),
+    ).toBeInTheDocument()
+
+    /* Headcount trend: no snapshot history yet — first data point note,
+       and turnover states its missing prerequisite. */
+    const trend = within(screen.getByRole('region', { name: 'Headcount & turnover' }))
+    expect(
+      trend.getByText('Headcount history starts here — this month is your first data point.'),
+    ).toBeInTheDocument()
+    expect(
+      trend.getByText('Turnover needs termination history, which isn’t tracked yet.'),
+    ).toBeInTheDocument()
 
     /* No demo constants anywhere. */
     expect(screen.queryByText('82')).not.toBeInTheDocument()

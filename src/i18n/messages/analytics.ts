@@ -41,6 +41,10 @@ export const analyticsMessages = defineMessages({
   analytics_comp_findings: { en: 'Findings resolved', fr: 'Constats résolus' },
   analytics_comp_value: { en: '{done} of {total}', fr: '{done} sur {total}' },
 
+  /* ── Score by jurisdiction (inside the score card) ─────────────────────── */
+  analytics_jur_score_title: { en: 'Score by jurisdiction', fr: 'Score par juridiction' },
+  analytics_jur_flag: { en: '{n} below overall', fr: '{n} sous le score global' },
+
   /* ── Needs attention card ──────────────────────────────────────────────── */
   analytics_attention_title: { en: 'Needs attention', fr: 'Attention requise' },
   analytics_attention_sub: {
@@ -111,6 +115,106 @@ export const analyticsMessages = defineMessages({
   analytics_ack_empty: {
     en: 'No acknowledgment campaigns yet.',
     fr: 'Aucune campagne d’accusé de réception pour l’instant.',
+  },
+
+  /* ── Certifications & training / document expiries (shared buckets) ────── */
+  analytics_certs_title: { en: 'Certifications & training', fr: 'Attestations et formations' },
+  analytics_certs_sub: { en: 'Expiring within 90 days', fr: 'Expirant d’ici 90 jours' },
+  analytics_certs_empty: {
+    en: 'Nothing expires within 90 days.',
+    fr: 'Aucune expiration d’ici 90 jours.',
+  },
+  analytics_certs_prod_empty: {
+    en: 'Certification records aren’t tracked in this workspace yet.',
+    fr: 'Les attestations ne sont pas encore suivies dans cet espace de travail.',
+  },
+  analytics_bucket_expired: { en: 'Expired', fr: 'Échéance dépassée' },
+  analytics_bucket_30: { en: '≤ 30 days', fr: '≤ 30 jours' },
+  analytics_bucket_60: { en: '31–60 days', fr: '31–60 jours' },
+  analytics_bucket_90: { en: '61–90 days', fr: '61–90 jours' },
+  analytics_expiry_show: { en: 'Show list ({n})', fr: 'Afficher la liste ({n})' },
+  analytics_expiry_hide: { en: 'Hide list', fr: 'Masquer la liste' },
+
+  analytics_docs_title: { en: 'Document expiries', fr: 'Expirations de documents' },
+  analytics_docs_sub: {
+    en: 'Work permits, visas and dated employee documents',
+    fr: 'Permis de travail, visas et documents datés des employés',
+  },
+  analytics_docs_empty: {
+    en: 'No employee documents expire within 90 days.',
+    fr: 'Aucun document d’employé n’expire d’ici 90 jours.',
+  },
+  analytics_docs_prod_empty: {
+    en: 'Employee document expiries aren’t tracked in this workspace yet.',
+    fr: 'Les expirations de documents des employés ne sont pas encore suivies dans cet espace de travail.',
+  },
+
+  /* ── Probation periods ending ──────────────────────────────────────────── */
+  analytics_probation_title: { en: 'Probation periods ending', fr: 'Fins de probation' },
+  analytics_probation_sub: { en: 'Ending within 30 days', fr: 'Se terminant d’ici 30 jours' },
+  analytics_probation_ends: { en: 'Ends {date}', fr: 'Se termine le {date}' },
+  analytics_probation_ends_today: { en: 'Ends today', fr: 'Se termine aujourd’hui' },
+  analytics_probation_day_left: { en: '1 day left', fr: '1 jour restant' },
+  analytics_probation_days_left: { en: '{n} days left', fr: '{n} jours restants' },
+  analytics_probation_no_task: {
+    en: 'No review task yet',
+    fr: 'Aucune tâche d’évaluation créée',
+  },
+  analytics_probation_empty: {
+    en: 'No probation periods end in the next 30 days.',
+    fr: 'Aucune période de probation ne se termine d’ici 30 jours.',
+  },
+  analytics_probation_prod_empty: {
+    en: 'Probation dates aren’t tracked in this workspace yet.',
+    fr: 'Les dates de probation ne sont pas encore suivies dans cet espace de travail.',
+  },
+
+  /* ── Leave overview ────────────────────────────────────────────────────── */
+  analytics_leave_title: { en: 'Leave overview', fr: 'Aperçu des congés' },
+  analytics_leave_sub: {
+    en: 'On leave now and returning within 14 days — status only',
+    fr: 'En congé actuellement et de retour d’ici 14 jours — statut seulement',
+  },
+  analytics_leave_returning: { en: 'Returning within 14 days', fr: 'De retour d’ici 14 jours' },
+  analytics_leave_on_now: { en: 'On leave now', fr: 'En congé actuellement' },
+  analytics_leave_protected: { en: 'Protected', fr: 'Protégé' },
+  analytics_leave_returns: { en: 'Returns {date}', fr: 'Retour le {date}' },
+  analytics_leave_empty: {
+    en: 'No one is on leave right now.',
+    fr: 'Personne n’est en congé actuellement.',
+  },
+  analytics_leave_prod_note: {
+    en: 'Leave types and return dates aren’t tracked in this workspace yet.',
+    fr: 'Les types de congé et les dates de retour ne sont pas encore suivis dans cet espace de travail.',
+  },
+
+  /* ── Headcount & turnover trend ────────────────────────────────────────── */
+  analytics_trend_title: { en: 'Headcount & turnover', fr: 'Effectif et roulement' },
+  analytics_trend_sub: {
+    en: 'Six-month headcount and rolling turnover',
+    fr: 'Effectif sur six mois et roulement glissant',
+  },
+  analytics_trend_chart_aria: {
+    en: 'Headcount by month: {points}.',
+    fr: 'Effectif par mois : {points}.',
+  },
+  analytics_trend_table_value: { en: 'Headcount', fr: 'Effectif' },
+  analytics_turnover_label: {
+    en: 'Turnover (rolling 12 months)',
+    fr: 'Roulement (12 mois glissants)',
+  },
+  analytics_turnover_delta: { en: '{delta} pts vs {month}', fr: '{delta} pts c. {month}' },
+  analytics_trend_empty: {
+    en: 'No headcount history yet.',
+    fr: 'Aucun historique d’effectif pour l’instant.',
+  },
+  analytics_trend_first_point: {
+    en: 'Headcount history starts here — this month is your first data point.',
+    fr: 'L’historique de l’effectif commence ici — ce mois-ci est votre premier point de données.',
+  },
+  analytics_turnover_prod_note: {
+    en: 'Turnover needs termination history, which isn’t tracked yet.',
+    fr: 'Le calcul du roulement nécessite l’historique des départs, qui n’est pas encore suivi.',
   },
 
   /* ── Card chrome (loading / error / empty) ─────────────────────────────── */

@@ -17,6 +17,8 @@ export interface BreakdownMeterRow {
   /** Printed value ('61' or '3 of 4'). */
   valueText: string
   flagged?: boolean
+  /** Flag chip text; defaults to "Lowest". */
+  flagLabel?: string
 }
 
 export function ScoreBreakdownMeters({ rows }: { readonly rows: readonly BreakdownMeterRow[] }) {
@@ -36,7 +38,7 @@ export function ScoreBreakdownMeters({ rows }: { readonly rows: readonly Breakdo
                     className="mr-[4px] self-center"
                     aria-hidden="true"
                   />
-                  {x(M.analytics_score_lowest_flag)}
+                  {row.flagLabel ?? x(M.analytics_score_lowest_flag)}
                 </span>
               )}
             </span>

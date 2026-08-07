@@ -314,6 +314,66 @@ export interface PolicyAcknowledgmentCampaign {
   total: number
 }
 
+/**
+ * A dated per-person record with an expiry — a certification/training
+ * credential or an employee document (work permit, visa, medical
+ * certificate). `employeeId` is null when the person belongs to the wider
+ * 82-person diorama rather than the individually modelled roster (same
+ * pattern as task owners like Marcus Bell).
+ */
+export interface ExpiryRecord {
+  id: string
+  employeeId: string | null
+  employeeName: string
+  name: Bi
+  jurisdiction: Bi
+  expiryISO: string
+}
+
+export interface ProbationEndRecord {
+  id: string
+  employeeId: string | null
+  employeeName: string
+  role: Bi
+  jurisdiction: Bi
+  endISO: string
+  /** Whether a probation-review task already exists for this person. */
+  reviewTaskCreated: boolean
+}
+
+export interface LeaveOverviewRecord {
+  id: string
+  employeeId: string | null
+  employeeName: string
+  type: Bi
+  /** Statutorily protected leave (reinstatement-sensitive). */
+  protected: boolean
+  /** Scheduled return (YYYY-MM-DD); null for ongoing arrangements. */
+  returnISO: string | null
+  /** Status-only context (e.g. a scheduled review) — never medical detail. */
+  note?: Bi
+}
+
+export interface JurisdictionScore {
+  key: string
+  label: Bi
+  score: number
+}
+
+/** Generic month/value series (headcount history and friends). */
+export interface TrendPoint {
+  monthISO: string
+  value: number
+}
+
+export interface TurnoverStat {
+  /** Rolling 12-month turnover, percent. */
+  ratePct: number
+  /** The same rolling rate one month earlier, for the delta. */
+  priorRatePct: number
+  priorMonthISO: string
+}
+
 /* ---------------------------------------------------------- communications */
 
 export interface Communication {

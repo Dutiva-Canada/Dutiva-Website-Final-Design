@@ -1,15 +1,13 @@
-import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
-import { statusChipClass } from '@/components/chips'
 import type { ScoreDelta } from './aggregation'
 import { formatMonthISO } from './aggregation'
+import { DeltaChip } from './DeltaChip'
 import { fill, formatSignedDelta, intlLocale } from './format'
 
 /**
  * The score card's hero figure: score out of 100 plus the signed delta vs
- * the start of the window ("+8 vs February") as a status chip — direction
- * carried by icon + signed text together, never colour alone.
+ * the start of the window ("+8 vs February") as a status chip.
  */
 export function ScoreHero({
   score,
@@ -24,26 +22,11 @@ export function ScoreHero({
   let chip = null
   if (delta !== null) {
     const month = formatMonthISO(delta.baselineMonthISO, locale, 'long')
-    if (delta.delta === 0) {
-      chip = (
-        <span className={`${statusChipClass('neutral')} items-center`}>
-          <Minus size={12} strokeWidth={1.9} className="mr-[5px]" aria-hidden="true" />
-          {fill(x(M.analytics_score_delta_flat), { month })}
-        </span>
-      )
-    } else {
-      const up = delta.delta > 0
-      const Icon = up ? TrendingUp : TrendingDown
-      chip = (
-        <span className={`${statusChipClass(up ? 'success' : 'risk')} items-center`}>
-          <Icon size={12} strokeWidth={1.9} className="mr-[5px]" aria-hidden="true" />
-          {fill(x(M.analytics_score_delta), {
-            delta: formatSignedDelta(delta.delta),
-            month,
-          })}
-        </span>
-      )
-    }
+    const label =
+      delta.delta === 0
+        ? fill(x(M.analytics_score_delta_flat), { month })
+        : fill(x(M.analytics_score_delta), { delta: formatSignedDelta(delta.delta), month })
+    chip = <DeltaChip delta={delta.delta} label={label} />
   }
 
   return (

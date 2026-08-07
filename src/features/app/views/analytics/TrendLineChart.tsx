@@ -10,23 +10,25 @@ import {
 } from 'recharts'
 import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
-import { formatMonthISO, windowScoreAxis } from './aggregation'
+import { formatMonthISO, windowAxis } from './aggregation'
 import { intlLocale } from './format'
 
 /**
- * Six-month compliance-score line. Chart rules applied: single series in the
- * data-mark hue (no legend — the card title names it); the y-axis is
- * windowed to the data, never zero-based, with clean ticks; only the start
- * and end points carry markers and value labels — the rest are tooltip-only;
- * an sr-only table twins the chart so no value is gated behind hover.
+ * Month-series line (compliance score, headcount). Chart rules applied:
+ * single series in the data-mark hue (no legend — the card title names it);
+ * the y-axis is windowed to the data, never zero-based, with clean ticks;
+ * only the start and end points carry markers and value labels — the rest
+ * are tooltip-only. The end marker is gold (the mockup's current-month
+ * accent); an sr-only table twins the chart so no value is gated on hover.
  */
 
-export interface ScorePoint {
+export interface TrendChartPoint {
   monthISO: string
-  score: number
+  value: number
 }
 
 const MARK = 'var(--chart-mark)'
+const CURRENT = 'var(--gold-dot)'
 const SURFACE = 'var(--surface)'
 
 interface DotProps {
@@ -53,17 +55,33 @@ function ChartTooltip({
   )
 }
 
-export function ScoreTrendChart({ history }: { readonly history: readonly ScorePoint[] }) {
+export function TrendLineChart({
+  points,
+  ariaLabel,
+  valueHeader,
+  clampMax,
+}: {
+  readonly points: readonly TrendChartPoint[]
+  /** Complete data summary for AT — the caller owns the wording. */
+  readonly ariaLabel: string
+  /** Header for the sr-only table's value column. */
+  readonly valueHeader: string
+  /** Upper clamp for the windowed axis (100 for scores; omit for counts). */
+  readonly clampMax?: number
+}) {
   const { x, lang } = useI18n()
   const tableId = useId()
   const locale = intlLocale(lang)
 
-  const data = history.map((point) => ({
+  const data = points.map((point) => ({
     ...point,
     label: formatMonthISO(point.monthISO, locale),
     labelLong: formatMonthISO(point.monthISO, locale, 'long'),
   }))
-  const axis = windowScoreAxis(data.map((d) => d.score))
+  const axis = windowAxis(
+    data.map((d) => d.value),
+    clampMax === undefined ? {} : { clampMax },
+  )
   const lastIndex = data.length - 1
 
   const endpointDot = ({ cx, cy, index }: DotProps) => {
@@ -71,28 +89,34 @@ export function ScoreTrendChart({ history }: { readonly history: readonly ScoreP
     if (!isEndpoint || cx === undefined || cy === undefined) {
       return <g key={`dot-${index}`} />
     }
+    const isCurrent = index === lastIndex
     return (
       <g key={`dot-${index}`}>
-        <circle cx={cx} cy={cy} r={4.5} fill={MARK} stroke={SURFACE} strokeWidth={2} />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={4.5}
+          fill={isCurrent ? CURRENT : MARK}
+          stroke={SURFACE}
+          strokeWidth={2}
+        />
         <text
           x={cx}
           y={cy - 11}
           textAnchor={index === 0 ? 'start' : 'end'}
           className="fill-text text-[11.5px] font-semibold"
         >
-          {data[index]?.score}
+          {data[index]?.value}
         </text>
       </g>
     )
   }
 
-  const summary = data.map((d) => `${d.labelLong} ${d.score}`).join(', ')
-
   return (
     <>
       <div
         role="img"
-        aria-label={x(M.analytics_score_chart_aria).replace('{points}', summary)}
+        aria-label={ariaLabel}
         aria-describedby={tableId}
         className="h-[190px] w-full"
       >
@@ -118,7 +142,7 @@ export function ScoreTrendChart({ history }: { readonly history: readonly ScoreP
               content={<ChartTooltip />}
             />
             <Line
-              dataKey="score"
+              dataKey="value"
               type="monotone"
               stroke={MARK}
               strokeWidth={2}
@@ -134,14 +158,14 @@ export function ScoreTrendChart({ history }: { readonly history: readonly ScoreP
         <thead>
           <tr>
             <th scope="col">{x(M.analytics_score_table_month)}</th>
-            <th scope="col">{x(M.analytics_score_table_score)}</th>
+            <th scope="col">{valueHeader}</th>
           </tr>
         </thead>
         <tbody>
           {data.map((d) => (
             <tr key={d.monthISO}>
               <td>{d.labelLong}</td>
-              <td>{d.score}</td>
+              <td>{d.value}</td>
             </tr>
           ))}
         </tbody>

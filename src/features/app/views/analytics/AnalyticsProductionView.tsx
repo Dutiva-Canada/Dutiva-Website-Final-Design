@@ -22,14 +22,16 @@ import { AnalyticsCard, CardEmpty, CardError, CardSkeleton } from './AnalyticsCa
 import { AttentionList } from './AttentionList'
 import type { AttentionRow } from './AttentionList'
 import { JurisdictionBars } from './JurisdictionBars'
+import { LeaveList } from './LeaveList'
 import { OpenCaseRows } from './OpenCaseRows'
 import { ScoreBreakdownMeters } from './ScoreBreakdownMeters'
 import { ScoreHero } from './ScoreHero'
-import { ScoreTrendChart } from './ScoreTrendChart'
 import { StatTile } from './StatTile'
+import { TrendLineChart } from './TrendLineChart'
 import {
   blendScore,
   caseAging,
+  formatMonthISO,
   monthStartISO,
   rankAttention,
   scoreComponent,
@@ -39,14 +41,18 @@ import { attentionChipLabel, attentionSecondary } from './attentionLabels'
 import { fill, formatDayISO, intlLocale } from './format'
 
 /**
- * Analytics in production mode. The score's history lives in its own table
- * (compliance_score_snapshots — the one aggregate that can't be recomputed
- * later); everything else is aggregated live from the modules already on
- * real persistence, through their own productionApi boundaries.
+ * Analytics in production mode. The monthly snapshot table
+ * (compliance_score_snapshots) persists the two aggregates that can't be
+ * recomputed later — the blended score and the headcount; everything else
+ * aggregates live from the modules already on real persistence, through
+ * their own productionApi boundaries.
  *
  * Each card fetches only the modules it needs and carries its own skeleton,
  * empty state and retry — so a failing module degrades one card, and cards
  * can later be hidden per role without entangling the rest of the page.
+ * Phase 2 cards whose underlying records don't exist in this workspace yet
+ * (certifications, probation dates, document expiries, leave detail) say so
+ * plainly instead of hiding.
  */
 
 const ATTENTION_CAP = 5
@@ -156,26 +162,46 @@ export function AnalyticsProductionView() {
 
   const liveScore = scoreReady ? blendScore(components) : null
 
-  /* Record this month's snapshot once per page view — history is written as
-     a side effect of computing the live score. Failure is dropped: history
-     is an enhancement, never a reason to degrade the dashboard. */
+  const activeEmployees = useMemo(
+    () => rowsOf(employees.state).filter((e) => e.status !== 'terminated'),
+    [employees.state],
+  )
+  const liveHeadcount = employees.state.status === 'ready' ? activeEmployees.length : null
+
+  /* Record this month's snapshot once per page view — score and headcount
+     history are written as a side effect of computing the live numbers.
+     Waits for the employees module to settle so headcount isn't dropped by
+     a race; a module error records what is known. Failure is dropped:
+     history is an enhancement, never a reason to degrade the dashboard. */
   const recordedRef = useRef(false)
   useEffect(() => {
     if (recordedRef.current || !organizationId || liveScore === null) return
+    if (employees.state.status === 'loading') return
     recordedRef.current = true
     recordScoreSnapshot(
       organizationId,
       currentMonthISO,
       liveScore,
       components.map((c) => ({ key: c.key, done: c.done, total: c.total })),
+      liveHeadcount,
     ).catch(() => {})
-  }, [organizationId, liveScore, components, currentMonthISO])
+  }, [organizationId, liveScore, components, currentMonthISO, employees.state, liveHeadcount])
 
   const history = useMemo(() => {
     if (liveScore === null) return []
     const past = rowsOf(snapshots.state).filter((s) => s.monthISO < currentMonthISO)
     return [...past, { monthISO: currentMonthISO, score: liveScore }].slice(-HISTORY_WINDOW_MONTHS)
   }, [snapshots.state, liveScore, currentMonthISO])
+
+  const headcountTrend = useMemo(() => {
+    if (liveHeadcount === null) return []
+    const past = rowsOf(snapshots.state)
+      .filter((s) => s.headcount !== null && s.monthISO < currentMonthISO)
+      .map((s) => ({ monthISO: s.monthISO, value: s.headcount! }))
+    return [...past, { monthISO: currentMonthISO, value: liveHeadcount }].slice(
+      -HISTORY_WINDOW_MONTHS,
+    )
+  }, [snapshots.state, liveHeadcount, currentMonthISO])
 
   if (!organizationId) {
     return <ProductionEmptyState title={x(M.analytics_prod_empty_title)} />
@@ -263,7 +289,6 @@ export function AnalyticsProductionView() {
     href: r.item.href,
   }))
 
-  const activeEmployees = rowsOf(employees.state).filter((e) => e.status !== 'terminated')
   const headcountCounts = new Map<string, number>()
   for (const employee of activeEmployees) {
     headcountCounts.set(employee.province, (headcountCounts.get(employee.province) ?? 0) + 1)
@@ -277,6 +302,10 @@ export function AnalyticsProductionView() {
     openCases.map((c) => ({ ...c, openedISO: c.createdAt.slice(0, 10) })),
     todayISO,
   )
+
+  /* Leave overview — the roster's on_leave status is real today; leave
+     types and return dates aren't tracked yet, and the card says so. */
+  const onLeave = activeEmployees.filter((e) => e.status === 'on_leave')
 
   return (
     <div className="flex-1 overflow-y-auto px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]">
@@ -295,7 +324,19 @@ export function AnalyticsProductionView() {
                     <ScoreHero score={liveScore} delta={scoreDeltaValue} />
                     {history.length >= 2 ? (
                       <div className="mt-[10px]">
-                        <ScoreTrendChart history={history} />
+                        <TrendLineChart
+                          points={history.map((p) => ({ monthISO: p.monthISO, value: p.score }))}
+                          ariaLabel={x(M.analytics_score_chart_aria).replace(
+                            '{points}',
+                            history
+                              .map(
+                                (p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.score}`,
+                              )
+                              .join(', '),
+                          )}
+                          valueHeader={x(M.analytics_score_table_score)}
+                          clampMax={100}
+                        />
                       </div>
                     ) : (
                       <p className="mt-[10px] mb-0 text-[12.5px] text-text-muted">
@@ -410,6 +451,90 @@ export function AnalyticsProductionView() {
               yet; the card states that plainly instead of hiding. */}
           <AnalyticsCard title={x(M.analytics_ack_title)}>
             <CardEmpty text={x(M.analytics_ack_empty)} />
+          </AnalyticsCard>
+
+          {/* A · Certifications & training — no records tracked yet. */}
+          <AnalyticsCard title={x(M.analytics_certs_title)} subtitle={x(M.analytics_certs_sub)}>
+            <CardEmpty text={x(M.analytics_certs_prod_empty)} />
+          </AnalyticsCard>
+
+          {/* C · Probation periods ending — no probation dates tracked yet. */}
+          <AnalyticsCard
+            title={x(M.analytics_probation_title)}
+            subtitle={x(M.analytics_probation_sub)}
+          >
+            <CardEmpty text={x(M.analytics_probation_prod_empty)} />
+          </AnalyticsCard>
+
+          {/* D · Document expiries — no dated documents tracked yet. */}
+          <AnalyticsCard title={x(M.analytics_docs_title)} subtitle={x(M.analytics_docs_sub)}>
+            <CardEmpty text={x(M.analytics_docs_prod_empty)} />
+          </AnalyticsCard>
+
+          {/* E · Leave overview — the roster's on-leave status is live. */}
+          <AnalyticsCard title={x(M.analytics_leave_title)} subtitle={x(M.analytics_leave_sub)}>
+            <CardData deps={[employees]} skeletonLines={3}>
+              {() =>
+                onLeave.length === 0 ? (
+                  <CardEmpty text={x(M.analytics_leave_empty)} />
+                ) : (
+                  <>
+                    <LeaveList
+                      rows={onLeave.map((e) => ({
+                        key: e.id,
+                        name: e.name,
+                        type: e.title ?? e.province,
+                        protected: false,
+                        returnLabel: x(M.analytics_leave_on_now),
+                        imminent: false,
+                        href: `/app/employees/${e.id}`,
+                      }))}
+                    />
+                    <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
+                      {x(M.analytics_leave_prod_note)}
+                    </p>
+                  </>
+                )
+              }
+            </CardData>
+          </AnalyticsCard>
+
+          {/* F · Headcount & turnover — headcount history accumulates via the
+              monthly snapshot; turnover awaits termination history. */}
+          <AnalyticsCard
+            title={x(M.analytics_trend_title)}
+            subtitle={x(M.analytics_trend_sub)}
+            className="min-[900px]:col-span-2"
+          >
+            <CardData deps={[employees, snapshots]} skeletonLines={4}>
+              {() =>
+                liveHeadcount === null || liveHeadcount === 0 ? (
+                  <CardEmpty text={x(M.analytics_trend_empty)} />
+                ) : (
+                  <>
+                    {headcountTrend.length >= 2 ? (
+                      <TrendLineChart
+                        points={headcountTrend}
+                        ariaLabel={x(M.analytics_trend_chart_aria).replace(
+                          '{points}',
+                          headcountTrend
+                            .map((p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.value}`)
+                            .join(', '),
+                        )}
+                        valueHeader={x(M.analytics_trend_table_value)}
+                      />
+                    ) : (
+                      <p className="m-0 text-[12.5px] text-text-muted">
+                        {x(M.analytics_trend_first_point)}
+                      </p>
+                    )}
+                    <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
+                      {x(M.analytics_turnover_prod_note)}
+                    </p>
+                  </>
+                )
+              }
+            </CardData>
           </AnalyticsCard>
         </div>
       </div>
