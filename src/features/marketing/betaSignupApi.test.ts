@@ -8,11 +8,21 @@ import { createBetaSignup, BetaSignupError } from './betaSignupApi'
 /** Shape of a supabase-js FunctionsHttpError as the client surfaces it. */
 const httpError = (status: number) => ({ error: { context: { status } } })
 
+/**
+ * What invoke() really resolves for this function: supabase-js hands back the
+ * response body as `data`, and the function's body is itself `{ data: {...} }`
+ * — hence the double envelope.
+ */
+const success = (cohortFull: boolean) => ({
+  data: { data: { ok: true, cohort_full: cohortFull } },
+  error: null,
+})
+
 describe('createBetaSignup', () => {
   beforeEach(() => invoke.mockReset())
 
   it('sends the fields the edge function expects', async () => {
-    invoke.mockResolvedValue({ data: { ok: true }, error: null })
+    invoke.mockResolvedValue(success(false))
     await createBetaSignup({
       email: 'owner@example.ca',
       company: '  Example Inc. ',
@@ -35,7 +45,7 @@ describe('createBetaSignup', () => {
   })
 
   it('omits the optional fields rather than sending empty strings', async () => {
-    invoke.mockResolvedValue({ data: { ok: true }, error: null })
+    invoke.mockResolvedValue(success(false))
     await createBetaSignup({
       email: 'owner@example.ca',
       company: '   ',
@@ -50,7 +60,7 @@ describe('createBetaSignup', () => {
   })
 
   it('forwards the honeypot to the server trap', async () => {
-    invoke.mockResolvedValue({ data: { ok: true }, error: null })
+    invoke.mockResolvedValue(success(false))
     await createBetaSignup({
       email: 'bot@example.ca',
       language: 'en',
@@ -59,6 +69,25 @@ describe('createBetaSignup', () => {
     })
 
     expect(invoke.mock.calls[0]![1].body.contact_fax).toBe('filled-by-a-bot')
+  })
+
+  it('reports whether the signup was waitlisted from the cohort bit', async () => {
+    invoke.mockResolvedValue(success(false))
+    await expect(
+      createBetaSignup({ email: 'owner@example.ca', language: 'en', consent: true }),
+    ).resolves.toEqual({ waitlisted: false })
+
+    invoke.mockResolvedValue(success(true))
+    await expect(
+      createBetaSignup({ email: 'owner@example.ca', language: 'en', consent: true }),
+    ).resolves.toEqual({ waitlisted: true })
+  })
+
+  it('treats a response without the cohort bit as not waitlisted (older function)', async () => {
+    invoke.mockResolvedValue({ data: { data: { ok: true } }, error: null })
+    await expect(
+      createBetaSignup({ email: 'owner@example.ca', language: 'en', consent: true }),
+    ).resolves.toEqual({ waitlisted: false })
   })
 
   it('maps 429 to rate_limited', async () => {

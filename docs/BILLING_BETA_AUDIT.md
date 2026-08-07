@@ -288,6 +288,21 @@ both additive to the admin account:
   revoked; `paused`/`removed` rows stay excluded, respecting that table's own
   revoke lifecycle.
 
+> **Amended 2026-08-07 — capacity cap.** The founder capped the beta at 15
+> individuals/organizations to begin. `0067_beta_cohort_capacity.sql`
+> narrows the `beta_signups` clause to the first 15 eligible signups
+> (`status` not `declined`/`bounced`, by signup order); rows past that are
+> the waiting list — still recorded, still confirmed, not admitted.
+> "No separate approval step" survives for the cohort itself, and marking a
+> row `declined` (the admin UPDATE policy from 0055) frees its seat for the
+> next signup in line. `admin_beta_access` stays outside the cap as the
+> explicit operator override. `create-beta-signup` now reports the
+> aggregate cohort-full bit so the form can tell the two successes apart —
+> computed identically for new and repeat addresses, preserving the
+> no-oracle property below. The number lives in `src/config/beta.ts`
+> (`BETA_COHORT_LIMIT`), stated in `docs/CANONICAL_FACTS.md`, and
+> drift-checked by `src/canonicalFacts.test.ts`.
+
 Single source of truth: migration `0026_open_workspace_to_beta_list.sql`
 defines `public.current_user_is_workspace_member()` — a Postgres function
 with **no parameters**, always evaluated against the calling session's own
@@ -394,7 +409,7 @@ live Supabase project `khtwpxnvziiyplaflwru` to assess current state:
 ### S1 — Deployed webhook vs. repo code
 
 - `profiles_plan_check` constraint now accepts `free | starter | growth | pro
-  | advanced | enterprise` — `pro` is present, confirming the schema
+| advanced | enterprise` — `pro` is present, confirming the schema
   reconciliation migration was applied.
 - `stripe_webhook_events` table exists with the correct schema (`event_id`,
   `event_type`, `received_at`).

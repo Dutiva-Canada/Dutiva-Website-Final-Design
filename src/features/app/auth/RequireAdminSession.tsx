@@ -6,9 +6,11 @@ import { useAuth } from './authContext'
 
 /**
  * Gates the whole /app workspace behind a signed-in, invited session — the
- * admin account or anyone on the beta list (AuthProvider's `authorized`,
- * backed by the `current_user_is_workspace_member` Postgres function; see
- * supabase/migrations/0026_open_workspace_to_beta_list.sql). The workspace
+ * admin account, the first BETA_COHORT_LIMIT beta signups, or an
+ * admin-managed invite (AuthProvider's `authorized`, backed by the
+ * `current_user_is_workspace_member` Postgres function; see
+ * supabase/migrations/0026_open_workspace_to_beta_list.sql, capacity-capped
+ * by 0067_beta_cohort_capacity.sql). The workspace
  * used to double as a public demo reachable by anyone; it's invite-only
  * now. Unauthorized visitors are sent to /app/welcome (the sign-in gate),
  * carrying the location they wanted so EntryStage can return them there

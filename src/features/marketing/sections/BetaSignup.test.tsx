@@ -49,7 +49,7 @@ describe('BetaSignup', () => {
   it('sends the signup to the server and confirms', async () => {
     const user = userEvent.setup()
     createBetaSignup.mockReset()
-    createBetaSignup.mockResolvedValue(undefined)
+    createBetaSignup.mockResolvedValue({ waitlisted: false })
     render()
     await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
     await user.type(screen.getByLabelText('Company (optional)'), 'Example Inc.')
@@ -68,6 +68,28 @@ describe('BetaSignup', () => {
       }),
     )
     expect(await screen.findByText("You're on the list.")).toBeInTheDocument()
+  })
+
+  it('confirms a waiting-list signup as waiting, not as admitted', async () => {
+    const user = userEvent.setup()
+    createBetaSignup.mockReset()
+    createBetaSignup.mockResolvedValue({ waitlisted: true })
+    render()
+    await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
+    await user.click(screen.getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: /Start free/ }))
+
+    expect(await screen.findByText("You're on the waiting list.")).toBeInTheDocument()
+    /* The admitted-cohort promise ("we'll email your beta access") must not
+       show — a full cohort means there is no access to email yet. */
+    expect(screen.queryByText("You're on the list.")).toBeNull()
+    expect(screen.queryByText(/beta access/)).toBeNull()
+  })
+
+  it('states the cohort capacity next to the form', () => {
+    createBetaSignup.mockReset()
+    render()
+    expect(screen.getByText(/limited to 15 individuals and organizations/)).toBeInTheDocument()
   })
 
   it('surfaces the rate-limit message and stays on the form', async () => {

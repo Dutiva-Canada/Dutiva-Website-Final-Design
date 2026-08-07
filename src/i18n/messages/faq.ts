@@ -1,3 +1,4 @@
+import { BETA_COHORT_LIMIT } from '@/config/beta'
 import { defineMessages } from '../core'
 
 /**
@@ -82,9 +83,12 @@ export const faqMessages = defineMessages({
     fr: 'Gratuit / Bêta, Starter à 24 $/mois, Growth à 49 $/mois (le plus populaire) et Professional à 99 $/mois. Prix en CAD; facturation annuelle offerte.',
   },
   faq_q11: { en: 'Is there a free trial?', fr: 'Y a-t-il un essai gratuit ?' },
+  /* Deviates from the prototype: beta capacity decision, 2026-08-07 — the
+     answer now states the cohort limit. Number interpolated from
+     BETA_COHORT_LIMIT. [FR self-authored] */
   faq_a11: {
-    en: 'Yes — join the beta free, no credit card required. Open the Advisor and generate a document to see how it works.',
-    fr: 'Oui — rejoignez la version bêta gratuitement, sans carte de crédit. Ouvrez le Conseiller et générez un document pour voir comment ça fonctionne.',
+    en: `Yes — join the beta free, no credit card required. The beta accepts ${BETA_COHORT_LIMIT} individuals and organizations to begin; once those spots are taken, new signups join the waiting list and we email them as spots open. Open the Advisor and generate a document to see how it works.`,
+    fr: `Oui — rejoignez la version bêta gratuitement, sans carte de crédit. La bêta accepte ${BETA_COHORT_LIMIT} personnes et organisations pour commencer; une fois ces places prises, les nouvelles inscriptions rejoignent la liste d’attente et nous leur écrivons dès que des places se libèrent. Ouvrez le Conseiller et générez un document pour voir comment ça fonctionne.`,
   },
   faq_q12: {
     en: 'What is your refund policy?',

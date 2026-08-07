@@ -86,6 +86,14 @@ const IP_LIMIT = 5
 const EMAIL_WINDOW_MIN = 60
 const EMAIL_LIMIT = 3
 
+/* The beta accepts 15 individuals/organizations to begin (founder decision,
+   2026-08-07). Signup stays OPEN past that — later rows are the waiting list —
+   but the workspace gate (0067_beta_cohort_capacity.sql) only admits the first
+   15 eligible signups, so the response tells the form which of the two things
+   just happened. Keep in sync with src/config/beta.ts BETA_COHORT_LIMIT;
+   src/canonicalFacts.test.ts fails on drift. */
+const BETA_COHORT_LIMIT = 15
+
 const OPERATOR_EMAIL = Deno.env.get('SUPPORT_OPERATOR_EMAIL') ?? 'support@dutiva.ca'
 
 Deno.serve(async (req: Request) => {
@@ -103,9 +111,11 @@ Deno.serve(async (req: Request) => {
     body = {}
   }
 
-  /* Honeypot: pretend success so bots do not learn they were caught. */
+  /* Honeypot: pretend success so bots do not learn they were caught. The
+     cohort bit is a static false rather than the real count — this path must
+     stay free of database work so bots can't generate unthrottled reads. */
   if (typeof body.contact_fax === 'string' && body.contact_fax.trim() !== '') {
-    return json({ data: { ok: true } })
+    return json({ data: { ok: true, cohort_full: false } })
   }
 
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
@@ -140,7 +150,15 @@ Deno.serve(async (req: Request) => {
 
   const ipSince = new Date(Date.now() - IP_WINDOW_MIN * 60 * 1000).toISOString()
   const emailSince = new Date(Date.now() - EMAIL_WINDOW_MIN * 60 * 1000).toISOString()
-  const [{ count: ipCount }, { count: emailCount }] = await Promise.all([
+  /* The cohort count is measured BEFORE this request's own insert, with one
+     formula for every caller. That is what keeps the response oracle-free: a
+     repeat address and a new one see the same bit for the same table state, so
+     the answer reveals only "does the cohort have room", never whether the
+     submitted address was already on the list. Measured-before also means the
+     signup that takes the last seat is still told the cohort had room — which
+     is what happened. Same eligibility filter as the workspace gate (0067):
+     declined/bounced rows hold no seat. */
+  const [{ count: ipCount }, { count: emailCount }, { count: cohortCount }] = await Promise.all([
     admin
       .from('beta_signup_intake')
       .select('id', { count: 'exact', head: true })
@@ -151,6 +169,10 @@ Deno.serve(async (req: Request) => {
       .select('id', { count: 'exact', head: true })
       .eq('email_hash', emailHash)
       .gte('created_at', emailSince),
+    admin
+      .from('beta_signups')
+      .select('id', { count: 'exact', head: true })
+      .not('status', 'in', '(declined,bounced)'),
   ])
   if ((ipCount ?? 0) >= IP_LIMIT || (emailCount ?? 0) >= EMAIL_LIMIT) {
     return json(
@@ -158,6 +180,12 @@ Deno.serve(async (req: Request) => {
       429,
     )
   }
+
+  /* Null count (query failure) falls open to "room left": the bit only picks
+     the form's success wording, while admission itself is enforced by the
+     workspace gate — over-promising here mislabels one edge case, whereas
+     failing the signup over it would lose a real lead. */
+  const cohortFull = (cohortCount ?? 0) >= BETA_COHORT_LIMIT
 
   const { error: insertError } = await admin.from('beta_signups').insert({
     email,
@@ -216,5 +244,5 @@ Deno.serve(async (req: Request) => {
     if (notifyError) console.error('create-beta-signup: could not enqueue alert', notifyError.message)
   }
 
-  return json({ data: { ok: true } })
+  return json({ data: { ok: true, cohort_full: cohortFull } })
 })

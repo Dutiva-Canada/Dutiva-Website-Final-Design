@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, CircleCheck, ShieldCheck } from 'lucide-react'
+import { ArrowRight, CircleCheck, Hourglass, ShieldCheck } from 'lucide-react'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { createBetaSignup, BetaSignupError } from '../betaSignupApi'
 import type { BetaProvince } from '../betaSignupApi'
@@ -22,16 +22,23 @@ const LABEL = 'text-[0.8125rem] font-semibold text-text'
 const INPUT =
   'rounded-xl border border-control-border bg-bg px-4 font-sans text-text placeholder:text-text-3'
 
-type Status = 'idle' | 'sending' | 'done'
+type Status = 'idle' | 'sending' | 'done' | 'waitlisted'
 
 /**
  * Beta waiting-list form. Submissions go to the `create-beta-signup` edge
  * function (see ../betaSignupApi), which stores the address, alerts the
  * operator, and emails the visitor a confirmation.
  *
+ * The beta accepts BETA_COHORT_LIMIT signups to begin; the server reports
+ * whether that cohort was already full, and `waitlisted` renders the
+ * honest version of success — on the list, waiting for a spot — instead of
+ * promising access the workspace gate would refuse.
+ *
  * A repeat address is reported by the server as an ordinary success, so
  * there is deliberately no "already on the list" state here — telling the
  * visitor would leak list membership to anyone who can type an address.
+ * (The cohort bit is aggregate state, computed the same way for new and
+ * repeat addresses, so it leaks nothing per-address.)
  */
 export function BetaSignup() {
   const { lt, lang } = useLanding()
@@ -59,7 +66,7 @@ export function BetaSignup() {
     setMessage(null)
     setStatus('sending')
     try {
-      await createBetaSignup({
+      const result = await createBetaSignup({
         email: value,
         company,
         province,
@@ -67,7 +74,7 @@ export function BetaSignup() {
         consent,
         honeypot,
       })
-      setStatus('done')
+      setStatus(result.waitlisted ? 'waitlisted' : 'done')
     } catch (error) {
       const code = error instanceof BetaSignupError ? error.code : 'error'
       setMessage({
@@ -89,15 +96,26 @@ export function BetaSignup() {
           <p className="mt-3.5 max-w-[44ch] text-base leading-[1.6] text-text-2">
             {lt('landing_cta_p')}
           </p>
+          <p className="mt-3 max-w-[46ch] text-[0.8125rem] leading-normal font-semibold text-text">
+            {lt('landing_cta_capacity')}
+          </p>
         </div>
 
         <div>
-          {status === 'done' ? (
+          {status === 'done' || status === 'waitlisted' ? (
             <div className="flex items-center gap-3 rounded-[14px] border border-(--gold-border-soft) bg-gold-subtle px-5 py-4.5">
-              <CircleCheck size={22} className="flex-none text-gold-strong" />
+              {status === 'waitlisted' ? (
+                <Hourglass size={22} className="flex-none text-gold-strong" />
+              ) : (
+                <CircleCheck size={22} className="flex-none text-gold-strong" />
+              )}
               <div>
-                <div className="font-semibold text-text">{lt('landing_cta_done_t')}</div>
-                <p className="m-0 mt-0.5 text-sm text-text-2">{lt('landing_cta_done_p')}</p>
+                <div className="font-semibold text-text">
+                  {lt(status === 'waitlisted' ? 'landing_cta_wait_t' : 'landing_cta_done_t')}
+                </div>
+                <p className="m-0 mt-0.5 text-sm text-text-2">
+                  {lt(status === 'waitlisted' ? 'landing_cta_wait_p' : 'landing_cta_done_p')}
+                </p>
               </div>
             </div>
           ) : (

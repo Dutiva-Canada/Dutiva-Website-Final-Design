@@ -36,6 +36,22 @@ export interface BetaSignupInput {
   honeypot?: string
 }
 
+export interface BetaSignupResult {
+  /**
+   * True when the first beta cohort (BETA_COHORT_LIMIT signups) was already
+   * full before this submission, so this signup joined the waiting list
+   * rather than gaining workspace access. Aggregate state only — the server
+   * computes it identically for new and repeat addresses, so it can't be
+   * read as "was this address already signed up".
+   */
+  waitlisted: boolean
+}
+
+/** Success body of `create-beta-signup` (inside supabase-js's own `data`). */
+interface BetaSignupResponse {
+  data?: { ok?: boolean; cohort_full?: boolean }
+}
+
 function errorCodeFromStatus(status: number | undefined): BetaSignupErrorCode {
   if (status === 429) return 'rate_limited'
   if (status === 400 || status === 422) return 'validation'
@@ -46,24 +62,33 @@ function errorCodeFromStatus(status: number | undefined): BetaSignupErrorCode {
  * Record a beta signup. Resolves on success — including for an address that
  * is already on the list, which the server reports as success on purpose so
  * the endpoint can't be used to test list membership.
+ *
+ * `waitlisted` defaults to false when the response carries no cohort bit
+ * (an older deployed function), which reproduces the pre-cap behavior
+ * rather than wrongly telling an admitted visitor they are waiting.
  */
-export async function createBetaSignup(input: BetaSignupInput): Promise<void> {
+export async function createBetaSignup(input: BetaSignupInput): Promise<BetaSignupResult> {
   if (!supabase) throw new BetaSignupError('error')
 
-  const { error } = await supabase.functions.invoke('create-beta-signup', {
-    body: {
-      email: input.email,
-      company: input.company?.trim() || undefined,
-      province: input.province || undefined,
-      language: input.language,
-      source: 'landing',
-      consent: input.consent,
-      contact_fax: input.honeypot ?? '',
+  const { data, error } = await supabase.functions.invoke<BetaSignupResponse>(
+    'create-beta-signup',
+    {
+      body: {
+        email: input.email,
+        company: input.company?.trim() || undefined,
+        province: input.province || undefined,
+        language: input.language,
+        source: 'landing',
+        consent: input.consent,
+        contact_fax: input.honeypot ?? '',
+      },
     },
-  })
+  )
 
   if (error) {
     const status = (error as { context?: { status?: number } }).context?.status
     throw new BetaSignupError(errorCodeFromStatus(status))
   }
+
+  return { waitlisted: data?.data?.cohort_full === true }
 }

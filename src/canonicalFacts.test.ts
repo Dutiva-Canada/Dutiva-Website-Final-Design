@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { BETA_COHORT_LIMIT } from '@/config/beta'
 import { ANNUAL_MONTHS_BILLED, PAID_PLANS_DISABLED_DURING_BETA, PLANS } from '@/config/plans'
 import { allTemplates } from '@/features/app/documents/catalogue'
 import {
@@ -143,6 +144,36 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
     const beta = row('Beta state').toLowerCase()
     expect(PAID_PLANS_DISABLED_DURING_BETA).toBe(true)
     expect(beta).toContain('not sold')
+  })
+
+  it('states the beta cohort capacity, in every copy of the number', () => {
+    /* The capacity lives in three places that cannot import each other:
+       BETA_COHORT_LIMIT (which the marketing copy interpolates, so the copy
+       itself cannot drift), the SQL gate that enforces admission, and the
+       signup endpoint that reports whether the cohort is full. A mismatch
+       means the site promises one number and the gate enforces another —
+       exactly the defect class this file exists to prevent. */
+    expect(boldNumbers(row('Beta capacity'))).toContain(BETA_COHORT_LIMIT)
+
+    const gate = raw(
+      import.meta.glob('../supabase/migrations/0067_beta_cohort_capacity.sql', {
+        query: '?raw',
+        import: 'default',
+        eager: true,
+      }),
+      '0067_beta_cohort_capacity.sql',
+    )
+    expect(gate).toContain(`limit ${BETA_COHORT_LIMIT}`)
+
+    const signup = raw(
+      import.meta.glob('../supabase/functions/create-beta-signup/index.ts', {
+        query: '?raw',
+        import: 'default',
+        eager: true,
+      }),
+      'create-beta-signup/index.ts',
+    )
+    expect(signup).toContain(`const BETA_COHORT_LIMIT = ${BETA_COHORT_LIMIT}`)
   })
 
   it('states the law-monitoring claim the coverage data actually supports', () => {
