@@ -5,16 +5,31 @@ This package covers the **Advisor chat** for Dutiva (Canadian HR-compliance plat
 
 Three prototypes, one behavior spec, one production roadmap, and annotated screenshots. A developer who wasn't in the design conversation should be able to build from this folder alone.
 
+> **Status (2026-08-07): built.** The chat, Compliance Workspace, and Memory surfaces are implemented in this repository, with the engine running as the `advisor-chat` Supabase Edge Function. This folder remains the design source of truth for layout, behavior, and the Advisor's communication contract (`AGENT.md` is still normative). See "Where this landed" for the code map and "Open gates" for what is still outstanding.
+
 ---
 
 ## About the design files — read this first
 The files in `prototypes/` are **design references created in HTML** — prototypes that show intended look and behavior. **They are not production code to copy.** They fake the engine (canned scenario data, regex routing on demo strings, `setInterval` "streaming"); there is no real model, retrieval, or persistence behind them.
 
-**The task is to recreate these designs in the existing Dutiva codebase, using its established patterns** — not to ship the HTML. Per the Engineering Roadmap, that codebase is two services:
-- **Consuming app** — `Dutiva--Redesign-` (React 19 + Vite + Tailwind v4). Owns the chat UI, the Compliance Workspace, thread state, and i18n.
-- **Engine** — `dutiva-advisor-engine` (Express + Qwen). Owns routing, retrieval, validation, and the response contract. One HTTP call: `POST /api/advisor/respond`.
+**The task was to recreate these designs in the Dutiva codebase, using its established patterns** — not to ship the HTML. That recreation is done. The handoff originally planned two separate repos (`Dutiva--Redesign-` for the app, an Express-based `dutiva-advisor-engine` for the engine); both halves landed in **this repository** instead:
+- **Consuming app** — this repo's React app (React 19 + Vite + Tailwind v4). Owns the chat UI, the Compliance Workspace, thread state, the memory surfaces, and i18n.
+- **Engine** — `supabase/functions/advisor-chat` (Supabase Edge Function). Owns the model route (DB-configured via `ai_model_routes` / `ai_model_providers` — see `docs/AI_USAGE_STRATEGY.md` for the current provider), retrieval over the curated `advisor_guidance_chunks` corpus, the deterministic workspace payload, usage metering, and telemetry. The app makes one call per turn through `src/features/app/advisor/chatApi.ts`; the roadmap's `POST /api/advisor/respond` contract survives as the `advisor_response` payload that call returns.
 
-Recreate the UI in the React app against the design system tokens (below); implement the behavior in the engine against the contract in the roadmap and the rules in `AGENT.md`.
+The UI binds to the design-system tokens (below); the behavior follows the response contract (`src/features/app/advisor/contract.ts`) and the rules in `AGENT.md`.
+
+## Where this landed in the codebase
+| Handoff piece | Implementation |
+| --- | --- |
+| Chat, thread list, home (`/app/advisor`) | `src/features/app/views/advisor/` — `AdvisorView`, `ChatPane`, `ThreadList`, `AdvisorHome` |
+| Compliance Workspace | `src/features/app/views/advisor/ComplianceWorkspace.tsx` — renders the validated payload, gated on `route.*Allowed` |
+| Chat primitives (bubbles, composer, streaming, chips) | `src/features/app/advisor/` — `ChatBubble`, `ChatComposer`, `StreamedText`, `TypingDots`, … plus `src/components/advisor/` (Markdown + charts) |
+| Response contract (roadmap P0) | `src/features/app/advisor/contract.ts` (zod), built server-side by `supabase/functions/advisor-chat/responsePayload.ts` and validated against the client schema in its tests |
+| Engine | `supabase/functions/advisor-chat/index.ts` — model-route lookup, corpus retrieval, turn persistence to `conversations`, telemetry, beta usage guardrails |
+| `AGENT.md` safety rules | `src/features/app/advisor/safety/` — deterministic client-side backstop (crisis intercept, statutory-figure and jurisdiction gates) that can only tighten the engine's gates; events logged via the `advisor-safety-event` function |
+| Advisor Memory (`/app/memory`, + people / cases / conversations) | `src/features/app/views/memory/` — Confirm / Correct / Forget with a session audit log, backed by the session-scoped `memoryStore.ts` (**not yet persisted**) |
+| Demonstrated modes (signed-out preview + demos) | `src/features/app/views/advisor/advisorScenarios.ts` — kept faithful to the prototype scenarios |
+| Bilingual strings | `src/i18n/messages/advisorView.ts`, with `{ en, fr }` pairs enforced by the contract |
 
 ## Fidelity
 **High-fidelity.** Final colors, typography, spacing, copy, and interactions. Recreate the UI to match — but bind to the **Dutiva design system `.surface-app` tokens**, don't hardcode the hex values the prototypes inline (they're literal snapshots of those tokens; see Design Tokens for the mapping). The prototypes are the source of truth for *layout and behavior*; the design system is the source of truth for *values*.
@@ -90,7 +105,7 @@ App-side: `signedIn`, active thread, `province`, `webOn`, composer drafts, appen
 ---
 
 ## Design tokens
-The prototypes inline the **`.surface-app`** ramp. Map literals → semantic tokens; don't hardcode.
+The prototypes inline the **`.surface-app`** ramp. The live tokens are in `src/styles/surfaces.css` (light ramp plus a `[data-theme='dark']` ramp the prototypes don't show) — that file wins over the snapshot literals below, and the brand rows are enforced by `npm run check:facts` (`docs/CANONICAL_FACTS.md`). Map literals → semantic tokens; don't hardcode. Where the app has drifted from the snapshot, the token is authoritative — e.g. light `--gold-fg` resolves to `#7d600f` in the app, not the prototypes' `#8a6a12`/`#a87f2e`.
 
 **Surfaces / borders:** page `#e7eaf2` · card/white `#ffffff` · rail `#eef1f8` · nav `#f6f8fc` · main `#f3f5fa` · inset `#eef1f8` · border `#d8dcea` · border-soft `#e6e9f2` · hairline `#f0f2f8`.
 **Brand:** app navy `#1f3a5f` (→ `--navy`) · deep navy hero `#0d1b2a`/`#132437` · gold-on-navy text `#F2D9A8` · gold `#d4af37` · gold-fg `#8a6a12` / `#a87f2e` · gold-fill `rgba(212,175,55,.1)` · gold-border `rgba(212,175,55,.28)`.
@@ -102,9 +117,9 @@ The prototypes inline the **`.surface-app`** ramp. Map literals → semantic tok
 **Motion:** house 160ms `cubic-bezier(.4,0,.2,1)` · `fadeInUp` .4s · `pulseDot` 1.1s · `blinkCursor` .9s · `slideInRight` .32s · `shimmer` 1.4s. All gated by `prefers-reduced-motion`.
 
 ## Assets
-- **Icons:** lucide (`lucide-react`) throughout — the prototypes inline equivalent SVG paths so they survive re-renders; use `lucide-react` in the app. No emoji.
-- **Brand mark:** the geometric maple-leaf tile + Montserrat "Duti**va**" wordmark — use the design-system brand asset, never redraw. The prototypes use a placeholder monogram tile; replace with the real `BrandLockup`.
-- **Fonts:** Montserrat + Inter (Google Fonts) — already in the design system's `tokens/fonts.css`.
+- **Icons:** lucide (`lucide-react`) throughout — the prototypes inline equivalent SVG paths so they survive re-renders; the app uses `lucide-react`. No emoji.
+- **Brand mark:** the geometric maple-leaf tile + Montserrat "Duti**va**" wordmark — use the brand components (`LeafTile` and `Wordmark` in `src/features/marketing/Brand.tsx`; assets in `public/brand/`), never redraw. The prototypes use a placeholder monogram tile.
+- **Fonts:** Montserrat + Inter (Google Fonts) — loaded by the preconnect + stylesheet links in the root `index.html`.
 
 ## Files
 - `AGENT.md` — **normative communication spec for the Advisor** (identity, response modes, jurisdiction discipline, answer structure, hedging, escalation, disclaimer contract, supportive mode, citations, memory-in-answer, bilingual, hard don'ts). Pair with an eval suite.
@@ -114,11 +129,11 @@ The prototypes inline the **`.surface-app`** ramp. Map literals → semantic tok
 - `prototypes/support.js` — the prototype runtime (co-located so the `.dc.html` files open directly in a browser). Not part of the product; ignore when implementing.
 - `screenshots/01`–`11` — annotated states referenced above.
 
-## Open gates before production (flagged in handoff)
-1. **Legal content validation** — statutory figures in the prototypes are illustrative; the real guidance corpus needs counsel/SME sign-off. Highest risk.
-2. **Eval suite for safety-critical rules** — gating, "never assume jurisdiction", and crisis intercept need a labeled test set graded against `AGENT.md`.
-3. **FR parity** — the EN/FR toggle is decorative; French content + `{en,fr}` enforcement are real work.
-4. **Privacy/governance enforcement** — memory retention, visibility scopes, audit log, access/correction/erasure (PIPEDA · Law 25) need real implementation + review.
-5. **Machine-readable contract + non-happy-path** — formalize the response contract (TS types / OpenAPI); specify error, timeout, rate-limit, empty states.
+## Open gates flagged in the handoff — status as of 2026-08-07
+1. **Legal content validation** — **still open; highest risk.** The guidance corpus is real (`advisor_guidance_chunks`, snapshots in `docs/advisor-guidance-corpus-*.md`) but every row is `review_status: machine_curated`, pending counsel/SME sign-off (TODO.md L5). Until a human flips a row to `reviewed`, the engine honestly badges its legal basis "needs review" rather than "valid".
+2. **Eval suite for safety-critical rules** — **partially closed.** The rules are now deterministic code with regression tests (`src/features/app/advisor/safety/` — crisis intercept incl. drift test, statutory-figure and jurisdiction gates; `responsePayload.test.ts` server-side). A labeled eval set grading model prose against `AGENT.md` is still open.
+3. **FR parity** — **closed.** Real EN/FR i18n (`src/i18n/`), `{en,fr}` pairs enforced by the zod contract, French corpus bodies on all rows (TODO.md resolved ledger). Keep verifying both languages on every user-facing change (AGENTS.md).
+4. **Privacy/governance enforcement** — **still open.** Memory is session-scoped and unpersisted (`memoryStore.ts`), so retention, visibility scopes, a durable audit log, and access/correction/erasure (PIPEDA · Law 25) are not yet real. The data-residency confirmation with the inference provider is also outstanding (`docs/do-residency-confirmation-request.md`, TODO.md OA9) and blocks the PIPEDA wording.
+5. **Machine-readable contract + non-happy-path** — **closed.** `src/features/app/advisor/contract.ts` (zod) is the formal contract, validated on both sides; error, engine-unavailable, malformed-payload (degrade to prose — never render an unvalidated workspace), and usage-limit (429 scopes) states are implemented in `chatApi.ts` / `useAdvisorEngine.ts`.
 
 > Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice.
