@@ -32,6 +32,10 @@ export interface ProductionTask {
   done: boolean
   /** YYYY-MM-DD, derived from the table's timestamptz due_at. */
   dueDate: string | null
+  /** From metadata.employee_id, when the task is linked to a person. */
+  linkedEmployeeId: string | null
+  /** From metadata.kind — e.g. 'probation_review' for tasks this app creates. */
+  linkedKind: string | null
 }
 
 export interface NewTask {
@@ -46,11 +50,16 @@ const rowSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   status: z.string(),
   due_at: z.string().nullable(),
+  /* Optional-tolerant: the table's jsonb metadata carries the employee
+     linkage this app writes ({employee_id, kind}); rows from the backend's
+     pipeline (or older test mocks) may have anything or nothing here. */
+  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 })
 
-const SELECT_COLUMNS = 'id, title, priority, status, due_at'
+const SELECT_COLUMNS = 'id, title, priority, status, due_at, metadata'
 
 function toTask(row: z.infer<typeof rowSchema>): ProductionTask {
+  const meta = row.metadata ?? {}
   return {
     id: row.id,
     title: row.title,
@@ -58,6 +67,8 @@ function toTask(row: z.infer<typeof rowSchema>): ProductionTask {
     status: row.status,
     done: row.status === 'completed',
     dueDate: row.due_at ? row.due_at.slice(0, 10) : null,
+    linkedEmployeeId: typeof meta.employee_id === 'string' ? meta.employee_id : null,
+    linkedKind: typeof meta.kind === 'string' ? meta.kind : null,
   }
 }
 
@@ -86,6 +97,45 @@ export async function addTask(organizationId: string, fields: NewTask): Promise<
     .single()
   if (error) throw error
   return toTask(rowSchema.parse(data))
+}
+
+/**
+ * A probation-review task linked to its employee through the table's jsonb
+ * metadata ({employee_id, kind: 'probation_review'}) — the linkage the
+ * profile and the Analytics probation card check, exactly, instead of
+ * guessing from titles. Category 'review' is in the table's own vocabulary.
+ */
+export async function addProbationReviewTask(
+  organizationId: string,
+  employeeId: string,
+  title: string,
+  dueDate: string | null,
+): Promise<ProductionTask> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('compliance_tasks')
+    .insert({
+      organization_id: organizationId,
+      title,
+      priority: 'medium',
+      category: 'review',
+      due_at: dueDate,
+      metadata: { employee_id: employeeId, kind: 'probation_review' },
+    })
+    .select(SELECT_COLUMNS)
+    .single()
+  if (error) throw error
+  return toTask(rowSchema.parse(data))
+}
+
+/** True when an open probation-review task is linked to this employee. */
+export function hasProbationReviewTask(
+  tasks: readonly ProductionTask[],
+  employeeId: string,
+): boolean {
+  return tasks.some(
+    (t) => !t.done && t.linkedKind === 'probation_review' && t.linkedEmployeeId === employeeId,
+  )
 }
 
 /** Checklist toggle: done ⇄ open, stamping/clearing completed_at. */

@@ -367,6 +367,21 @@ describe('EmployeeProfileView in production mode', () => {
               insert: noteInsert,
             }
           }
+          /* Records sections (expiry records, leaves) and the probation
+             review-task check — empty in this scenario. */
+          if (
+            table === 'hr_expiry_records' ||
+            table === 'hr_leaves' ||
+            table === 'compliance_tasks'
+          ) {
+            return {
+              select: () => ({
+                eq: () => ({
+                  order: () => Promise.resolve({ data: [], error: null }),
+                }),
+              }),
+            }
+          }
           throw new Error(`unexpected table: ${table}`)
         }),
       },

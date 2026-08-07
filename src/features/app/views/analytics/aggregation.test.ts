@@ -1,16 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import {
   ackProgress,
+  addDaysISO,
   blendScore,
   caseAging,
   daysBetweenISO,
   expiryBuckets,
   flattenBuckets,
   formatMonthISO,
+  meanInWindow,
   monthStartISO,
   rankAttention,
   scoreComponent,
   scoreDelta,
+  turnoverRatePct,
   windowAxis,
   windowScoreAxis,
 } from './aggregation'
@@ -275,6 +278,54 @@ describe('ackProgress', () => {
   it('clamps out-of-range inputs', () => {
     expect(ackProgress(90, 82).signed).toBe(82)
     expect(ackProgress(-3, 82).signed).toBe(0)
+  })
+})
+
+describe('turnoverRatePct', () => {
+  it('counts separations in the trailing 365 days over the average headcount', () => {
+    const terms = ['2026-01-15', '2026-05-01', '2025-06-30']
+    /* Window (2025-08-07, 2026-08-07]: the 2025-06-30 exit is outside. */
+    expect(turnoverRatePct(terms, '2026-08-07', 20)).toBe(10)
+  })
+
+  it('is boundary-exact: window start exclusive, end inclusive', () => {
+    expect(turnoverRatePct(['2025-08-07'], '2026-08-07', 10)).toBe(0)
+    expect(turnoverRatePct(['2025-08-08'], '2026-08-07', 10)).toBe(10)
+    expect(turnoverRatePct(['2026-08-07'], '2026-08-07', 10)).toBe(10)
+  })
+
+  it('rounds to one decimal', () => {
+    expect(turnoverRatePct(['2026-05-01'], '2026-08-07', 12)).toBe(8.3)
+  })
+
+  it('refuses a missing or zero denominator', () => {
+    expect(turnoverRatePct(['2026-05-01'], '2026-08-07', null)).toBeNull()
+    expect(turnoverRatePct(['2026-05-01'], '2026-08-07', 0)).toBeNull()
+  })
+})
+
+describe('meanInWindow', () => {
+  const points = [
+    { monthISO: '2026-05-01', value: 70 },
+    { monthISO: '2026-06-01', value: 74 },
+    { monthISO: '2026-07-01', value: 78 },
+  ]
+
+  it('averages the points inside the window', () => {
+    expect(meanInWindow(points, '2026-05-15', '2026-07-31')).toBe(76)
+  })
+
+  it('is null when the window holds no points', () => {
+    expect(meanInWindow(points, '2026-07-02', '2026-07-31')).toBeNull()
+    expect(meanInWindow([], '2020-01-01', '2030-01-01')).toBeNull()
+  })
+})
+
+describe('addDaysISO', () => {
+  it('shifts across month and year boundaries', () => {
+    expect(addDaysISO('2026-08-07', -365)).toBe('2025-08-07')
+    expect(addDaysISO('2026-01-01', -1)).toBe('2025-12-31')
+    expect(addDaysISO('2026-02-28', 1)).toBe('2026-03-01')
   })
 })
 
