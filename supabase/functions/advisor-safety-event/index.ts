@@ -29,7 +29,7 @@ function json(body: unknown, status = 200) {
 }
 
 /** The only actions the client backstop can emit (safety/safetyBackstop.ts). */
-const ALLOWED_ACTIONS = new Set(['crisis-intercept', 'legal-basis-withheld'])
+const ALLOWED_ACTIONS = new Set(['crisis-intercept', 'legal-basis-withheld', 'figure-mismatch'])
 
 type SupabaseClient = ReturnType<typeof createClient>
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { AdvisorResponse } from '../contract'
+import { JURISDICTION_VALUE } from '../../../../../supabase/functions/advisor-chat/responsePayload'
 import { applySafetyBackstop } from './safetyBackstop'
 
 /** A clean, low-risk HR response with jurisdiction confirmed — the pass case. */
@@ -94,6 +95,33 @@ describe('applySafetyBackstop — jurisdiction/figure gate (§5.2)', () => {
 })
 
 describe('applySafetyBackstop — notice-figure cross-check (§5.2b)', () => {
+  /* Label-drift guard: scheduleJurisdiction() maps the engine's display
+     strings back to schedule codes by prefix. If someone edits
+     JURISDICTION_VALUE in responsePayload.ts, this fails loudly instead of
+     silently disarming the cross-check. */
+  it('recognizes the engine-authored jurisdiction labels', () => {
+    const { actions } = applySafetyBackstop({
+      userMessage: 'Terminating an employee with 4 years of service.',
+      reply: 'The ESA requires 6 weeks of notice.',
+      response: baseResponse({
+        jurisdiction: { status: 'known', value: JURISDICTION_VALUE.ON },
+      }),
+    })
+    expect(actions).toContain('figure-mismatch')
+    for (const code of ['QC', 'FED'] as const) {
+      /* Known label, unencoded schedule → recognized but unverifiable. */
+      expect(
+        applySafetyBackstop({
+          userMessage: 'An employee with 4 years of service.',
+          reply: 'The minimum is 2 weeks of notice.',
+          response: baseResponse({
+            jurisdiction: { status: 'known', value: JURISDICTION_VALUE[code] },
+          }),
+        }).actions,
+      ).toEqual([])
+    }
+  })
+
   it('flags an Ontario notice figure that disagrees with the schedule', () => {
     const { response, actions } = applySafetyBackstop({
       userMessage: 'Terminating an employee with 4 years of service in Ontario.',

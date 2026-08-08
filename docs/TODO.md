@@ -364,23 +364,28 @@ service-role key or `SUPABASE_SECRET_KEY` — no JWT payload decoding.
 the same deploy, as the TODO entry anticipated — whatever is in the working
 tree is what goes.
 
-**OA20 — Advisor grounding upgrades: apply the migration, redeploy the
-function.** _Owner._ The 2026-08-08 RAG hardening ships in two halves.
-(1) Apply migration `0071_corpus_source_change_flags.sql` — adds
+**OA20 — Advisor grounding upgrades: apply the migrations, redeploy two
+functions.** _Owner._ The 2026-08-08 RAG hardening (plus its follow-up
+review fixes) ships in three parts. (1) Apply migrations
+`0071_corpus_source_change_flags.sql` then
+`0072_flag_trigger_idempotent_guard.sql` — 0071 adds
 `source_changed_at`/`source_change_note` to `advisor_guidance_chunks`, the
 `law_updates` trigger that flags a jurisdiction's chunks on a detected
-change, and the 9-column `match_advisor_guidance` recreate. (2) Redeploy
-the `advisor-chat` edge function (retrieval now sees the previous user
-turn, distinguishes retrieval failures from zero-hits in telemetry
-(`metadata.retrieval_failed`) and in the workspace panels, and injects the
-ESA s.57 notice schedule on Ontario notice questions). Order matters:
-apply 0071 BEFORE the redeploy — the old 8-column RPC still satisfies the
-new code (source_changed_at reads as absent), but the new RPC's extra
-column is simply ignored by the old code, so migration-first is the
-gap-free order. The client half (widened figure detector, notice
-cross-check, accurate warnings) ships with the normal app deploy and needs
-nothing. Verify: ask the Advisor an Ontario notice question with a stated
-tenure and confirm the workspace shows the schedule-grounded figure; then
+change, and the 9-column `match_advisor_guidance` recreate; 0072 guards
+the trigger so repeat change events cannot rewrite `updated_at` on
+already-flagged rows. (2) Redeploy `advisor-chat` (retrieval sees the
+previous user turn, distinguishes retrieval failures from zero-hits in
+telemetry (`metadata.retrieval_failed`) and in the workspace panels, and
+injects the ESA s.57 notice schedule on Ontario notice questions).
+(3) Redeploy `advisor-safety-event` — its action allowlist now accepts
+the backstop's new `figure-mismatch` action; without this redeploy the
+new gate fires client-side but is invisible in telemetry (the follow-up
+review caught the earlier claim that "the client half needs nothing" as
+false). Order: migrations before the `advisor-chat` redeploy — the old
+8-column RPC still satisfies the new code, so migration-first is the
+gap-free order. Verify: ask the Advisor an Ontario notice question with a
+stated tenure and confirm the workspace shows the schedule-grounded
+figure; then
 `select topic, source_changed_at from public.advisor_guidance_chunks where jurisdiction = 'ON';`
 after the next detected Ontario change.
 
