@@ -364,6 +364,23 @@ service-role key or `SUPABASE_SECRET_KEY` — no JWT payload decoding.
 the same deploy, as the TODO entry anticipated — whatever is in the working
 tree is what goes.
 
+**OA19 — CI is red on every branch: the `SUPABASE_ACCESS_TOKEN` repository
+secret is not a valid personal access token.** _Owner._ Since the secrets
+were set on 2026-08-06 (f92f75cf was the first authenticated run), the
+Migration-drift CI step has failed every run on every branch with
+`401 {"message":"Format is Authorization: Bearer"}` from
+`api.supabase.com` — the Management API only accepts `sbp_…` personal
+access tokens, and the stored value isn't one (or carries stray
+characters). The in-repo request is correct (`scripts/check-migrations.mjs`
+sends `Authorization: Bearer <token>`), so nothing to change in code — and
+the step failing loudly on bad credentials is by design ("a credentials
+failure must not read as no drift"). Fix: Supabase Dashboard → Account →
+Access Tokens → generate, then GitHub → Settings → Secrets and variables →
+Actions → update `SUPABASE_ACCESS_TOKEN`, then re-run CI via
+workflow_dispatch (added for exactly this). Expect the first honest run to
+flag 0068/0069/0070 as present-but-unapplied until OA18's migration steps
+are done — that is the check working, not a regression.
+
 **OA18 — Score formulas v2+v3: apply the migrations, deploy the function, set
 the secret.** _Owner._ Five steps, in order, none done by the merges
 themselves: (1) apply migration `0068_score_formula_v2.sql` (adds
