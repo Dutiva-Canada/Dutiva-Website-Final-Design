@@ -22,8 +22,11 @@
  * casual case, the server guard is the one a determined user has to beat.
  */
 
-export type ExportSurface = 'docstudio' | 'doclib' | 'memory' | 'advisor'
-export type ExportKind = 'pdf' | 'word' | 'link' | 'json' | 'text'
+export const EXPORT_SURFACES = ['docstudio', 'doclib', 'memory', 'advisor'] as const
+export const EXPORT_KINDS = ['pdf', 'word', 'link', 'json', 'text'] as const
+
+export type ExportSurface = (typeof EXPORT_SURFACES)[number]
+export type ExportKind = (typeof EXPORT_KINDS)[number]
 
 export interface ExportAuditEntry {
   exportId: string
@@ -71,8 +74,15 @@ function isEntry(value: unknown): value is ExportAuditEntry {
   const e = value as Record<string, unknown>
   return (
     typeof e.exportId === 'string' &&
-    (e.surface === 'docstudio' || e.surface === 'memory') &&
-    (e.kind === 'pdf' || e.kind === 'word' || e.kind === 'link' || e.kind === 'json') &&
+    /* Validate against the full surface/kind vocabularies. This predicate
+       used to hard-code only docstudio/memory + pdf/word/link/json, so
+       advisor 'Copy' and doclib exports were written by appendExportAudit
+       and then filtered straight back out by readExportAudit — invisible to
+       the velocity guard and to Settings → Export activity. Driving both
+       off the exported arrays keeps the check from drifting from the type
+       again (2026-08-08 security audit). */
+    EXPORT_SURFACES.includes(e.surface as ExportSurface) &&
+    EXPORT_KINDS.includes(e.kind as ExportKind) &&
     typeof e.title === 'string' &&
     typeof e.contentSha256 === 'string' &&
     typeof e.contentChars === 'number' &&

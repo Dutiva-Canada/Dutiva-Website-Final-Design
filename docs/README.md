@@ -58,6 +58,7 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 
 | Document                                                                     | What it settles                                                                                          |
 | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| [SECURITY_HEADERS.md](SECURITY_HEADERS.md)                                   | HTTP security headers in `vercel.json`: the enforcing set, the Report-Only CSP, and how to promote it.    |
 | [ERROR_REPORTING.md](ERROR_REPORTING.md)                                     | First-party crash reporting, the privacy scrubbing rules, and source-map handling.                       |
 | [EXPORT_PROTECTION.md](EXPORT_PROTECTION.md)                                 | Watermarking, fingerprinting, velocity limits, audit trail, and the runbook for tracing a leak.          |
 | [do-residency-confirmation-request.md](do-residency-confirmation-request.md) | Open data-residency question with the inference provider. Blocks the PIPEDA claim in CANONICAL_FACTS §2. |
