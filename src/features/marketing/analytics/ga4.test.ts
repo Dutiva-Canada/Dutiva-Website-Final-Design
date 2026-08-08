@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { isGa4Configured, loadGa4 } from './ga4'
-import { setAnalyticsConsent } from './consent'
+import { setAnalyticsConsent } from '@/lib/analyticsConsent'
 
 describe('ga4', () => {
   beforeEach(() => {

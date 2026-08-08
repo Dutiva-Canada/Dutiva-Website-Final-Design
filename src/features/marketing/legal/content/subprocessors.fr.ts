@@ -49,11 +49,11 @@ export default {
       ]
     },
     {
-      "title": "5. Surveillance et suivi des erreurs",
+      "title": "5. Surveillance des erreurs",
       "blocks": [
         {
           "type": "p",
-          "text": "Sentry (Functional Software, Inc.) — Rôle : suivi des erreurs d'application, surveillance des performances et réponse aux incidents. Données traitées : journaux d'erreurs, traces de pile, métadonnées de requêtes, identifiants de session. Les données sont expurgées pour minimiser les données personnelles avant soumission. Lieu de traitement : États-Unis."
+          "text": "Dutiva n'utilise pas de sous-traitant tiers de suivi des erreurs (comme Sentry ou Datadog). Lorsqu'une erreur survient dans l'application, un rapport minimisé est envoyé à une fonction exploitée par Dutiva et stocké dans la propre base de données de Dutiva (Supabase, mentionnée à la section 1). Chaque rapport se limite à un message d'erreur sommaire, au motif de la route, à un identifiant de version, à la famille sommaire du navigateur et du système d'exploitation, et à la langue — il ne contient aucun identifiant d'utilisateur, de session ou d'authentification, ni aucun contenu saisi. Le traitement et le stockage suivent l'entrée Supabase ci-dessus."
         }
       ]
     },
@@ -62,12 +62,25 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Dutiva peut utiliser des outils d'analytique respectueux de la vie privée pour comprendre les tendances d'utilisation globales, l'adoption des fonctionnalités et les performances du produit. Lorsque des outils d'analytique sont utilisés, nous sélectionnons des fournisseurs qui soutiennent la minimisation des données, l'anonymisation et la conformité aux normes canadiennes en matière de protection de la vie privée."
+          "text": "L'analytique de première partie est traitée en interne. Les événements du Centre d'aide et du parcours d'assistance (recherches, consultations d'articles, votes d'utilité et événements de tickets d'assistance) sont envoyés à une fonction périphérique exploitée par Dutiva, épinglée à la région Canada (ca-central-1), et stockés dans la propre base de données de Dutiva (Supabase, section 1). Ils portent un identifiant anonyme renouvelé quotidiennement ou un identifiant d'espace de travail (organisation), jamais un identifiant d'utilisateur individuel, et ne sont partagés avec aucun fournisseur d'analytique tiers. Ces événements ne sont collectés qu'après que la personne a consenti au moyen de la bannière de consentement."
+        },
+        {
+          "type": "p",
+          "text": "Analytique web tierce facultative : Google Analytics 4 (Google LLC — États-Unis). Le cas échéant, GA4 ne se charge que lorsqu'un identifiant de mesure est configuré et que la personne a donné son consentement au moyen de la bannière de consentement, avec l'anonymisation de l'adresse IP activée. Lorsqu'aucun identifiant de mesure n'est configuré, aucune donnée d'analytique web n'est envoyée à Google."
         }
       ]
     },
     {
-      "title": "7. Transferts de données transfrontaliers",
+      "title": "7. Protection contre les robots et CAPTCHA",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Pour protéger les formulaires publics (comme l'inscription à la version bêta et les demandes d'assistance) contre le pourriel et les abus automatisés, Dutiva peut faire appel à un fournisseur de CAPTCHA / de protection contre les robots : Cloudflare, Inc. (Cloudflare Turnstile) par défaut, ou Intuition Machines, Inc. (hCaptcha) lorsqu'il est configuré. Lorsqu'elle est activée, cette protection évalue des signaux techniques du navigateur de la personne — dont l'adresse IP et des signaux d'interaction — afin de distinguer les humains des clients automatisés. Elle n'est engagée que sur les formulaires publics de soumission et uniquement lorsque les clés de protection contre les robots sont configurées. Cloudflare peut également fournir des services de DNS, de sécurité réseau et de disponibilité le cas échéant. Lieu de traitement : États-Unis et réseau périphérique mondial."
+        }
+      ]
+    },
+    {
+      "title": "8. Transferts de données transfrontaliers",
       "blocks": [
         {
           "type": "p",
@@ -80,7 +93,7 @@ export default {
       ]
     },
     {
-      "title": "8. Modifications de la liste des sous-traitants",
+      "title": "9. Modifications de la liste des sous-traitants",
       "blocks": [
         {
           "type": "p",

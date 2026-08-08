@@ -2,8 +2,16 @@
 
 > **D2 — decided 2026-08-06.** Full support funnel, workspace-scoped (not
 > user-scoped), 90-day raw retention with forever aggregates, first-party
-> Supabase sink pinned to ca-central-1. GA4 plumbing is built but inert
-> pending a consent banner (needs a design handoff).
+> Supabase sink pinned to ca-central-1.
+>
+> **Update 2026-08-08.** The consent banner now ships
+> (`src/features/marketing/analytics/ConsentBanner.tsx`), and BOTH sinks are
+> gated behind it — the first-party Supabase sink as well as GA4. This is a
+> more conservative posture than D2's original "first-party needs no consent":
+> because every event carries a daily-rotated visitor id that profiles a visit,
+> collection is now off by default under Quebec Law 25 s. 8.1. See §2 Legal
+> basis. The final legal basis is the owner's to confirm with counsel; the code
+> takes the safe default.
 
 ## 1. What this is
 
@@ -20,7 +28,7 @@ customer-behaviour data shouldn't be designed speculatively."
 | Scope | Full support funnel | Help Centre + deflection + ticket outcomes. The seam (`recordHelpfulness`) was already there; extending it to the full funnel is marginal work once the sink exists. |
 | Identification | Workspace-scoped | Anonymous Help Centre events carry a daily-rotated opaque visitor id. Authenticated ticket events carry `workspace_id` (the organization), never `user_id`. Lets you say "Northgate searched X 12 times" without naming the person. |
 | Retention | 90 days raw, forever aggregate | Raw rows kept 90 days for debugging, then auto-deleted by the daily rollup job. Daily aggregates kept indefinitely — they no longer identify an individual in a reasonably foreseeable way (per the Data Retention Policy § Anonymization). |
-| Sink | Both (phased) | Supabase edge function for product/deflection events that need joining to tickets (first-party, ca-central-1, no third-party cookies). GA4 for marketing-side page analytics — plumbing is built, but inert until a consent banner ships (needs a design handoff). |
+| Sink | Both (phased) | Supabase edge function for product/deflection events that need joining to tickets (first-party, ca-central-1, no third-party cookies). GA4 for marketing-side page analytics. Both are now consent-gated behind the shipped banner (see the 2026-08-08 update above). |
 
 ## 2. Privacy model
 
@@ -55,30 +63,42 @@ All events also carry `locale` ('en' or 'fr') and `occurred_at`.
   normally lives about a minute. Same treatment, and the same careful claim, as
   `client_error_rate_limit` in `0019`: a minimized, short-lived pseudonymous
   value used solely for rate limiting — not claimed to be fully anonymous.
-- **No third-party cookies** (for the Supabase sink). GA4 is separate and
-  gated on consent.
+- **No third-party cookies** (for the Supabase sink). GA4 is separate.
+- **Nothing at all until the visitor consents.** Both sinks are gated on
+  `hasAnalyticsConsent()` — no consent, no event queued, and no visitor id
+  ever created (see the Legal basis note below).
 
 ### Legal basis
 
-The first-party support analytics sink is covered by the existing Privacy
-Policy ("measure aggregate feature usage, troubleshoot errors, prevent
-abuse, enforce rate limits, and monitor service performance") and the
-Terms of Service. It does not require a consent banner because it is
-first-party (no third-party cookies), data stays in Canada (ca-central-1),
-and the collection is within the legitimate purpose of operating and
-improving the service. The Privacy Policy, Cookie Policy, and Data
-Retention Policy have been updated to concretely describe what is now
-collected.
+The first-party support analytics sink is described by the Privacy Policy
+("measure aggregate feature usage, troubleshoot errors, prevent abuse,
+enforce rate limits, and monitor service performance"), the Cookie Policy,
+and the Data Retention Policy, all of which describe what is collected.
 
-GA4 is a different matter — it's a third-party subprocessor that sets
-cookies, so it requires consent under Quebec Law 25. The consent banner
-does not exist yet; until it ships, GA4 is inert.
+D2 originally reasoned that this first-party sink needed no consent banner —
+first-party, no third-party cookies, data in Canada, within the legitimate
+purpose of operating the service. As of 2026-08-08 the code takes the more
+conservative position and gates it on consent anyway. The reason is the
+daily-rotated `anonymous_visitor_id`: it exists to stitch a single visit's
+search → article → vote sequence, which is *profiling a visit* within the
+meaning of Quebec Law 25 s. 8.1 — technology whose identifying/profiling
+functions must be deactivated by default. Off-by-default is also the safer
+choice for a commercial operator and is reversible: if counsel later
+concludes the pseudonymous first-party sink qualifies as legitimate-interest
+collection that needs no opt-in, the gate is one line in `trackEvent()`.
+**This is a legal judgment the owner should confirm with counsel; the code
+does not assert it is settled.**
+
+GA4 is the clearer case — a third-party subprocessor that sets cookies, so it
+requires consent under Law 25 regardless. Both now load only after the
+visitor accepts through the consent banner.
 
 ## 3. Architecture
 
 ```
 Client (browser)
-  ├─ trackEvent() ──→ queue (max 10 events or 2s debounce)
+  ├─ trackEvent() ──→ hasAnalyticsConsent()? ──→ queue (max 10 events or 2s debounce)
+  │                     (no consent → no-op, no visitor id)
   │                     │
   │                     ↓ pagehide / threshold
   │                  fetch(keepalive) → support-analytics-event edge function
@@ -94,7 +114,7 @@ Client (browser)
   │                                  support_analytics_daily (aggregate, forever)
   │
   └─ loadGa4() ──→ gated on VITE_GA_MEASUREMENT_ID + hasAnalyticsConsent()
-                     (inert until consent banner ships)
+                     (loads only after the visitor accepts)
 ```
 
 ### Components
@@ -132,16 +152,24 @@ Client (browser)
   `trackEvent()` queues events, `flush()` sends them as a batch via
   `fetch(keepalive)`, `installAnalyticsFlush()` registers a `pagehide`
   flush. Same inert-unless-configured discipline as `errorReporting`:
-  inactive in dev, tests, and when `VITE_SUPABASE_URL` is unset.
+  inactive in dev, tests, and when `VITE_SUPABASE_URL` is unset — and, on top
+  of that, `trackEvent()` no-ops until `hasAnalyticsConsent()` is true.
 - **`src/features/support/analytics/visitorId.ts`**: Daily-rotated opaque
   visitor id in localStorage. Same storage-availability guard as
-  `helpFeedback.ts`.
-- **`src/features/marketing/analytics/consent.ts`**: Consent state for GA4.
-  `hasAnalyticsConsent()` returns `false` until the (future) consent banner
-  sets it.
+  `helpFeedback.ts`. Only ever called from inside a consented `trackEvent()`,
+  so no id is created for a visitor who has not opted in.
+- **`src/lib/analyticsConsent.ts`**: The shared consent state
+  (`dutiva.analytics.consent`), read by both GA4 and the first-party sink.
+  `hasAnalyticsConsent()` returns `false` until the banner records a choice;
+  `hasConsentResponse()` distinguishes "declined" from "not yet asked".
+- **`src/features/marketing/analytics/ConsentBanner.tsx`**: The consent banner
+  itself (EN/FR, equal-weight Accept/Decline). Mounted site-wide on the public
+  surface (`PublicShell` in `src/app/routes.tsx`), lazily so the GA4/consent
+  machinery stays out of the eager marketing chunk. Reopened from the footer's
+  "Cookie preferences" control via `cookiePreferences.ts`.
 - **`src/features/marketing/analytics/ga4.ts`**: GA4 loader. Gated on both
   `VITE_GA_MEASUREMENT_ID` and `hasAnalyticsConsent()`. Inert until both
-  pass.
+  pass; the banner calls it on Accept and on mount for a returning consenter.
 
 ### Wiring points
 
@@ -254,17 +282,18 @@ future redeploy:
    select * from public.support_analytics_events order by occurred_at desc limit 5;
    ```
 
-6. **GA4 (optional, separate step).** Set `VITE_GA_MEASUREMENT_ID` at build
-   time AND ship the consent banner (needs a design handoff). Without the
-   banner, GA4 stays inert even with a measurement ID configured — the
-   consent gate is structural, not optional.
+6. **GA4 (optional, separate step).** The consent banner now ships, so the
+   only remaining step is to set `VITE_GA_MEASUREMENT_ID` at build time. GA4
+   still loads only for visitors who accept analytics — the consent gate is
+   structural, not optional — and with no measurement ID it stays inert.
 
 ## 6. What this does NOT do
 
-- **No consent banner.** The first-party Supabase sink doesn't need one
-  (first-party, no third-party cookies, covered by existing Terms). GA4
-  does, and the banner is a separate deliverable that needs a design
-  handoff per AGENTS.md.
+- **No analytics without consent.** As of 2026-08-08 the consent banner
+  ships and gates both sinks; there is no longer an ungated first-party
+  path. (The remaining open question is legal, not technical — whether the
+  first-party sink strictly *requires* opt-in — and it is the owner's to
+  settle with counsel. See §2 Legal basis.)
 - **No analytics dashboard.** The data is queryable via SQL (§4). An admin
   dashboard is a separate product decision — the data model supports it,
   but building one speculatively would repeat the mistake D2 was created to

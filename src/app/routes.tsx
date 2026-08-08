@@ -35,6 +35,9 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const GuideArticlePage = lazy(() => import('@/features/marketing/pages/ArticlePage').then((m) => ({ default: m.GuideArticlePage })))
 /* prettier-ignore */ const BlogArticlePage = lazy(() => import('@/features/marketing/pages/ArticlePage').then((m) => ({ default: m.BlogArticlePage })))
 /* prettier-ignore */ const NotFoundPage = lazy(() => import('@/features/marketing/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
+/* Consent banner — lazy so the GA4/consent machinery stays out of the eager
+   marketing chunk (same discipline the vite config uses for supabase/GA4). */
+/* prettier-ignore */ const ConsentBanner = lazy(() => import('@/features/marketing/analytics/ConsentBanner').then((m) => ({ default: m.ConsentBanner })))
 /* App surface (providers + shell) — one lazy chunk, see appSurface.tsx. */
 /* prettier-ignore */ const AppWelcome = lazy(() => import('./appSurface').then((m) => ({ default: m.AppWelcome })))
 /* prettier-ignore */ const AppAuthConfirm = lazy(() => import('./appSurface').then((m) => ({ default: m.AppAuthConfirm })))
@@ -49,6 +52,11 @@ function PublicShell({ lang }: { readonly lang: Lang }) {
     <ForcedLangProvider lang={lang}>
       <Suspense fallback={null}>
         <Outlet />
+      </Suspense>
+      {/* Site-wide on the public surface, inside the language provider so its
+          copy is localized. Renders nothing until the visitor owes a choice. */}
+      <Suspense fallback={null}>
+        <ConsentBanner />
       </Suspense>
     </ForcedLangProvider>
   )

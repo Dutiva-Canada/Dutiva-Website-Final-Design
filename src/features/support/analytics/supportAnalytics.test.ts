@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { trackEvent, flush, __resetAnalyticsForTest, __testQueue } from './supportAnalytics'
 import { getVisitorId } from './visitorId'
+import { setAnalyticsConsent } from '@/lib/analyticsConsent'
 
 // Mock the env gates — without VERCEL_ENV='production' and a Supabase URL,
 // trackEvent is a no-op, which is the inert-in-tests behavior we want to
@@ -29,12 +30,27 @@ describe('supportAnalytics', () => {
     __resetAnalyticsForTest()
     mockFetchOk()
     vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
+    // Every event is consent-gated now; grant it so the "active" cases run.
+    localStorage.clear()
+    setAnalyticsConsent(true)
   })
 
   afterEach(() => {
     globalThis.fetch = originalFetch
     vi.restoreAllMocks()
     vi.unstubAllEnvs()
+    localStorage.clear()
+  })
+
+  it('records nothing until the visitor consents', () => {
+    setAnalyticsConsent(false)
+    trackEvent({ event_type: 'help_article_view', article_slug: 'test-slug' })
+    expect(__testQueue()).toHaveLength(0)
+
+    // And nothing at all when the banner has not been answered yet.
+    localStorage.clear()
+    trackEvent({ event_type: 'help_article_view', article_slug: 'test-slug' })
+    expect(__testQueue()).toHaveLength(0)
   })
 
   it('trackEvent queues an event with a visitor id', () => {

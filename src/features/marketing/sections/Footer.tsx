@@ -5,6 +5,7 @@ import { usePublicPath } from '@/seo/usePublicPath'
 import { LeafTile, Wordmark } from '../Brand'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
+import { openCookiePreferences } from '../analytics/cookiePreferences'
 
 /**
  * Footer link targets, resolved per locale at render time (usePublicPath):
@@ -55,7 +56,7 @@ const LEGAL_LINKS: FooterLink[] = [
 const LINK_CLASS = 'text-sm text-text-2 transition-opacity hover:opacity-80'
 
 export function Footer() {
-  const { lt, t } = useLanding()
+  const { lt, t, L } = useLanding()
   const { p, legalDoc, home } = usePublicPath()
 
   const renderLinks = (links: FooterLink[]) => (
@@ -144,6 +145,16 @@ export function Footer() {
               {t('legalHub_viewAll')}
               <ArrowRight size={14} />
             </Link>
+            {/* Reopens the consent banner so a prior analytics choice can be
+                changed — the revocable-consent control the Cookie Policy
+                promises. A button, not a link: it opens UI, not a page. */}
+            <button
+              type="button"
+              onClick={openCookiePreferences}
+              className={`mt-2.5 block text-left ${LINK_CLASS}`}
+            >
+              {L('Cookie preferences', 'Préférences de témoins')}
+            </button>
           </div>
         </div>
       </div>
