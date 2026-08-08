@@ -1,9 +1,27 @@
 # Auth email templates
 
-> **Owner action required.** Supabase's auth email templates are not exposed
-> through the management API or the MCP tools, so they can only be edited in the
-> dashboard: **Authentication → Emails → Templates**. Everything else described
-> here already ships in the code.
+> **Owner action required — one command.** Auth email templates live in project
+> config, not in Postgres, not in a migration, and not in `supabase/config.toml`
+> (whose `[auth.email.template.*]` entries configure the **local** stack only).
+> They can be set through the Management API, which needs a personal access
+> token — so this repo ships the change as a script rather than as a paragraph
+> of click-here instructions:
+>
+> ```bash
+> SUPABASE_ACCESS_TOKEN=sbp_… SUPABASE_PROJECT_REF=… npm run auth:email-templates
+> ```
+>
+> Get a token at <https://supabase.com/dashboard/account/tokens>. Add
+> `-- --dry-run` to print the current templates without writing. The script
+> PATCHes only the four template fields — unrelated auth settings (site URL,
+> redirect allow-list, token expiry) are untouched — then re-reads the config
+> and fails unless both templates really contain `{{ .Token }}`, so a field the
+> API ignored cannot read as success.
+>
+> The equivalent paste-into-the-dashboard route (**Authentication → Emails →
+> Templates**) is below and produces the same result.
+>
+> Everything else described here already ships in the code.
 
 ## Why this file exists
 
@@ -42,10 +60,19 @@ comment, was that a scanner has "no JS". That assumption was wrong.
    and `AuthSignInForm`). This is the robust path: a code cannot be spent by
    anything that merely fetches or renders a URL, on any mail provider.
 
-## What you need to change in the dashboard
+## What the templates need to say
 
-The code path only works if the email actually contains the code. Add
-`{{ .Token }}` to both templates below.
+The code path only works if the email actually contains the code — `{{ .Token }}`
+in both templates below. `npm run auth:email-templates` applies exactly this;
+the markup here is the same content, for pasting into the dashboard instead.
+
+> The Management API field names the script writes
+> (`mailer_templates_magic_link_content`, `mailer_subjects_magic_link`, and the
+> `…_confirmation…` pair) could not be exercised from the environment this was
+> written in — its egress policy blocks `api.supabase.com`. That is exactly why
+> the script verifies by re-reading the config afterwards instead of trusting
+> the PATCH: if a name is wrong, it exits non-zero and says so rather than
+> reporting success. If that happens, use the dashboard route below.
 
 > **Note.** `{{ .Token }}` (the 6-digit code) and `{{ .TokenHash }}` (used in
 > the link) are two representations of the *same* one-time credential —

@@ -36,6 +36,7 @@
  */
 
 import { appendFile } from 'node:fs/promises'
+import { cleanSecret, describeSecret } from './lib/secrets.mjs'
 
 /**
  * Tables the anonymous role must never return rows from. Every entry is a place
@@ -84,8 +85,12 @@ async function announceSkippedCheck(message) {
   }
 }
 
-const rawUrl = process.env.SUPABASE_URL
-const anonKey = process.env.SUPABASE_ANON_KEY
+/* Cleaned for the same reason the drift check cleans its token: a pasted value
+   with a trailing newline or wrapping quotes fails as an opaque 401, which on
+   THIS check would be doubly bad — the positive control would trip and report
+   a broken key rather than the RLS answer it exists to give. */
+const rawUrl = cleanSecret(process.env.SUPABASE_URL)
+const anonKey = cleanSecret(process.env.SUPABASE_ANON_KEY)
 
 if (!rawUrl || !anonKey) {
   const message =
@@ -157,7 +162,8 @@ try {
   if (control.status !== 200) {
     console.error(
       `check-rls: positive control ${POSITIVE_CONTROL} returned ${control.status} — ` +
-        `the anon key or SUPABASE_URL is wrong, so every result below is meaningless.` +
+        `the anon key or SUPABASE_URL is wrong, so every result below is meaningless.\n` +
+        `  SUPABASE_ANON_KEY ${describeSecret(process.env.SUPABASE_ANON_KEY)}` +
         (control.body ? `\n  body: ${control.body}` : ''),
     )
     process.exit(1)
