@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "check:migrations": "node scripts/check-migrations.mjs",
     "check:rls": "node scripts/check-rls.mjs",
     "check:facts": "node scripts/check-canonical-facts.mjs",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@babel/parser": "^7.29.7",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

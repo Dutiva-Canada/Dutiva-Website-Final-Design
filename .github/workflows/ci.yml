@@ -92,3 +92,34 @@ jobs:
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+
+  # ── End-to-end smoke tests. Builds the production bundle and drives it in a
+  # real Chromium behind the same routing contract Vercel serves (via
+  # e2e/serve-dist.mjs), catching integration regressions the jsdom unit tests
+  # structurally cannot: prerender + hydration, the /app rewrite, clean-URL
+  # routing, and the analytics consent gate. Its own job — deterministic and
+  # credential-free like `check`, but a browser download and runtime that a
+  # real-Chromium flake should never be allowed to charge against the gate.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # GitHub's runners have no preinstalled browser (unlike some managed
+      # dev environments), so fetch Chromium and its OS libraries here. The
+      # Playwright config points at a preinstalled binary only when one exists,
+      # so this install is what it falls back to.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # The e2e server (e2e/serve-dist.mjs) serves dist/, so build it first.
+      - name: Build
+        run: npm run build
+
+      - name: Run e2e smoke tests
+        run: npm run test:e2e
