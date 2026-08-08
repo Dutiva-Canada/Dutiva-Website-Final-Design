@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { listChain } from '@/test/productionWorkspace'
 
 /** Same per-test client mock + fresh import pattern as workspaceMode/api.test.ts. */
 describe('employees productionApi', () => {
@@ -18,7 +19,7 @@ describe('employees productionApi', () => {
   }
 
   it('listEmployees returns parsed, camel-cased rows scoped to the org', async () => {
-    const order = vi.fn().mockResolvedValue({ data: [ROW], error: null })
+    const order = vi.fn().mockReturnValue(listChain([ROW]))
     const eq = vi.fn().mockReturnValue({ order })
     const select = vi.fn().mockReturnValue({ eq })
     vi.doMock('@/lib/supabaseClient', () => ({
@@ -45,7 +46,7 @@ describe('employees productionApi', () => {
   })
 
   it('listEmployees throws (not silently empties) when the read fails', async () => {
-    const order = vi.fn().mockResolvedValue({ data: null, error: new Error('rls') })
+    const order = vi.fn().mockReturnValue(listChain([], new Error('rls')))
     const eq = vi.fn().mockReturnValue({ order })
     const select = vi.fn().mockReturnValue({ eq })
     vi.doMock('@/lib/supabaseClient', () => ({

@@ -1,113 +1,36 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-/** Same per-test client mock + fresh import pattern as the other productionApi tests. */
-describe('compliance productionApi', () => {
-  afterEach(() => {
-    vi.doUnmock('@/lib/supabaseClient')
-    vi.resetModules()
+/**
+ * The obligations boundary's deploy-gap behavior: the app ships from main
+ * immediately while migration 0069 is a manual owner step, so for a while
+ * hr_obligations may not exist. That must read as an empty register (score
+ * component null, three-component blend) — not as an error that takes down
+ * the production score card. Any other failure still throws.
+ */
+
+function mockClient(error: { code?: string; message?: string }) {
+  const range = vi.fn().mockResolvedValue({ data: null, error })
+  const order2 = vi.fn().mockReturnValue({ range })
+  const order1 = vi.fn().mockReturnValue({ order: order2 })
+  const eq = vi.fn().mockReturnValue({ order: order1 })
+  const select = vi.fn().mockReturnValue({ eq })
+  vi.doMock('@/lib/supabaseClient', () => ({
+    supabase: { from: vi.fn().mockReturnValue({ select }) },
+  }))
+  vi.resetModules()
+}
+
+describe('listObligations — pre-0069 deploy gap', () => {
+  it('treats a missing hr_obligations table as an empty register', async () => {
+    mockClient({ code: 'PGRST205', message: 'Could not find the table' })
+    const api = await import('./productionApi')
+    expect(await api.listObligations('org-1')).toEqual([])
   })
 
-  const ROW = {
-    id: 'finding-1',
-    title: 'Vacation accrual policy missing for Quebec staff',
-    description: 'No written policy covers CNESST vacation accrual rules.',
-    recommendation: 'Draft a Quebec-specific vacation policy addendum.',
-    severity: 'high',
-    status: 'open',
-  }
-
-  it('listFindings parses rows and derives resolved from status', async () => {
-    const order = vi.fn().mockResolvedValue({
-      data: [ROW, { ...ROW, id: 'finding-2', status: 'dismissed' }],
-      error: null,
-    })
-    const eq = vi.fn().mockReturnValue({ order })
-    const select = vi.fn().mockReturnValue({ eq })
-    vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: { from: vi.fn().mockReturnValue({ select }) },
-    }))
-    vi.resetModules()
+  it('still throws every other error', async () => {
+    const boom = { code: '42501', message: 'permission denied' }
+    mockClient(boom)
     const api = await import('./productionApi')
-
-    const rows = await api.listFindings('org-1')
-    expect(eq).toHaveBeenCalledWith('organization_id', 'org-1')
-    expect(rows[0]).toMatchObject({ severity: 'high', resolved: false })
-    /* dismissed counts as closed even though the UI never writes it. */
-    expect(rows[1]).toMatchObject({ status: 'dismissed', resolved: true })
-  })
-
-  it('addFinding inserts with the org id and nulls empty optionals', async () => {
-    const single = vi.fn().mockResolvedValue({
-      data: { ...ROW, description: null, recommendation: null },
-      error: null,
-    })
-    const select = vi.fn().mockReturnValue({ single })
-    const insert = vi.fn().mockReturnValue({ select })
-    vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: { from: vi.fn().mockReturnValue({ insert }) },
-    }))
-    vi.resetModules()
-    const api = await import('./productionApi')
-
-    await api.addFinding('org-1', {
-      title: 'Vacation accrual policy missing for Quebec staff',
-      severity: 'high',
-      description: '',
-      recommendation: '',
-    })
-    expect(insert).toHaveBeenCalledWith({
-      organization_id: 'org-1',
-      title: 'Vacation accrual policy missing for Quebec staff',
-      severity: 'high',
-      description: null,
-      recommendation: null,
-    })
-  })
-
-  it('setFindingResolved resolves and reopens with resolved_at stamped/cleared', async () => {
-    const eq = vi.fn().mockResolvedValue({ error: null })
-    const update = vi.fn().mockReturnValue({ eq })
-    vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: { from: vi.fn().mockReturnValue({ update }) },
-    }))
-    vi.resetModules()
-    const api = await import('./productionApi')
-
-    await api.setFindingResolved('finding-1', true)
-    expect(update).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'resolved', resolved_at: expect.any(String) }),
-    )
-
-    await api.setFindingResolved('finding-1', false)
-    expect(update).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'open', resolved_at: null }),
-    )
-  })
-
-  it('listFindings throws when the read fails', async () => {
-    const order = vi.fn().mockResolvedValue({ data: null, error: new Error('rls') })
-    const eq = vi.fn().mockReturnValue({ order })
-    const select = vi.fn().mockReturnValue({ eq })
-    vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: { from: vi.fn().mockReturnValue({ select }) },
-    }))
-    vi.resetModules()
-    const api = await import('./productionApi')
-
-    await expect(api.listFindings('org-1')).rejects.toThrow()
-  })
-
-  it('countOpenFindings issues a head count excluding resolved and dismissed', async () => {
-    const notFn = vi.fn().mockResolvedValue({ count: 1, error: null })
-    const eq = vi.fn().mockReturnValue({ not: notFn })
-    const select = vi.fn().mockReturnValue({ eq })
-    vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: { from: vi.fn().mockReturnValue({ select }) },
-    }))
-    vi.resetModules()
-    const api = await import('./productionApi')
-
-    expect(await api.countOpenFindings('org-1')).toBe(1)
-    expect(notFn).toHaveBeenCalledWith('status', 'in', '(resolved,dismissed)')
+    await expect(api.listObligations('org-1')).rejects.toBe(boom)
   })
 })

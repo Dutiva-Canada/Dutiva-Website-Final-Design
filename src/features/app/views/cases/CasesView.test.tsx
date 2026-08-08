@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
 import { Route, Routes } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
+import { listChain } from '@/test/productionWorkspace'
 import { CasesView } from './CasesView'
 import { CaseDetailView } from './CaseDetailView'
 import { resetCreatedCases } from './caseModel'
@@ -188,7 +189,7 @@ describe('CasesView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: caseRows, error: null }),
+                  order: () => listChain(caseRows),
                 }),
               }),
               insert,
@@ -199,7 +200,7 @@ describe('CasesView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: employeeRows, error: null }),
+                  order: () => listChain(employeeRows),
                 }),
               }),
             }
@@ -391,7 +392,7 @@ describe('CaseDetailView in production mode', () => {
               select: () => ({
                 eq: () => ({
                   maybeSingle: () => Promise.resolve({ data: CASE_ROW, error: null }),
-                  order: () => Promise.resolve({ data: [CASE_ROW], error: null }),
+                  order: () => listChain([CASE_ROW]),
                 }),
               }),
             }
@@ -400,7 +401,7 @@ describe('CaseDetailView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: [...noteRows], error: null }),
+                  order: () => listChain([...noteRows]),
                 }),
               }),
               insert: noteInsert,

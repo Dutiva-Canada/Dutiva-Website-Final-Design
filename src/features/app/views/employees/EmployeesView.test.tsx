@@ -1,6 +1,7 @@
 ﻿import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
+import { listChain } from '@/test/productionWorkspace'
 import { ADVISOR_STREAM_TICK_MS, ADVISOR_THINK_MS } from '@/features/app/advisor/useAdvisorEngine'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { EmployeesView } from './EmployeesView'
@@ -181,7 +182,7 @@ describe('EmployeesView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: employeeRows, error: null }),
+                  order: () => listChain(employeeRows),
                 }),
               }),
               insert,
@@ -343,7 +344,7 @@ describe('EmployeeProfileView in production mode', () => {
               select: () => ({
                 eq: () => ({
                   maybeSingle: () => Promise.resolve({ data: EMPLOYEE_ROW, error: null }),
-                  order: () => Promise.resolve({ data: [EMPLOYEE_ROW], error: null }),
+                  order: () => listChain([EMPLOYEE_ROW]),
                 }),
               }),
             }
@@ -352,7 +353,7 @@ describe('EmployeeProfileView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: [CASE_ROW], error: null }),
+                  order: () => listChain([CASE_ROW]),
                 }),
               }),
             }
@@ -361,7 +362,7 @@ describe('EmployeeProfileView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: [...noteRows], error: null }),
+                  order: () => listChain([...noteRows]),
                 }),
               }),
               insert: noteInsert,
@@ -377,7 +378,7 @@ describe('EmployeeProfileView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: [], error: null }),
+                  order: () => listChain([]),
                 }),
               }),
             }
@@ -483,7 +484,7 @@ describe('EmployeeProfileProductionView for a non-admin member', () => {
           return {
             select: () => ({
               eq: () => ({
-                order: () => Promise.resolve({ data: [], error: null }),
+                order: () => listChain([]),
               }),
             }),
           }

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import { fetchAllPages } from '@/lib/supabasePagination'
 
 /**
  * Real persistence for the Policy register (production mode) —
@@ -50,12 +51,16 @@ function toPolicy(row: z.infer<typeof rowSchema>): ProductionPolicy {
 
 export async function listPolicies(organizationId: string): Promise<ProductionPolicy[]> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
-    .from('hr_policies')
-    .select(SELECT_COLUMNS)
-    .eq('organization_id', organizationId)
-    .order('name')
-  if (error) throw error
+  const client = supabase
+  const data = await fetchAllPages((from, to) =>
+    client
+      .from('hr_policies')
+      .select(SELECT_COLUMNS)
+      .eq('organization_id', organizationId)
+      .order('name')
+      .order('id')
+      .range(from, to),
+  )
   return z.array(rowSchema).parse(data).map(toPolicy)
 }
 

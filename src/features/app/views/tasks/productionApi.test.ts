@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { listChain } from '@/test/productionWorkspace'
 
 /** Same per-test client mock + fresh import pattern as the other productionApi tests. */
 describe('tasks productionApi', () => {
@@ -17,10 +18,9 @@ describe('tasks productionApi', () => {
   }
 
   it('listTasks parses rows, derives done and a date-only due date', async () => {
-    const order = vi.fn().mockResolvedValue({
-      data: [ROW, { ...ROW, id: 'task-2', status: 'completed', due_at: null }],
-      error: null,
-    })
+    const order = vi
+      .fn()
+      .mockReturnValue(listChain([ROW, { ...ROW, id: 'task-2', status: 'completed', due_at: null }]))
     const eq = vi.fn().mockReturnValue({ order })
     const select = vi.fn().mockReturnValue({ eq })
     vi.doMock('@/lib/supabaseClient', () => ({
@@ -46,10 +46,7 @@ describe('tasks productionApi', () => {
   })
 
   it('tolerates backend statuses beyond the checklist vocabulary (in_progress → not done)', async () => {
-    const order = vi.fn().mockResolvedValue({
-      data: [{ ...ROW, status: 'in_progress' }],
-      error: null,
-    })
+    const order = vi.fn().mockReturnValue(listChain([{ ...ROW, status: 'in_progress' }]))
     const eq = vi.fn().mockReturnValue({ order })
     const select = vi.fn().mockReturnValue({ eq })
     vi.doMock('@/lib/supabaseClient', () => ({

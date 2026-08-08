@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
 import { useLocation } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
+import { listChain } from '@/test/productionWorkspace'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { TasksView } from './TasksView'
 
@@ -174,7 +175,7 @@ describe('TasksView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: taskRows, error: null }),
+                  order: () => listChain(taskRows),
                 }),
               }),
               insert,

@@ -145,22 +145,29 @@ History is written two ways:
   row with the service role using the same formula
   (`supabase/functions/record-score-snapshots/scoring.ts`, drift-tested
   against the app's copy). Two schedules share it: a daily run at 05:30
-  UTC keeps the current month fresh, and a month-close run at 00:05 UTC
-  on the 1st also freezes the month that just ended with the state at
-  the UTC month boundary — the same boundary every monthISO in this
-  system is defined by, so nothing later than the boundary can be
-  missing from a frozen month. Outside that first UTC hour of the 1st
+  UTC keeps the current month fresh, and a month-close run — three
+  idempotent attempts at 00:05/00:25/00:45 UTC on the 1st (0070; pg_cron
+  does not backfill a missed run, so one shot was one transient failure
+  away from silently losing a close) — also freezes the month that just
+  ended. The frozen value is the state within the first UTC hour after
+  the month boundary (the boundary every monthISO in this system is
+  defined by), so up to ~an hour of post-boundary skew is possible by
+  design; if every attempt in that hour fails, the month stays at its
+  last daily-run state, and `score_snapshot_status()` makes that visible
+  (`orgs_with_closed_prev_month` vs the total). Outside that first hour
   the previous month is never touched, so a manual or late fire cannot
-  rewrite frozen history. Every read the job makes is paginated
-  (PostgREST silently caps un-ranged selects at 1,000 rows — an
-  unpaginated job would score a large org on a truncated slice). Orgs
-  with no scoreable rows are skipped, same as the view. Scheduling
-  lives in the database for the same reason the law monitor's does: a
-  hosting or repo move can't silently kill it. Check it in one query:
-  `select * from public.score_snapshot_status();` — and note that
-  pg_cron reporting a successful run only proves the HTTP request was
-  queued; whether rows are actually landing is what the status query
-  shows.
+  rewrite frozen history. Every read — the job's and the app's list
+  boundaries alike — is paginated (`fetchAllPages` /
+  `src/lib/supabasePagination.ts`: PostgREST silently caps un-ranged
+  selects at 1,000 rows, which would score a large org on a truncated
+  slice and let a visit persist that wrong number over the job's correct
+  one). Orgs with no scoreable rows are skipped, same as the view.
+  Scheduling lives in the database for the same reason the law
+  monitor's does: a hosting or repo move can't silently kill it. Check
+  it in one query: `select * from public.score_snapshot_status();` —
+  and note that pg_cron reporting a successful run only proves the HTTP
+  request was queued; whether rows are actually landing is what the
+  status query shows.
 
 Past months freeze by construction. The trend chart shows the most
 recent **6 monthly points** — frozen snapshots plus the live current
@@ -251,11 +258,12 @@ turnover denominator — lives in `AnalyticsView.tsx` /
   which puts most overdue first, then soonest-due; ties break on id.
   Status: overdue (past due), due soon (≤14 days), upcoming. The card
   shows the top 5. In production the pool is open tasks and unresolved
-  cases with due dates, plus expiry escalations (expired
-  certifications; documents expired or due within 30 days — an expiring
-  work permit is a compliance event). The demo card feeds the same
-  ranking from its own pool: dated compliance obligations and
-  unresolved compliance items, plus the same expiry escalations.
+  cases with due dates, dated obligations without evidence on file
+  (v3), plus expiry escalations (expired certifications; documents
+  expired or due within 30 days — an expiring work permit is a
+  compliance event). The demo card feeds the same ranking from its own
+  pool: dated compliance obligations and unresolved compliance items,
+  plus the same expiry escalations.
 - **Expiry buckets** (`expiryBuckets`): expired · ≤30 · 31–60 · 61–90
   days, soonest first; records more than 90 days out are excluded — the
   cards look one quarter ahead.
@@ -288,9 +296,9 @@ All modules load once at page level through per-module loaders with
 independent retry; each card declares its dependencies and renders its
 own skeleton/empty/error states, so a failing module degrades only the
 cards that depend on it, never the page. (One deliberate looseness: the
-needs-attention card gates only on tasks and cases — expiry escalations
-drop out silently while the expiry-records module is loading or
-failed.)
+needs-attention card gates on tasks, cases and obligations — expiry
+escalations drop out silently while the expiry-records module is
+loading or failed.)
 
 ## 5. Advisor risk and confidence
 
@@ -390,11 +398,14 @@ version in **both** copies (`aggregation.ts` and the edge function's
   job's reads paginated.
 
 Deploy-gap honesty: the app deploys from main immediately while
-migrations are a manual owner step, so both snapshot paths degrade
-rather than break in the gap — reads fall back to the legacy column
-shape, and a write rejected for the missing `formula_version` column
+migrations are a manual owner step, so every scoring path degrades
+rather than breaks in the gap — snapshot reads fall back to the legacy
+column shape; a write rejected for the missing `formula_version` column
 retries without it (the missing label self-heals when the job next
-re-stamps the month). A stale pre-deploy browser tab can briefly write
+re-stamps the month); and a missing `hr_obligations` table (pre-0069)
+reads as an empty register on both the app boundary and the snapshot
+job, so the score blends three components instead of erroring the card
+or failing the sweep. A stale pre-deploy browser tab can briefly write
 an old-formula score onto a row the job stamped; the next daily run
 overwrites it. Version labels are therefore trustworthy to within one
 day, not to the minute.

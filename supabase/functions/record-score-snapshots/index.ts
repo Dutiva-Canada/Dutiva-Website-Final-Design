@@ -17,12 +17,18 @@ import { SCORE_FORMULA_VERSION, computeOrgScore } from './scoring.ts'
  *
  * Two schedules share this function:
  *  - daily 05:30 UTC — keeps the current month fresh;
- *  - 00:05 UTC on the 1st — the month-close run. During the first UTC
- *    hour of the 1st the job ALSO upserts the month that just ended, so
- *    the frozen row is the state at the UTC month boundary (the same
+ *  - month-close: 00:05/00:25/00:45 UTC on the 1st (0070 — three
+ *    idempotent attempts, because pg_cron does not backfill a missed run
+ *    and net.http_post is fire-and-forget: one transient failure must not
+ *    silently lose a month's close). During the first UTC hour of the 1st
+ *    the job ALSO upserts the month that just ended, so the frozen row is
+ *    the state within an hour of the UTC month boundary (the same
  *    boundary every monthISO in this system is defined by), not the state
- *    at the last 05:30. Outside that hour the previous month is never
- *    touched, so a manual fire cannot rewrite a frozen month.
+ *    at the last 05:30. If every attempt in that hour fails, the month
+ *    stays at its last daily-run state — score_snapshot_status() exposes
+ *    close coverage so that miss is visible, not silent. Outside that
+ *    hour the previous month is never touched, so a manual fire cannot
+ *    rewrite a frozen month.
  *
  * Every read is paginated: PostgREST caps un-ranged selects at max_rows
  * (1000 on hosted Supabase) with NO error, which would silently score an
@@ -51,19 +57,34 @@ function isAuthorizedTrigger(req: Request): boolean {
 
 const PAGE = 1000
 
-/** Fetch ALL rows of a select, page by page — never trust one un-ranged read. */
+/** PostgREST/Postgres codes for a relation that does not exist (yet). */
+function isMissingTable(error: { code?: string } | null): boolean {
+  return error?.code === 'PGRST205' || error?.code === '42P01'
+}
+
+/**
+ * Fetch ALL rows of a select, page by page — never trust one un-ranged
+ * read. `optionalTable` treats a missing relation as zero rows: the
+ * function can be deployed ahead of the migration that creates a table
+ * (hr_obligations, 0069), and one missing optional table must degrade
+ * that component to null — not fail every org in the sweep.
+ */
 async function fetchAll<T>(
   supabase: SupabaseClient,
   table: string,
   columns: string,
   organizationId: string | null,
+  { optionalTable = false } = {},
 ): Promise<T[]> {
   const rows: T[] = []
   for (let from = 0; ; from += PAGE) {
     let query = supabase.from(table).select(columns).order('id').range(from, from + PAGE - 1)
     if (organizationId !== null) query = query.eq('organization_id', organizationId)
     const { data, error } = await query
-    if (error) throw error
+    if (error) {
+      if (optionalTable && isMissingTable(error)) return rows
+      throw error
+    }
     rows.push(...((data ?? []) as T[]))
     if ((data ?? []).length < PAGE) return rows
   }
@@ -126,7 +147,9 @@ Deno.serve(async (req) => {
           'id, severity, status',
           org.id,
         ),
-        fetchAll<{ status: string }>(supabase, 'hr_obligations', 'id, status', org.id),
+        fetchAll<{ status: string }>(supabase, 'hr_obligations', 'id, status', org.id, {
+          optionalTable: true,
+        }),
         fetchAll<{ status: string }>(supabase, 'employees', 'id, status', org.id),
       ])
 

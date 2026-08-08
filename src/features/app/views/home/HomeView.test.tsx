@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
 import { useLocation } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
+import { listChain } from '@/test/productionWorkspace'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { HomeView } from './HomeView'
 import { HomeCompliancePanel } from './HomeCompliancePanel'
@@ -277,7 +278,7 @@ describe('HomeView production command centre', () => {
           return {
             select: () => ({
               eq: () => ({
-                order: () => Promise.resolve({ data: tables[table] ?? [], error: null }),
+                order: () => listChain(tables[table] ?? []),
               }),
             }),
           }

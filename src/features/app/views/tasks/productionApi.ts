@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import { fetchAllPages } from '@/lib/supabasePagination'
 
 /**
  * Real persistence for Tasks (production mode) — reads and writes the
@@ -78,12 +79,16 @@ function toTask(row: z.infer<typeof rowSchema>): ProductionTask {
 
 export async function listTasks(organizationId: string): Promise<ProductionTask[]> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
-    .from('compliance_tasks')
-    .select(SELECT_COLUMNS)
-    .eq('organization_id', organizationId)
-    .order('created_at', { ascending: false })
-  if (error) throw error
+  const client = supabase
+  const data = await fetchAllPages((from, to) =>
+    client
+      .from('compliance_tasks')
+      .select(SELECT_COLUMNS)
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false })
+      .order('id')
+      .range(from, to),
+  )
   return z.array(rowSchema).parse(data).map(toTask)
 }
 

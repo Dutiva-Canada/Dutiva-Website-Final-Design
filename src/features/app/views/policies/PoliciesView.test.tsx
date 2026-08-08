@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
+import { listChain } from '@/test/productionWorkspace'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { DocStudioOverlay } from '@/features/app/docstudio/DocStudioOverlay'
 import { PoliciesView } from './PoliciesView'
@@ -165,7 +166,7 @@ describe('PoliciesView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: policyRows, error: null }),
+                  order: () => listChain(policyRows),
                 }),
               }),
               insert,
