@@ -59,15 +59,16 @@ export function AuthMenuButton({ compact = false }: { readonly compact?: boolean
               </div>
             )}
 
-            {status === 'signed-out' && (
+            {/* One branch for both states, and deliberately so: the form itself
+                shows the "check your email" confirmation and then takes the
+                6-digit code. Splitting them would remount the form at the
+                moment the status flips to 'sent-link', discarding the address
+                it needs to verify that code against. */}
+            {(status === 'signed-out' || status === 'sent-link') && (
               <div className="flex flex-col gap-[10px]">
                 <p className="text-[12.5px] text-text-2">{x(M.auth_menu_description)}</p>
                 <AuthSignInForm idPrefix="topbar" />
               </div>
-            )}
-
-            {status === 'sent-link' && (
-              <p className="text-[13px] text-text-2">{x(M.auth_link_sent)}</p>
             )}
 
             {status === 'signed-in' && (

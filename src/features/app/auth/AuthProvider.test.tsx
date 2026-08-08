@@ -454,4 +454,119 @@ describe('AuthProvider', () => {
     errorSpy.mockRestore()
     localStorage.clear()
   })
+
+  /**
+   * The emailed 6-digit code is the one sign-in route a mailbox security
+   * scanner cannot spend on the recipient's behalf (it has to be typed), so it
+   * has to work for both cases the one sign-in form produces: an existing
+   * account and a first-time signup, whose codes carry different OTP types.
+   */
+  it('verifies a sign-in code, falling back to the signup OTP type', async () => {
+    const verifyOtp = vi
+      .fn()
+      /* Existing-account type first; a mismatch is a lookup miss, not a spend. */
+      .mockResolvedValueOnce({ error: { message: 'Token not found' } })
+      .mockResolvedValueOnce({ error: null })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () => Promise.resolve({ data: { session: null } }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+          verifyOtp,
+        },
+      },
+    }))
+    vi.resetModules()
+    const { AuthProvider } = await import('./AuthProvider')
+    const { useAuth } = await import('./authContext')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+
+    function Probe() {
+      const { verifyEmailCode } = useAuth()
+      const [result, setResult] = useState('pending')
+      return (
+        <div>
+          <span data-testid="result">{result}</span>
+          <button
+            onClick={() =>
+              /* Spaces as a mail client renders them — stripped before sending. */
+              void verifyEmailCode('owner@example.ca', '123 456').then((e) =>
+                setResult(e ?? 'ok'),
+              )
+            }
+          >
+            verify
+          </button>
+        </div>
+      )
+    }
+
+    const user = userEvent.setup()
+    render(
+      <LangProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </LangProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: 'verify' }))
+
+    expect(await screen.findByTestId('result')).toHaveTextContent('ok')
+    expect(verifyOtp).toHaveBeenNthCalledWith(1, {
+      email: 'owner@example.ca',
+      token: '123456',
+      type: 'email',
+    })
+    expect(verifyOtp).toHaveBeenNthCalledWith(2, {
+      email: 'owner@example.ca',
+      token: '123456',
+      type: 'signup',
+    })
+  })
+
+  it('returns a localized message when the code is rejected outright', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const verifyOtp = vi.fn().mockResolvedValue({ error: { message: 'Token has expired' } })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () => Promise.resolve({ data: { session: null } }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+          verifyOtp,
+        },
+      },
+    }))
+    vi.resetModules()
+    const { AuthProvider } = await import('./AuthProvider')
+    const { useAuth } = await import('./authContext')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+
+    function Probe() {
+      const { verifyEmailCode } = useAuth()
+      const [result, setResult] = useState('pending')
+      return (
+        <div>
+          <span data-testid="result">{result}</span>
+          <button onClick={() => void verifyEmailCode('o@e.ca', '000000').then((e) => setResult(e ?? 'ok'))}>
+            verify
+          </button>
+        </div>
+      )
+    }
+
+    const user = userEvent.setup()
+    render(
+      <LangProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </LangProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: 'verify' }))
+
+    /* Never Supabase's raw English message — it would leak into the French UI. */
+    expect(await screen.findByTestId('result')).toHaveTextContent(/isn’t valid or has expired/)
+    expect(verifyOtp).toHaveBeenCalledTimes(2)
+    errorSpy.mockRestore()
+  })
 })

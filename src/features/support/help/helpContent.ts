@@ -24,8 +24,8 @@ export const HELP_SECTIONS: Record<string, readonly HelpSection[]> = {
     {
       blocks: [
         p(
-          'Dutiva uses passwordless sign-in. Enter the email address on your account and we email you a secure, one-time link. Opening that link signs you in and takes you into the app.',
-          'Dutiva utilise une connexion sans mot de passe. Saisissez l’adresse courriel de votre compte et nous vous envoyons un lien sécurisé à usage unique. Ouvrir ce lien vous connecte et vous mène à l’application.',
+          'Dutiva uses passwordless sign-in. Enter the email address on your account and we email you a 6-digit sign-in code, along with a link. Type the code on the sign-in screen — or open the link and press “Confirm sign-in” — and you’re in.',
+          'Dutiva utilise une connexion sans mot de passe. Saisissez l’adresse courriel de votre compte et nous vous envoyons un code de connexion à 6 chiffres, accompagné d’un lien. Saisissez le code sur l’écran de connexion — ou ouvrez le lien et appuyez sur « Confirmer la connexion » — et vous y êtes.',
         ),
       ],
     },
@@ -33,16 +33,20 @@ export const HELP_SECTIONS: Record<string, readonly HelpSection[]> = {
       heading: bi('If the link doesn’t work', 'Si le lien ne fonctionne pas'),
       blocks: [
         li(
-          'Each link can be used once and expires after a short time. Request a new one if it has been a while.',
-          'Chaque lien ne peut être utilisé qu’une fois et expire après un court délai. Demandez-en un nouveau s’il s’est écoulé du temps.',
+          'Type the 6-digit code instead. Some corporate mail systems open links automatically to scan them, which can use up a one-time link before you click it. A code can’t be used up that way.',
+          'Saisissez plutôt le code à 6 chiffres. Certains systèmes de messagerie d’entreprise ouvrent automatiquement les liens pour les analyser, ce qui peut consommer un lien à usage unique avant même que vous cliquiez. Un code ne peut pas être consommé de cette façon.',
         ),
         li(
-          'Open the most recent email — an older link is no longer valid.',
-          'Ouvrez le courriel le plus récent — un lien plus ancien n’est plus valide.',
+          'Each code and link can be used once and expires after a short time. Request a new one if it has been a while.',
+          'Chaque code et chaque lien ne peuvent être utilisés qu’une fois et expirent après un court délai. Demandez-en un nouveau s’il s’est écoulé du temps.',
         ),
         li(
-          'You can open the link on any device; you don’t have to use the same browser that requested it.',
-          'Vous pouvez ouvrir le lien sur n’importe quel appareil; vous n’êtes pas obligé d’utiliser le même navigateur que celui qui l’a demandé.',
+          'Open the most recent email — an older code or link is no longer valid.',
+          'Ouvrez le courriel le plus récent — un code ou un lien plus ancien n’est plus valide.',
+        ),
+        li(
+          'You can use the code or link on any device; you don’t have to use the same browser that requested it.',
+          'Vous pouvez utiliser le code ou le lien sur n’importe quel appareil; vous n’êtes pas obligé d’utiliser le même navigateur que celui qui l’a demandé.',
         ),
       ],
     },

@@ -21,6 +21,7 @@ function renderPanel(overrides: Partial<AuthContextValue> = {}) {
     session: null,
     authorized: null,
     signInWithEmail: vi.fn(async () => undefined),
+    verifyEmailCode: vi.fn(async () => undefined),
     signOut: vi.fn(async () => {}),
     ...overrides,
   }
@@ -94,6 +95,39 @@ describe('AuthPanel', () => {
 
     await user.click(screen.getByRole('button', { name: 'Use a different email' }))
     expect(screen.getByRole('button', { name: 'Send sign-in link' })).toBeInTheDocument()
+  })
+
+  /**
+   * The scanner-proof route. A magic link is spent by whatever fetches it
+   * first — Google Workspace's scanner runs JavaScript and did exactly that on
+   * 2026-08-08 — so the emailed code has to be able to complete a sign-in on
+   * its own, against the address the code was sent to.
+   */
+  it('verifies the emailed code against the address it was sent to', async () => {
+    const user = userEvent.setup()
+    const { verifyEmailCode } = renderPanel()
+
+    await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
+    await user.click(screen.getByRole('button', { name: 'Send sign-in link' }))
+
+    await user.type(await screen.findByLabelText('Sign-in code'), '123456')
+    await user.click(screen.getByRole('button', { name: 'Sign in' }))
+
+    expect(verifyEmailCode).toHaveBeenCalledWith('owner@example.ca', '123456')
+  })
+
+  it('surfaces a rejected code without leaving the code step', async () => {
+    const user = userEvent.setup()
+    renderPanel({ verifyEmailCode: vi.fn(async () => 'That code isn’t valid or has expired.') })
+
+    await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
+    await user.click(screen.getByRole('button', { name: 'Send sign-in link' }))
+
+    await user.type(await screen.findByLabelText('Sign-in code'), '000000')
+    await user.click(screen.getByRole('button', { name: 'Sign in' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/isn’t valid or has expired/)
+    expect(screen.getByLabelText('Sign-in code')).toBeInTheDocument()
   })
 
   it('shows a not-authorized notice with sign-out for a session on another account', async () => {

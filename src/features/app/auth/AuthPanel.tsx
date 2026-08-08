@@ -35,12 +35,15 @@ const primaryBtnClass =
 export function AuthPanel() {
   const { x, L, lang } = useI18n()
   const { legalDoc } = usePublicPath()
-  const { status, session, signInWithEmail, signOut } = useAuth()
+  const { status, session, signInWithEmail, verifyEmailCode, signOut } = useAuth()
   const [mode, setMode] = useState<Mode>('signin')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | undefined>()
+  /** The emailed 6-digit code, and whether it is being verified. */
+  const [code, setCode] = useState('')
+  const [verifying, setVerifying] = useState(false)
   /** The address a link was sent to — drives the confirmation view locally so
       "use a different email" can return to the form without a provider reset. */
   const [sentTo, setSentTo] = useState<string | undefined>()
@@ -51,10 +54,25 @@ export function AuthPanel() {
   const send = (targetEmail: string, withName: boolean) => {
     setSending(true)
     setError(undefined)
+    setCode('')
     void signInWithEmail(targetEmail, withName ? { name } : undefined).then((nextError) => {
       setSending(false)
       if (nextError) setError(nextError)
       else setSentTo(targetEmail)
+    })
+  }
+
+  /* Verifying the emailed code signs in directly, so the flow never depends on
+     a link surviving the recipient's mailbox — see verifyEmailCode. On success
+     the session arrives through onAuthStateChange and EntryStage takes over. */
+  const submitCode = (e: SubmitEvent) => {
+    e.preventDefault()
+    if (!sentTo) return
+    setVerifying(true)
+    setError(undefined)
+    void verifyEmailCode(sentTo, code).then((nextError) => {
+      setVerifying(false)
+      if (nextError) setError(nextError)
     })
   }
 
@@ -136,6 +154,39 @@ export function AuthPanel() {
               <span className="font-semibold text-text-2">{sentTo}</span>. {x(M.auth_sent_body_suffix)}
             </p>
             <p className="m-0 text-[12px] leading-[1.5] text-text-muted">{x(M.auth_sent_spam)}</p>
+
+            {/* Code entry. The primary route, not a fallback: it is the only
+                one a mailbox scanner cannot spend on the recipient's behalf. */}
+            <form onSubmit={submitCode} className="mt-[4px] flex w-full flex-col gap-[10px]">
+              <label className={`${labelClass} text-left`} htmlFor="auth-code">
+                {x(M.auth_code_label)}
+              </label>
+              <input
+                id="auth-code"
+                type="text"
+                required
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9 ]*"
+                maxLength={7}
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder={x(M.auth_code_placeholder)}
+                className={`${fieldClass} text-center text-[18px] tracking-[0.4em]`}
+              />
+              <p className="m-0 text-left text-[12px] leading-[1.5] text-text-muted">
+                {x(M.auth_code_hint)}
+              </p>
+              <button
+                type="submit"
+                disabled={verifying || code.trim().length === 0}
+                className={primaryBtnClass}
+              >
+                {verifying && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
+                {verifying ? x(M.auth_code_verifying) : x(M.auth_code_submit)}
+              </button>
+            </form>
+
             {error && (
               <p role="alert" className="m-0 text-[12.5px] text-risk-fg">
                 {error}
