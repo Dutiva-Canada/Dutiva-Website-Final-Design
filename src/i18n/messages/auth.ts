@@ -85,6 +85,47 @@ export const authMessages = defineMessages({
     en: 'Back to sign in',
     fr: 'Retour à la connexion',
   },
+  /* The confirm route spends the one-time token only on a real click (see
+     AuthConfirm): a mailbox security scanner that renders the page and runs
+     its JavaScript never presses a button, so the token survives for the
+     person the email was sent to. */
+  auth_confirm_cta: {
+    en: 'Confirm sign-in',
+    fr: 'Confirmer la connexion',
+  },
+  auth_confirm_prompt: {
+    en: 'Press the button to finish signing in on this device.',
+    fr: 'Appuyez sur le bouton pour terminer la connexion sur cet appareil.',
+  },
+
+  /* ── Emailed sign-in code ───────────────────────────────────────────────────
+     The scanner-proof path: a 6-digit code cannot be spent by anything that
+     merely fetches or renders a URL, because it has to be typed. Self-authored
+     EN + FR. */
+  auth_code_label: {
+    en: 'Sign-in code',
+    fr: 'Code de connexion',
+  },
+  auth_code_placeholder: {
+    en: '123456',
+    fr: '123456',
+  },
+  auth_code_hint: {
+    en: 'Enter the 6-digit code from the email.',
+    fr: 'Saisissez le code à 6 chiffres reçu par courriel.',
+  },
+  auth_code_submit: {
+    en: 'Sign in',
+    fr: 'Se connecter',
+  },
+  auth_code_verifying: {
+    en: 'Verifying…',
+    fr: 'Vérification en cours…',
+  },
+  auth_code_error: {
+    en: 'That code isn’t valid or has expired. Request a new one and try again.',
+    fr: 'Ce code est invalide ou a expiré. Demandez-en un nouveau et réessayez.',
+  },
 
   /* ── Dedicated sign in / sign up page (EntryStage / AuthPanel) ──────────────
      Self-authored EN + FR. The mechanism stays passwordless magic-link: both

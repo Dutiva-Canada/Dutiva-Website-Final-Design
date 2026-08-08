@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
 import { AuthConfirm } from './AuthConfirm'
@@ -37,8 +38,24 @@ function renderAt(search: string) {
 }
 
 describe('AuthConfirm', () => {
-  it('verifies the token_hash and enters the workspace', async () => {
+  /**
+   * The defence that matters: a mailbox security scanner renders this page and
+   * runs its JavaScript (Google Workspace's did, on 2026-08-08, burning the
+   * token 33s after send and locking the recipient out). Rendering alone must
+   * therefore never spend the one-time token.
+   */
+  it('does not spend the token on render — only on a real click', async () => {
     renderAt('?token_hash=abc123&type=magiclink')
+
+    expect(await screen.findByRole('button', { name: /confirm sign-in/i })).toBeInTheDocument()
+    expect(authMock.verifyOtp).not.toHaveBeenCalled()
+    expect(screen.queryByText('WORKSPACE HOME')).not.toBeInTheDocument()
+  })
+
+  it('verifies the token_hash and enters the workspace once confirmed', async () => {
+    renderAt('?token_hash=abc123&type=magiclink')
+
+    await userEvent.click(await screen.findByRole('button', { name: /confirm sign-in/i }))
 
     await waitFor(() => expect(screen.getByText('WORKSPACE HOME')).toBeInTheDocument())
     expect(authMock.verifyOtp).toHaveBeenCalledWith({ token_hash: 'abc123', type: 'magiclink' })
@@ -47,6 +64,8 @@ describe('AuthConfirm', () => {
   it('shows an error (and a retry link) when verification fails', async () => {
     authMock.verifyOtp.mockResolvedValue({ error: { message: 'Token has expired' } })
     renderAt('?token_hash=stale&type=magiclink')
+
+    await userEvent.click(await screen.findByRole('button', { name: /confirm sign-in/i }))
 
     expect(await screen.findByText(/invalid or has expired/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /back to sign in/i })).toBeInTheDocument()

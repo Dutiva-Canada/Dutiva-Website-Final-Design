@@ -40,6 +40,20 @@ export interface AuthContextValue {
    * enforced server-side regardless (RLS, the edge-function checks).
    */
   signInWithEmail: (email: string, opts?: { name?: string }) => Promise<string | undefined>
+  /**
+   * Verifies the 6-digit code from the sign-in email; resolves to an error
+   * message, or undefined on success (the session then arrives through
+   * onAuthStateChange like any other sign-in).
+   *
+   * This is the path that survives mailbox security scanners. A magic link is
+   * spent by whatever fetches it first, and Google Workspace's pre-delivery
+   * scanner renders the landing page and runs its JavaScript — so it burns the
+   * one-time token before the recipient clicks, and every real click then fails
+   * with "One-time token not found" (observed on this project 2026-08-08). A
+   * code has to be typed, so nothing that merely fetches or renders a URL can
+   * consume it.
+   */
+  verifyEmailCode: (email: string, code: string) => Promise<string | undefined>
   signOut: () => Promise<void>
 }
 

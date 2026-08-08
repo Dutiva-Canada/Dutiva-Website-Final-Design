@@ -92,14 +92,42 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     [x],
   )
 
+  const verifyEmailCode = useCallback(
+    async (email: string, code: string) => {
+      if (!supabase) return x(M.auth_not_configured)
+      /* People paste codes with the spaces the mail client renders. */
+      const token = code.replace(/\s+/g, '')
+
+      /* Which OTP type the emailed code carries depends on whether GoTrue
+         treated the request as a first-time signup or a sign-in for an
+         existing account — signInWithOtp creates the user on first use, so
+         both happen on this one form. A type mismatch is a lookup miss, not a
+         spend: the token survives a wrong guess, so trying the sign-in type
+         first and falling back costs nothing and saves the new-account case
+         from an unexplained failure. */
+      let lastError: unknown
+      for (const type of ['email', 'signup'] as const) {
+        const { error } = await supabase.auth.verifyOtp({ email, token, type })
+        if (!error) return undefined
+        lastError = error
+      }
+
+      /* Same discipline as signInWithEmail: log the provider's English detail,
+         show the localized message. */
+      console.error('auth: sign-in code verification failed —', lastError)
+      return x(M.auth_code_error)
+    },
+    [x],
+  )
+
   const signOut = useCallback(async () => {
     if (!supabase) return
     await supabase.auth.signOut()
   }, [])
 
   const value = useMemo(
-    () => ({ status, session, authorized, signInWithEmail, signOut }),
-    [status, session, authorized, signInWithEmail, signOut],
+    () => ({ status, session, authorized, signInWithEmail, verifyEmailCode, signOut }),
+    [status, session, authorized, signInWithEmail, verifyEmailCode, signOut],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
