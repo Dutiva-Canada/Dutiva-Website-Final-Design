@@ -5,6 +5,7 @@ import {
   SCORE_FORMULA_VERSION as appVersion,
   applyCriticalCeiling as appApplyCeiling,
   blendScore as appBlend,
+  isProvenancedTask as appIsProvenancedTask,
   scoreComponent as appScoreComponent,
   weightedComponent as appWeightedComponent,
 } from '@/features/app/views/analytics/aggregation'
@@ -15,6 +16,7 @@ import {
   applyCriticalCeiling,
   blendScore,
   computeOrgScore,
+  isProvenancedTask,
   scoreComponent,
   weightedComponent,
 } from './scoring'
@@ -32,6 +34,19 @@ describe('scoring drift — edge function copy vs app copy', () => {
     expect(SCORE_FORMULA_VERSION).toBe(appVersion)
     expect(CRITICAL_SCORE_CEILING).toBe(appCeiling)
     expect(FINDING_SEVERITY_WEIGHTS).toEqual(appWeights)
+  })
+
+  it('pins the task-provenance rule to the app copy', () => {
+    const cases: [string, string | null][] = [
+      ['general', null],
+      ['general', 'probation_review'],
+      ['review', null],
+      ['law_update', null],
+      ['document', 'anything'],
+    ]
+    for (const [category, kind] of cases) {
+      expect(isProvenancedTask(category, kind)).toBe(appIsProvenancedTask(category, kind))
+    }
   })
 
   it('computes identical components and blends across scenarios', () => {
@@ -91,31 +106,60 @@ describe('scoring drift — edge function copy vs app copy', () => {
 })
 
 describe('computeOrgScore — the job-side row mapping', () => {
-  it('mirrors the view: up_to_date policies, completed tasks minus cancelled, closed findings', () => {
+  /* A provenanced task row (pipeline category) with the given status. */
+  const task = (status: string, category = 'review', linkedKind: string | null = null) => ({
+    status,
+    category,
+    linkedKind,
+  })
+
+  it('mirrors the view: policies, provenanced tasks minus cancelled, findings, obligations', () => {
     const { score, components } = computeOrgScore({
       policyStatuses: ['up_to_date', 'up_to_date', 'up_to_date', 'needs_review'],
-      /* 8 completed + 2 open + 1 cancelled → 8/10 once cancelled is excluded. */
-      taskStatuses: [...Array(8).fill('completed'), 'open', 'in_progress', 'cancelled'],
+      /* 8 completed + 2 open + 1 cancelled, all provenanced → 8/10 once
+         cancelled is excluded — plus a completed hand-added 'general' row
+         that must NOT count (else the ratio would be 9/11). */
+      tasks: [
+        ...Array.from({ length: 8 }, () => task('completed')),
+        task('open'),
+        task('in_progress'),
+        task('cancelled'),
+        task('completed', 'general'),
+      ],
       /* medium resolved (3) + high dismissed (5) + info open (1) → 8/9 ≈ 89. */
       findings: [
         { severity: 'medium', status: 'resolved' },
         { severity: 'high', status: 'dismissed' },
         { severity: 'info', status: 'open' },
       ],
+      /* 2 evidenced of 3 → 67. */
+      obligationStatuses: ['ok', 'ok', 'needs_evidence'],
     })
-    expect(components.map((c) => c.pct)).toEqual([75, 80, 89])
-    /* (75 + 80 + 89) / 3 = 81.33 → 81; no open critical, no ceiling. */
-    expect(score).toBe(81)
+    expect(components.map((c) => c.pct)).toEqual([75, 80, 89, 67])
+    /* (75 + 80 + 89 + 67) / 4 = 77.75 → 78; no open critical, no ceiling. */
+    expect(score).toBe(78)
+  })
+
+  it('counts a general-category task once an app-written kind links it', () => {
+    const { components } = computeOrgScore({
+      policyStatuses: [],
+      tasks: [task('completed', 'general', 'probation_review'), task('open', 'general')],
+      findings: [],
+      obligationStatuses: [],
+    })
+    /* Only the kind-linked row is scoreable → 1/1. */
+    expect(components[1]).toMatchObject({ done: 1, total: 1, pct: 100 })
   })
 
   it('caps the blend while a critical finding is open, and lifts on dismissal', () => {
     const openCritical = {
       policyStatuses: ['up_to_date'],
-      taskStatuses: ['completed'],
+      tasks: [task('completed')],
       findings: [
         { severity: 'critical', status: 'open' },
         { severity: 'low', status: 'resolved' },
       ],
+      obligationStatuses: ['ok'],
     }
     expect(computeOrgScore(openCritical).score).toBe(CRITICAL_SCORE_CEILING)
     expect(
@@ -131,18 +175,24 @@ describe('computeOrgScore — the job-side row mapping', () => {
 
   it('returns null for an org with no scoreable rows', () => {
     expect(
-      computeOrgScore({ policyStatuses: [], taskStatuses: [], findings: [] }).score,
+      computeOrgScore({
+        policyStatuses: [],
+        tasks: [],
+        findings: [],
+        obligationStatuses: [],
+      }).score,
     ).toBeNull()
   })
 
   it('weights an unknown severity as 1 rather than dropping the finding', () => {
     const { components } = computeOrgScore({
       policyStatuses: [],
-      taskStatuses: [],
+      tasks: [],
       findings: [
         { severity: 'unexpected', status: 'open' },
         { severity: 'critical', status: 'resolved' },
       ],
+      obligationStatuses: [],
     })
     /* 8 of 9 weight closed → 89. */
     expect(components[2]!.pct).toBe(89)

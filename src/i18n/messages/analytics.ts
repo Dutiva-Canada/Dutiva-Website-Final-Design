@@ -42,6 +42,10 @@ export const analyticsMessages = defineMessages({
     en: 'Findings resolved (weighted by severity)',
     fr: 'Constats résolus (pondérés selon la gravité)',
   },
+  analytics_comp_obligations: {
+    en: 'Obligations evidenced',
+    fr: 'Obligations documentées',
+  },
   analytics_comp_value: { en: '{done} of {total}', fr: '{done} sur {total}' },
   analytics_score_capped_note: {
     en: 'Capped at {ceiling} while a critical finding is open — resolve or dismiss it to lift the ceiling.',

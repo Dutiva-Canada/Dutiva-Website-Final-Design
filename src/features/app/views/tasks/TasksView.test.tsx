@@ -102,6 +102,8 @@ describe('TasksView in production mode', () => {
             title: row.title,
             priority: row.priority,
             status: 'open',
+            /* The table's column default — addTask doesn't send a category. */
+            category: 'general',
             due_at: row.due_at ?? null,
           }
           taskRows.unshift(created)
@@ -194,6 +196,7 @@ describe('TasksView in production mode', () => {
         title: 'File ROE for departing employee',
         priority: 'high',
         status: 'open',
+        category: 'general',
         due_at: '2026-07-20T00:00:00+00:00',
       },
     ])

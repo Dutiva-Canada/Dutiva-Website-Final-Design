@@ -125,3 +125,127 @@ export async function countOpenFindings(organizationId: string): Promise<number>
   if (error) throw error
   return count ?? 0
 }
+
+/* ── Obligation register (0069, formula v3) ────────────────────────────── */
+
+/**
+ * Recurring statutory duties with an owner, a due date and an evidence
+ * note — public.hr_obligations. Status is evidence-centric; "overdue" is
+ * deliberately not a status but derived from due_on at read time, so it
+ * can never go stale by someone forgetting to flip a flag. The score's
+ * obligations component counts status 'ok' over all rows.
+ */
+
+export type ProductionObligationStatus = 'ok' | 'in_progress' | 'needs_evidence'
+
+export const PRODUCTION_OBLIGATION_STATUSES: readonly ProductionObligationStatus[] = [
+  'ok',
+  'in_progress',
+  'needs_evidence',
+]
+
+export interface ProductionObligation {
+  id: string
+  title: string
+  area: string | null
+  jurisdiction: string | null
+  /** YYYY-MM-DD. */
+  dueOn: string | null
+  recurrence: string | null
+  ownerName: string | null
+  status: ProductionObligationStatus
+  evidence: string | null
+}
+
+export interface NewObligation {
+  title: string
+  area: string
+  jurisdiction: string
+  dueOn: string
+  recurrence: string
+  ownerName: string
+  status: ProductionObligationStatus
+  evidence: string
+}
+
+const obligationRowSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  area: z.string().nullable(),
+  jurisdiction: z.string().nullable(),
+  due_on: z.string().nullable(),
+  recurrence: z.string().nullable(),
+  owner_name: z.string().nullable(),
+  status: z.enum(['ok', 'in_progress', 'needs_evidence']),
+  evidence: z.string().nullable(),
+})
+
+const OBLIGATION_COLUMNS =
+  'id, title, area, jurisdiction, due_on, recurrence, owner_name, status, evidence'
+
+function toObligation(row: z.infer<typeof obligationRowSchema>): ProductionObligation {
+  return {
+    id: row.id,
+    title: row.title,
+    area: row.area,
+    jurisdiction: row.jurisdiction,
+    dueOn: row.due_on,
+    recurrence: row.recurrence,
+    ownerName: row.owner_name,
+    status: row.status,
+    evidence: row.evidence,
+  }
+}
+
+export async function listObligations(organizationId: string): Promise<ProductionObligation[]> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('hr_obligations')
+    .select(OBLIGATION_COLUMNS)
+    .eq('organization_id', organizationId)
+    .order('due_on', { ascending: true, nullsFirst: false })
+  if (error) throw error
+  return z.array(obligationRowSchema).parse(data).map(toObligation)
+}
+
+export async function addObligation(
+  organizationId: string,
+  fields: NewObligation,
+): Promise<ProductionObligation> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('hr_obligations')
+    .insert({
+      organization_id: organizationId,
+      title: fields.title,
+      area: fields.area || null,
+      jurisdiction: fields.jurisdiction || null,
+      due_on: fields.dueOn || null,
+      recurrence: fields.recurrence || null,
+      owner_name: fields.ownerName || null,
+      status: fields.status,
+      evidence: fields.evidence || null,
+    })
+    .select(OBLIGATION_COLUMNS)
+    .single()
+  if (error) throw error
+  return toObligation(obligationRowSchema.parse(data))
+}
+
+export async function setObligationStatus(
+  id: string,
+  status: ProductionObligationStatus,
+): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { error } = await supabase
+    .from('hr_obligations')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export async function removeObligation(id: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { error } = await supabase.from('hr_obligations').delete().eq('id', id)
+  if (error) throw error
+}

@@ -118,9 +118,14 @@ describe('ComplianceView in production mode', () => {
     vi.resetModules()
   })
 
-  /** Admin signed in, production stored, one org, real compliance_findings. */
-  function mockProductionClient(initialFindings: Record<string, unknown>[]) {
+  /** Admin signed in, production stored, one org, real compliance_findings
+   *  and hr_obligations. */
+  function mockProductionClient(
+    initialFindings: Record<string, unknown>[],
+    initialObligations: Record<string, unknown>[] = [],
+  ) {
     const findingRows = [...initialFindings]
+    const obligationRows = [...initialObligations]
     const insert = vi.fn((row: Record<string, unknown>) => ({
       select: () => ({
         single: () => {
@@ -133,6 +138,25 @@ describe('ComplianceView in production mode', () => {
             status: 'open',
           }
           findingRows.unshift(created)
+          return Promise.resolve({ data: created, error: null })
+        },
+      }),
+    }))
+    const obligationInsert = vi.fn((row: Record<string, unknown>) => ({
+      select: () => ({
+        single: () => {
+          const created = {
+            id: `ob-${obligationRows.length + 1}`,
+            title: row.title,
+            area: row.area ?? null,
+            jurisdiction: row.jurisdiction ?? null,
+            due_on: row.due_on ?? null,
+            recurrence: row.recurrence ?? null,
+            owner_name: row.owner_name ?? null,
+            status: row.status,
+            evidence: row.evidence ?? null,
+          }
+          obligationRows.push(created)
           return Promise.resolve({ data: created, error: null })
         },
       }),
@@ -207,12 +231,23 @@ describe('ComplianceView in production mode', () => {
               update,
             }
           }
+          if (table === 'hr_obligations') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  order: () => Promise.resolve({ data: obligationRows, error: null }),
+                }),
+              }),
+              insert: obligationInsert,
+              update,
+            }
+          }
           throw new Error(`unexpected table: ${table}`)
         }),
       },
     }))
     vi.resetModules()
-    return { insert, update }
+    return { insert, obligationInsert, update }
   }
 
   it('renders real findings with severity and recommendation, not the fixtures', async () => {
@@ -272,5 +307,68 @@ describe('ComplianceView in production mode', () => {
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'resolved' }))
     expect(screen.getByText('Resolved')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+  })
+
+  it('renders the obligation register with a derived overdue chip and status writes', async () => {
+    const { update } = mockProductionClient(
+      [],
+      [
+        {
+          id: 'ob-1',
+          title: 'Workplace violence program — annual review',
+          area: 'OHSA (Ontario)',
+          jurisdiction: 'Ontario',
+          /* Past due and not evidenced → the chip is derived, not stored. */
+          due_on: '2020-08-15',
+          recurrence: 'Annual',
+          owner_name: 'Riley Summers',
+          status: 'needs_evidence',
+          evidence: null,
+        },
+        {
+          id: 'ob-2',
+          title: 'Privacy breach response plan',
+          area: null,
+          jurisdiction: 'Federal',
+          due_on: null,
+          recurrence: null,
+          owner_name: null,
+          status: 'ok',
+          evidence: 'Reviewed Nov 2025.',
+        },
+      ],
+    )
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { ComplianceView: ComplianceViewFresh } = await import('./ComplianceView')
+
+    renderAppFresh(<ComplianceViewFresh />, { route: '/app/compliance', path: '/app/compliance' })
+
+    /* Production marker first — the demo diorama also has an obligation
+       register, so wait for the mode flip before asserting content. */
+    expect(await screen.findByText('0 open findings')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Workplace violence program — annual review'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Obligation register')).toBeInTheDocument()
+    /* Dated, unevidenced, past due → the derived chip (exactly one; the
+       evidenced row must not wear it). */
+    expect(screen.getAllByText('Overdue')).toHaveLength(1)
+    /* Evidenced row: status select reads ok, evidence note rendered. */
+    expect(
+      screen.getByRole('combobox', { name: 'Status — Privacy breach response plan' }),
+    ).toHaveValue('ok')
+    expect(screen.getByText('Reviewed Nov 2025.')).toBeInTheDocument()
+
+    /* Status write goes through the real update path. */
+    fireEvent.change(
+      screen.getByRole('combobox', {
+        name: 'Status — Workplace violence program — annual review',
+      }),
+      { target: { value: 'ok' } },
+    )
+    const { waitFor } = await import('@testing-library/react')
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'ok' })),
+    )
   })
 })

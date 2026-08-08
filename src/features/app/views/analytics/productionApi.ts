@@ -99,17 +99,29 @@ export async function recordScoreSnapshot(
       },
     ]),
   )
+  const row = {
+    organization_id: organizationId,
+    month: monthISO,
+    score,
+    components: componentsJson,
+    headcount,
+    updated_at: new Date().toISOString(),
+  }
   const { error } = await supabase.from('compliance_score_snapshots').upsert(
-    {
-      organization_id: organizationId,
-      month: monthISO,
-      score,
-      components: componentsJson,
-      headcount,
-      formula_version: SCORE_FORMULA_VERSION,
-      updated_at: new Date().toISOString(),
-    },
+    { ...row, formula_version: SCORE_FORMULA_VERSION },
     { onConflict: 'organization_id,month' },
   )
+  if (error?.code === 'PGRST204') {
+    /* Migration 0068 not applied yet (the app deploys ahead of the manual
+       migration step) — write the legacy shape rather than lose the month;
+       losing a close that crosses the gap is permanent, while the missing
+       version label self-heals: the daily job re-stamps the current month
+       on its next pass once the column exists. */
+    const { error: legacyError } = await supabase
+      .from('compliance_score_snapshots')
+      .upsert(row, { onConflict: 'organization_id,month' })
+    if (legacyError) throw legacyError
+    return
+  }
   if (error) throw error
 }

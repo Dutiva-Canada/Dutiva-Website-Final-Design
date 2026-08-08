@@ -264,6 +264,7 @@ describe('AnalyticsView in production mode', () => {
     hr_cases?: Record<string, unknown>[]
     compliance_tasks?: Record<string, unknown>[]
     compliance_findings?: Record<string, unknown>[]
+    hr_obligations?: Record<string, unknown>[]
     hr_policies?: Record<string, unknown>[]
     compliance_score_snapshots?: Record<string, unknown>[]
     hr_expiry_records?: Record<string, unknown>[]
@@ -374,7 +375,14 @@ describe('AnalyticsView in production mode', () => {
         { id: 'p2', name: 'Policy B', status: 'missing', last_reviewed: null },
       ],
       compliance_tasks: [
-        { id: 't1', title: 'Task', priority: 'high', status: 'completed', due_at: null },
+        {
+          id: 't1',
+          title: 'Task',
+          priority: 'high',
+          status: 'completed',
+          category: 'review',
+          due_at: null,
+        },
       ],
       compliance_findings: [
         {
@@ -385,6 +393,11 @@ describe('AnalyticsView in production mode', () => {
           severity: 'high',
           status: 'open',
         },
+      ],
+      hr_obligations: [
+        { id: 'ob1', title: 'Vacation reconciliation', area: null, jurisdiction: null, due_on: null, recurrence: null, owner_name: null, status: 'ok', evidence: null },
+        { id: 'ob2', title: 'OHSA program review', area: null, jurisdiction: null, due_on: null, recurrence: null, owner_name: null, status: 'ok', evidence: null },
+        { id: 'ob3', title: 'CASL consent audit', area: null, jurisdiction: null, due_on: null, recurrence: null, owner_name: null, status: 'needs_evidence', evidence: null },
       ],
       compliance_score_snapshots: [
         { month: '2026-05-01', score: 40, headcount: null, formula_version: 1 },
@@ -400,14 +413,15 @@ describe('AnalyticsView in production mode', () => {
       await screen.findByText('Computed live from your workspace records.'),
     ).toBeInTheDocument()
 
-    /* Components: policies 1/2 = 50, tasks 1/1 = 100, findings 0/1 = 0 →
-       blended round(150/3) = 50. */
+    /* Components: policies 1/2 = 50, provenanced tasks 1/1 = 100,
+       findings 0/5 weight = 0, obligations 2/3 = 67 → round(217/4) = 54. */
     const card = within(await screen.findByRole('region', { name: 'Compliance score' }))
-    expect(await card.findByText('50', { selector: 'span' })).toBeInTheDocument()
+    expect(await card.findByText('54', { selector: 'span' })).toBeInTheDocument()
     expect(card.getByText('Policies current')).toBeInTheDocument()
     expect(card.getByText('1 of 2')).toBeInTheDocument()
     expect(card.getByText('Tasks complete')).toBeInTheDocument()
     expect(card.getByText('Findings resolved (weighted by severity)')).toBeInTheDocument()
+    expect(card.getByText('Obligations evidenced')).toBeInTheDocument()
     /* Findings (0%) is the lowest component. */
     expect(card.getAllByText('Lowest')).toHaveLength(1)
     /* Two v1 months sit in the charted window → the formula-change note. */
@@ -427,9 +441,9 @@ describe('AnalyticsView in production mode', () => {
     expect(snapshotUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         organization_id: 'org-1',
-        score: 50,
+        score: 54,
         headcount: 0,
-        formula_version: 2,
+        formula_version: 3,
       }),
       expect.objectContaining({ onConflict: 'organization_id,month' }),
     )
@@ -439,7 +453,14 @@ describe('AnalyticsView in production mode', () => {
     mockProductionClient({
       hr_policies: [{ id: 'p1', name: 'Policy A', status: 'up_to_date', last_reviewed: null }],
       compliance_tasks: [
-        { id: 't1', title: 'Task', priority: 'high', status: 'completed', due_at: null },
+        {
+          id: 't1',
+          title: 'Task',
+          priority: 'high',
+          status: 'completed',
+          category: 'review',
+          due_at: null,
+        },
       ],
       compliance_findings: [
         {
@@ -518,6 +539,7 @@ describe('AnalyticsView in production mode', () => {
           title: 'File the harassment training roster',
           priority: 'high',
           status: 'open',
+          category: 'general',
           due_at: '2020-06-30T00:00:00Z',
         },
       ],
@@ -613,6 +635,7 @@ describe('AnalyticsView in production mode', () => {
           title: 'Probation review — Employee e5',
           priority: 'medium',
           status: 'open',
+          category: 'review',
           due_at: null,
           metadata: { employee_id: 'e5', kind: 'probation_review' },
         },

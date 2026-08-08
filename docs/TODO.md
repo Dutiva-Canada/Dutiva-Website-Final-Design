@@ -364,21 +364,26 @@ service-role key or `SUPABASE_SECRET_KEY` — no JWT payload decoding.
 the same deploy, as the TODO entry anticipated — whatever is in the working
 tree is what goes.
 
-**OA18 — Score formula v2: apply the migration, deploy the function, set the
-secret.** _Owner._ Three steps, in order, none done by the merge itself:
-(1) apply migration `0068_score_formula_v2.sql` (adds
-`compliance_score_snapshots.formula_version`, schedules the daily job — until
-applied, the app reads snapshots through its legacy-shape fallback and new
-snapshot writes fail silently, so score history pauses); (2) deploy the
-`record-score-snapshots` edge function (`verify_jwt = false` is already in
-`supabase/config.toml` — deploy from this repo root, remembering the
-2026-08-06 stale-CLI-project lesson); (3) create the Vault secret:
+**OA18 — Score formulas v2+v3: apply the migrations, deploy the function, set
+the secret.** _Owner._ Four steps, in order, none done by the merges
+themselves: (1) apply migration `0068_score_formula_v2.sql` (adds
+`compliance_score_snapshots.formula_version`, schedules the daily 05:30 UTC
+job — until applied, the app reads snapshots through its legacy-shape
+fallback and writes retry without the version column, so labels lag); (2)
+apply migration `0069_score_formula_v3_obligations.sql` (creates
+`hr_obligations` — until applied, the production Compliance view shows an
+error banner on the obligation register and the score blends three
+components — and schedules the 00:05-UTC-on-the-1st month-close run); (3)
+deploy the `record-score-snapshots` edge function (`verify_jwt = false` is
+already in `supabase/config.toml` — deploy from this repo root, remembering
+the 2026-08-06 stale-CLI-project lesson); (4) create the Vault secret:
 `select vault.create_secret('<service key>', 'score_snapshot_service_key',
 'Service key used by the record-score-snapshots cron job');`. Verify with
 `select * from public.score_snapshot_status();` — expect
 `secret_configured: true`, `job_scheduled: true`, and
 `orgs_with_current_month` ≥ 1 after the next 05:30 UTC run (or fire
-`select public.trigger_score_snapshots();` once to check immediately). See
+`select public.trigger_score_snapshots();` once to check immediately —
+pg_cron reporting success only proves the request was queued). See
 [SCORING_LOGIC.md](SCORING_LOGIC.md) §2.3/§8.
 
 ---
@@ -425,17 +430,14 @@ remains ruled out (publishing notice periods violates the editorial rule in
 `articleModel.ts`). (PR #156)
 
 **D8 — Score formula v3: task provenance and the obligations component.**
-Two deliberate leftovers from formula v2 (2026-08-07,
-[SCORING_LOGIC.md](SCORING_LOGIC.md) §8). (a) *Which `compliance_tasks` rows
-count toward the score* — today every non-cancelled row does, which treats a
-hand-added to-do as compliance posture; scoping to pipeline/module-created
-tasks (the table already carries `category` and `metadata.kind`) is a product
-call on what the score means, not an engineering blocker. (b) *The obligation
-register as a fourth component* — blocked on building production obligations
-at all; when it lands, its statuses (evidence on file / in progress / needs
-evidence / overdue) map naturally to done/total. Either change is a formula
-change: bump `SCORE_FORMULA_VERSION` in both copies (the drift test enforces
-the pair) and add the §8 history entry.
+Decided 2026-08-08 (owner: "go ahead with v3") and built the same day.
+(a) Tasks now score only when provenanced — category beyond the `'general'`
+default or an app-written `metadata.kind` (`isProvenancedTask`, mirrored in
+the job's scoring copy); hand-added to-dos still count everywhere except the
+score. (b) `hr_obligations` (migration 0069) is the production obligation
+register — evidence-centric statuses, overdue derived from the due date —
+and its `ok`-over-all ratio is the fourth component. Deploy steps live in
+OA18. See [SCORING_LOGIC.md](SCORING_LOGIC.md) §2.2/§2.5/§8.
 
 **D7 — `/guides` vs `/blog` positioning.** Decided 2026-08-06: no publishing
 cadence is planned; the current positioning holds. `/guides` = documents an

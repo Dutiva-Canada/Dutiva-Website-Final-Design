@@ -154,6 +154,7 @@ describe('CalendarView in production mode', () => {
                           title: 'File ROE',
                           priority: 'high',
                           status: 'open',
+                          category: 'general',
                           due_at: `${todayIso}T00:00:00Z`,
                         },
                       ],

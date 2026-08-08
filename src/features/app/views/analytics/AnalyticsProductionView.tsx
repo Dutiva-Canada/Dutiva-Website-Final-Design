@@ -21,8 +21,11 @@ import { listCases } from '@/features/app/views/cases/productionApi'
 import type { ProductionCase, ProductionCaseType } from '@/features/app/views/cases/productionApi'
 import { hasProbationReviewTask, listTasks } from '@/features/app/views/tasks/productionApi'
 import type { ProductionTask } from '@/features/app/views/tasks/productionApi'
-import { listFindings } from '@/features/app/views/compliance/productionApi'
-import type { ProductionFinding } from '@/features/app/views/compliance/productionApi'
+import { listFindings, listObligations } from '@/features/app/views/compliance/productionApi'
+import type {
+  ProductionFinding,
+  ProductionObligation,
+} from '@/features/app/views/compliance/productionApi'
 import { listPolicies } from '@/features/app/views/policies/productionApi'
 import type { ProductionPolicy } from '@/features/app/views/policies/productionApi'
 import { listScoreSnapshots, recordScoreSnapshot } from './productionApi'
@@ -54,6 +57,7 @@ import {
   expiryBuckets,
   flattenBuckets,
   formatMonthISO,
+  isProvenancedTask,
   meanInWindow,
   monthStartISO,
   rankAttention,
@@ -161,6 +165,7 @@ export function AnalyticsProductionView() {
   const hrCases = useModuleRows<ProductionCase>(organizationId, listCases)
   const tasks = useModuleRows<ProductionTask>(organizationId, listTasks)
   const findings = useModuleRows<ProductionFinding>(organizationId, listFindings)
+  const obligations = useModuleRows<ProductionObligation>(organizationId, listObligations)
   const policies = useModuleRows<ProductionPolicy>(organizationId, listPolicies)
   const snapshots = useModuleRows<ScoreSnapshot>(organizationId, listScoreSnapshots)
   const expiryRecords = useModuleRows<ProductionExpiryRecord>(organizationId, listExpiryRecords)
@@ -170,14 +175,19 @@ export function AnalyticsProductionView() {
   const scoreReady =
     policies.state.status === 'ready' &&
     tasks.state.status === 'ready' &&
-    findings.state.status === 'ready'
+    findings.state.status === 'ready' &&
+    obligations.state.status === 'ready'
 
   const components = useMemo(() => {
     const policyRows = rowsOf(policies.state)
-    /* Cancelled tasks are neither done nor pending work — the same exclusion
-       the backend's own overdue count applies (schema.sql). */
-    const taskRows = rowsOf(tasks.state).filter((t) => t.status !== 'cancelled')
+    /* v3 scope: provenanced rows only (a hand-added to-do is real work but
+       not compliance posture); cancelled tasks are neither done nor pending
+       work — the same exclusion the backend's own overdue count applies. */
+    const taskRows = rowsOf(tasks.state).filter(
+      (t) => isProvenancedTask(t.category, t.linkedKind) && t.status !== 'cancelled',
+    )
     const findingRows = rowsOf(findings.state)
+    const obligationRows = rowsOf(obligations.state)
     return [
       scoreComponent(
         'policies',
@@ -189,8 +199,13 @@ export function AnalyticsProductionView() {
         'findings',
         findingRows.map((f) => ({ done: f.resolved, weight: FINDING_SEVERITY_WEIGHTS[f.severity] })),
       ),
+      scoreComponent(
+        'obligations',
+        obligationRows.filter((o) => o.status === 'ok').length,
+        obligationRows.length,
+      ),
     ]
-  }, [policies.state, tasks.state, findings.state])
+  }, [policies.state, tasks.state, findings.state, obligations.state])
 
   const openCriticalCount = useMemo(
     () => rowsOf(findings.state).filter((f) => !f.resolved && f.severity === 'critical').length,
@@ -271,6 +286,7 @@ export function AnalyticsProductionView() {
       rowsOf(hrCases.state).length +
       rowsOf(tasks.state).length +
       rowsOf(findings.state).length +
+      rowsOf(obligations.state).length +
       rowsOf(policies.state).length >
     0
   if (coreReady && !hasAnyData) {
@@ -302,6 +318,7 @@ export function AnalyticsProductionView() {
     policies: x(M.analytics_comp_policies),
     tasks: x(M.analytics_comp_tasks),
     findings: x(M.analytics_comp_findings),
+    obligations: x(M.analytics_comp_obligations),
   }
   const presentPcts = components.filter((c) => c.pct !== null).map((c) => c.pct!)
   const lowestPct = presentPcts.length >= 2 ? Math.min(...presentPcts) : null
@@ -351,6 +368,17 @@ export function AnalyticsProductionView() {
         title: c.title,
         secondary: attentionSecondary(c.province, undefined, x),
         href: `/app/cases/${c.id}`,
+      })),
+    /* Obligations without evidence on file, once dated — the same pool the
+       demo card draws from. */
+    ...rowsOf(obligations.state)
+      .filter((o) => o.status !== 'ok' && o.dueOn !== null)
+      .map((o) => ({
+        id: `obligation-${o.id}`,
+        dueISO: o.dueOn!,
+        title: o.title,
+        secondary: attentionSecondary(o.jurisdiction ?? '', undefined, x),
+        href: '/app/compliance',
       })),
     /* Escalations: expired certifications; documents expired or ≤30 days —
        an expiring work permit is a compliance event (zero silent expiries). */
@@ -487,7 +515,7 @@ export function AnalyticsProductionView() {
             className="min-[900px]:col-span-2"
             hidden={!show('score')}
           >
-            <CardData deps={[policies, tasks, findings, snapshots]} skeletonLines={4}>
+            <CardData deps={[policies, tasks, findings, obligations, snapshots]} skeletonLines={4}>
               {() =>
                 liveScore === null ? (
                   <CardEmpty text={x(M.analytics_score_empty)} />
@@ -547,7 +575,7 @@ export function AnalyticsProductionView() {
             subtitle={x(M.analytics_attention_sub)}
             hidden={!show('attention')}
           >
-            <CardData deps={[tasks, hrCases]} skeletonLines={4}>
+            <CardData deps={[tasks, hrCases, obligations]} skeletonLines={4}>
               {() =>
                 attentionRows.length === 0 ? (
                   <CardEmpty text={x(M.analytics_attention_empty)} />

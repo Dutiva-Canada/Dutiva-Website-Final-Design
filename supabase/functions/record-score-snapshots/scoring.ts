@@ -3,10 +3,11 @@
  *
  * MIRROR of the scoring section of
  * src/features/app/views/analytics/aggregation.ts (SCORE_FORMULA_VERSION,
- * FINDING_SEVERITY_WEIGHTS, CRITICAL_SCORE_CEILING, weightedComponent,
- * scoreComponent, blendScore, applyCriticalCeiling) plus the row→component
- * mapping AnalyticsProductionView applies (cancelled tasks excluded,
- * resolved-or-dismissed findings closed, up_to_date policies current).
+ * FINDING_SEVERITY_WEIGHTS, CRITICAL_SCORE_CEILING, isProvenancedTask,
+ * weightedComponent, scoreComponent, blendScore, applyCriticalCeiling)
+ * plus the row→component mapping AnalyticsProductionView applies
+ * (provenanced non-cancelled tasks, resolved-or-dismissed findings closed,
+ * up_to_date policies current, 'ok' obligations evidenced).
  * The app cannot import across the src/ ↔ supabase/functions/ boundary
  * (each side bundles for a different runtime), so — same as the crisis
  * phrase list — the two copies are kept identical by a drift test:
@@ -17,7 +18,7 @@
  * under vitest.
  */
 
-export const SCORE_FORMULA_VERSION = 2
+export const SCORE_FORMULA_VERSION = 3
 
 export const FINDING_SEVERITY_WEIGHTS: Record<string, number> = {
   info: 1,
@@ -28,6 +29,11 @@ export const FINDING_SEVERITY_WEIGHTS: Record<string, number> = {
 }
 
 export const CRITICAL_SCORE_CEILING = 69
+
+/** v3 task scoping — mirror of aggregation.ts#isProvenancedTask. */
+export function isProvenancedTask(category: string, linkedKind: string | null): boolean {
+  return category !== 'general' || linkedKind !== null
+}
 
 export interface ScoreComponent {
   key: string
@@ -84,10 +90,12 @@ export function applyCriticalCeiling(
 export interface OrgScoreRows {
   /** hr_policies.status values. */
   policyStatuses: readonly string[]
-  /** compliance_tasks.status values. */
-  taskStatuses: readonly string[]
+  /** compliance_tasks rows: status, category, metadata.kind. */
+  tasks: readonly { status: string; category: string; linkedKind: string | null }[]
   /** compliance_findings (severity, status) pairs. */
   findings: readonly { severity: string; status: string }[]
+  /** hr_obligations.status values. */
+  obligationStatuses: readonly string[]
 }
 
 export interface OrgScore {
@@ -101,21 +109,29 @@ function isClosed(status: string): boolean {
 }
 
 export function computeOrgScore(rows: OrgScoreRows): OrgScore {
-  /* Cancelled tasks are neither done nor pending work. */
-  const tasks = rows.taskStatuses.filter((s) => s !== 'cancelled')
+  /* v3 scope: provenanced rows only; cancelled tasks are neither done nor
+     pending work. */
+  const tasks = rows.tasks.filter(
+    (t) => isProvenancedTask(t.category, t.linkedKind) && t.status !== 'cancelled',
+  )
   const components = [
     scoreComponent(
       'policies',
       rows.policyStatuses.filter((s) => s === 'up_to_date').length,
       rows.policyStatuses.length,
     ),
-    scoreComponent('tasks', tasks.filter((s) => s === 'completed').length, tasks.length),
+    scoreComponent('tasks', tasks.filter((t) => t.status === 'completed').length, tasks.length),
     weightedComponent(
       'findings',
       rows.findings.map((f) => ({
         done: isClosed(f.status),
         weight: FINDING_SEVERITY_WEIGHTS[f.severity] ?? 1,
       })),
+    ),
+    scoreComponent(
+      'obligations',
+      rows.obligationStatuses.filter((s) => s === 'ok').length,
+      rows.obligationStatuses.length,
     ),
   ]
   const openCritical = rows.findings.filter(

@@ -13,7 +13,8 @@ the same PR. Load-bearing public facts stay governed by
 [CANONICAL_FACTS.md](CANONICAL_FACTS.md); this document explains
 mechanisms, not marketing claims. Adversarially verified against the
 code on 2026-08-07 (every §2–§7 claim checked by independent review
-agents); formula v2 landed the same day.
+agents); formula v2 landed the same day, and v3 — plus the fixes that
+review pass confirmed against v2 — on 2026-08-08.
 
 ## 1. The two data worlds
 
@@ -63,29 +64,37 @@ The demo's headline `82/100` is a constant: `complianceScore` in
   2026 calendar fixture) so every date-relative number in the diorama is
   stable and testable.
 
-### 2.2 Production mode — formula v2
+### 2.2 Production mode — formula v3
 
 Production Analytics computes the score in
 `src/features/app/views/analytics/AnalyticsProductionView.tsx` from pure
 functions in `aggregation.ts` (unit-tested in `aggregation.test.ts`).
-The formula is versioned — `SCORE_FORMULA_VERSION`, currently **2** —
+The formula is versioned — `SCORE_FORMULA_VERSION`, currently **3** —
 and every snapshot row records the version that produced it (§8 has the
 history).
 
-1. Three **components**:
+1. Four **components**:
    - **Policies** — policies with status `up_to_date`, over all policies
      (`needs_review` and `missing` count against). Raw ratio.
-   - **Tasks** — tasks completed, over all non-cancelled tasks. A
-     cancelled task is neither done nor pending work, so it leaves the
+   - **Tasks** — tasks completed, over all **provenanced, non-cancelled**
+     tasks. Provenanced (`isProvenancedTask`) means the row carries a
+     category other than the `'general'` default or an app-written
+     `metadata.kind` linkage — i.e. the pipeline or a module created it.
+     A hand-added to-do is real work but not compliance posture; it
+     still counts in the Tasks view, the nav badge and the attention
+     queue, just not in the score. Cancelled tasks leave the
      denominator — the same exclusion the backend's own overdue count
-     applies. (The table is `compliance_tasks`; anything added through
-     the Tasks view lands here.)
+     applies.
    - **Findings** — compliance findings closed (status `resolved` or
      `dismissed`), over all findings, **weighted by severity**:
      info 1 · low 2 · medium 3 · high 5 · critical 8
      (`FINDING_SEVERITY_WEIGHTS`). The percentage is closed-weight over
      total-weight, so a critical exposure moves the score more than a
      note; the meter's "1 of 2" text stays a raw count.
+   - **Obligations** — obligation-register rows with status `ok`
+     (evidence on file), over all obligations (`hr_obligations`, §2.5).
+     `in_progress` and `needs_evidence` count against; "overdue" is not
+     a status but derived from the due date at read time.
 2. Each component yields a rounded 0–100 percentage — `null` when it has
    no rows yet, so absence of data is never scored.
 3. `blendScore` takes the **unweighted mean of the components that have
@@ -96,13 +105,19 @@ history).
    below any healthy reading) — a strong average must not hide a
    critical exposure. The card prints why ("Capped at 69 while a
    critical finding is open…"); resolving or dismissing the finding
-   lifts it. The cap never *raises* a lower score.
+   lifts it. The cap never *raises* a lower score — a blend already at
+   or below 69 passes through unchanged, with no "capped" note.
 
-Worked example: 3/4 policies current (75), 8 completed of 10
+Worked example: 3/4 policies current (75), 8 completed of 10 provenanced
 non-cancelled tasks (80), findings medium-resolved + high-dismissed +
-info-open = 8 of 9 weight closed (89) → blend (75 + 80 + 89) / 3 =
-**81**. Add an open critical finding and the same blend computes through
-its weight and then hits the ceiling: **69**.
+info-open = 8 of 9 weight closed (89), 2 of 3 obligations evidenced (67)
+→ blend (75 + 80 + 89 + 67) / 4 = **78**. The ceiling, illustrated with
+numbers where it actually engages: 4/4 policies (100), 9/10 tasks (90),
+one open critical + five resolved low findings = 10 of 18 weight closed
+(56) → blend 82 → **capped at 69** while the critical stays open. (An
+open critical does not always trigger the cap — its weight already drags
+the findings component, and if the blend lands at or under 69 on its
+own, the ceiling has nothing to do.)
 
 The breakdown meters under the hero figure flag the **lowest** component
 (only once two or more components have data) — the same "a strong
@@ -125,18 +140,27 @@ History is written two ways:
   page view, fire-and-forget, a failed write never degrades the
   dashboard. Under RLS the write only succeeds when the viewer is an
   org owner/admin; non-admin visits leave history untouched.
-- **The daily snapshot job** (0068): `record-score-snapshots`, a
-  pg_cron-scheduled edge function (05:30 UTC), upserts every org's
-  current-month row with the service role using the same v2 formula
+- **The scheduled snapshot job** (0068/0069): `record-score-snapshots`,
+  a pg_cron-scheduled edge function, upserts every org's current-month
+  row with the service role using the same formula
   (`supabase/functions/record-score-snapshots/scoring.ts`, drift-tested
-  against the app's copy). This removes the visit dependency: each
-  month's row always exists, and its last write is the month-close
-  state. The job only ever touches the current month — deliberately, so
-  a manual or late fire can never rewrite a frozen month — and skips
-  orgs with no scoreable rows, same as the view. Scheduling lives in
-  the database for the same reason the law monitor's does: a hosting or
-  repo move can't silently kill it. Check it in one query:
-  `select * from public.score_snapshot_status();`
+  against the app's copy). Two schedules share it: a daily run at 05:30
+  UTC keeps the current month fresh, and a month-close run at 00:05 UTC
+  on the 1st also freezes the month that just ended with the state at
+  the UTC month boundary — the same boundary every monthISO in this
+  system is defined by, so nothing later than the boundary can be
+  missing from a frozen month. Outside that first UTC hour of the 1st
+  the previous month is never touched, so a manual or late fire cannot
+  rewrite frozen history. Every read the job makes is paginated
+  (PostgREST silently caps un-ranged selects at 1,000 rows — an
+  unpaginated job would score a large org on a truncated slice). Orgs
+  with no scoreable rows are skipped, same as the view. Scheduling
+  lives in the database for the same reason the law monitor's does: a
+  hosting or repo move can't silently kill it. Check it in one query:
+  `select * from public.score_snapshot_status();` — and note that
+  pg_cron reporting a successful run only proves the HTTP request was
+  queued; whether rows are actually landing is what the status query
+  shows.
 
 Past months freeze by construction. The trend chart shows the most
 recent **6 monthly points** — frozen snapshots plus the live current
@@ -147,29 +171,47 @@ past month was frozen under an older formula, the card says so
 ("Earlier months were computed under a previous score formula") instead
 of silently mixing formulas.
 
-### 2.4 What v2 fixed, and what deliberately remains
+### 2.4 What v2 and v3 fixed, and what deliberately remains
 
 Formula v2 (2026-08-07) closed four of v1's known gaps: findings are no
 longer severity-blind, an open critical finding can no longer hide
 inside a good average, cancelled tasks no longer count against the
 score, and score history no longer depends on an admin remembering to
-open Analytics. Still true, on purpose:
+open Analytics. Formula v3 (2026-08-08) closed the two that were left:
+the tasks component is scoped to provenanced rows, and the obligation
+register exists in production as the fourth component. Still true, on
+purpose:
 
-- **Equal component weighting.** Policies, tasks and findings still
-  blend as an unweighted mean — a workspace with 1 finding and 40
-  policies weighs that finding's component as a full third of the
-  score. Defensible for three components; revisit if a fourth lands.
-- **All non-cancelled tasks count.** Everything in `compliance_tasks`
-  is treated as compliance-relevant. Provenance-based scoping (count
-  only pipeline- or module-created tasks) is a product decision not yet
-  made — TODO.md tracks it (§8).
-- **No production obligation register yet.** The demo's obligation
-  register and category posture bars have no production counterpart;
-  production Compliance is a findings register. The register returns as
-  a fourth component when the feature lands (§8).
+- **Equal component weighting.** The four components blend as an
+  unweighted mean — a workspace with 1 finding and 40 policies weighs
+  that finding's component as a full quarter of the score. Absence of a
+  component's data drops it from the blend rather than scoring it.
+- **Obligation statuses score flat.** An overdue obligation counts
+  against the component exactly like any other unevidenced one — it is
+  surfaced through the attention queue and the derived overdue chip,
+  not through extra score weight.
 - **No judgment bands.** Production renders the score neutrally — no
   "good above X" coloring; the ceiling note and the lowest-component
   flag are the only judgments. The demo's tones are authored fixtures.
+
+### 2.5 The production obligation register
+
+`public.hr_obligations` (0069) tracks recurring statutory duties —
+reviews, filings, training — each with an owner, area/statute,
+jurisdiction, due date, recurrence and an evidence note, managed from
+the production Compliance view alongside the findings register. Two
+deliberate choices:
+
+- **Status is evidence-centric** (`ok` · `in_progress` ·
+  `needs_evidence`), and **"overdue" is not a status** — it is derived
+  from `due_on` against today at read time, so it can never go stale by
+  someone forgetting to flip a flag.
+- Free-text area/jurisdiction, same reasoning as `hr_leaves.leave_type`:
+  obligation taxonomies are jurisdiction-specific (the product's whole
+  subject), and a wrong enum is worse than none.
+
+Unevidenced obligations with a due date feed the Analytics attention
+queue, exactly as the demo's register feeds its demo card.
 
 ## 3. Flow assessments
 
@@ -341,12 +383,21 @@ version in **both** copies (`aggregation.ts` and the edge function's
   (1/2/3/5/8), closed = resolved or dismissed; cancelled tasks excluded
   from the denominator; open-critical ceiling of 69; daily scheduled
   snapshots; formula versioning itself.
+- **v3** (0069, 2026-08-08): the obligation register as a fourth
+  component (status `ok` over all rows); tasks scoped to provenanced
+  rows (`isProvenancedTask` — category beyond the `'general'` default,
+  or an app-written `metadata.kind`); the month-close snapshot run; the
+  job's reads paginated.
 
-Deferred, tracked in [TODO.md](TODO.md): the obligation register as a
-fourth component (needs the production obligations feature first), and
-provenance-based task scoping (a product decision on which
-`compliance_tasks` rows count). Both are formula changes → v3 when they
-land.
+Deploy-gap honesty: the app deploys from main immediately while
+migrations are a manual owner step, so both snapshot paths degrade
+rather than break in the gap — reads fall back to the legacy column
+shape, and a write rejected for the missing `formula_version` column
+retries without it (the missing label self-heals when the job next
+re-stamps the month). A stale pre-deploy browser tab can briefly write
+an old-formula score onto a row the job stamped; the next daily run
+overwrites it. Version labels are therefore trustworthy to within one
+day, not to the minute.
 
 ## 9. Adjacent numeric logic — pointers
 
