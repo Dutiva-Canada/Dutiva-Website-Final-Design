@@ -39,6 +39,7 @@
 import { appendFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ACCESS_TOKEN_HELP, cleanSecret, describeSecret } from './lib/secrets.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const migrationsDir = path.join(root, 'supabase', 'migrations')
@@ -174,8 +175,11 @@ async function announceSkippedDriftCheck(message) {
   }
 }
 
-const token = process.env.SUPABASE_ACCESS_TOKEN
-const projectRef = process.env.SUPABASE_PROJECT_REF
+/* Cleaned, because a pasted secret carrying a trailing newline, wrapping
+   quotes, or a "Bearer " prefix is the difference between this check working
+   and a 401 nobody can read (see scripts/lib/secrets.mjs). */
+const token = cleanSecret(process.env.SUPABASE_ACCESS_TOKEN)
+const projectRef = cleanSecret(process.env.SUPABASE_PROJECT_REF)
 
 if (!token || !projectRef) {
   const message =
@@ -204,7 +208,21 @@ if (!token || !projectRef) {
       },
     )
     if (!response.ok) {
-      throw new Error(`${response.status} ${(await response.text()).slice(0, 200)}`)
+      const body = (await response.text()).slice(0, 200)
+      /* GitHub masks the secret inside the provider's reply, so a bad token
+         reads as `401 {"message":"Format is Authorization: ***"}` — a message
+         that names neither the cause nor the fix. Say both, describing the
+         value's shape rather than the value. The body stays in the message so a
+         403 that is NOT about the token (an egress proxy, say) is still legible
+         rather than misdiagnosed. */
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(
+          `${response.status} ${body}\n` +
+            `  SUPABASE_ACCESS_TOKEN ${describeSecret(process.env.SUPABASE_ACCESS_TOKEN)}.\n` +
+            `  ${ACCESS_TOKEN_HELP}`,
+        )
+      }
+      throw new Error(`${response.status} ${body}`)
     }
     appliedRows = await response.json()
     applied = new Set(appliedRows.map((row) => row.name))

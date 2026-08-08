@@ -29,6 +29,8 @@
  * and check-rls.mjs.
  */
 
+import { ACCESS_TOKEN_HELP, cleanSecret, describeSecret } from './lib/secrets.mjs'
+
 const API = 'https://api.supabase.com'
 
 /**
@@ -76,8 +78,8 @@ const MUST_CONTAIN_TOKEN = [
   'mailer_templates_confirmation_content',
 ]
 
-const token = process.env.SUPABASE_ACCESS_TOKEN
-const projectRef = process.env.SUPABASE_PROJECT_REF
+const token = cleanSecret(process.env.SUPABASE_ACCESS_TOKEN)
+const projectRef = cleanSecret(process.env.SUPABASE_PROJECT_REF)
 const dryRun = process.argv.includes('--dry-run')
 
 if (!token || !projectRef) {
@@ -100,9 +102,17 @@ async function authConfig(method, body) {
   })
   const text = await response.text()
   if (!response.ok) {
-    /* A 401 here is the same malformed-token symptom the CI drift check hits
-       (docs/TODO.md OA19) — a token pasted with a "Bearer " prefix, surrounding
-       quotes, or a trailing newline reads exactly like this. */
+    /* The same malformed-token symptom the CI drift check hits (docs/TODO.md
+       OA19). cleanSecret already removed the recoverable paste errors, so a 401
+       here means the token itself is wrong — say so with the shape, not the
+       value. */
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(
+        `${method} config/auth → ${response.status} ${text.slice(0, 200)}\n` +
+          `  SUPABASE_ACCESS_TOKEN ${describeSecret(process.env.SUPABASE_ACCESS_TOKEN)}.\n` +
+          `  ${ACCESS_TOKEN_HELP}`,
+      )
+    }
     throw new Error(`${method} config/auth → ${response.status} ${text.slice(0, 300)}`)
   }
   try {
