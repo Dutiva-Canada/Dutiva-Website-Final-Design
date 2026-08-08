@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
+import { listChain } from '@/test/productionWorkspace'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { CalendarView } from './CalendarView'
 
@@ -147,19 +148,16 @@ describe('CalendarView in production mode', () => {
               select: () => ({
                 eq: () => ({
                   order: () =>
-                    Promise.resolve({
-                      data: [
-                        {
-                          id: 't1',
-                          title: 'File ROE',
-                          priority: 'high',
-                          status: 'open',
-                          category: 'general',
-                          due_at: `${todayIso}T00:00:00Z`,
-                        },
-                      ],
-                      error: null,
-                    }),
+                    listChain([
+                      {
+                        id: 't1',
+                        title: 'File ROE',
+                        priority: 'high',
+                        status: 'open',
+                        category: 'general',
+                        due_at: `${todayIso}T00:00:00Z`,
+                      },
+                    ]),
                 }),
               }),
             }

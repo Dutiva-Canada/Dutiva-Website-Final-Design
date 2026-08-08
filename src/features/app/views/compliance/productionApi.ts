@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import { fetchAllPages } from '@/lib/supabasePagination'
 
 /**
  * Real persistence for Compliance (production mode) — the backend's own
@@ -66,12 +67,16 @@ function toFinding(row: z.infer<typeof rowSchema>): ProductionFinding {
 
 export async function listFindings(organizationId: string): Promise<ProductionFinding[]> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
-    .from('compliance_findings')
-    .select(SELECT_COLUMNS)
-    .eq('organization_id', organizationId)
-    .order('created_at', { ascending: false })
-  if (error) throw error
+  const client = supabase
+  const data = await fetchAllPages((from, to) =>
+    client
+      .from('compliance_findings')
+      .select(SELECT_COLUMNS)
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false })
+      .order('id')
+      .range(from, to),
+  )
   return z.array(rowSchema).parse(data).map(toFinding)
 }
 
@@ -199,13 +204,28 @@ function toObligation(row: z.infer<typeof obligationRowSchema>): ProductionOblig
 
 export async function listObligations(organizationId: string): Promise<ProductionObligation[]> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
-    .from('hr_obligations')
-    .select(OBLIGATION_COLUMNS)
-    .eq('organization_id', organizationId)
-    .order('due_on', { ascending: true, nullsFirst: false })
-  if (error) throw error
-  return z.array(obligationRowSchema).parse(data).map(toObligation)
+  const client = supabase
+  try {
+    const data = await fetchAllPages((from, to) =>
+      client
+        .from('hr_obligations')
+        .select(OBLIGATION_COLUMNS)
+        .eq('organization_id', organizationId)
+        .order('due_on', { ascending: true, nullsFirst: false })
+        .order('id')
+        .range(from, to),
+    )
+    return z.array(obligationRowSchema).parse(data).map(toObligation)
+  } catch (err) {
+    /* The app deploys ahead of migration 0069 (migrations are a manual
+       owner step). Until the table exists, an empty register — obligations
+       component null, three-component blend — is the honest degradation;
+       a hard error here would take down the score card that worked
+       yesterday. Any other failure still throws. */
+    const code = (err as { code?: string } | null)?.code
+    if (code === 'PGRST205' || code === '42P01') return []
+    throw err
+  }
 }
 
 export async function addObligation(

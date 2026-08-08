@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
 import { ADVISOR_STREAM_TICK_MS, ADVISOR_THINK_MS } from '@/features/app/advisor/useAdvisorEngine'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
-import { mockProductionWorkspace } from '@/test/productionWorkspace'
+import { mockProductionWorkspace, listChain } from '@/test/productionWorkspace'
 import { CompensationView } from './CompensationView'
 
 function LocationProbe() {
@@ -138,13 +138,13 @@ describe('CompensationView in production mode', () => {
       tables: {
         hr_compensation_records: () => ({
           select: () => ({
-            eq: () => ({ order: () => Promise.resolve({ data: rows, error: null }) }),
+            eq: () => ({ order: () => listChain(rows) }),
           }),
           insert,
         }),
         employees: () => ({
           select: () => ({
-            eq: () => ({ order: () => Promise.resolve({ data: roster, error: null }) }),
+            eq: () => ({ order: () => listChain(roster) }),
           }),
         }),
       },

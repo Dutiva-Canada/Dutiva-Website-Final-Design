@@ -18,6 +18,30 @@ import { vi } from 'vitest'
 
 export const PRODUCTION_ORG_ID = 'org-1'
 
+/**
+ * Terminal stub for a list query, robust to how the boundary builds it:
+ * awaiting the chain directly, adding more `.order()` calls, or ending in
+ * `.range()` (the paginated readers — src/lib/supabasePagination.ts) all
+ * resolve to the same rows. Mocks that stubbed `.order()` as a bare
+ * Promise broke the moment a boundary gained a tie-break order or
+ * pagination; this keeps them shape-agnostic.
+ */
+export function listChain(
+  rows: unknown[],
+  error: { code?: string; message?: string } | null = null,
+): Record<string, unknown> {
+  const result = { data: error ? null : rows, error }
+  const chain: Record<string, unknown> = {
+    order: () => chain,
+    range: () => Promise.resolve(result),
+    then: (
+      resolve: (value: typeof result) => unknown,
+      reject?: (reason: unknown) => unknown,
+    ) => Promise.resolve(result).then(resolve, reject),
+  }
+  return chain
+}
+
 export interface ProductionClientOptions {
   /** Per-table handlers for the module under test, keyed by table name. */
   tables: Record<string, () => unknown>

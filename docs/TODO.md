@@ -365,22 +365,24 @@ the same deploy, as the TODO entry anticipated — whatever is in the working
 tree is what goes.
 
 **OA18 — Score formulas v2+v3: apply the migrations, deploy the function, set
-the secret.** _Owner._ Four steps, in order, none done by the merges
+the secret.** _Owner._ Five steps, in order, none done by the merges
 themselves: (1) apply migration `0068_score_formula_v2.sql` (adds
 `compliance_score_snapshots.formula_version`, schedules the daily 05:30 UTC
 job — until applied, the app reads snapshots through its legacy-shape
 fallback and writes retry without the version column, so labels lag); (2)
 apply migration `0069_score_formula_v3_obligations.sql` (creates
-`hr_obligations` — until applied, the production Compliance view shows an
-error banner on the obligation register and the score blends three
-components — and schedules the 00:05-UTC-on-the-1st month-close run); (3)
-deploy the `record-score-snapshots` edge function (`verify_jwt = false` is
-already in `supabase/config.toml` — deploy from this repo root, remembering
-the 2026-08-06 stale-CLI-project lesson); (4) create the Vault secret:
+`hr_obligations` — until applied, the obligation register reads as empty on
+every path and the score blends three components instead of four); (3)
+apply migration `0070_score_snapshot_close_retries.sql` (month-close becomes
+three attempts in the first UTC hour of the 1st, and
+`score_snapshot_status()` gains close-coverage reporting); (4) deploy the
+`record-score-snapshots` edge function (`verify_jwt = false` is already in
+`supabase/config.toml` — deploy from this repo root, remembering the
+2026-08-06 stale-CLI-project lesson); (5) create the Vault secret:
 `select vault.create_secret('<service key>', 'score_snapshot_service_key',
 'Service key used by the record-score-snapshots cron job');`. Verify with
 `select * from public.score_snapshot_status();` — expect
-`secret_configured: true`, `job_scheduled: true`, and
+`secret_configured: true`, both job flags true, and
 `orgs_with_current_month` ≥ 1 after the next 05:30 UTC run (or fire
 `select public.trigger_score_snapshots();` once to check immediately —
 pg_cron reporting success only proves the request was queued). See

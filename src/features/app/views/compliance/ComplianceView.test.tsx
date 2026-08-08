@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
+import { listChain } from '@/test/productionWorkspace'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { ComplianceView } from './ComplianceView'
 
@@ -224,7 +225,7 @@ describe('ComplianceView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: findingRows, error: null }),
+                  order: () => listChain(findingRows),
                 }),
               }),
               insert,
@@ -235,7 +236,7 @@ describe('ComplianceView in production mode', () => {
             return {
               select: () => ({
                 eq: () => ({
-                  order: () => Promise.resolve({ data: obligationRows, error: null }),
+                  order: () => listChain(obligationRows),
                 }),
               }),
               insert: obligationInsert,

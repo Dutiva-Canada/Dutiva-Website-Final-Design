@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { screen, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
+import { listChain } from '@/test/productionWorkspace'
 import { AnalyticsView } from './AnalyticsView'
 
 describe('AnalyticsView (demo)', () => {
@@ -332,7 +333,7 @@ describe('AnalyticsView in production mode', () => {
           return {
             select: () => ({
               eq: () => ({
-                order: () => Promise.resolve({ data: rows, error: null }),
+                order: () => listChain(rows),
               }),
             }),
             upsert: snapshotUpsert,

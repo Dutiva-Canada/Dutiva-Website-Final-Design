@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import { fetchAllPages } from '@/lib/supabasePagination'
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 
@@ -68,12 +69,16 @@ function toEmployee(row: z.infer<typeof rowSchema>): ProductionEmployee {
 
 export async function listEmployees(organizationId: string): Promise<ProductionEmployee[]> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
-    .from('employees')
-    .select(SELECT_COLUMNS)
-    .eq('organization_id', organizationId)
-    .order('name')
-  if (error) throw error
+  const client = supabase
+  const data = await fetchAllPages((from, to) =>
+    client
+      .from('employees')
+      .select(SELECT_COLUMNS)
+      .eq('organization_id', organizationId)
+      .order('name')
+      .order('id')
+      .range(from, to),
+  )
   return z.array(rowSchema).parse(data).map(toEmployee)
 }
 
