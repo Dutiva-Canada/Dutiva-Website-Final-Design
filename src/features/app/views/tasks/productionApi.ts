@@ -30,6 +30,8 @@ export interface ProductionTask {
   priority: ProductionTaskPriority
   status: string
   done: boolean
+  /** Table category ('general' default; pipeline/module rows set others). */
+  category: string
   /** YYYY-MM-DD, derived from the table's timestamptz due_at. */
   dueDate: string | null
   /** From metadata.employee_id, when the task is linked to a person. */
@@ -49,6 +51,7 @@ const rowSchema = z.object({
   title: z.string(),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   status: z.string(),
+  category: z.string(),
   due_at: z.string().nullable(),
   /* Optional-tolerant: the table's jsonb metadata carries the employee
      linkage this app writes ({employee_id, kind}); rows from the backend's
@@ -56,7 +59,7 @@ const rowSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 })
 
-const SELECT_COLUMNS = 'id, title, priority, status, due_at, metadata'
+const SELECT_COLUMNS = 'id, title, priority, status, category, due_at, metadata'
 
 function toTask(row: z.infer<typeof rowSchema>): ProductionTask {
   const meta = row.metadata ?? {}
@@ -65,6 +68,7 @@ function toTask(row: z.infer<typeof rowSchema>): ProductionTask {
     title: row.title,
     priority: row.priority,
     status: row.status,
+    category: row.category,
     done: row.status === 'completed',
     dueDate: row.due_at ? row.due_at.slice(0, 10) : null,
     linkedEmployeeId: typeof meta.employee_id === 'string' ? meta.employee_id : null,

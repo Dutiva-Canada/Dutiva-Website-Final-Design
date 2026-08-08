@@ -12,6 +12,7 @@ describe('tasks productionApi', () => {
     title: 'File ROE for departing employee',
     priority: 'high',
     status: 'open',
+    category: 'general',
     due_at: '2026-07-20T00:00:00+00:00',
   }
 
@@ -35,6 +36,7 @@ describe('tasks productionApi', () => {
       title: 'File ROE for departing employee',
       priority: 'high',
       status: 'open',
+      category: 'general',
       done: false,
       dueDate: '2026-07-20',
       linkedEmployeeId: null,

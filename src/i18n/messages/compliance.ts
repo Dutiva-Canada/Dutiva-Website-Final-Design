@@ -129,4 +129,40 @@ export const complianceMessages = defineMessages({
   compliance_prod_sev_medium: { en: 'Medium', fr: 'Moyenne' },
   compliance_prod_sev_high: { en: 'High', fr: 'Élevée' },
   compliance_prod_sev_critical: { en: 'Critical', fr: 'Critique' },
+
+  /* ── Obligation register (production, 0069) — all [FR self-authored] ────── */
+  compliance_prod_ob_section: { en: 'Obligation register', fr: 'Registre des obligations' },
+  compliance_prod_ob_add: { en: 'Add obligation', fr: 'Ajouter une obligation' },
+  compliance_prod_ob_title_label: { en: 'Obligation', fr: 'Obligation' },
+  compliance_prod_ob_area: { en: 'Area / statute', fr: 'Domaine / loi' },
+  compliance_prod_ob_jurisdiction: { en: 'Jurisdiction', fr: 'Compétence' },
+  compliance_prod_ob_due: { en: 'Due date', fr: 'Échéance' },
+  compliance_prod_ob_recurrence: { en: 'Recurrence', fr: 'Récurrence' },
+  compliance_prod_ob_owner: { en: 'Owner', fr: 'Responsable' },
+  compliance_prod_ob_status: { en: 'Status', fr: 'Statut' },
+  compliance_prod_ob_evidence: { en: 'Evidence', fr: 'Preuve' },
+  compliance_prod_ob_status_ok: { en: 'Evidence on file', fr: 'Preuve au dossier' },
+  compliance_prod_ob_status_progress: { en: 'In progress', fr: 'En cours' },
+  compliance_prod_ob_status_needs: { en: 'Needs evidence', fr: 'Preuve requise' },
+  compliance_prod_ob_overdue_chip: { en: 'Overdue', fr: 'En retard' },
+  compliance_prod_ob_due_label: { en: 'Due {date}', fr: 'Échéance : {date}' },
+  compliance_prod_ob_empty: {
+    en: 'No obligations yet. Track recurring statutory duties — reviews, filings, training — and the score reflects what has evidence on file.',
+    fr: 'Aucune obligation pour l’instant. Suivez les devoirs légaux récurrents — examens, dépôts, formations — et le score reflète ce qui a une preuve au dossier.',
+  },
+  compliance_prod_ob_added: { en: 'Obligation added.', fr: 'Obligation ajoutée.' },
+  compliance_prod_ob_add_failed: {
+    en: 'Could not add the obligation. Try again.',
+    fr: 'Impossible d’ajouter l’obligation. Réessayez.',
+  },
+  compliance_prod_ob_status_failed: {
+    en: 'Could not update the obligation status. Try again.',
+    fr: 'Impossible de mettre à jour le statut de l’obligation. Réessayez.',
+  },
+  compliance_prod_ob_removed: { en: 'Obligation removed.', fr: 'Obligation supprimée.' },
+  compliance_prod_ob_remove_failed: {
+    en: 'Could not remove the obligation. Try again.',
+    fr: 'Impossible de supprimer l’obligation. Réessayez.',
+  },
+  compliance_prod_ob_remove: { en: 'Remove obligation', fr: 'Supprimer l’obligation' },
 })

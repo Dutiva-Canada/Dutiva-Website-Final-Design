@@ -198,6 +198,7 @@ describe('HomeView production command centre', () => {
           title: 'File ROE',
           priority: 'high',
           status: 'open',
+          category: 'general',
           due_at: '2099-01-01T00:00:00Z',
         },
       ],

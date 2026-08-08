@@ -273,13 +273,27 @@ export function meanInWindow(
  * crosses a formula change can be labeled instead of silently mixed.
  * v1: raw done/total ratios for all three components, no ceiling.
  * v2: findings weighted by severity, cancelled tasks excluded, and an open
- *     critical finding caps the blend (docs/SCORING_LOGIC.md §8).
+ *     critical finding caps the blend.
+ * v3: the obligation register as a fourth component (status 'ok' over all),
+ *     and tasks scoped to provenanced rows (docs/SCORING_LOGIC.md §8).
  *
  * MIRROR: supabase/functions/record-score-snapshots/scoring.ts computes the
  * same formula for the scheduled job; scoring.test.ts there is the drift
  * test. Change the two together.
  */
-export const SCORE_FORMULA_VERSION = 2
+export const SCORE_FORMULA_VERSION = 3
+
+/**
+ * v3 task scoping: only rows with provenance count toward the score — a
+ * category the pipeline or a module set (anything but the 'general'
+ * default), or an app-written metadata.kind linkage. A hand-added to-do is
+ * real work but not compliance posture. Everything still counts in the
+ * Tasks view, the nav badge and the attention queue — this rule scopes the
+ * score only.
+ */
+export function isProvenancedTask(category: string, linkedKind: string | null): boolean {
+  return category !== 'general' || linkedKind !== null
+}
 
 /**
  * Severity weights for the findings component: a critical exposure moves
