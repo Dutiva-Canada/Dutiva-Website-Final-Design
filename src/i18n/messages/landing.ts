@@ -999,4 +999,12 @@ export const landing = defineMessages({
     en: 'Could not record your signup. Please try again, or email support@dutiva.ca.',
     fr: "Impossible d'enregistrer votre inscription. Réessayez ou écrivez à support@dutiva.ca.",
   },
+  landing_cta_captcha_required: {
+    en: 'Please complete the human-verification check to continue.',
+    fr: 'Veuillez compléter la vérification humaine pour continuer.',
+  },
+  landing_cta_captcha_failed: {
+    en: 'Human verification failed. Please complete the check and try again.',
+    fr: 'La vérification humaine a échoué. Complétez la vérification et réessayez.',
+  },
 })

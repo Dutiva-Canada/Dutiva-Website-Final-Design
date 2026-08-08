@@ -415,10 +415,27 @@ with one owner follow-up._ The site shipped with no CSP / X-Frame-Options /
 HSTS / nosniff / Referrer-Policy. Now every route carries the enforcing safe
 set plus a **Report-Only** full CSP. Owner follow-up: after a signed-in
 click-through shows no console violations, promote the CSP to enforcing per
-[SECURITY_HEADERS.md](SECURITY_HEADERS.md). Not done here (needs decisions,
-not code): add a disclosure contact to `SECURITY.md` (audit F3); add CAPTCHA
-to `create-beta-signup` (audit M2 — it changes the signup UX); consider
-moving Supabase session tokens off `localStorage` (audit H2 — architectural).
+[SECURITY_HEADERS.md](SECURITY_HEADERS.md).
+
+**SEC3 — The three audit judgment-calls (2026-08-08).** _Done — with owner
+follow-ups._ (1) **`SECURITY.md`** rewritten with a real coordinated-
+disclosure policy — contact `security@dutiva.ca`, 3-business-day
+acknowledgement, safe-harbour, scope, EN/FR — plus an RFC 9116
+`public/.well-known/security.txt`. _Owner:_ ensure `security@dutiva.ca`
+routes to a monitored inbox, and refresh the `Expires` date annually.
+(2) **CAPTCHA on `create-beta-signup`** (audit M2 — the email-amplification
+vector): the Turnstile/hCaptcha gate the support intake uses is now mirrored
+on the beta path — inert until `CAPTCHA_SECRET_KEY` / `VITE_CAPTCHA_SITE_KEY`
+are set, a hard 403 once they are. _Owner:_ redeploy `create-beta-signup`
+(the server half ships with the change; set the keys to turn it on — same
+pair the contact form already uses). (3) **Supabase tokens in
+`localStorage`** (audit H2): decided **not** to move them reactively — for a
+client-only SPA no storage removes the XSS risk, and the clean fix
+(httpOnly cookies) needs a server/proxy layer this SPA lacks. The impact
+mitigations are the CSP (SEC2) and the already-strong XSS prevention; the
+analysis and the interim owner action (enable **refresh-token rotation** in
+the Supabase dashboard) are in
+[AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md#session-token-storage--the-xss-blast-radius).
 
 **OA19 — CI is red on every branch: the `SUPABASE_ACCESS_TOKEN` repository
 secret is not a valid personal access token.** _Owner._ Since the secrets
