@@ -34,6 +34,9 @@ export interface GuidanceChunk {
   effective_note: string | null
   review_status?: string
   topic?: string
+  /** Set when the law monitor saw this chunk's jurisdiction change after
+   *  curation (0071) — vetted status does not survive a source change. */
+  source_changed_at?: string | null
 }
 
 export interface AdvisorResponsePayload {
@@ -264,10 +267,14 @@ export interface BuildInput {
   reply: string
   /** Chunks that grounded this turn, in rank order. */
   chunks: GuidanceChunk[]
+  /** True when retrieval errored (vs a genuine zero-hit) — the user is told
+   *  "retrieval was unavailable", never "nothing matched". */
+  retrievalFailed?: boolean
 }
 
 export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload {
   const { message, chunks } = input
+  const retrievalFailed = input.retrievalFailed === true
   const normalized = normalize(message)
   const isCrisis = detectsCrisis(message)
 
@@ -354,33 +361,56 @@ export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload 
     return bi(`${label.en} · ${tag.en}`, `${label.fr} · ${tag.fr}`)
   })
 
-  /* A citation is "valid" only once a human has reviewed the chunk; the seed
-     corpus is machine-curated, so it honestly reads as needs-review until
+  /* A citation is "valid" only once a human has reviewed the chunk AND its
+     source has not changed since (0071: the law monitor stamps
+     source_changed_at when it sees the jurisdiction's law change — vetted
+     status does not survive a source change). The seed corpus is
+     machine-curated, so it honestly reads as needs-review until
      `review_status` flips. */
   const legalBasisItems = chunks.map((c) => ({
     label: bi(`${c.title} — ${c.source_name}`, `${c.title} — ${c.source_name}`),
-    valid: c.review_status === 'reviewed',
+    valid: c.review_status === 'reviewed' && !c.source_changed_at,
   }))
   const anyUnreviewed = legalBasisItems.some((i) => !i.valid)
+  const anySourceChanged = chunks.some((c) => !!c.source_changed_at)
 
+  /* Accurate about what actually happens: the citation surface is withheld;
+     the reply's prose may still carry a figure, and the reader should verify
+     it. (The previous "figures are withheld" wording misdescribed a figure
+     sitting visible in the chat bubble — 2026-08-08 review.) */
   if (!jurisdictionConfirmed) {
     warnings.push(
       jurisdictionStatus === 'conflict'
         ? bi(
-            'More than one jurisdiction was mentioned — statutory figures are withheld until one is confirmed.',
-            'Plus d’une compétence a été mentionnée — les chiffres prévus par la loi sont retenus jusqu’à confirmation.',
+            'More than one jurisdiction was mentioned — statutory citations are withheld until one is confirmed, and any figure in the reply should be verified against the official source.',
+            'Plus d’une compétence a été mentionnée — les citations légales sont retenues jusqu’à confirmation, et tout chiffre dans la réponse doit être vérifié auprès de la source officielle.',
           )
         : bi(
-            'Jurisdiction is not confirmed — statutory figures are withheld until it is.',
-            'La compétence n’est pas confirmée — les chiffres prévus par la loi sont retenus jusqu’à confirmation.',
+            'Jurisdiction is not confirmed — statutory citations are withheld until it is, and any figure in the reply should be verified against the official source.',
+            'La compétence n’est pas confirmée — les citations légales sont retenues jusqu’à confirmation, et tout chiffre dans la réponse doit être vérifié auprès de la source officielle.',
           ),
     )
   }
-  if (!hasChunks) {
+  if (retrievalFailed) {
+    warnings.push(
+      bi(
+        'Corpus retrieval was unavailable this turn — the reply is not grounded in the curated corpus.',
+        'La recherche dans le corpus était indisponible pour ce tour — la réponse n’est pas fondée sur le corpus répertorié.',
+      ),
+    )
+  } else if (!hasChunks) {
     warnings.push(
       bi(
         'No curated guidance matched this question — the reply is not grounded in the corpus.',
         'Aucune guidance répertoriée ne correspond à cette question — la réponse n’est pas fondée sur le corpus.',
+      ),
+    )
+  }
+  if (legalBasisAllowed && anySourceChanged) {
+    warnings.push(
+      bi(
+        'A law behind a cited source changed after it was curated — verify against the primary source before relying on it.',
+        'Une loi derrière une source citée a changé après sa préparation — vérifiez la source primaire avant de vous y fier.',
       ),
     )
   }
@@ -461,19 +491,31 @@ export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload 
                 'Legal basis withheld — jurisdiction is not confirmed.',
                 'Fondement juridique retenu — la compétence n’est pas confirmée.',
               )
-            : bi(
-                'No curated source matched this question.',
-                'Aucune source répertoriée ne correspond à cette question.',
-              ),
+            : retrievalFailed
+              ? bi(
+                  'Corpus retrieval was unavailable this turn.',
+                  'La recherche dans le corpus était indisponible pour ce tour.',
+                )
+              : bi(
+                  'No curated source matched this question.',
+                  'Aucune source répertoriée ne correspond à cette question.',
+                ),
         },
     retrieval: hasChunks
       ? { items: retrievalItems }
       : {
           items: [],
-          withheldReason: bi(
-            'Nothing in the curated corpus matched this question.',
-            'Rien dans le corpus répertorié ne correspond à cette question.',
-          ),
+          /* An infrastructure failure must never read as "no match" — that
+             conflation hid the 0058 tsquery bug for ten days. */
+          withheldReason: retrievalFailed
+            ? bi(
+                'Corpus retrieval was unavailable this turn — try again shortly.',
+                'La recherche dans le corpus était indisponible pour ce tour — réessayez sous peu.',
+              )
+            : bi(
+                'Nothing in the curated corpus matched this question.',
+                'Rien dans le corpus répertorié ne correspond à cette question.',
+              ),
         },
     webSearch: null,
     confidence: { label: confidenceLabel, pct: confidencePct },

@@ -364,6 +364,26 @@ service-role key or `SUPABASE_SECRET_KEY` — no JWT payload decoding.
 the same deploy, as the TODO entry anticipated — whatever is in the working
 tree is what goes.
 
+**OA20 — Advisor grounding upgrades: apply the migration, redeploy the
+function.** _Owner._ The 2026-08-08 RAG hardening ships in two halves.
+(1) Apply migration `0071_corpus_source_change_flags.sql` — adds
+`source_changed_at`/`source_change_note` to `advisor_guidance_chunks`, the
+`law_updates` trigger that flags a jurisdiction's chunks on a detected
+change, and the 9-column `match_advisor_guidance` recreate. (2) Redeploy
+the `advisor-chat` edge function (retrieval now sees the previous user
+turn, distinguishes retrieval failures from zero-hits in telemetry
+(`metadata.retrieval_failed`) and in the workspace panels, and injects the
+ESA s.57 notice schedule on Ontario notice questions). Order matters:
+apply 0071 BEFORE the redeploy — the old 8-column RPC still satisfies the
+new code (source_changed_at reads as absent), but the new RPC's extra
+column is simply ignored by the old code, so migration-first is the
+gap-free order. The client half (widened figure detector, notice
+cross-check, accurate warnings) ships with the normal app deploy and needs
+nothing. Verify: ask the Advisor an Ontario notice question with a stated
+tenure and confirm the workspace shows the schedule-grounded figure; then
+`select topic, source_changed_at from public.advisor_guidance_chunks where jurisdiction = 'ON';`
+after the next detected Ontario change.
+
 **OA19 — CI is red on every branch: the `SUPABASE_ACCESS_TOKEN` repository
 secret is not a valid personal access token.** _Owner._ Since the secrets
 were set on 2026-08-06 (f92f75cf was the first authenticated run), the
@@ -476,10 +496,16 @@ The corpus rule is that every statutory figure comes from a direct fetch of an
 official government page, fetched twice — once to author, once to verify
 independently. Everything in this section is gated on that rule.
 
-**L5 — Corpus review gate.** _Blocked (human review)._ Every row in
-`advisor_guidance_chunks` is `review_status: machine_curated`. Only a human
-flips a row to `reviewed`, and that gate has never been exercised. Unverified
-here — the live table was not reachable from this session.
+**L5 — Corpus review gate: the Ontario pack is built, awaiting the pass.**
+_Blocked (human review) — but the preparation is done._ Every row in
+`advisor_guidance_chunks` is `review_status: machine_curated`; only a human
+flips a row to `reviewed`, and that gate has never been exercised.
+[advisor-corpus-review-pack-ontario.md](advisor-corpus-review-pack-ontario.md)
+(2026-08-08) now carries the full checklist for the 14 Ontario chunks —
+per-chunk figures to verify, source URLs, priority order (minimum wage
+first: it expires Oct 1, 2026), and the per-chunk sign-off SQL, which also
+clears the 0071 source-change flag. Working through it is deliberately an
+owner/reviewer act, not an agent one.
 
 **L6 — Québec and Federal notice bands: the pack is built, awaiting a
 signature.** _Blocked (qualified legal review) — but the research is done._

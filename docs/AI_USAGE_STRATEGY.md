@@ -171,31 +171,35 @@ supportive/crisis. False positives are acceptable here (worst case: a support
 resource is shown unnecessarily); false negatives are not.
 
 ### 5.2 Jurisdiction / statutory-figure gate — post-filter, fail-safe-closed
-Two deterministic rules, independent of the model:
+Three deterministic rules, independent of the model:
 
 ```
-// 1. Gate: no figures until jurisdiction is confirmed (safetyBackstop.ts).
+// 1. Gate: citations withheld until jurisdiction is confirmed (safetyBackstop.ts).
 if jurisdiction.status NOT in {known, assumed, not_applicable}
-   AND mentionsStatutoryFigure(reply):
-       legalBasisAllowed = false; add withheld-warning   // never "assume Ontario"
+   AND mentionsStatutoryFigure(reply):        // weeks/months, days, $, %
+       legalBasisAllowed = false; add verify-warning   // never "assume Ontario"
 
-// 2. Ground: any figure that ships is looked up, not generated (statutoryNotice.ts).
-weeks = lookupStatutoryNoticeWeeks(jurisdiction, tenureMonths)  // table, not memory
-//       └─ ON ESA s.57 seeded; QC/FED null → hedge, don't guess
+// 2. Ground: when the turn is an Ontario notice question, the ESA s.57
+//    schedule is injected into the prompt as authoritative
+//    (advisor-chat/noticeSchedule.ts, drift-tested against statutoryNotice.ts)
+//    — the figure is looked up, not generated.
+
+// 3. Verify: when tenure is stated and the schedule is encoded, a notice
+//    figure the reply states is cross-checked against the table
+//    (statutoryCrossCheck.ts). A mismatch withholds legal basis and warns
+//    with both numbers. QC/FED bands are null → 'unverifiable', never a guess.
 ```
 
-The model may *phrase* "about 8 weeks' notice"; the number `8` comes from the
-table (`NOTICE_SCHEDULES`). If the table has no entry (`null`), the Advisor hedges
-and points to the primary source rather than guessing — the bounded-fallback
-behaviour `AGENT.md` §9 already requires.
-
-**Honest limitation.** Rule 1 inspects the model's *prose*, and a client cannot
-un-say prose — so it gates the structured legal-basis surface off and raises an
-operator warning, rather than rewriting the sentence. The definitive fix stays
-server-side (the engine withholds figures before generating). The table
-(`statutoryNotice.ts`) seeds only Ontario today; **Québec (LNT s.82) and Federal
-(CLC Part III s.230) are intentionally `null` pending qualified legal review** —
-this is why they fail safe to a hedge, and is flagged for a reviewer.
+**Honest limitations.** Rules 1 and 3 inspect the model's *prose*, and a client
+cannot un-say prose — they gate the structured legal-basis surface off and put
+an accurate warning in front of the operator ("verify any figure in the reply"),
+rather than rewriting the sentence; a figure the model states can still be
+wrong when the tenure is unstated or the topic has no encoded table. Rule 2
+grounds only what a table exists for: **Québec (LNT s.82) and Federal (CLC
+Part III s.230) are intentionally `null` pending qualified legal review**
+(`docs/notice-bands-review-pack.md`) — they fail safe to a hedge. Until
+2026-08-08 rule 2's table existed but was wired only into the Document Studio,
+not the chat path — the RAG review caught the gap and closed it.
 
 ### 5.3 Why this shape
 - **Cheap & auditable** — phrase-set + regex + a table lookup, no extra model call.

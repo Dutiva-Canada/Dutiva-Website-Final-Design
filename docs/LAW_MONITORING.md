@@ -398,6 +398,14 @@ any RSS feed (none exists for this purpose).
   not which section. `raw_diff` holds the first 2000 characters for triage.
 - **Summaries are model-generated** and unreviewed. They orient a reader; they
   are not legal advice and must not be presented as authoritative.
-- **Advisor does not consume this.** `law_updates` feeds the Knowledge panel
-  only — a detected change does not reach Advisor retrieval or the guidance
-  corpus.
+- **Advisor coupling is flag-level, not content-level** (0071, 2026-08-08 —
+  previously no coupling at all). A `change` event in Ontario, Québec or
+  Federal trips a database trigger that stamps `source_changed_at` on every
+  active corpus chunk in that jurisdiction: the chunk keeps retrieving, but
+  its citation demotes to needs-review and the Advisor warns that a law
+  behind a cited source changed. Granularity is deliberately the
+  jurisdiction — the monitor knows *that* a law changed, not which corpus
+  topic the amendment touches, so it over-flags and errs safe. A human
+  clears the flag on re-verification
+  (`docs/advisor-corpus-review-pack-ontario.md`). The corpus *content* still
+  updates only through reviewed amendment tranches, never automatically.

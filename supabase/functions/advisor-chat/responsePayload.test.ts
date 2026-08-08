@@ -167,6 +167,49 @@ describe('buildAdvisorResponse — honesty about the corpus', () => {
     expect(response.retrieval.withheldReason).toBeDefined()
     expect(response.warnings.some((w) => JSON.stringify(w).includes('not grounded'))).toBe(true)
   })
+
+  it('says "retrieval was unavailable", never "nothing matched", on a retrieval failure', () => {
+    const response = parsed(
+      buildAdvisorResponse({
+        message: 'Ontario termination notice for 6 years of service?',
+        reply: 'Six weeks.',
+        chunks: [],
+        retrievalFailed: true,
+      }),
+    )
+
+    const json = JSON.stringify(response)
+    expect(json).toContain('unavailable')
+    expect(json).not.toContain('matched this question')
+    expect(response.warnings.some((w) => JSON.stringify(w).includes('unavailable'))).toBe(true)
+  })
+
+  it('demotes a reviewed citation whose source changed after curation (0071)', () => {
+    const response = parsed(
+      buildAdvisorResponse({
+        message: 'Ontario termination notice for 6 years of service?',
+        reply: 'Six weeks.',
+        chunks: [{ ...reviewedChunk, source_changed_at: '2026-08-08T00:00:00Z' }],
+      }),
+    )
+
+    expect(response.legalBasis.items[0]?.valid).toBe(false)
+    expect(
+      response.warnings.some((w) => JSON.stringify(w).includes('changed after it was curated')),
+    ).toBe(true)
+  })
+
+  it('keeps a reviewed, unchanged citation valid', () => {
+    const response = parsed(
+      buildAdvisorResponse({
+        message: 'Ontario termination notice for 6 years of service?',
+        reply: 'Six weeks.',
+        chunks: [reviewedChunk],
+      }),
+    )
+
+    expect(response.legalBasis.items[0]?.valid).toBe(true)
+  })
 })
 
 describe('buildAdvisorResponse — routing and risk', () => {
