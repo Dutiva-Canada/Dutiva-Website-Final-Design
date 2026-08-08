@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { hasAnalyticsConsent, setAnalyticsConsent, hasConsentResponse } from './consent'
+import { hasAnalyticsConsent, setAnalyticsConsent, hasConsentResponse } from './analyticsConsent'
 
 function mockStorage(): Storage {
   const store = new Map<string, string>()

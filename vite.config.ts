@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vitest/config'
+import { defineConfig, configDefaults } from 'vitest/config'
 import type { Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -255,6 +255,9 @@ export default defineConfig(({ command }) => {
     test: {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
+      /* The e2e/ specs are Playwright's (*.spec.ts), driven by its own runner
+         and a real browser — keep Vitest's default glob from claiming them. */
+      exclude: [...configDefaults.exclude, 'e2e/**'],
       css: false,
       /* First test per worker pays the fixture-module transform cost; on a
          loaded machine that alone can exceed the 5s default. */

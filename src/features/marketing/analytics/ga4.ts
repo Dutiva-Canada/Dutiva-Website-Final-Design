@@ -17,7 +17,7 @@
  * enhanced measurement for SPA navigations when the script is loaded.
  */
 
-import { hasAnalyticsConsent } from './consent'
+import { hasAnalyticsConsent } from '@/lib/analyticsConsent'
 
 /** Whether GA4 should load at all. */
 export function isGa4Configured(): boolean {

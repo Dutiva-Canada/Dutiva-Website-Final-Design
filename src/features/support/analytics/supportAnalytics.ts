@@ -10,6 +10,14 @@
  * Canada even though Supabase functions otherwise run at the edge nearest
  * the caller.
  *
+ * Consent-gated on top of that. Every event carries a daily-rotated visitor
+ * identifier (visitorId.ts) that stitches a single visit's search → article →
+ * vote sequence — profiling a visit within the meaning of Quebec Law 25
+ * s. 8.1, which requires such technology to be OFF by default. So trackEvent()
+ * also checks hasAnalyticsConsent() and records nothing until the visitor opts
+ * in through the consent banner; with no recorded choice, no event is queued
+ * and no visitor id is ever created.
+ *
  * Events are queued and flushed in a single `sendBeacon`/fetch on page
  * unload or when the queue reaches 10 events, whichever comes first — so a
  * helpfulness vote or a search doesn't round-trip to the server individually.
@@ -18,6 +26,7 @@
  */
 
 import { VERCEL_ENV } from '@/lib/deployEnv'
+import { hasAnalyticsConsent } from '@/lib/analyticsConsent'
 import { getVisitorId } from './visitorId'
 
 export type AnalyticsEventType =
@@ -67,6 +76,8 @@ function endpoint(): string | null {
 /** Record an event. Fire-and-forget — never throws, never blocks. */
 export function trackEvent(event: AnalyticsEventInput): void {
   if (!isActive()) return
+  // Off by default (Law 25 s. 8.1): no consent, no event, no visitor id.
+  if (!hasAnalyticsConsent()) return
   const enriched = { ...event, anonymous_visitor_id: getVisitorId() }
   queue.push(enriched)
   if (queue.length >= FLUSH_THRESHOLD) {

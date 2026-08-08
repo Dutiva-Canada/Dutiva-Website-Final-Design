@@ -15,10 +15,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "check:migrations": "node scripts/check-migrations.mjs",
+    "check:rls": "node scripts/check-rls.mjs",
     "check:facts": "node scripts/check-canonical-facts.mjs",
     "check:message-scopes": "node scripts/check-message-scopes.mjs",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run check:facts && npm run check:message-scopes",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run check:rls && npm run check:facts && npm run check:message-scopes",
     "db:snapshot": "supabase db dump -f supabase/schema.sql"
   },
   "dependencies": {
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@babel/parser": "^7.29.7",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

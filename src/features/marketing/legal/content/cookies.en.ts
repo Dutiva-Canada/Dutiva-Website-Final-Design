@@ -69,7 +69,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Dutiva uses two kinds of analytics: first-party support analytics and optional third-party website analytics (Google Analytics 4). First-party support analytics (Help Centre searches, article views, helpfulness votes, and support ticket events) are sent to a Dutiva-operated edge function in Canada and do not use third-party cookies. These events carry a daily-rotated anonymous visitor identifier for Help Centre activity or the workspace (organization) identifier for authenticated ticket events, never an individual user identifier. Raw event data is retained for 90 days; daily aggregates are retained indefinitely.',
+          text: 'Dutiva uses two kinds of analytics: first-party support analytics and optional third-party website analytics (Google Analytics 4). Both are optional and off by default — nothing is collected until you accept analytics through the consent banner, and you can change your choice at any time from the "Cookie preferences" link in the footer. First-party support analytics (Help Centre searches, article views, helpfulness votes, and support ticket events) are sent to a Dutiva-operated edge function in Canada and do not use third-party cookies. These events carry a daily-rotated anonymous visitor identifier for Help Centre activity or the workspace (organization) identifier for authenticated ticket events, never an individual user identifier. Raw event data is retained for 90 days; daily aggregates are retained indefinitely.',
         },
         {
           type: 'p',

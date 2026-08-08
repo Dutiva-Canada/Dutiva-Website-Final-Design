@@ -29,7 +29,7 @@ export default {
         },
         {
           "type": "li",
-          "text": "Error and performance logs: processed by Sentry (United States) for application monitoring. Logs are minimized and scrubbed before transmission."
+          "text": "Error telemetry (coarse error message, route pattern, release identifier, coarse browser and operating-system family; no user, session, or authentication identifiers and no input content): stored by Supabase Inc. (United States) in Dutiva's own error-reporting table. Dutiva does not use a third-party error-tracking service."
         }
       ]
     },

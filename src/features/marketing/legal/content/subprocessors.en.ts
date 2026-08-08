@@ -49,11 +49,11 @@ export default {
       ]
     },
     {
-      "title": "5. Monitoring and Error Tracking",
+      "title": "5. Error Monitoring",
       "blocks": [
         {
           "type": "p",
-          "text": "Sentry (Functional Software, Inc.) — Purpose: Application error tracking, performance monitoring, and incident response. Data processed: Error logs, stack traces, request metadata, session identifiers. Data is scrubbed to minimize personal data before submission. Processing location: United States."
+          "text": "Dutiva does not use a third-party error-tracking subprocessor (such as Sentry or Datadog). When the application encounters an error, a minimized report is sent to a Dutiva-operated function and stored in Dutiva's own database (Supabase, listed in Section 1). Each report is limited to a coarse error message, the route pattern, a release identifier, coarse browser and operating-system family, and locale — it carries no user, session, or authentication identifiers and no input content. Processing and storage follow the Supabase entry above."
         }
       ]
     },
@@ -62,12 +62,25 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Dutiva may use privacy-preserving analytics tools to understand aggregate usage patterns, feature adoption, and product performance. Where analytics tools are used, we select providers that support data minimization, anonymization, and compliance with Canadian privacy standards. Specific providers will be listed here as they are added."
+          "text": "First-party analytics are processed in-house. Help Centre and support-funnel events (searches, article views, helpfulness votes, and support ticket events) are sent to a Dutiva-operated edge function pinned to the Canada (ca-central-1) region and stored in Dutiva's own database (Supabase, Section 1). They carry a daily-rotated anonymous identifier or a workspace (organization) identifier, never an individual user identifier, and are not shared with any third-party analytics provider. These events are collected only after the visitor consents through the consent banner."
+        },
+        {
+          "type": "p",
+          "text": "Optional third-party website analytics: Google Analytics 4 (Google LLC — United States). Where used, GA4 loads only when a measurement ID is configured and the visitor has granted consent through the consent banner, with IP anonymization enabled. Where no measurement ID is configured, no website-analytics data is sent to Google."
         }
       ]
     },
     {
-      "title": "7. Cross-Border Data Transfers",
+      "title": "7. Bot Protection and CAPTCHA",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "To protect public forms (such as beta-signup and support requests) from spam and automated abuse, Dutiva may use a CAPTCHA / bot-protection provider: Cloudflare, Inc. (Cloudflare Turnstile) by default, or Intuition Machines, Inc. (hCaptcha) where configured. When enabled, the provider evaluates technical signals from the visitor's browser — including IP address and interaction signals — to distinguish humans from automated clients. This protection is engaged only on public submission forms and only when bot-protection keys are configured. Cloudflare may also provide DNS, network-security, and availability services where used. Processing location: United States and global edge network."
+        }
+      ]
+    },
+    {
+      "title": "8. Cross-Border Data Transfers",
       "blocks": [
         {
           "type": "p",
@@ -80,7 +93,7 @@ export default {
       ]
     },
     {
-      "title": "8. Subprocessor Changes",
+      "title": "9. Subprocessor Changes",
       "blocks": [
         {
           "type": "p",
