@@ -39,6 +39,23 @@ describe('local export audit', () => {
     expect(trail[0]?.kind).toBe('word')
   })
 
+  it('counts advisor and doclib exports too, not just docstudio (2026-08-08 fix)', () => {
+    /* Regression: isEntry used to reject these surfaces/kinds, so an advisor
+       "Copy" or a doclib export was written and then silently filtered out
+       of the guard's own history. */
+    appendExportAudit(entry(secondsAgo(120), { surface: 'advisor', kind: 'text' }))
+    appendExportAudit(entry(secondsAgo(60), { surface: 'doclib', kind: 'pdf' }))
+    const trail = readExportAudit()
+    expect(trail).toHaveLength(2)
+    expect(trail.map((e) => e.surface).sort()).toEqual(['advisor', 'doclib'])
+  })
+
+  it('a burst of advisor copies now trips the velocity guard', () => {
+    for (let i = 0; i < 12; i += 1)
+      appendExportAudit(entry(secondsAgo(10 + i * 20), { surface: 'advisor', kind: 'text' }))
+    expect(localExportDecision(NOW).allowed).toBe(false)
+  })
+
   it('reads corrupt storage as empty instead of throwing', () => {
     localStorage.setItem('dutiva-export-audit', '{not json')
     expect(readExportAudit()).toEqual([])

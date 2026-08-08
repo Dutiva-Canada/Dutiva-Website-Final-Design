@@ -389,6 +389,37 @@ figure; then
 `select topic, source_changed_at from public.advisor_guidance_chunks where jurisdiction = 'ON';`
 after the next detected Ontario change.
 
+**SEC1 — Anon RLS holes closed (migration 0073, applied to prod
+2026-08-08).** _Done — with two owner follow-ups._ A four-dimension security
+audit found three legacy tables world-open to anonymous callers:
+`beta_signups` (prospect PII + CASL consent + the workspace-membership
+allowlist — 0 rows at the time), `signatures` (anon could read every
+signature and forge an executed one — 1 row), and `hr_documents` (template
+IP — 26 rows). Confirmed live via `pg_policies`, fixed by dropping the anon
+policies (verified: as `anon`, all three now return 0 rows / permission
+denied; the public status page, admin reads, public signup INSERT and
+authenticated signature owners still work), and brought into version
+control as `0073_close_anon_rls_holes.sql`. The bad policies had **no
+creating migration** — out-of-band drift — which is the deeper lesson.
+Owner follow-ups: (1) **regenerate `supabase/schema.sql`** (`npm run
+db:snapshot`) — it is stale (predates 0039–0073) and did not reflect these
+policies; (2) re-run `get_advisors('security')` after applying the pending
+migration backlog. Non-blocking WARNs the linter still reports:
+`pg_net` in the public schema, leaked-password protection off (low
+relevance — magic-link auth), and the standard "signed-in users can execute
+SECURITY DEFINER function" list (verified benign — all 21 org-scoped ones
+self-authorize; `claim_ai_usage` is service-role only).
+
+**SEC2 — Security headers added (`vercel.json`, 2026-08-08).** _Done —
+with one owner follow-up._ The site shipped with no CSP / X-Frame-Options /
+HSTS / nosniff / Referrer-Policy. Now every route carries the enforcing safe
+set plus a **Report-Only** full CSP. Owner follow-up: after a signed-in
+click-through shows no console violations, promote the CSP to enforcing per
+[SECURITY_HEADERS.md](SECURITY_HEADERS.md). Not done here (needs decisions,
+not code): add a disclosure contact to `SECURITY.md` (audit F3); add CAPTCHA
+to `create-beta-signup` (audit M2 — it changes the signup UX); consider
+moving Supabase session tokens off `localStorage` (audit H2 — architectural).
+
 **OA19 — CI is red on every branch: the `SUPABASE_ACCESS_TOKEN` repository
 secret is not a valid personal access token.** _Owner._ Since the secrets
 were set on 2026-08-06 (f92f75cf was the first authenticated run), the
