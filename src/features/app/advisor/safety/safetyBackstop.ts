@@ -1,6 +1,8 @@
 import type { Bi } from '@/i18n/core'
 import type { AdvisorResponse, JurisdictionStatus } from '../contract'
+import type { Jurisdiction } from '@/features/app/documents/data/types'
 import { detectCrisisSignal } from './crisisSignals'
+import { crossCheckNoticeFigure } from './statutoryCrossCheck'
 import { mentionsStatutoryFigure } from './statutoryFigures'
 
 /**
@@ -16,7 +18,7 @@ import { mentionsStatutoryFigure } from './statutoryFigures'
  * its braces ("the client gates too").
  */
 
-export type SafetyAction = 'crisis-intercept' | 'legal-basis-withheld'
+export type SafetyAction = 'crisis-intercept' | 'legal-basis-withheld' | 'figure-mismatch'
 
 export interface SafetyBackstopInput {
   /** The user's message this turn — the crisis pre-classifier reads it. */
@@ -46,9 +48,42 @@ const WITHHELD_REASON: Bi = {
   fr: 'Fondement juridique retenu — la compétence n’est pas confirmée.',
 }
 
+/* Accurate about what actually happened: the prose above this warning may
+   still contain the figure — a client cannot un-say it. What is withheld is
+   the citation surface; the figure itself needs verifying. (The previous
+   text claimed "figures were withheld", which the 2026-08-08 review flagged
+   as misdescribing a figure sitting fully visible in the chat bubble.) */
 const WITHHELD_WARNING: Bi = {
-  en: 'Statutory figures were withheld: jurisdiction is not confirmed.',
-  fr: 'Des chiffres prévus par la loi ont été retenus : la compétence n’est pas confirmée.',
+  en: 'This reply may state a statutory figure although the jurisdiction is not confirmed — verify any figure against the official source before relying on it. Statutory citations are withheld.',
+  fr: 'Cette réponse peut énoncer un chiffre prévu par la loi alors que la compétence n’est pas confirmée — vérifiez tout chiffre auprès de la source officielle avant de vous y fier. Les citations légales sont retenues.',
+}
+
+const MISMATCH_REASON: Bi = {
+  en: 'Legal basis withheld — a stated notice figure disagrees with the statutory schedule.',
+  fr: 'Fondement juridique retenu — un chiffre de préavis énoncé contredit le barème légal.',
+}
+
+function mismatchWarning(expectedWeeks: number, statedWeeks: number): Bi {
+  return {
+    en: `A notice figure in this reply (${statedWeeks} weeks) disagrees with the encoded statutory schedule (${expectedWeeks} weeks for the stated tenure). Verify against the official source before relying on either.`,
+    fr: `Un chiffre de préavis dans cette réponse (${statedWeeks} semaines) contredit le barème légal encodé (${expectedWeeks} semaines pour l’ancienneté indiquée). Vérifiez auprès de la source officielle avant de vous fier à l’un ou l’autre.`,
+  }
+}
+
+/**
+ * The engine's jurisdiction read, mapped to the schedule vocabulary. The
+ * contract carries a display value rather than a code, so this reads the
+ * stable English label the engine authors (responsePayload.ts
+ * JURISDICTION_VALUE) — a drift there fails the backstop test, not silently.
+ */
+function scheduleJurisdiction(response: AdvisorResponse): Jurisdiction | null {
+  if (response.jurisdiction.status !== 'known') return null
+  const value = response.jurisdiction.value
+  const label = typeof value === 'string' ? value : value.en
+  if (label.startsWith('Ontario')) return 'ON'
+  if (label.startsWith('Quebec')) return 'QC'
+  if (label.startsWith('Federally')) return 'FED'
+  return null
 }
 
 /**
@@ -84,6 +119,35 @@ export function applySafetyBackstop(input: SafetyBackstopInput): SafetyBackstopR
         withheldReason: next.legalBasis.withheldReason ?? WITHHELD_REASON,
       },
       warnings: [...next.warnings, WITHHELD_WARNING],
+    }
+  }
+
+  // §5.2b Notice-figure cross-check — the verification half. When the
+  // jurisdiction is known and its schedule is encoded, a notice figure the
+  // reply states is compared against statutoryNotice.ts for the tenure the
+  // turn itself provides. A mismatch tightens the legal-basis gate and puts
+  // an exact, actionable warning in front of the operator. Monotonic:
+  // 'consistent' and 'unverifiable' change nothing.
+  if (!crisis) {
+    const jurisdiction = scheduleJurisdiction(response)
+    if (jurisdiction !== null) {
+      const check = crossCheckNoticeFigure({ jurisdiction, userMessage, reply })
+      if (
+        check.verdict === 'mismatch' &&
+        check.expectedWeeks !== undefined &&
+        check.statedWeeks !== undefined
+      ) {
+        actions.push('figure-mismatch')
+        next = {
+          ...next,
+          route: { ...next.route, legalBasisAllowed: false },
+          legalBasis: {
+            ...next.legalBasis,
+            withheldReason: next.legalBasis.withheldReason ?? MISMATCH_REASON,
+          },
+          warnings: [...next.warnings, mismatchWarning(check.expectedWeeks, check.statedWeeks)],
+        }
+      }
     }
   }
 

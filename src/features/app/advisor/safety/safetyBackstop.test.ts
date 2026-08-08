@@ -93,6 +93,58 @@ describe('applySafetyBackstop — jurisdiction/figure gate (§5.2)', () => {
   })
 })
 
+describe('applySafetyBackstop — notice-figure cross-check (§5.2b)', () => {
+  it('flags an Ontario notice figure that disagrees with the schedule', () => {
+    const { response, actions } = applySafetyBackstop({
+      userMessage: 'Terminating an employee with 4 years of service in Ontario.',
+      reply: 'The ESA requires 6 weeks of notice.',
+      response: baseResponse({ jurisdiction: { status: 'known', value: 'Ontario · Provincially regulated' } }),
+    })
+    expect(actions).toContain('figure-mismatch')
+    expect(response.route.legalBasisAllowed).toBe(false)
+    expect(response.legalBasis.withheldReason).toBeDefined()
+    /* The warning carries both numbers so the operator can act on it. */
+    const warning = response.warnings.at(-1)
+    const text = typeof warning === 'string' ? warning : (warning?.en ?? '')
+    expect(text).toContain('6 weeks')
+    expect(text).toContain('4 weeks')
+  })
+
+  it('passes a correct Ontario figure untouched', () => {
+    const response = baseResponse({
+      jurisdiction: { status: 'known', value: 'Ontario · Provincially regulated' },
+    })
+    const result = applySafetyBackstop({
+      userMessage: 'Terminating an employee with 4 years of service in Ontario.',
+      reply: 'The ESA statutory minimum is 4 weeks of notice.',
+      response,
+    })
+    expect(result.actions).toEqual([])
+    expect(result.response).toBe(response)
+  })
+
+  it('stays silent when tenure is unknown or the schedule is unencoded', () => {
+    expect(
+      applySafetyBackstop({
+        userMessage: 'How much notice do I owe in Ontario?',
+        reply: 'Roughly 8 weeks of notice.',
+        response: baseResponse({
+          jurisdiction: { status: 'known', value: 'Ontario · Provincially regulated' },
+        }),
+      }).actions,
+    ).toEqual([])
+    expect(
+      applySafetyBackstop({
+        userMessage: 'An employee with 4 years of service in Quebec.',
+        reply: 'The LNT requires 2 weeks of notice.',
+        response: baseResponse({
+          jurisdiction: { status: 'known', value: 'Quebec · Provincially regulated' },
+        }),
+      }).actions,
+    ).toEqual([])
+  })
+})
+
 describe('applySafetyBackstop — pass-through', () => {
   it('returns the input response untouched on a clean turn', () => {
     const response = baseResponse()

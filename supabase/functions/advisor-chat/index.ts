@@ -1,6 +1,8 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { buildAdvisorResponse } from './responsePayload.ts'
+import { buildAdvisorResponse, detectJurisdictions } from './responsePayload.ts'
+import { noticeScheduleBlock } from './noticeSchedule.ts'
+import { buildRetrievalQuery } from './retrievalQuery.ts'
 import {
   advisorChatPolicy,
   claimAiUsage,
@@ -162,6 +164,17 @@ interface GuidanceChunk {
   effective_note: string | null
   topic?: string
   review_status?: string
+  /** Set when the law monitor saw the chunk's jurisdiction change (0071). */
+  source_changed_at?: string | null
+}
+
+interface RetrievalResult {
+  chunks: GuidanceChunk[]
+  /** True when the RPC errored — distinct from a genuine zero-hit, so the
+   *  payload and telemetry can say "retrieval was unavailable" instead of
+   *  "nothing matched" (the 0058 tsquery bug hid behind exactly this
+   *  conflation for ten days). */
+  failed: boolean
 }
 
 /**
@@ -170,21 +183,26 @@ interface GuidanceChunk {
  * ts_rank; strict websearch matching returns zero rows on conversational
  * questions). Additive: any failure returns no chunks and the reply
  * proceeds under the prompt's statutory-precision fallback rules —
- * retrieval must never take the Advisor down.
+ * retrieval must never take the Advisor down. Failures are still
+ * distinguished from zero-hits for telemetry and the structured payload.
  */
 async function retrieveGuidance(
   adminClient: SupabaseClient,
-  message: string,
-): Promise<GuidanceChunk[]> {
+  query: string,
+): Promise<RetrievalResult> {
   try {
     const { data, error } = await adminClient.rpc('match_advisor_guidance', {
-      q: message,
+      q: query,
       k: 4,
     })
-    if (error) return []
-    return (data as GuidanceChunk[] | null) ?? []
-  } catch {
-    return []
+    if (error) {
+      console.error('advisor-chat: retrieval failed —', error.message)
+      return { chunks: [], failed: true }
+    }
+    return { chunks: (data as GuidanceChunk[] | null) ?? [], failed: false }
+  } catch (error) {
+    console.error('advisor-chat: retrieval failed —', error)
+    return { chunks: [], failed: true }
   }
 }
 
@@ -398,7 +416,7 @@ async function recordCompletion(
   claimId: string,
   completion: Completion,
   latencyMs: number,
-  retrievedChunks: number,
+  retrieval: RetrievalResult,
 ) {
   const usage = completion.usage ?? {}
   await finalizeAiUsage(adminClient, claimId, {
@@ -407,7 +425,9 @@ async function recordCompletion(
     promptTokens: usage.prompt_tokens ?? null,
     completionTokens: usage.completion_tokens ?? null,
     totalTokens: usage.total_tokens ?? null,
-    metadata: { retrieved_chunks: retrievedChunks },
+    /* retrieval_failed distinguishes an infrastructure failure from a
+       genuine no-match — `retrieved_chunks: 0` alone cannot. */
+    metadata: { retrieved_chunks: retrieval.chunks.length, retrieval_failed: retrieval.failed },
   })
 }
 
@@ -438,7 +458,13 @@ Deno.serve(async (req: Request) => {
      exchanges — far beyond real usage. */
   const history = fullHistory.slice(-20)
   const userMessage: ChatMessage = { role: 'user', content: request.message }
-  const guidanceChunks = await retrieveGuidance(authenticated.adminClient, request.message)
+  /* Retrieval sees the previous user turn too, so a follow-up ("and after
+     5 years?") still carries the lexemes that found the right chunk. */
+  const retrieval = await retrieveGuidance(
+    authenticated.adminClient,
+    buildRetrievalQuery(history, request.message),
+  )
+  const guidanceChunks = retrieval.chunks
 
   /* Meter as late as possible — right before the only step that costs money.
      Everything above is Postgres work, and a turn that dies loading its own
@@ -468,6 +494,14 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'The AI Advisor is temporarily unavailable. Try again shortly.' }, 503)
   }
 
+  /* Grounding: retrieved corpus entries, plus the encoded statutory notice
+     schedule when the turn is recognizably an Ontario notice question — so
+     the one figure the product has a table for is looked up, not generated
+     (§5.2's grounding half, finally wired into the chat path). */
+  const guidance =
+    guidanceBlock(guidanceChunks) +
+    noticeScheduleBlock(request.message, detectJurisdictions(request.message))
+
   const completionResult = await requestCompletion(
     authenticated.adminClient,
     decision.claimId,
@@ -476,7 +510,7 @@ Deno.serve(async (req: Request) => {
     activeRoute.provider,
     history,
     userMessage,
-    guidanceBlock(guidanceChunks),
+    guidance,
   )
   if (completionResult instanceof Response) return completionResult
 
@@ -489,7 +523,7 @@ Deno.serve(async (req: Request) => {
     decision.claimId,
     completionResult.completion,
     completionResult.latencyMs,
-    guidanceChunks.length,
+    retrieval,
   )
   const updateResponse = await saveConversation(
     authenticated.adminClient,
@@ -508,6 +542,7 @@ Deno.serve(async (req: Request) => {
       message: request.message,
       reply,
       chunks: guidanceChunks,
+      retrievalFailed: retrieval.failed,
     })
   } catch (error) {
     console.error('advisor-chat: response payload build failed', error)
