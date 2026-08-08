@@ -40,8 +40,27 @@ describe('createBetaSignup', () => {
         source: 'landing',
         consent: true,
         contact_fax: '',
+        captcha_token: '',
       },
     })
+  })
+
+  it('forwards the CAPTCHA token when one is provided', async () => {
+    invoke.mockResolvedValue(success(false))
+    await createBetaSignup({
+      email: 'owner@example.ca',
+      language: 'en',
+      consent: true,
+      captchaToken: 'turnstile-token-abc',
+    })
+    expect(invoke.mock.calls[0]![1].body.captcha_token).toBe('turnstile-token-abc')
+  })
+
+  it('maps 403 to captcha (human-verification rejection)', async () => {
+    invoke.mockResolvedValue(httpError(403))
+    await expect(
+      createBetaSignup({ email: 'owner@example.ca', language: 'en', consent: true }),
+    ).rejects.toMatchObject({ code: 'captcha' })
   })
 
   it('omits the optional fields rather than sending empty strings', async () => {

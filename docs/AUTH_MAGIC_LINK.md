@@ -113,3 +113,39 @@ VITE_SUPABASE_ANON_KEY=sb_publishable_…
 
 Without them, `supabase` is `null`, sign-in is disabled, and auth-gated features
 degrade to their signed-out state.
+
+## Session token storage & the XSS blast radius
+
+The security audit (2026-08-08) flagged that the Supabase session — access
+**and refresh** token — persists in `localStorage` (the supabase-js default,
+`src/lib/supabaseClient.ts` passes no `auth` storage option). Any successful
+XSS could therefore read the refresh token and mint sessions indefinitely:
+durable account takeover, not just a stolen short-lived session.
+
+**Decision (2026-08-08): keep `localStorage`; mitigate the impact, don't
+move the tokens.** For a client-only SPA there is no storage that removes
+this risk — `sessionStorage` is equally JS-readable (XSS still steals it) and
+only costs persistence UX; in-memory logs the user out on every refresh; any
+"encrypted" storage keeps its key in JS too, so XSS gets both. The only real
+fix is to stop tokens being JS-readable at all, which means **httpOnly,
+Secure, SameSite cookies set by a server** — an auth proxy or an SSR layer
+this static SPA doesn't have. That is a scoped project, not a reactive
+change, and rushing it risks locking users out.
+
+What actually reduces the risk, and is in place or recommended:
+
+- **Prevent the XSS in the first place** (the dominant control, already
+  strong): no `dangerouslySetInnerHTML` in the app; model output renders
+  through `react-markdown` with **no `rehype-raw`** (raw HTML never
+  rendered) and a URL-protocol allow-list that strips `javascript:`; the
+  chart block is `JSON.parse`, never `eval`.
+- **Constrain exfiltration with CSP** — shipped 2026-08-08 (Report-Only;
+  promote to enforcing per `docs/SECURITY_HEADERS.md`). A tight `connect-src`
+  is what limits where a stolen token could be sent.
+- **Shrink the value of a stolen refresh token** — *owner action:* enable
+  **refresh-token rotation with reuse detection** in the Supabase dashboard
+  (Authentication → Sessions). With rotation on, a replayed refresh token
+  revokes the session, so a token lifted from storage is far less durable.
+- **Revisit the cookie-based auth project** if/when the app gains a server
+  rendering or proxy layer — that is the point at which the clean fix becomes
+  available without new infrastructure just for auth.

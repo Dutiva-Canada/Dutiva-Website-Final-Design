@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabaseClient'
  * leave it empty.
  */
 
-export type BetaSignupErrorCode = 'rate_limited' | 'validation' | 'error'
+export type BetaSignupErrorCode = 'rate_limited' | 'validation' | 'captcha' | 'error'
 
 export class BetaSignupError extends Error {
   constructor(public readonly code: BetaSignupErrorCode) {
@@ -34,6 +34,9 @@ export interface BetaSignupInput {
   consent: boolean
   /** Honeypot — always empty for real users. */
   honeypot?: string
+  /** CAPTCHA token, when the widget is configured; the server verifies it
+   *  only once CAPTCHA_SECRET_KEY is set, mirroring the support intake. */
+  captchaToken?: string | null
 }
 
 export interface BetaSignupResult {
@@ -55,6 +58,9 @@ interface BetaSignupResponse {
 function errorCodeFromStatus(status: number | undefined): BetaSignupErrorCode {
   if (status === 429) return 'rate_limited'
   if (status === 400 || status === 422) return 'validation'
+  /* 403 is the CAPTCHA rejection (create-beta-signup), so the form can tell
+     the visitor to redo the check rather than showing a generic failure. */
+  if (status === 403) return 'captcha'
   return 'error'
 }
 
@@ -81,6 +87,7 @@ export async function createBetaSignup(input: BetaSignupInput): Promise<BetaSign
         source: 'landing',
         consent: input.consent,
         contact_fax: input.honeypot ?? '',
+        captcha_token: input.captchaToken ?? '',
       },
     },
   )

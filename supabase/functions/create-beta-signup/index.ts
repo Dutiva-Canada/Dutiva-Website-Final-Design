@@ -10,6 +10,11 @@ import { buildConsentRecord } from '../_shared/caslConsent.ts'
  * other unauthenticated write path on the site, and having the two behave the
  * same way is what makes either of them reviewable:
  *   • a honeypot field real users never see;
+ *   • a CAPTCHA (Turnstile/hCaptcha) once CAPTCHA_SECRET_KEY is set — inert
+ *     until then, so this ships without it and turns on by config (the same
+ *     two-halves rule as the support intake). Added 2026-08-08: without it
+ *     the endpoint was an outbound-email amplification primitive (every new
+ *     address enqueues a confirmation email).
  *   • per-IP and per-email rate limits backed by beta_signup_intake, which
  *     stores ONLY salted hashes (never a raw IP or email);
  *   • strict validation and length caps.
@@ -71,6 +76,61 @@ async function sha256hex(input: string): Promise<string> {
     .join('')
 }
 
+// ── CAPTCHA (mirror of src/features/support/captcha.ts and the identical
+// block in create-public-support-ticket). Turnstile and hCaptcha share one
+// siteverify request/response shape, so the provider is a config value. ──
+const CAPTCHA_VERIFY_ENDPOINTS: Record<string, string> = {
+  turnstile: 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+  hcaptcha: 'https://api.hcaptcha.com/siteverify',
+}
+
+const CAPTCHA_SECRET = Deno.env.get('CAPTCHA_SECRET_KEY') ?? ''
+const CAPTCHA_PROVIDER = (() => {
+  const raw = (Deno.env.get('CAPTCHA_PROVIDER') ?? '').trim().toLowerCase()
+  return raw === 'hcaptcha' ? 'hcaptcha' : 'turnstile'
+})()
+
+type CaptchaResult = { ok: true } | { ok: false; reason: string }
+
+function interpretSiteverify(payload: unknown): CaptchaResult {
+  if (typeof payload !== 'object' || payload === null) return { ok: false, reason: 'provider_error' }
+  const record = payload as { success?: unknown; 'error-codes'?: unknown }
+  if (record.success === true) return { ok: true }
+  const codes = Array.isArray(record['error-codes'])
+    ? record['error-codes'].filter((c): c is string => typeof c === 'string')
+    : []
+  // Our own misconfiguration ranks above the caller's token — a wrong secret
+  // makes every token "fail", and blaming the token hides the real cause.
+  if (codes.includes('missing-input-secret') || codes.includes('invalid-input-secret')) {
+    return { ok: false, reason: 'bad_secret' }
+  }
+  if (codes.includes('missing-input-response')) return { ok: false, reason: 'missing_token' }
+  if (codes.includes('timeout-or-duplicate')) return { ok: false, reason: 'duplicate_token' }
+  if (codes.includes('invalid-input-response')) return { ok: false, reason: 'invalid_token' }
+  if (codes.includes('bad-request') || codes.includes('internal-error')) {
+    return { ok: false, reason: 'provider_error' }
+  }
+  return { ok: false, reason: 'invalid_token' }
+}
+
+async function verifyCaptcha(token: string, remoteIp: string): Promise<CaptchaResult> {
+  if (!CAPTCHA_SECRET) return { ok: false, reason: 'bad_secret' }
+  if (!token) return { ok: false, reason: 'missing_token' }
+  const form = new URLSearchParams({ secret: CAPTCHA_SECRET, response: token })
+  if (remoteIp && remoteIp !== 'unknown') form.set('remoteip', remoteIp)
+  try {
+    const response = await fetch(CAPTCHA_VERIFY_ENDPOINTS[CAPTCHA_PROVIDER]!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form.toString(),
+    })
+    if (!response.ok) return { ok: false, reason: 'provider_error' }
+    return interpretSiteverify(await response.json())
+  } catch {
+    return { ok: false, reason: 'provider_error' }
+  }
+}
+
 /** Best-effort client IP from the usual proxy headers. */
 function clientIp(req: Request): string {
   const fwd = req.headers.get('x-forwarded-for')
@@ -129,6 +189,27 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'Please confirm to continue.', field: 'consent' }, 422)
   }
 
+  /* CAPTCHA once configured (mirror of the support intake). After the honeypot
+     and the cheap field checks, before any database work — a bot without a
+     valid token never reaches the rate-limit queries, the insert, or the
+     outbound confirmation email. A hard gate: a configured CAPTCHA that
+     quietly passes traffic is worse than none. */
+  const ip = clientIp(req)
+  if (CAPTCHA_SECRET) {
+    const token = typeof body.captcha_token === 'string' ? body.captcha_token : ''
+    const verdict = await verifyCaptcha(token, ip)
+    if (!verdict.ok) {
+      console.error('beta signup captcha rejected', { reason: verdict.reason })
+      return json(
+        {
+          error: 'Human verification failed. Please complete the check and try again.',
+          code: verdict.reason,
+        },
+        403,
+      )
+    }
+  }
+
   const company = optionalStr(body.company, 200)
   const province = typeof body.province === 'string' && body.province.trim() !== ''
     ? oneOf(body.province, PROVINCES, 'other')
@@ -145,7 +226,7 @@ Deno.serve(async (req: Request) => {
 
   const salt =
     Deno.env.get('PUBLIC_INTAKE_SALT') ?? Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? 'dutiva-intake'
-  const ipHash = await sha256hex(`${salt}:ip:${clientIp(req)}`)
+  const ipHash = await sha256hex(`${salt}:ip:${ip}`)
   const emailHash = await sha256hex(`${salt}:email:${email}`)
 
   const ipSince = new Date(Date.now() - IP_WINDOW_MIN * 60 * 1000).toISOString()

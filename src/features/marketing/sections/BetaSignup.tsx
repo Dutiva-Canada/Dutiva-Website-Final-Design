@@ -3,6 +3,8 @@ import type { SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, CircleCheck, Hourglass, ShieldCheck } from 'lucide-react'
 import { usePublicPath } from '@/seo/usePublicPath'
+import { CaptchaField } from '@/features/support/CaptchaField'
+import { isCaptchaConfigured } from '@/features/support/captcha'
 import { createBetaSignup, BetaSignupError } from '../betaSignupApi'
 import type { BetaProvince } from '../betaSignupApi'
 import { useLanding } from '../useLanding'
@@ -50,6 +52,18 @@ export function BetaSignup() {
   const [honeypot, setHoneypot] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [message, setMessage] = useState<{ key: LandingMessageKey; isError: boolean } | null>(null)
+  /* CAPTCHA widget: rendered only when a site key is configured, mirroring
+     the public support form. Inert (nothing rendered, no token required) in
+     dev/tests and until the operator sets VITE_CAPTCHA_SITE_KEY. */
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaReset, setCaptchaReset] = useState(0)
+  const captchaRequired = isCaptchaConfigured()
+
+  const errorKeyForCode = (code: string): LandingMessageKey => {
+    if (code === 'rate_limited') return 'landing_cta_rate_limited'
+    if (code === 'captcha') return 'landing_cta_captcha_failed'
+    return 'landing_cta_fail'
+  }
 
   const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -60,6 +74,10 @@ export function BetaSignup() {
     }
     if (!consent) {
       setMessage({ key: 'landing_cta_consent_err', isError: true })
+      return
+    }
+    if (captchaRequired && !captchaToken) {
+      setMessage({ key: 'landing_cta_captcha_required', isError: true })
       return
     }
 
@@ -73,15 +91,19 @@ export function BetaSignup() {
         language: lang === 'fr' ? 'fr' : 'en',
         consent,
         honeypot,
+        captchaToken,
       })
       setStatus(result.waitlisted ? 'waitlisted' : 'done')
     } catch (error) {
       const code = error instanceof BetaSignupError ? error.code : 'error'
-      setMessage({
-        key: code === 'rate_limited' ? 'landing_cta_rate_limited' : 'landing_cta_fail',
-        isError: true,
-      })
+      setMessage({ key: errorKeyForCode(code), isError: true })
       setStatus('idle')
+      /* A CAPTCHA token is single-use; force a fresh challenge on any failure
+         so a retry cannot resubmit the spent token. */
+      if (captchaRequired) {
+        setCaptchaToken(null)
+        setCaptchaReset((n) => n + 1)
+      }
     }
   }
 
@@ -201,6 +223,10 @@ export function BetaSignup() {
                   {lt('landing_cta_consent_label')}
                 </span>
               </label>
+
+              {captchaRequired && (
+                <CaptchaField onToken={setCaptchaToken} resetSignal={captchaReset} />
+              )}
 
               <button
                 type="submit"
