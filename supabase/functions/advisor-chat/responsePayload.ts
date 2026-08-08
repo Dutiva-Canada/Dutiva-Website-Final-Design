@@ -230,7 +230,9 @@ export function detectJurisdictions(message: string): JurisdictionCode[] {
 
 /* ---------------------------------------------------------------- labels */
 
-const JURISDICTION_VALUE: Record<JurisdictionCode, Bi> = {
+/** Exported (only) for the client backstop's label-drift test — its
+ *  scheduleJurisdiction() maps these display strings back to codes. */
+export const JURISDICTION_VALUE: Record<JurisdictionCode, Bi> = {
   ON: { en: 'Ontario · Provincially regulated', fr: 'Ontario · Réglementation provinciale' },
   QC: { en: 'Quebec · Provincially regulated', fr: 'Québec · Réglementation provinciale' },
   FED: { en: 'Federally regulated', fr: 'Sous réglementation fédérale' },
@@ -371,7 +373,10 @@ export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload 
     label: bi(`${c.title} — ${c.source_name}`, `${c.title} — ${c.source_name}`),
     valid: c.review_status === 'reviewed' && !c.source_changed_at,
   }))
-  const anyUnreviewed = legalBasisItems.some((i) => !i.valid)
+  /* Distinct facts, distinct warnings: "never human-reviewed" and "reviewed
+     but the law changed since" must not conflate — a reviewed-but-flagged
+     chunk is NOT "pending human review" (2026-08-08 follow-up review). */
+  const anyUnreviewed = chunks.some((c) => c.review_status !== 'reviewed')
   const anySourceChanged = chunks.some((c) => !!c.source_changed_at)
 
   /* Accurate about what actually happens: the citation surface is withheld;
@@ -406,11 +411,14 @@ export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload 
       ),
     )
   }
-  if (legalBasisAllowed && anySourceChanged) {
+  /* NOT gated on legalBasisAllowed: a flagged chunk still grounds the
+     prompt on a jurisdiction-unconfirmed turn, and the law-changed signal
+     must reach the reader either way (2026-08-08 follow-up review). */
+  if (anySourceChanged) {
     warnings.push(
       bi(
-        'A law behind a cited source changed after it was curated — verify against the primary source before relying on it.',
-        'Une loi derrière une source citée a changé après sa préparation — vérifiez la source primaire avant de vous y fier.',
+        'A law behind a source that grounded this reply changed after it was curated — verify against the primary source before relying on it.',
+        'Une loi derrière une source ayant fondé cette réponse a changé après sa préparation — vérifiez la source primaire avant de vous y fier.',
       ),
     )
   }
